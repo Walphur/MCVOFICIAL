@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tickets - MCV OFICIAL</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="grain">
+
+<nav class="navbar">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="index.html">Clan</a></li>
+        <li><a href="tournament.html">Tournament</a></li>
+        <li><a href="bot.html">Bot</a></li>
+        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+    </ul>
+</nav>
+
+    <section class="page-section">
+        <div class="section-label">
+            <div class="yellow-line"></div>
+            <span>// Support & Recruitment</span>
+        </div>
+        <h2>Open a <span>Ticket.</span></h2>
+
+        <div class="form-container">
+            <div style="margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
+                <h3 style="font-family: 'Bebas Neue'; font-size: 2rem; margin: 0;">How it works</h3>
+                <p style="color: var(--muted); font-family: 'JetBrains Mono'; font-size: 0.9rem;">To join MCV or request tournament support, fill out this brief overview. You will be redirected to our Discord to open an official ticket with the High Command.</p>
+            </div>
+
+            <form action="https://discord.gg/mBRrUA8wH6" target="_blank">
+                <div class="input-group">
+                    <label><i data-lucide="tag"></i> TICKET TYPE</label>
+                    <select required>
+                        <option value="">Select an option...</option>
+                        <option value="recruit">Clan Recruitment (Join MCV)</option>
+                        <option value="tournament">Tournament Support</option>
+                        <option value="report">Player Report</option>
+                        <option value="other">Other Inquiry</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label><i data-lucide="user"></i> DISCORD USERNAME</label>
+                    <input type="text" placeholder="e.g. yourname#1234" required>
+                </div>
+
+                <div class="input-group">
+                    <label><i data-lucide="message-square"></i> BRIEF DESCRIPTION</label>
+                    <textarea placeholder="Tell us why you are opening this ticket. (If applying for the clan, mention your hours in Rust and specialty)." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary w-100" style="width: 100%; justify-content: center;"><i data-lucide="send"></i> PROCEED TO DISCORD TICKET</button>
+            </form>
+        </div>
+    </section>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

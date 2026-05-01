@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV Oficial - Rust Clan & Events</title>
+
+    <meta property="og:title" content="MCV Oficial - Rust Clan & Events">
+    <meta property="og:description" content="Clan competitivo de Rust, torneos, streams y herramientas de administración.">
+    <meta property="og:image" content="banner.png">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#FAA61A">
+
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="grain home-page">
+
+<nav class="navbar">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="index.html" class="active">Clan</a></li>
+        <li><a href="tournament.html">Tournament</a></li>
+        <li><a href="bot.html">Bot</a></li>
+        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+    </ul>
+</nav>
+
+<section class="home-hero">
+    <div class="home-hero-media" aria-hidden="true"></div>
+    <div class="home-hero-shade" aria-hidden="true"></div>
+
+    <div class="home-hero-content">
+        <div class="section-label home-label">
+            <div class="yellow-line"></div>
+            <span>// Rust Competitive Clan</span>
+        </div>
+
+        <img src="logo.png" alt="MCV" class="home-mark">
+        <h1>MCV <span>OFICIAL</span></h1>
+        <p>Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
+
+        <div class="home-actions">
+            <a href="tournament.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Ver eventos</a>
+            <a href="bot.html" class="btn-secondary"><i data-lucide="shield-check"></i> Abrir tracker</a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+        </div>
+    </div>
+</section>
+
+<section class="stats-bar home-stats">
+    <div class="stat-box">
+        <span class="stat-title">// Eventos hosteados</span>
+        <span class="stat-value">05</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-title">// Discord members</span>
+        <span class="stat-value" id="discord-total">--</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-title">// Online now</span>
+        <span class="stat-value" id="discord-online">--</span>
+    </div>
+    <div class="stat-box">
+        <span class="stat-title">// Active wipes</span>
+        <span class="stat-value">42</span>
+    </div>
+</section>
+
+<section class="home-strip">
+    <span>MCV Network</span>
+    <span>Rust tournaments</span>
+    <span>Anti-cheat tools</span>
+    <span>Live events</span>
+</section>
+
+<section class="page-section home-section home-feature-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Operaciones MCV</span>
+    </div>
+    <div class="section-heading-row">
+        <h2>Clan <span>System.</span></h2>
+        <p>Un ecosistema para competir, organizar torneos, revisar jugadores y mover comunidad sin perder el ritmo del wipe.</p>
+    </div>
+
+    <div class="home-feature-grid">
+        <a href="bot.html" class="home-feature-card highlight-card">
+            <i data-lucide="radar"></i>
+            <span>MCV Tracker</span>
+            <h3>Investiga jugadores</h3>
+            <p>Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
+        </a>
+        <a href="tournament.html" class="home-feature-card">
+            <i data-lucide="trophy"></i>
+            <span>Eventos</span>
+            <h3>Torneos activos</h3>
+            <p>Reglas, inscripciones, premios y calendario competitivo del clan.</p>
+        </a>
+        <a href="live.html" class="home-feature-card">
+            <i data-lucide="radio"></i>
+            <span>Streams</span>
+            <h3>Directos oficiales</h3>
+            <p>Kick, Twitch y cobertura en vivo de raids, scrims y eventos.</p>
+        </a>
+    </div>
+</section>
+
+<section class="page-section home-section bg-darker">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Latest Content</span>
+    </div>
+    <div class="section-heading-row">
+        <h2>MCV <span>Media.</span></h2>
+        <a class="btn-outline-red" href="https://www.youtube.com/@McompanyV/videos" target="_blank"><i data-lucide="youtube"></i> YouTube</a>
+    </div>
+
+    <div class="video-grid home-video-grid">
+        <a href="https://www.youtube.com/@McompanyV/videos" target="_blank" class="video-card">
+            <div class="video-thumb">
+                <img src="banner.png" alt="MCV banner">
+                <span class="video-duration">FEATURED</span>
+                <div class="play-btn"><i data-lucide="play"></i></div>
+            </div>
+            <div class="video-info">
+                <h4>MCV oficial: raids, torneos y highlights</h4>
+                <span>Contenido competitivo de Rust</span>
+            </div>
+        </a>
+        <a href="https://kick.com/mcompanyv" target="_blank" class="video-card">
+            <div class="video-thumb logo-thumb">
+                <img src="logo.png" alt="MCV logo">
+                <span class="video-duration live-badge">LIVE</span>
+                <div class="play-btn"><i data-lucide="radio"></i></div>
+            </div>
+            <div class="video-info">
+                <h4>Kick oficial de MCV</h4>
+                <span>Streams, scrims y wipes en directo</span>
+            </div>
+        </a>
+        <a href="https://www.tiktok.com/@mcv_rust" target="_blank" class="video-card">
+            <div class="video-thumb logo-thumb alt-thumb">
+                <img src="logo.png" alt="MCV logo">
+                <span class="video-duration">CLIPS</span>
+                <div class="play-btn"><i data-lucide="video"></i></div>
+            </div>
+            <div class="video-info">
+                <h4>Jugadas rápidas y clips virales</h4>
+                <span>TikTok oficial del clan</span>
+            </div>
+        </a>
+    </div>
+</section>
+
+<section class="page-section home-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Core Values</span>
+    </div>
+    <div class="section-heading-row">
+        <h2>Cómo juega <span>MCV.</span></h2>
+    </div>
+
+    <div class="bento-grid home-bento">
+        <div class="card">
+            <div class="card-header">
+                <div class="icon-box"><i data-lucide="crosshair"></i></div>
+                <h3>Competencia</h3>
+            </div>
+            <p>Torneos, scrims y eventos con reglas claras, brackets organizados y monitoreo constante.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="icon-box"><i data-lucide="hammer"></i></div>
+                <h3>Disciplina de wipe</h3>
+            </div>
+            <p>Monument control, raids, farm y comunicación con roles definidos para sostener presión.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="icon-box"><i data-lucide="shield-check"></i></div>
+                <h3>Administración</h3>
+            </div>
+            <p>Herramientas de revisión, reportes y datos externos para tomar mejores decisiones.</p>
+        </div>
+    </div>
+</section>
+
+<section class="bottom-cta home-cta">
+    <div class="cta-content">
+        <div class="section-label centered-label">
+            <div class="yellow-line"></div>
+            <span>// Join the network</span>
+            <div class="yellow-line"></div>
+        </div>
+        <h2>Entrá al <span>comando.</span></h2>
+        <p>Unite al Discord para participar en eventos, encontrar equipo y seguir la actividad oficial de MCV.</p>
+        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-primary pulse-rust"><i data-lucide="message-square"></i> Join Discord</a>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-brand">
+            <img src="logo.png" alt="MCV" class="footer-logo">
+            <h2>MCV <span>OFICIAL</span></h2>
+            <p>Clan competitivo de Rust, host de eventos y comunidad conectada a Discord, streams y herramientas propias.</p>
+        </div>
+        <div class="footer-links">
+            <div>
+                <span class="link-title">// Navigation</span>
+                <a href="index.html">Clan</a>
+                <a href="tournament.html">Tournament</a>
+                <a href="bot.html">Bot</a>
+                <a href="tickets.html">Tickets</a>
+            </div>
+            <div>
+                <span class="link-title">// Connect</span>
+                <a href="https://discord.gg/mBRrUA8wH6" target="_blank">Discord</a>
+                <a href="https://www.twitch.tv/mcvteam" target="_blank">Twitch</a>
+                <a href="https://www.youtube.com/@McompanyV" target="_blank">YouTube</a>
+                <a href="https://kick.com/mcompanyv" target="_blank">Kick</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 MCV Clan. All rights reserved.</span>
+        <span>Not affiliated with Facepunch Studios</span>
+    </div>
+</footer>
+
+<script>
+    lucide.createIcons();
+
+    const inviteCode = "mBRrUA8wH6";
+    const apiUrl = `https://discord.com/api/v9/invites/${inviteCode}?with_counts=true`;
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("discord-total").innerText = data.approximate_member_count || "--";
+            document.getElementById("discord-online").innerText = data.approximate_presence_count || "--";
+        })
+        .catch(error => {
+            console.error("Error al cargar stats de Discord:", error);
+            document.getElementById("discord-total").innerText = "OFF";
+            document.getElementById("discord-online").innerText = "OFF";
+        });
+</script>
+</body>
+</html>
