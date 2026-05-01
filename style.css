@@ -881,4 +881,3 @@ body.tournament-page {
 .team-actions{display:flex;flex-wrap:wrap;gap:8px}.team-actions .mini-btn{padding:7px 10px}
 .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:10px 14px}
 @media (max-width:980px){.team-cards{grid-template-columns:1fr}.toolbar-row{flex-direction:column}.toolbar-row input,.toolbar-row select{max-width:unset}}
-.admin-entry{position:fixed;right:16px;bottom:16px;z-index:120;background:#111;border:1px solid #333;color:#facc15;padding:10px 14px;text-decoration:none;font-family:"Bebas Neue";letter-spacing:.08em}
