@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - MCV</title>
+  <link rel="stylesheet" href="style.css?v=20260501" />
+  <link rel="stylesheet" href="login-v2.css?v=20260501" />
+</head>
+<body class="mcv-login">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="lock">🔒</div>
+      <div><p data-i18n="label">// MCV ADMIN</p><h1>CONTROL ROOM</h1></div>
+      <button id="langBtn">EN</button>
+    </div>
+    <form id="loginForm">
+      <label data-i18n="email">EMAIL</label>
+      <input id="email" type="email" required autocomplete="username" />
+      <label data-i18n="password">PASSWORD</label>
+      <input id="password" type="password" required autocomplete="current-password" />
+      <button type="submit" class="cta" data-i18n="enter">ENTER CONTROL ROOM</button>
+      <p id="msg" class="msg"></p>
+    </form>
+    <a href="index.html" data-i18n="back">← BACK TO SITE</a>
+  </div>
+  <script src="login-v2.js?v=20260501"></script>
+=======
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - MCV</title>
@@ -32,5 +57,6 @@ function r(){document.documentElement.lang=lang;passLabel.textContent=i18n[lang]
 langToggle.onclick=()=>{lang=lang==='es'?'en':'es';localStorage.setItem(langKey,lang);r();};
 const passLabel=document.getElementById('pass-label'),enterBtn=document.getElementById('enter-btn'),backLink=document.getElementById('back-link'),langToggle=document.getElementById('lang-toggle');r();
 </script>
+
 </body>
 </html>
