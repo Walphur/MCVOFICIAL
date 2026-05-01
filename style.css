@@ -349,6 +349,72 @@ textarea { resize: vertical; min-height: 120px; }
     transform: translateY(-5px);
     background: #111 !important;
 }
+
+/* Admin panel interactive */
+.table-wrap{border:1px solid var(--border);background:#0d0d0d;overflow:auto}
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th,.admin-table td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left}
+.admin-table th{font-family:"JetBrains Mono";font-size:.8rem;color:var(--muted);text-transform:uppercase}
+.status{padding:4px 8px;border:1px solid var(--border);font-size:.75rem;text-transform:uppercase}
+.status.pending{color:#f59e0b;border-color:#f59e0b55}
+.status.approved{color:#22c55e;border-color:#22c55e55}
+.status.rejected{color:#ef4444;border-color:#ef444455}
+.mini-btn{background:#111;border:1px solid var(--border);color:var(--foreground);padding:6px 10px;cursor:pointer}
+.mini-btn.danger{color:var(--red)}
+.team-modal{border:1px solid var(--border);background:var(--input-bg);color:var(--foreground);max-width:520px;width:90%}
+.team-form{display:flex;flex-direction:column;gap:12px}
+.team-form label span{display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.filter{display:flex;gap:8px;align-items:center}
+.filter span{font-weight:700;color:var(--primary)}
+.filter strong{font-weight:500}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--foreground);padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+
+/* Admin visual refresh */
+.admin-body{background:radial-gradient(circle at top,#1a1a1a 0%,#0b0b0b 45%,#060606 100%);min-height:100vh}
+.admin-shell{max-width:1120px;margin:28px auto 80px;padding:0 24px}
+.admin-navbar{position:sticky;top:0;z-index:99;background:rgba(8,8,8,.88);backdrop-filter:blur(8px);border-bottom:1px solid #2a2a2a;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.admin-logo{font-family:"JetBrains Mono";font-size:.9rem;letter-spacing:.08em;color:#f3f3f3}
+.admin-actions{display:flex;gap:10px}
+.dashboard-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid #282828;border-radius:14px;padding:28px;margin-bottom:20px}
+.dashboard-header h1{font-size:4.6rem;line-height:.85;margin:10px 0 14px}
+.dashboard-header p{max-width:520px;color:#aaa;margin:0}
+.dashboard-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+.filter{background:#101010;border:1px solid #2a2a2a;border-radius:999px;padding:8px 14px;transition:.2s}
+.filter.active,.filter:hover{border-color:var(--primary);transform:translateY(-1px)}
+.filter span{display:inline-flex;min-width:22px;height:22px;border-radius:50%;background:#1b1b1b;align-items:center;justify-content:center;font-size:.8rem}
+.table-wrap{border-radius:14px;overflow:hidden;border:1px solid #2b2b2b;background:#0f0f0f}
+.admin-table tr:hover td{background:#131313}
+.admin-table td:last-child{display:flex;gap:8px}
+.mini-btn{border-radius:8px}
+#empty-state{border:1px dashed #353535;border-radius:14px;padding:38px 20px;background:#0d0d0d}
+#empty-state p{margin:0;color:#c5c5c5;text-align:center;font-family:"JetBrains Mono";letter-spacing:.08em}
+.team-modal{border-radius:14px;padding:0}
+.team-modal::backdrop{background:rgba(0,0,0,.6)}
+.team-form{padding:22px}
+.team-form h3{margin:0 0 6px;font-size:2rem}
+.btn-outline{border-radius:10px}
+@media (max-width:720px){.dashboard-header{padding:20px;flex-direction:column;align-items:flex-start}.dashboard-header h1{font-size:3.2rem}.admin-shell{padding:0 14px}}
+
+/* Control room authentic style */
+.login-body{background:#060606;display:grid;place-items:center;min-height:100vh}
+.login-shell{width:min(540px,92vw);border:1px solid #2a2a2a;background:linear-gradient(90deg,#111,#0d0d0d);padding:40px}
+.login-header-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}.login-header-row h2{font-size:3rem;margin:0}.lock-box{width:42px;height:42px;background:var(--primary);display:grid;place-items:center;color:#000;font-weight:700}.small{padding:8px 10px;font-size:.85rem}
+.login-form .btn-primary{width:100%;justify-content:center;margin-top:8px}
+.back-link{display:block;text-align:center;color:#81818b;letter-spacing:.2em;margin-top:24px;text-decoration:none}
+
+.admin-navbar .mail{color:#666;font-family:"JetBrains Mono";font-size:.8rem;margin-left:12px}
+.toolbar-row{display:flex;gap:12px;margin:12px 0 8px}.toolbar-row input,.toolbar-row select{max-width:280px;background:#0b0b0b}
+.team-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.team-card{border:1px solid #262626;background:linear-gradient(180deg,#141414,#0f0f0f);padding:18px}
+.team-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.team-card h3{font-size:2rem;margin:0}.team-card small{color:#a3a3a3}.team-meta{display:flex;justify-content:space-between;color:#777;font-family:"JetBrains Mono";font-size:.8rem}.team-card p{border-top:1px solid #222;padding-top:10px;color:#9d9d9d;min-height:22px}
+.team-actions{display:flex;flex-wrap:wrap;gap:8px}.team-actions .mini-btn{padding:7px 10px}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:10px 14px}
+@media (max-width:980px){.team-cards{grid-template-columns:1fr}.toolbar-row{flex-direction:column}.toolbar-row input,.toolbar-row select{max-width:unset}}
+.admin-entry{position:fixed;right:16px;bottom:16px;z-index:120;background:#111;border:1px solid #333;color:#facc15;padding:10px 14px;text-decoration:none;font-family:"Bebas Neue";letter-spacing:.08em}
+.site-lang-toggle{position:fixed;left:16px;bottom:16px;z-index:120;background:#0f0f0f;border:1px solid #333;color:#facc15;padding:10px 12px;font-family:"Bebas Neue";cursor:pointer}
+=======
 /* =========================================
    HOME REDESIGN - MCV OFICIAL
    ========================================= */
@@ -881,3 +947,4 @@ body.tournament-page {
 .team-actions{display:flex;flex-wrap:wrap;gap:8px}.team-actions .mini-btn{padding:7px 10px}
 .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);padding:10px 14px}
 @media (max-width:980px){.team-cards{grid-template-columns:1fr}.toolbar-row{flex-direction:column}.toolbar-row input,.toolbar-row select{max-width:unset}}
+

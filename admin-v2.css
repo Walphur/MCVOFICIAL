@@ -16,3 +16,7 @@ dialog{border:1px solid #333;background:#0f0f0f;color:#fff}dialog::backdrop{back
 .roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card ul{list-style:none;padding:0;margin:8px 0;border-top:1px solid #242424}.card li{font-family:"JetBrains Mono";font-size:.78rem;color:#9b9b9b;padding:3px 0}
 =======
 
+.roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.card ul{list-style:none;padding:0;margin:8px 0;border-top:1px solid #242424}.card li{font-family:"JetBrains Mono";font-size:.78rem;color:#9b9b9b;padding:3px 0}
+=======
+
+
