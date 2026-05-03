@@ -6,7 +6,8 @@
 <button id="site-lang-toggle" class="site-lang-toggle">EN</button>
 <script src="events-core.js"></script><script src="i18n-site.js"></script>
 <script>
-const list=document.getElementById('events-list'),sel=document.getElementById('event-select'),players=document.getElementById('players-box');
+
+  const list=document.getElementById('events-list'),sel=document.getElementById('event-select'),players=document.getElementById('players-box');
 function render(){const evs=MCVEvents.all();list.innerHTML=evs.map(e=>`<article class='event-card'><h3>${e.name}</h3><p>${e.prizePool} · ${e.format} · ${e.date} ${e.time}</p><p>${e.rules}</p><span>${e.status}</span></article>`).join('');sel.innerHTML=MCVEvents.active().map(e=>`<option value='${e.id}'>${e.name}</option>`).join('');buildPlayers();}
 function buildPlayers(){const ev=MCVEvents.active().find(x=>x.id===sel.value)||MCVEvents.active()[0];const n=ev?.teamSize||5;players.innerHTML='';for(let i=1;i<=n;i++){players.innerHTML+=`<div class='input-group'><label>Jugador ${i}</label><input name='p${i}' required></div><div class='input-group'><label>SteamID ${i}</label><input name='sid${i}' required></div>`;}}
 sel.onchange=buildPlayers;
@@ -17,3 +18,58 @@ try{await fetch('/api/discord/register-card',{method:'POST',headers:{'Content-Ty
 document.getElementById('form-msg').textContent='Registro enviado. Si el backend está activo, bot + Discord reciben la card del team.';};
 render();
 </script></body></html>
+
+    lucide.createIcons();
+
+    document.querySelector('.squad-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const btn = document.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "<i data-lucide='shield'></i> Escaneando cuentas...";
+        btn.disabled = true;
+        lucide.createIcons();
+
+        const teamName = document.querySelector('input[placeholder="e.g. Rust Lords"]').value;
+        const steamIDs = [];
+        const playerRows = document.querySelectorAll('.player-row');
+
+        playerRows.forEach((row) => {
+            const inputs = row.querySelectorAll('input');
+            steamIDs.push(inputs[1].value);
+        });
+
+        fetch('http://localhost:3000/verificar-equipo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ teamName, steamIDs })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.rechazado) {
+                    alert('Equipo denegado: el sistema detectó un ban en el roster. Revisá Discord para más detalles.');
+                } else {
+                    alert('Equipo aprobado: los 5 jugadores están limpios de VAC/Game Bans.');
+                    document.querySelector('.squad-form').reset();
+                }
+            } else {
+                alert('Hubo un problema conectando con la base de datos de Steam.');
+            }
+        })
+        .catch(err => {
+            console.error('Error conectando al backend:', err);
+            alert('Error de conexión. ¿Está encendido el servidor Node.js?');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            lucide.createIcons();
+        });
+    });
+</script>
+<button id="site-lang-toggle" class="site-lang-toggle">EN</button>
+<script src="i18n-site.js?v=20260501"></script>
+</body>
+</html>
+

@@ -25,5 +25,39 @@
     <a href="index.html" data-i18n="back">← BACK TO SITE</a>
   </div>
   <script src="login-v2.js?v=20260501"></script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MCV</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    <div class="login-shell">
+        <div class="login-header-row">
+            <div class="lock-box">🔒</div>
+            <div>
+                <span class="tagline">// MCV ADMIN</span>
+                <h2>CONTROL ROOM</h2>
+            </div>
+            <button id="lang-toggle" class="btn-outline small">EN</button>
+        </div>
+
+        <form class="login-form">
+            <div class="input-group"><label>EMAIL</label><input type="email" placeholder="admin@mcv.gg" required></div>
+            <div class="input-group"><label id="pass-label">CONTRASEÑA</label><input type="password" required></div>
+            <a href="admin.html"><button type="button" class="btn-primary w-100" id="enter-btn">ENTER CONTROL ROOM</button></a>
+        </form>
+
+        <a href="index.html" class="back-link" id="back-link">← BACK TO TOURNAMENT SITE</a>
+    </div>
+<script>
+const langKey='mcv-lang';let lang=localStorage.getItem(langKey)||'es';
+const i18n={es:{pass:'CONTRASEÑA',enter:'ENTRAR AL PANEL',back:'← VOLVER AL SITIO',btn:'EN'},en:{pass:'PASSWORD',enter:'ENTER CONTROL ROOM',back:'← BACK TO TOURNAMENT SITE',btn:'ES'}};
+function r(){document.documentElement.lang=lang;passLabel.textContent=i18n[lang].pass;enterBtn.textContent=i18n[lang].enter;backLink.textContent=i18n[lang].back;langToggle.textContent=i18n[lang].btn;}
+langToggle.onclick=()=>{lang=lang==='es'?'en':'es';localStorage.setItem(langKey,lang);r();};
+const passLabel=document.getElementById('pass-label'),enterBtn=document.getElementById('enter-btn'),backLink=document.getElementById('back-link'),langToggle=document.getElementById('lang-toggle');r();
+</script>
+
 </body>
 </html>
