@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -317,6 +318,30 @@
                 </div>
             </div>
 
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MCV Events</title><link rel="stylesheet" href="style.css"><style>.events-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.event-card{border:1px solid #2a2a2a;padding:18px;background:#111}.hidden{display:none}</style></head><body class="grain">
+<nav class="navbar"><a href="index.html" class="logo-link"><img src="logo.png" class="navbar-logo"><div class="logo-text">MCV <span>OFICIAL</span></div></a><ul class="nav-links"><li><a href="index.html">Clan</a></li><li><a href="tournament.html" class="active">Tournament</a></li><li><a href="bot.html">Bot</a></li><li><a href="tickets.html">Tickets</a></li><li><a href="live.html" class="live-link">Streams</a></li></ul></nav>
+<section class="page-section"><div class="section-label"><div class="yellow-line"></div><span id="events-label">// EVENTOS MCV</span></div><h2 id="events-title">Torneos y <span>eventos.</span></h2><div id="events-list" class="events-grid"></div></section>
+<section class="page-section bg-darker"><div class="section-label"><div class="yellow-line"></div><span>// Registro</span></div><h2 id="form-title">Inscripción</h2>
+<form id="dynamic-form" class="form-container"><div class="input-group"><label>Evento</label><select id="event-select"></select></div><div class="input-group"><label>Nombre de team</label><input id="team-name" required></div><div id="players-box"></div><button class="btn-primary" type="submit">Enviar y revisar con bot</button><p id="form-msg"></p></form></section>
+<button id="site-lang-toggle" class="site-lang-toggle">EN</button>
+<script src="events-core.js"></script><script src="i18n-site.js"></script>
+<script>
+
+  const list=document.getElementById('events-list'),sel=document.getElementById('event-select'),players=document.getElementById('players-box');
+function render(){const evs=MCVEvents.all();list.innerHTML=evs.map(e=>`<article class='event-card'><h3>${e.name}</h3><p>${e.prizePool} · ${e.format} · ${e.date} ${e.time}</p><p>${e.rules}</p><span>${e.status}</span></article>`).join('');sel.innerHTML=MCVEvents.active().map(e=>`<option value='${e.id}'>${e.name}</option>`).join('');buildPlayers();}
+function buildPlayers(){const ev=MCVEvents.active().find(x=>x.id===sel.value)||MCVEvents.active()[0];const n=ev?.teamSize||5;players.innerHTML='';for(let i=1;i<=n;i++){players.innerHTML+=`<div class='input-group'><label>Jugador ${i}</label><input name='p${i}' required></div><div class='input-group'><label>SteamID ${i}</label><input name='sid${i}' required></div>`;}}
+sel.onchange=buildPlayers;
+document.getElementById('dynamic-form').onsubmit=async(e)=>{e.preventDefault();const ev=MCVEvents.active().find(x=>x.id===sel.value);const fd=new FormData(e.target);const roster=[];for(let i=1;i<=ev.teamSize;i++)roster.push({name:fd.get('p'+i),steamId:fd.get('sid'+i)});
+const payload={eventId:ev.id,eventName:ev.name,teamName:document.getElementById('team-name').value,roster};
+try{await fetch('/api/investigate-team',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch{}
+try{await fetch('/api/discord/register-card',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch{}
+document.getElementById('form-msg').textContent='Registro enviado. Si el backend está activo, bot + Discord reciben la card del team.';};
+render();
+</script></body></html>
+
+    lucide.createIcons();
+
+
             <div class="player-row">
                 <div class="player-num">04</div>
                 <div class="input-group">
@@ -427,6 +452,15 @@
             btn.disabled = false;
         });
     });
+
     </script>
 </body>
 </html>
+
+</script>
+<button id="site-lang-toggle" class="site-lang-toggle">EN</button>
+<script src="i18n-site.js?v=20260501"></script>
+</body>
+</html>
+
+
