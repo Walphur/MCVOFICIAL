@@ -41,3 +41,4 @@ const base={};document.querySelectorAll('h1,h2,h3,h4,p,a,button,span,label').for
 function apply(){document.documentElement.lang=lang;const map=(T[page]&&T[page][lang])||{};document.querySelectorAll('[data-base]').forEach(el=>el.textContent=el.dataset.base);Object.entries(map).forEach(([sel,val])=>{const el=document.querySelector(sel.trim());if(el)el.textContent=val;});const btn=document.getElementById('site-lang-toggle');if(btn)btn.textContent=lang==='es'?'EN':'ES';}
 const b=document.getElementById('site-lang-toggle');if(b)b.onclick=()=>{lang=lang==='es'?'en':'es';localStorage.setItem(L,lang);apply();};apply();})();
 
+
