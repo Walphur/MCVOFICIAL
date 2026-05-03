@@ -1,52 +1,87 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Control Room - MCV</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>MCV Control Room</title>
+  <link rel="stylesheet" href="style.css?v=20260501" />
+  <link rel="stylesheet" href="admin-v2.css?v=20260501" />
 </head>
-<body class="admin-body">
+<body class="mcv-admin">
+  <header class="mcv-topbar">
+    <div class="brand">🔒 <span data-i18n="brand">MCV CONTROL ROOM</span> <small>// ADMIN@MCV.GG</small></div>
+    <div class="actions">
+      <button id="langBtn" class="ghost">EN</button>
+      <button id="refreshBtn" class="ghost" data-i18n="refresh">REFRESH</button>
+      <button id="resetBtn" class="danger" data-i18n="reset">RESET</button>
+      <a href="login.html" class="ghost" data-i18n="logout">LOGOUT</a>
+    </div>
+  </header>
 
-    <nav class="admin-navbar">
-        <div class="admin-logo">🔒 MCV CONTROL ROOM <span>// ADMIN@MCV.GG</span></div>
-        <div class="admin-actions">
-            <button class="btn-outline">🔄 REFRESH</button>
-            <a href="login.html"><button class="btn-outline">🚪 LOGOUT</button></a>
-        </div>
-    </nav>
+  <main class="mcv-wrap">
+    <section class="hero">
+      <p data-i18n="label">// TEAMS MANAGEMENT</p>
+      <h1 data-i18n="title">CONTROL <span>ROOM.</span></h1>
+      <p data-i18n="subtitle">Review registrations, manage brackets, export rosters.</p>
+      <div class="hero-actions">
+        <button id="addBtn" class="ghost" data-i18n="add">ADD TEAM</button>
+        <button id="exportBtn" class="primary" data-i18n="export">EXPORT CSV</button>
+      </div>
+    </section>
 
-    <main class="admin-main">
-        <header class="dashboard-header">
-            <div>
-                <span class="tagline">// TEAMS MANAGEMENT</span>
-                <h1>CONTROL <span>ROOM.</span></h1>
-                <p>Review registrations, manage brackets, export rosters.</p>
-            </div>
-            <div class="dashboard-buttons">
-                <button class="btn-primary-small">📥 EXPORT CSV</button>
-                <button class="btn-danger">🛑 RESET</button>
-            </div>
-        </header>
+    <section class="toolbar">
+      <input id="q" type="text" placeholder="Search team..." />
+      <select id="sort">
+        <option value="new">Newest</option>
+        <option value="name">Name A-Z</option>
+        <option value="players">Most players</option>
+      </select>
+    </section>
 
-        <div class="tabs">
-            <button class="tab active">👑 TEAMS</button>
-            <button class="tab">⚔️ BRACKET</button>
-        </div>
+    <section class="filters">
+      <button data-filter="all" class="active"><b data-i18n="all">ALL</b><span>0</span></button>
+      <button data-filter="pending"><b data-i18n="pending">PENDING</b><span>0</span></button>
+      <button data-filter="approved"><b data-i18n="approved">APPROVED</b><span>0</span></button>
+      <button data-filter="rejected"><b data-i18n="rejected">REJECTED</b><span>0</span></button>
+    </section>
 
-        <div class="filters">
-            <button class="filter active">ALL <span>0</span></button>
-            <button class="filter">PENDING <span>0</span></button>
-            <button class="filter">APPROVED <span>0</span></button>
-            <button class="filter">REJECTED <span>0</span></button>
-        </div>
+    <section id="cards" class="cards"></section>
+    <section id="empty" class="empty" data-i18n="empty">NO TEAMS IN THIS VIEW.</section>
+  </main>
+<section class='mcv-wrap'>
+  <h2 style='font-family:Bebas Neue'>EVENT MANAGER</h2>
+  <form id='event-form' class='form'>
+    <label>Nombre<input id='ev-name' required></label><label>Prize Pool<input id='ev-prize' required></label><label>Reglas<textarea id='ev-rules'></textarea></label>
+    <label>Participantes por team<input id='ev-size' type='number' value='5'></label><label>Max teams<input id='ev-max' type='number' value='30'></label><label>Formato<select id='ev-format'><option value='single_elim'>Single Elim</option><option value='double_elim'>Double Elim</option></select></label>
+    <label>Fecha<input id='ev-date' type='date'></label><label>Hora<input id='ev-time' type='time'></label>
+    <button class='primary'>Crear torneo</button>
+  </form>
+  <div id='event-admin-list'></div>
+</section>
 
-        <div class="data-area empty-state">
-            <p>NO TEAMS IN THIS VIEW.</p>
-        </div>
-    </main>
 
+  <dialog id="teamDlg">
+    <form id="teamForm" method="dialog" class="form">
+      <h3 data-i18n="team">TEAM</h3>
+      <label><span data-i18n="teamName">Team name</span><input id="teamName" required /></label>
+      <label><span data-i18n="captain">Captain</span><input id="captain" required /></label>
+      <label><span data-i18n="players">Players</span><input id="players" type="number" min="1" max="16" required /></label>
+      <label><span data-i18n="status">Status</span>
+        <select id="status"><option value="pending">pending</option><option value="approved">approved</option><option value="rejected">rejected</option></select>
+      </label>
+      <label><span data-i18n="notes">Notes</span><textarea id="notes"></textarea></label>
+      <div class="roster-grid"><label><span>Player 1</span><input id="p1" /></label><label><span>SteamID 1</span><input id="sid1" /></label><label><span>Player 2</span><input id="p2" /></label><label><span>SteamID 2</span><input id="sid2" /></label><label><span>Player 3</span><input id="p3" /></label><label><span>SteamID 3</span><input id="sid3" /></label><label><span>Player 4</span><input id="p4" /></label><label><span>SteamID 4</span><input id="sid4" /></label><label><span>Player 5</span><input id="p5" /></label><label><span>SteamID 5</span><input id="sid5" /></label></div>
+      <div class="row">
+        <button class="primary" type="submit" data-i18n="save">SAVE</button>
+        <button class="ghost" type="button" id="cancelBtn" data-i18n="cancel">CANCEL</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="events-core.js"></script>
+<script src="admin-v2.js?v=20260501"></script>
 </body>
 </html>
