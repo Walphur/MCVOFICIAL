@@ -52,6 +52,18 @@
     <section id="empty" class="empty" data-i18n="empty">NO TEAMS IN THIS VIEW.</section>
   </main>
 
+<section class='mcv-wrap'>
+  <h2 style='font-family:Bebas Neue'>EVENT MANAGER</h2>
+  <form id='event-form' class='form'>
+    <label>Nombre<input id='ev-name' required></label><label>Prize Pool<input id='ev-prize' required></label><label>Reglas<textarea id='ev-rules'></textarea></label>
+    <label>Participantes por team<input id='ev-size' type='number' value='5'></label><label>Max teams<input id='ev-max' type='number' value='30'></label><label>Formato<select id='ev-format'><option value='single_elim'>Single Elim</option><option value='double_elim'>Double Elim</option></select></label>
+    <label>Fecha<input id='ev-date' type='date'></label><label>Hora<input id='ev-time' type='time'></label>
+    <button class='primary'>Crear torneo</button>
+  </form>
+  <div id='event-admin-list'></div>
+</section>
+
+
   <dialog id="teamDlg">
     <form id="teamForm" method="dialog" class="form">
       <h3 data-i18n="team">TEAM</h3>
@@ -71,6 +83,10 @@
     </form>
   </dialog>
 
+  <script src="events-core.js"></script>
+<script src="admin-v2.js?v=20260501"></script>
+
   <script src="admin-v2.js?v=20260501"></script>
+
 </body>
 </html>
