@@ -1,38 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Admin Login - MCV</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login - MCV</title>
+  <link rel="stylesheet" href="style.css?v=20260501" />
+  <link rel="stylesheet" href="login-v2.css?v=20260501" />
 </head>
-<body class="login-body">
-
-    <div class="login-container">
-        <div class="login-header">
-            <div class="icon">🔒</div>
-            <div>
-                <span class="tagline">// MCV ADMIN</span>
-                <h2>CONTROL ROOM</h2>
-            </div>
-        </div>
-
-        <form class="login-form">
-            <div class="input-group">
-                <label>EMAIL</label>
-                <input type="email" placeholder="admin@mcv.gg" required>
-            </div>
-            <div class="input-group">
-                <label>PASSWORD</label>
-                <input type="password" required>
-            </div>
-            <a href="admin.html"><button type="button" class="btn-primary w-100">ENTER CONTROL ROOM</button></a>
-        </form>
-
-        <a href="index.html" class="back-link">← BACK TO TOURNAMENT SITE</a>
+<body class="mcv-login">
+  <div class="login-card">
+    <div class="login-head">
+      <div class="lock">🔒</div>
+      <div><p data-i18n="label">// MCV ADMIN</p><h1>CONTROL ROOM</h1></div>
+      <button id="langBtn">EN</button>
     </div>
-
+    <form id="loginForm">
+      <label data-i18n="email">EMAIL</label>
+      <input id="email" type="email" required autocomplete="username" />
+      <label data-i18n="password">PASSWORD</label>
+      <input id="password" type="password" required autocomplete="current-password" />
+      <button type="submit" class="cta" data-i18n="enter">ENTER CONTROL ROOM</button>
+      <p id="msg" class="msg"></p>
+    </form>
+    <a href="index.html" data-i18n="back">← BACK TO SITE</a>
+  </div>
+  <script src="login-v2.js?v=20260501"></script>
 </body>
 </html>
