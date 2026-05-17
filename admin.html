@@ -14,30 +14,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="admin-body">
+<body class="admin-body" data-mcv-page="admin">
 
     <nav class="admin-navbar">
         <div class="admin-logo"><img src="logo.png" width="36" height="36" alt=""> MCV CONTROL ROOM <span>// ADMIN</span></div>
         <div class="admin-actions">
-            <button type="button" class="btn-outline" id="refresh-btn">🔄 Actualizar</button>
-            <a href="login.html"><button type="button" class="btn-outline">🔑 Login</button></a>
-            <button type="button" class="btn-outline" id="logout-btn">🚪 Salir</button>
+            <button type="button" class="btn-outline" id="refresh-btn"><span data-i18n="admin.refresh">🔄 Actualizar</span></button>
+            <a href="login.html"><button type="button" class="btn-outline"><span data-i18n="admin.loginBtn">🔑 Login</span></button></a>
+            <button type="button" class="btn-outline" id="logout-btn"><span data-i18n="admin.logout">🚪 Salir</span></button>
         </div>
     </nav>
 
     <main class="admin-main">
         <header class="dashboard-header">
             <div>
-                <span class="tagline">// PANEL ADMIN</span>
-                <h1>CONTROL <span>ROOM.</span></h1>
-                <p id="tournament-summary" class="admin-summary-line">Torneo seleccionado: <strong id="slug-label">…</strong>
-                <select id="admin-tournament-select" class="admin-slug-select" title="Elegí qué torneo gestionás"></select></p>
+                <span class="tagline" data-i18n="admin.tagline">// PANEL ADMIN</span>
+                <h1><span data-i18n="admin.h1">CONTROL</span> <span data-i18n="admin.h1span">ROOM.</span></h1>
+                <p id="tournament-summary" class="admin-summary-line"><span data-i18n="admin.summary">Torneo seleccionado:</span> <strong id="slug-label">…</strong>
+                <select id="admin-tournament-select" class="admin-slug-select" data-i18n-title="admin.tournamentSelectTitle" title="Elegí qué torneo gestionás"></select></p>
             </div>
             <div class="dashboard-buttons">
-                <button type="button" class="btn-outline" id="goto-tournaments-tab" title="Crear o finalizar torneos">🏆 Torneos</button>
-                <button type="button" class="btn-primary-small" id="export-csv">📥 Exportar CSV</button>
-                <button type="button" class="btn-primary-small" id="gen-bracket">⚔️ Generar bracket</button>
-                <button type="button" class="btn-primary-small" id="next-round">➡️ Siguiente ronda</button>
+                <button type="button" class="btn-outline" id="goto-tournaments-tab" data-i18n-title="admin.gotoTorneos" title="Crear o finalizar torneos"><span data-i18n="admin.gotoTorneos">🏆 Torneos</span></button>
+                <button type="button" class="btn-primary-small" id="export-csv"><span data-i18n="admin.exportCsv">📥 Exportar CSV</span></button>
+                <button type="button" class="btn-primary-small" id="gen-bracket"><span data-i18n="admin.genBracket">⚔️ Generar bracket</span></button>
+                <button type="button" class="btn-primary-small" id="next-round"><span data-i18n="admin.nextRound">➡️ Siguiente ronda</span></button>
             </div>
         </header>
 
@@ -45,23 +45,23 @@
 
         <div class="admin-cta-strip" id="admin-cta-strip">
             <div class="admin-cta-strip-inner">
-                <span class="admin-cta-text"><strong>Nuevo torneo</strong> — en la pestaña Torneos; después equipos en Equipos.</span>
-                <button type="button" class="btn-primary-small" id="admin-open-torneos">Ir a Torneos</button>
+                <span class="admin-cta-text"><strong data-i18n="admin.ctaStrong">Nuevo torneo</strong><span data-i18n="admin.ctaText"> — en la pestaña Torneos; después equipos en Equipos.</span></span>
+                <button type="button" class="btn-primary-small" id="admin-open-torneos" data-i18n="admin.ctaBtn">Ir a Torneos</button>
             </div>
         </div>
 
-        <div class="tabs admin-tabs" role="tablist" aria-label="Secciones del panel">
-            <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false">🏆 Torneos</button>
-            <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true">👑 Equipos</button>
-            <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false">⚔️ Bracket</button>
+        <div class="tabs admin-tabs" role="tablist" data-i18n-aria-label="admin.tabListLabel">
+            <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">🏆 Torneos</span></button>
+            <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true"><span data-i18n="admin.tabTeams">👑 Equipos</span></button>
+            <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">⚔️ Bracket</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
-            <p class="admin-tournaments-intro">Acá creás torneos nuevos o los finalizás con póster. Los equipos se cargan en la pestaña <strong>Equipos</strong> (registro web o alta manual).</p>
+            <p class="admin-tournaments-intro" data-i18n-html="admin.introTournaments"></p>
             <div class="admin-tournament-grid">
                 <div class="data-area">
-                    <h3 class="admin-form-title">Crear torneo</h3>
-                    <p class="admin-form-hint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
+                    <h3 class="admin-form-title" data-i18n="admin.formCreateTitle">Crear torneo</h3>
+                    <p class="admin-form-hint" data-i18n="admin.formCreateHint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
                     <form id="form-new-tournament" class="admin-stack-form">
                         <label>Título *<input name="title" required placeholder="Ej. MCV Winter Cup"></label>
                         <label>Slug (opcional)<input name="slug" placeholder="mcv-winter-cup"></label>
@@ -87,8 +87,8 @@
                     </form>
                 </div>
                 <div class="data-area">
-                    <h3 class="admin-form-title">Finalizar + póster</h3>
-                    <p class="admin-form-hint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 5MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
+                    <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
+                    <p class="admin-form-hint" data-i18n="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 5MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
                     <form id="form-finish-tournament" class="admin-stack-form">
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
@@ -96,15 +96,15 @@
                         <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
                         <button type="submit" class="btn-primary-small">Finalizar torneo</button>
                     </form>
-                    <p class="admin-form-hint" style="margin-top:12px;">Cambiar estado sin finalizar: usá PATCH desde consola o añadimos toggles después.</p>
+                    <p class="admin-form-hint" style="margin-top:12px;" data-i18n="admin.formFinishHint2">Cambiar estado sin finalizar: usá PATCH desde consola o añadimos toggles después.</p>
                 </div>
             </div>
         </div>
 
         <div id="teams-panel">
             <div class="data-area admin-manual-box">
-                <h3 class="admin-manual-title">Agregar equipo (manual)</h3>
-                <p class="admin-form-hint admin-readable">Si no se inscribieron solos, cargalos acá. Mismos datos que el formulario público: 5 jugadores con Steam64 (17 dígitos) y Discord.</p>
+                <h3 class="admin-manual-title" data-i18n="admin.manualTitle">Agregar equipo (manual)</h3>
+                <p class="admin-form-hint admin-readable" data-i18n="admin.manualHint">Si no se inscribieron solos, cargalos acá. Mismos datos que el formulario público: 5 jugadores con Steam64 (17 dígitos) y Discord.</p>
                 <form id="form-admin-add-team" class="admin-manual-form">
                     <div class="admin-manual-row">
                         <label>Equipo *<input name="teamName" required placeholder="Nombre del team"></label>
@@ -120,7 +120,7 @@
                         </label>
                         <label class="admin-checkbox-row admin-checkbox-inline"><input type="checkbox" name="skipBans" value="1"> Omitir chequeo VAC/Game ban (Steam API)</label>
                     </div>
-                    <p class="admin-form-hint admin-readable">Jugadores (los 5 obligatorios)</p>
+                    <p class="admin-form-hint admin-readable" data-i18n="admin.playersHint">Jugadores (los 5 obligatorios)</p>
                     <div class="admin-players-grid">
                         <span class="admin-players-head">#</span>
                         <span class="admin-players-head">Nombre</span>
@@ -137,32 +137,33 @@
             </div>
 
             <div class="filters" id="filters">
-                <button type="button" class="filter active" data-filter="all">Todos <span id="c-all">0</span></button>
-                <button type="button" class="filter" data-filter="pending">Pendientes <span id="c-pending">0</span></button>
-                <button type="button" class="filter" data-filter="accepted">Aprobados <span id="c-accepted">0</span></button>
-                <button type="button" class="filter" data-filter="declined">Rechazados <span id="c-declined">0</span></button>
+                <button type="button" class="filter active" data-filter="all"><span data-i18n="admin.filterAll">Todos</span> <span id="c-all">0</span></button>
+                <button type="button" class="filter" data-filter="pending"><span data-i18n="admin.filterPending">Pendientes</span> <span id="c-pending">0</span></button>
+                <button type="button" class="filter" data-filter="accepted"><span data-i18n="admin.filterAccepted">Aprobados</span> <span id="c-accepted">0</span></button>
+                <button type="button" class="filter" data-filter="declined"><span data-i18n="admin.filterDeclined">Rechazados</span> <span id="c-declined">0</span></button>
             </div>
 
             <div class="winner-row">
-                <label class="winner-label">Ganador (ID de registro aceptado)</label>
-                <input type="number" id="winner-id" class="winner-input" min="1" placeholder="Ej. 12">
-                <button type="button" class="btn-primary-small" id="save-winner">Guardar ganador</button>
-                <button type="button" class="btn-outline" id="clear-winner">Limpiar</button>
+                <label class="winner-label" data-i18n="admin.winnerLabel">Ganador (ID de registro aceptado)</label>
+                <input type="number" id="winner-id" class="winner-input" min="1" data-i18n-placeholder="admin.winnerPlaceholder" placeholder="Ej. 12">
+                <button type="button" class="btn-primary-small" id="save-winner"><span data-i18n="admin.saveWinner">Guardar ganador</span></button>
+                <button type="button" class="btn-outline" id="clear-winner"><span data-i18n="admin.clearWinner">Limpiar</span></button>
             </div>
 
             <div class="data-area" id="data-area">
-                <p class="empty-hint">Cargando…</p>
+                <p class="empty-hint" data-i18n="admin.emptyLoading">Cargando…</p>
             </div>
         </div>
 
         <div id="bracket-panel" style="display:none;">
             <div class="data-area" id="bracket-area">
-                <p class="empty-hint">Sin datos de bracket.</p>
+                <p class="empty-hint" data-i18n="admin.emptyBracket">Sin datos de bracket.</p>
             </div>
         </div>
     </main>
 
 <script src="mcv-api-base.js"></script>
+<script src="mcv-i18n.js"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");

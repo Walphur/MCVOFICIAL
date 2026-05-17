@@ -12,7 +12,7 @@
     <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain live-page">
+<body class="grain live-page" data-mcv-page="live">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -20,21 +20,21 @@
         <div class="logo-text">MCV <span>OFICIAL</span></div>
     </a>
     <ul class="nav-links">
-        <li><a href="index.html">Clan</a></li>
-        <li><a href="events.html">Torneos</a></li>
-        <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
-        <li><a href="live.html" class="live-link active"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link active"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
 <main class="page-section live-layout">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Cobertura en vivo</span>
+        <span data-i18n="live.sectionTag">// Cobertura en vivo</span>
     </div>
-    <h1 class="live-heading">MCV <span>Live.</span></h1>
-    <p class="live-lead">Kick y Twitch oficiales del clan. Si el embed de Twitch no carga, revisá bloqueadores o probá desde mcvoficial.com.</p>
+    <h1 class="live-heading"><span data-i18n="live.heading">MCV </span><span data-i18n="live.headingSpan">Live.</span></h1>
+    <p class="live-lead" data-i18n="live.lead">Kick y Twitch oficiales del clan. Si el embed de Twitch no carga, revisá bloqueadores o probá desde mcvoficial.com.</p>
 
     <div class="live-streams">
         <article class="live-stream-card">
@@ -42,19 +42,20 @@
                 <iframe src="https://player.kick.com/mcompanyv" title="Kick MCV" allowfullscreen></iframe>
             </div>
             <div class="live-stream-meta kick">
-                <h3><i data-lucide="radio"></i> Kick — principal</h3>
+                <h3><i data-lucide="radio"></i> <span data-i18n="live.kickTitle">Kick — principal</span></h3>
             </div>
         </article>
 
         <article class="live-stream-card">
             <div class="stream-frame-wrap" id="twitch-mount"></div>
             <div class="live-stream-meta twitch">
-                <h3><i data-lucide="twitch"></i> Twitch — clan oficial</h3>
+                <h3><i data-lucide="twitch"></i> <span data-i18n="live.twitchTitle">Twitch — clan oficial</span></h3>
             </div>
         </article>
     </div>
 </main>
 
+<script src="mcv-i18n.js"></script>
 <script>
 (function () {
     lucide.createIcons();

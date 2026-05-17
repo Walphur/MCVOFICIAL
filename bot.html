@@ -589,7 +589,7 @@
     </style>
 </head>
 
-<body class="grain">
+<body class="grain" data-mcv-page="bot">
 <nav class="navbar">
     <a href="index.html" class="logo-link">
         <img src="logo.png" alt="MCV Logo" class="navbar-logo">
@@ -597,11 +597,11 @@
     </a>
 
     <ul class="nav-links">
-        <li><a href="index.html">Clan</a></li>
-        <li><a href="events.html">Torneos</a></li>
-        <li><a href="bot.html" class="active">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
-        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html" class="active"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
@@ -880,6 +880,7 @@
     <span>MCV Clan</span>
 </footer>
 
+<script src="mcv-i18n.js"></script>
 <script>
     let currentSteamId = null;
 

@@ -13,7 +13,7 @@
     <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain events-page">
+<body class="grain events-page" data-mcv-page="events">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -21,11 +21,11 @@
         <div class="logo-text">MCV <span>OFICIAL</span></div>
     </a>
     <ul class="nav-links">
-        <li><a href="index.html">Clan</a></li>
-        <li><a href="events.html" class="active">Torneos</a></li>
-        <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
-        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html" class="active"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
@@ -33,14 +33,14 @@
     <div class="events-hero-inner">
         <div class="section-label centered-label">
             <div class="yellow-line"></div>
-            <span>// MCV · Rust · Competencia</span>
+            <span data-i18n="events.heroTag">// MCV · Rust · Competencia</span>
             <div class="yellow-line"></div>
         </div>
-        <h1>Torneos <span>MCV.</span></h1>
-        <p class="events-lead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
+        <h1><span data-i18n="events.heroTitle">Torneos</span> <span data-i18n="events.heroTitleSpan">MCV.</span></h1>
+        <p class="events-lead" data-i18n="events.heroLead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
         <div class="events-hero-actions">
-            <a href="#upcoming-list" id="events-hero-featured" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Torneo destacado</a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+            <a href="#upcoming-list" id="events-hero-featured" class="btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="events.heroFeatured">Torneo destacado</span></a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
         </div>
     </div>
 </section>
@@ -52,22 +52,22 @@
             <h3 id="events-featured-title"></h3>
             <p id="events-featured-meta" class="events-featured-meta"></p>
         </div>
-        <a id="events-featured-link" href="tournament.html" class="btn-primary pulse-rust">Abrir</a>
+        <a id="events-featured-link" href="tournament.html" class="btn-primary pulse-rust" data-i18n="events.featuredOpen">Abrir</a>
     </div>
 </section>
 
 <section class="events-stats-strip">
     <div class="events-stat">
         <span class="events-stat-num" id="stat-hosted">—</span>
-        <span class="events-stat-label">Torneos en la web</span>
+        <span class="events-stat-label" data-i18n="events.statHosted">Torneos en la web</span>
     </div>
     <div class="events-stat">
         <span class="events-stat-num" id="stat-teams">—</span>
-        <span class="events-stat-label">Registros totales</span>
+        <span class="events-stat-label" data-i18n="events.statRegs">Registros totales</span>
     </div>
     <div class="events-stat">
         <span class="events-stat-num" id="stat-live">—</span>
-        <span class="events-stat-label">Estado torneo</span>
+        <span class="events-stat-label" data-i18n="events.statState">Estado torneo</span>
     </div>
 </section>
 
@@ -75,26 +75,28 @@
     <div class="events-columns">
         <section class="events-column">
             <div class="events-col-head">
-                <h2><i data-lucide="calendar-clock"></i> Próximos</h2>
-                <p class="events-col-sub">Inscripciones abiertas o en curso.</p>
+                <h2><i data-lucide="calendar-clock"></i> <span data-i18n="events.colUp">Próximos</span></h2>
+                <p class="events-col-sub" data-i18n="events.colUpSub">Inscripciones abiertas o en curso.</p>
             </div>
             <div id="upcoming-list" class="events-card-list events-anchor"><div class="events-skeleton" aria-hidden="true"></div></div>
         </section>
         <section class="events-column">
             <div class="events-col-head">
-                <h2><i data-lucide="trophy"></i> Historial</h2>
-                <p class="events-col-sub">Torneos finalizados y campeones.</p>
+                <h2><i data-lucide="trophy"></i> <span data-i18n="events.colPast">Historial</span></h2>
+                <p class="events-col-sub" data-i18n="events.colPastSub">Torneos finalizados y campeones.</p>
             </div>
             <div id="past-list" class="events-card-list"><div class="events-skeleton" aria-hidden="true"></div></div>
         </section>
     </div>
 </main>
 
+<script src="mcv-i18n.js"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
     var heroFeatured = document.getElementById('events-hero-featured');
     var heroSlugFromFeatured = false;
+    var T = typeof mcvT === 'function' ? mcvT : function (k) { return k; };
 
     function esc(s) {
         if (s == null) return '';
@@ -104,15 +106,16 @@
     function card(t, isPast) {
         var winner = t.winner_display_name || t.winner_team_name || '';
         var poster = t.poster_url ? '<div class="events-card-poster"><img src="' + esc(t.poster_url) + '" alt=""></div>' : '';
-        var badge = isPast ? '<span class="events-badge events-badge-past">Finalizado</span>' : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
-        var link = '<a class="events-card-link" href="tournament.html?slug=' + encodeURIComponent(t.slug) + '">Ver detalle →</a>';
+        var badge = isPast ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>' : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
+        var link = '<a class="events-card-link" href="tournament.html?slug=' + encodeURIComponent(t.slug) + '">' + esc(T('events.cardDetail')) + '</a>';
+        var champPrefix = T('events.championPrefix');
         return (
             '<article class="events-card">' + poster +
             '<div class="events-card-body">' + badge +
             '<h3>' + esc(t.title) + '</h3>' +
             '<p class="events-card-meta">' + esc(t.format_label || '') + ' · ' + esc(t.match_day_display || '') + '</p>' +
             (t.prize_pool_text ? '<p class="events-card-prize">' + esc(t.prize_pool_text) + '</p>' : '') +
-            (isPast && winner ? '<p class="events-card-winner">Campeón: <strong>' + esc(winner) + '</strong></p>' : '') +
+            (isPast && winner ? '<p class="events-card-winner">' + esc(champPrefix) + '<strong>' + esc(winner) + '</strong></p>' : '') +
             link + '</div></article>'
         );
     }
@@ -132,7 +135,7 @@
     fetch(API + '/api/tournaments/for-site')
         .then(function (r) { return r.json(); })
         .then(function (d) {
-            var st = d.mode === 'live' ? 'En vivo / registro' : d.mode === 'recap' ? 'Recap' : 'Sin activos';
+            var st = d.mode === 'live' ? T('events.statModeLive') : d.mode === 'recap' ? T('events.statModeRecap') : T('events.statModeIdle');
             document.getElementById('stat-live').textContent = st;
             if (d.tournament && d.tournament.slug) {
                 heroSlugFromFeatured = true;
@@ -144,14 +147,14 @@
                 var fe = document.getElementById('events-featured');
                 fe.hidden = false;
                 document.getElementById('events-featured-label').textContent =
-                    d.mode === 'live' ? 'Próximo / activo' : 'Destacado';
+                    d.mode === 'live' ? T('events.featuredLabelLive') : T('events.featuredLabelDefault');
                 document.getElementById('events-featured-title').textContent = d.tournament.title || '';
                 var meta = [];
                 if (d.tournament.format_label) meta.push(d.tournament.format_label);
                 if (d.tournament.match_day_display) meta.push(d.tournament.match_day_display);
                 if (d.tournament.prize_pool_text) meta.push(d.tournament.prize_pool_text);
                 if (d.mode === 'recap' && (d.tournament.winner_display_name || d.tournament.winner_team_name)) {
-                    meta.push('Campeón: ' + (d.tournament.winner_display_name || d.tournament.winner_team_name));
+                    meta.push(T('events.championPrefix') + (d.tournament.winner_display_name || d.tournament.winner_team_name));
                 }
                 document.getElementById('events-featured-meta').textContent = meta.join(' · ');
                 document.getElementById('events-featured-link').href =
@@ -174,19 +177,19 @@
                 heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(upcoming[0].slug);
             }
             if (!upcoming.length) {
-                renderEmpty(up, 'No hay torneos próximos. Volvé pronto o mirá el historial.');
+                renderEmpty(up, T('events.emptyUp'));
             } else {
                 up.innerHTML = upcoming.map(function (t) { return card(t, false); }).join('');
             }
             if (!finished.length) {
-                renderEmpty(past, 'Todavía no hay torneos cerrados en la base.');
+                renderEmpty(past, T('events.emptyPast'));
             } else {
                 past.innerHTML = finished.map(function (t) { return card(t, true); }).join('');
             }
             lucide.createIcons();
         })
         .catch(function () {
-            renderEmpty(document.getElementById('upcoming-list'), 'No se pudo conectar al servidor.');
+            renderEmpty(document.getElementById('upcoming-list'), T('events.connectFail'));
             renderEmpty(document.getElementById('past-list'), '');
         });
 

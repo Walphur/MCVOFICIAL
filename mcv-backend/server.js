@@ -6,7 +6,6 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const axios = require("axios");
-const cors = require("cors");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
 const { registerTournamentApi } = require("./tournamentApi");
@@ -16,18 +15,75 @@ const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
 
 /**
- * CORS: `origin: true` hace que el navegador reciba siempre `Access-Control-Allow-Origin`
- * con el mismo valor que envió en `Origin` (evita fallos del callback de cors + Express 5).
- * La API sigue protegida por JWT en admin; no usamos cookies de sesión cross-site.
- * Para lista blanca estricta en el futuro: variable CORS_STRICT (no implementada aún).
+ * CORS explícito (HTML en mcvoficial.com + API en Render).
+ * El paquete `cors` con `origin: true` a veces no aplica bien al preflight con Express 5;
+ * este middleware responde OPTIONS y fija cabeceras en todas las respuestas.
+ * Orígenes extra: variable CORS_ORIGINS (coma-separada).
  */
-const corsMiddleware = cors({
-    origin: true,
-    methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-    maxAge: 86400,
-    optionsSuccessStatus: 204,
-    preflightContinue: false
+function buildAllowedOrigins() {
+    const set = new Set([
+        "https://mcvoficial.com",
+        "https://www.mcvoficial.com",
+        "http://mcvoficial.com",
+        "http://www.mcvoficial.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ]);
+    String(process.env.CORS_ORIGINS || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((o) => {
+            try {
+                if (o.startsWith("http://") || o.startsWith("https://")) {
+                    set.add(new URL(o.replace(/\/$/, "")).origin);
+                } else {
+                    set.add(o);
+                }
+            } catch (_) {
+                set.add(o);
+            }
+        });
+    for (const key of ["PUBLIC_API_URL", "RENDER_EXTERNAL_URL"]) {
+        const raw = String(process.env[key] || "").trim();
+        if (!raw) continue;
+        try {
+            set.add(new URL(raw.replace(/\/$/, "")).origin);
+        } catch (_) {
+            /* ignore */
+        }
+    }
+    return set;
+}
+
+const ALLOWED_ORIGINS = buildAllowedOrigins();
+
+function applyCors(req, res) {
+    const origin = req.headers.origin;
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Vary", "Origin");
+    }
+    const reqHdr = req.headers["access-control-request-headers"];
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        reqHdr || "Content-Type, Authorization, X-Requested-With"
+    );
+    res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,POST,PATCH,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Max-Age", "86400");
+}
+
+app.use((req, res, next) => {
+    applyCors(req, res);
+    if (req.method === "OPTIONS") {
+        return res.status(204).end();
+    }
+    next();
 });
+
+app.use(express.json());
 
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
@@ -47,9 +103,6 @@ function battlemetricsHeaders() {
     }
     return h;
 }
-
-app.use(corsMiddleware);
-app.use(express.json());
 
 registerTournamentApi(app, {
     getPool,

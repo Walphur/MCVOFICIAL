@@ -13,7 +13,7 @@
     <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain tournament-page">
+<body class="grain tournament-page" data-mcv-page="tournament">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -21,11 +21,11 @@
         <div class="logo-text">MCV <span>OFICIAL</span></div>
     </a>
     <ul class="nav-links">
-        <li><a href="index.html">Clan</a></li>
-        <li><a href="events.html">Torneos</a></li>
-        <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
-        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
@@ -40,13 +40,13 @@
             <div class="yellow-line"></div>
         </div>
 
-        <h1 id="t-hero-title">Torneo</h1>
-        <p id="t-hero-desc">Cargando…</p>
+        <h1 id="t-hero-title" data-i18n="tournament.defaultTitle">Torneo</h1>
+        <p id="t-hero-desc" data-i18n="tournament.heroLoading">Cargando…</p>
 
         <div class="tournament-actions" id="t-hero-actions">
-            <a href="#register" class="btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> Registrar team</a>
-            <a href="#rules" class="btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> Ver reglas</a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+            <a href="#register" class="btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> <span data-i18n="tournament.btnRegister">Registrar team</span></a>
+            <a href="#rules" class="btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> <span data-i18n="tournament.btnRules">Ver reglas</span></a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
         </div>
         <p id="t-hero-status" class="t-hero-status" style="display:none;"></p>
     </div>
@@ -56,7 +56,7 @@
     <div class="winner-showcase-inner">
         <div class="winner-showcase-text">
             <span class="section-label"><span class="yellow-line"></span> // Resultado</span>
-            <h2 id="t-winner-heading">Campeón</h2>
+            <h2 id="t-winner-heading" data-i18n="tournament.winnerLabel">Campeón</h2>
             <p id="t-winner-sub" class="winner-sub"></p>
         </div>
         <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
@@ -106,7 +106,7 @@
 
     <div class="section-heading-row tournament-heading">
         <h2>Know the <span>protocol.</span></h2>
-        <p id="t-rules-intro">Reglas y calendario del evento.</p>
+        <p id="t-rules-intro" data-i18n="tournament.rulesIntro">Reglas y calendario del evento.</p>
     </div>
 
     <div class="tournament-info-grid">
@@ -152,7 +152,7 @@
 
     <div class="fair-play-notice tournament-fair">
         <i data-lucide="shield-alert"></i>
-        <p><span>Fair Play Notice:</span> MCV puede descalificar equipos por cheats, boosting, scripts o incumplimiento de reglas. Traé skill, no excusas.</p>
+        <p><span data-i18n="tournament.fairPlaySpan">Fair Play Notice:</span> <span data-i18n="tournament.fairPlayP">MCV puede descalificar equipos por cheats, boosting, scripts o incumplimiento de reglas. Traé skill, no excusas.</span></p>
     </div>
 </section>
 
@@ -164,10 +164,10 @@
 
     <div class="section-heading-row tournament-heading">
         <h2>Register your <span>squad.</span></h2>
-        <p id="t-reg-blurb">Completá los 5 jugadores. Validamos VAC/Game ban vía Steam.</p>
+        <p id="t-reg-blurb" data-i18n="tournament.regBlurb">Completá los 5 jugadores. Validamos VAC/Game ban vía Steam.</p>
     </div>
 
-    <p id="t-reg-closed" class="t-reg-closed" style="display:none;">Las inscripciones para este torneo están cerradas. Seguinos en <a href="events.html">Torneos</a> o en Discord.</p>
+    <p id="t-reg-closed" class="t-reg-closed" style="display:none;" data-i18n-html="tournament.regClosedHtml">Las inscripciones para este torneo están cerradas. Seguinos en <a href="events.html">Torneos</a> o en Discord.</p>
 
     <form class="squad-form" action="#" method="POST" id="t-squad-form">
         <div class="form-row team-row">
@@ -196,15 +196,18 @@
         <div class="red-line"></div>
         <span style="color:#EF4444;">// Live Broadcast</span>
     </div>
-    <h2>En <span style="color:#EF4444;">vivo.</span></h2>
+    <h2><span data-i18n="tournament.liveHeading">En </span><span style="color:#EF4444;" data-i18n="tournament.liveHeadingSpan">vivo.</span></h2>
     <div class="twitch-container">
         <iframe id="twitch-embed" title="Twitch MCV" src="about:blank" frameborder="0" allowfullscreen="true" scrolling="no" class="twitch-player"></iframe>
     </div>
 </section>
 
+<script src="mcv-i18n.js"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
+    var T = typeof mcvT === 'function' ? mcvT : function (k) { return k; };
+    var tpl = typeof mcvTpl === 'function' ? mcvTpl : function (k, v) { return T(k); };
     var resolvedSlug = null;
     var tournament = null;
 
@@ -236,13 +239,13 @@
 
     function applyTournament(t) {
         tournament = t;
-        document.title = 'MCV — ' + (t.title || 'Torneo');
-        setText('t-hero-title', t.title || 'Torneo');
+        document.title = 'MCV — ' + (t.title || T('tournament.defaultTitle'));
+        setText('t-hero-title', t.title || T('tournament.defaultTitle'));
         setText('t-hero-desc', t.description || '');
         setText('t-marquee', t.marquee_text || ('MCV — ' + (t.title || 'TORNEO') + ' —'));
         setText('t-stat-prize', t.prize_pool_text || '—');
         setText('t-stat-prize-sub', t.prize_sub_text || '');
-        setText('t-stat-slots-sub', (t.max_teams || '—') + ' equipos max');
+        setText('t-stat-slots-sub', (t.max_teams || '—') + T('tournament.teamsMaxSuffix'));
         setText('t-stat-day', t.match_day_display || fmtDate(t.starts_at));
         setText('t-stat-day-sub', t.starts_at ? fmtDate(t.starts_at) : '');
         setText('t-stat-format', t.format_label || '5v5');
@@ -252,7 +255,7 @@
         setText('t-fmt-server', t.format_server_text || '—');
         setText('t-sch-close', t.registration_closes_at ? fmtDate(t.registration_closes_at) : '—');
         setText('t-sch-day', t.match_day_display || fmtDate(t.starts_at));
-        setText('t-sch-check', t.check_in_display || '15 min antes');
+        setText('t-sch-check', t.check_in_display || T('tournament.checkinFallback'));
         twitchFrame(t.twitch_channel);
 
         var slots = document.getElementById('tournament-slots');
@@ -277,7 +280,7 @@
             form.style.display = 'none';
             closedMsg.style.display = 'block';
             st.style.display = 'block';
-            st.textContent = t.status === 'finished' ? 'Evento finalizado — gracias a todos los equipos.' : 'Inscripciones cerradas para este torneo.';
+            st.textContent = t.status === 'finished' ? T('tournament.statusFinished') : T('tournament.statusClosed');
             if (t.status === 'finished' && rulesCard) rulesCard.style.display = 'none';
         }
 
@@ -285,8 +288,8 @@
         var showWin = t.status === 'finished' && (t.winner_display_name || t.poster_url);
         if (showWin) {
             winSec.style.display = 'block';
-            setText('t-winner-heading', t.winner_display_name || 'Campeón');
-            setText('t-winner-sub', t.ended_at ? 'Cerró el ' + fmtDate(t.ended_at) : '');
+            setText('t-winner-heading', t.winner_display_name || T('tournament.winnerDefault'));
+            setText('t-winner-sub', t.ended_at ? T('tournament.winnerClosedPrefix') + fmtDate(t.ended_at) : '');
             if (t.poster_url) {
                 document.getElementById('t-winner-poster-wrap').style.display = 'block';
                 document.getElementById('t-winner-poster').src = t.poster_url;
@@ -325,8 +328,8 @@
     resolveSlug().then(function (slug) {
         resolvedSlug = slug;
         if (!resolvedSlug) {
-            setText('t-hero-title', 'Torneos MCV');
-            setText('t-hero-desc', 'No hay torneo seleccionado o el servidor no respondió. Elegí uno en la página Torneos o probá de nuevo más tarde.');
+            setText('t-hero-title', T('tournament.noSlugTitle'));
+            setText('t-hero-desc', T('tournament.noSlugDesc'));
             var reg = document.getElementById('register');
             if (reg) reg.style.display = 'none';
             var ws = document.getElementById('winner-showcase');
@@ -343,21 +346,21 @@
         applyTournament(data.tournament);
     }).catch(function (reason) {
         if (reason === 'no-slug') return;
-        setText('t-hero-title', 'Torneo');
-        setText('t-hero-desc', 'No se encontró el torneo o el servidor no responde.');
+        setText('t-hero-title', T('tournament.defaultTitle'));
+        setText('t-hero-desc', T('tournament.notFoundDesc'));
     });
 
     var squadForm = document.getElementById('t-squad-form');
     if (squadForm) squadForm.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!resolvedSlug || !tournament || tournament.status !== 'open') {
-            alert('Este torneo no acepta registros.');
+            alert(T('tournament.alertNoRegister'));
             return;
         }
         var form = e.target;
         var btn = form.querySelector('button[type="submit"]');
         var originalText = btn.innerHTML;
-        btn.innerHTML = "<i data-lucide='shield'></i> Enviando registro...";
+        btn.innerHTML = "<i data-lucide='shield'></i> " + T('tournament.submitting');
         btn.disabled = true;
         lucide.createIcons();
 
@@ -385,25 +388,24 @@
             .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
             .then(function (x) {
                 if (!x.ok) {
-                    alert(x.d.error || 'No se pudo registrar.');
+                    alert(x.d.error || T('tournament.alertRegisterFail'));
                     return;
                 }
                 if (x.d.bansCheckSkipped) {
-                    alert('Registro guardado. El servidor no tiene STEAM_API_KEY; no se validaron bans automáticamente.');
+                    alert(T('tournament.alertNoSteamKey'));
                 } else {
-                    alert('Registro enviado. Pendiente de aprobación.');
+                    alert(T('tournament.alertRegisterOk'));
                 }
                 form.reset();
                 loadSlotsOnly();
             })
-            .catch(function () { alert('Error de conexión.'); })
+            .catch(function () { alert(T('tournament.alertConnError')); })
             .finally(function () {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 lucide.createIcons();
             });
     });
-    }
 
     lucide.createIcons();
 })();

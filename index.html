@@ -18,7 +18,7 @@
     <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain home-page">
+<body class="grain home-page" data-mcv-page="index">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -26,11 +26,11 @@
         <div class="logo-text">MCV <span>OFICIAL</span></div>
     </a>
     <ul class="nav-links">
-        <li><a href="index.html" class="active">Clan</a></li>
-        <li><a href="events.html">Torneos</a></li>
-        <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
-        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html" class="active"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
@@ -41,24 +41,24 @@
     <div class="home-hero-content">
         <div class="section-label home-label">
             <div class="yellow-line"></div>
-            <span>// Rust Competitive Clan</span>
+            <span data-i18n="home.tagline">// Rust Competitive Clan</span>
         </div>
 
         <img src="logo.png" alt="MCV" class="home-mark">
         <h1>MCV <span>OFICIAL</span></h1>
-        <p>Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
+        <p data-i18n="home.lead">Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
 
         <div class="home-actions">
-            <a href="events.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Ver torneos</a>
-            <a href="bot.html" class="btn-secondary"><i data-lucide="shield-check"></i> Abrir tracker</a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+            <a href="events.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="home.ctaTournaments">Ver torneos</span></a>
+            <a href="bot.html" class="btn-secondary"><i data-lucide="shield-check"></i> <span data-i18n="home.ctaTracker">Abrir tracker</span></a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="home.ctaDiscord">Discord</span></a>
         </div>
 
         <div id="home-event-strip" class="home-event-strip" hidden>
             <div class="home-event-strip-inner">
                 <span class="home-event-badge" id="home-event-mode">Torneo</span>
                 <span class="home-event-title" id="home-event-title"></span>
-                <a id="home-event-cta" href="events.html" class="home-event-cta">Ver detalle</a>
+                <a id="home-event-cta" href="events.html" class="home-event-cta" data-i18n="home.eventCta">Ver detalle</a>
             </div>
         </div>
     </div>
@@ -66,58 +66,58 @@
 
 <section class="stats-bar home-stats">
     <div class="stat-box">
-        <span class="stat-title">// Torneos hosteados</span>
+        <span class="stat-title" data-i18n="home.statHosted">// Torneos hosteados</span>
         <span class="stat-value">05</span>
     </div>
     <div class="stat-box">
-        <span class="stat-title">// Discord members</span>
+        <span class="stat-title" data-i18n="home.statDiscord">// Discord members</span>
         <span class="stat-value" id="discord-total">--</span>
     </div>
     <div class="stat-box">
-        <span class="stat-title">// Online now</span>
+        <span class="stat-title" data-i18n="home.statOnline">// Online now</span>
         <span class="stat-value" id="discord-online">--</span>
     </div>
     <div class="stat-box">
-        <span class="stat-title">// Active wipes</span>
+        <span class="stat-title" data-i18n="home.statWipes">// Active wipes</span>
         <span class="stat-value">42</span>
     </div>
 </section>
 
 <section class="home-strip">
-    <span>Red MCV</span>
-    <span>Torneos Rust</span>
-    <span>Anti-cheat</span>
-    <span>Streams en vivo</span>
+    <span data-i18n="home.strip1">Red MCV</span>
+    <span data-i18n="home.strip2">Torneos Rust</span>
+    <span data-i18n="home.strip3">Anti-cheat</span>
+    <span data-i18n="home.strip4">Streams en vivo</span>
 </section>
 
 <section class="page-section home-section home-feature-section">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Operaciones MCV</span>
+        <span data-i18n="home.opsLabel">// Operaciones MCV</span>
     </div>
     <div class="section-heading-row">
-        <h2>Clan <span>System.</span></h2>
-        <p>Un ecosistema para competir, organizar torneos, revisar jugadores y mover comunidad sin perder el ritmo del wipe.</p>
+        <h2><span data-i18n="home.opsTitle">Clan</span> <span data-i18n="home.opsTitleSpan">System.</span></h2>
+        <p data-i18n="home.opsDesc">Un ecosistema para competir, organizar torneos, revisar jugadores y mover comunidad sin perder el ritmo del wipe.</p>
     </div>
 
     <div class="home-feature-grid">
         <a href="bot.html" class="home-feature-card highlight-card">
             <i data-lucide="radar"></i>
-            <span>MCV Tracker</span>
-            <h3>Investiga jugadores</h3>
-            <p>Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
+            <span data-i18n="home.featureTracker">MCV Tracker</span>
+            <h3 data-i18n="home.featureTrackerH">Investiga jugadores</h3>
+            <p data-i18n="home.featureTrackerP">Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
         </a>
         <a href="events.html" class="home-feature-card">
             <i data-lucide="trophy"></i>
-            <span>Torneos</span>
-            <h3>Torneos activos</h3>
-            <p>Reglas, inscripciones, premios y calendario competitivo del clan.</p>
+            <span data-i18n="home.featureEvents">Torneos</span>
+            <h3 data-i18n="home.featureEventsH">Torneos activos</h3>
+            <p data-i18n="home.featureEventsP">Reglas, inscripciones, premios y calendario competitivo del clan.</p>
         </a>
         <a href="live.html" class="home-feature-card">
             <i data-lucide="radio"></i>
-            <span>Streams</span>
-            <h3>Directos oficiales</h3>
-            <p>Kick, Twitch y cobertura en vivo de raids, scrims y eventos.</p>
+            <span data-i18n="home.featureLive">Streams</span>
+            <h3 data-i18n="home.featureLiveH">Directos oficiales</h3>
+            <p data-i18n="home.featureLiveP">Kick, Twitch y cobertura en vivo de raids, scrims y eventos.</p>
         </a>
     </div>
 </section>
@@ -125,11 +125,11 @@
 <section class="page-section home-section bg-darker">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Últimos videos</span>
+        <span data-i18n="home.mediaLabel">// Últimos videos</span>
     </div>
     <div class="section-heading-row">
-        <h2>MCV <span>Media.</span></h2>
-        <a class="btn-outline-red" href="https://www.youtube.com/@McompanyV/videos" target="_blank"><i data-lucide="youtube"></i> YouTube</a>
+        <h2><span data-i18n="home.mediaTitle">MCV </span><span data-i18n="home.mediaTitleSpan">Media.</span></h2>
+        <a class="btn-outline-red" href="https://www.youtube.com/@McompanyV/videos" target="_blank"><i data-lucide="youtube"></i> <span data-i18n="home.mediaYtBtn">YouTube</span></a>
     </div>
 
     <div class="video-grid home-video-grid">
@@ -140,8 +140,8 @@
                 <div class="play-btn"><i data-lucide="play"></i></div>
             </div>
             <div class="video-info">
-                <h4>MCV oficial: raids, torneos y highlights</h4>
-                <span>Contenido competitivo de Rust</span>
+                <h4 data-i18n="home.video1Title">MCV oficial: raids, torneos y highlights</h4>
+                <span data-i18n="home.video1Sub">Contenido competitivo de Rust</span>
             </div>
         </a>
         <a href="https://kick.com/mcompanyv" target="_blank" class="video-card">
@@ -151,8 +151,8 @@
                 <div class="play-btn"><i data-lucide="radio"></i></div>
             </div>
             <div class="video-info">
-                <h4>Kick oficial de MCV</h4>
-                <span>Streams, scrims y wipes en directo</span>
+                <h4 data-i18n="home.video2Title">Kick oficial de MCV</h4>
+                <span data-i18n="home.video2Sub">Streams, scrims y wipes en directo</span>
             </div>
         </a>
         <a href="https://www.tiktok.com/@mcv_rust" target="_blank" class="video-card">
@@ -162,8 +162,8 @@
                 <div class="play-btn"><i data-lucide="video"></i></div>
             </div>
             <div class="video-info">
-                <h4>Jugadas rápidas y clips virales</h4>
-                <span>TikTok oficial del clan</span>
+                <h4 data-i18n="home.video3Title">Jugadas rápidas y clips virales</h4>
+                <span data-i18n="home.video3Sub">TikTok oficial del clan</span>
             </div>
         </a>
     </div>
@@ -172,33 +172,33 @@
 <section class="page-section home-section">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Core Values</span>
+        <span data-i18n="home.valuesLabel">// Core Values</span>
     </div>
     <div class="section-heading-row">
-        <h2>Cómo juega <span>MCV.</span></h2>
+        <h2><span data-i18n="home.valuesTitle">Cómo juega </span><span data-i18n="home.valuesTitleSpan">MCV.</span></h2>
     </div>
 
     <div class="bento-grid home-bento">
         <div class="card">
             <div class="card-header">
                 <div class="icon-box"><i data-lucide="crosshair"></i></div>
-                <h3>Competencia</h3>
+                <h3 data-i18n="home.valueCompTitle">Competencia</h3>
             </div>
-            <p>Torneos, scrims y eventos con reglas claras, brackets organizados y monitoreo constante.</p>
+            <p data-i18n="home.valueCompP">Torneos, scrims y eventos con reglas claras, brackets organizados y monitoreo constante.</p>
         </div>
         <div class="card">
             <div class="card-header">
                 <div class="icon-box"><i data-lucide="hammer"></i></div>
-                <h3>Disciplina de wipe</h3>
+                <h3 data-i18n="home.valueWipeTitle">Disciplina de wipe</h3>
             </div>
-            <p>Monument control, raids, farm y comunicación con roles definidos para sostener presión.</p>
+            <p data-i18n="home.valueWipeP">Monument control, raids, farm y comunicación con roles definidos para sostener presión.</p>
         </div>
         <div class="card">
             <div class="card-header">
                 <div class="icon-box"><i data-lucide="shield-check"></i></div>
-                <h3>Administración</h3>
+                <h3 data-i18n="home.valueAdminTitle">Administración</h3>
             </div>
-            <p>Herramientas de revisión, reportes y datos externos para tomar mejores decisiones.</p>
+            <p data-i18n="home.valueAdminP">Herramientas de revisión, reportes y datos externos para tomar mejores decisiones.</p>
         </div>
     </div>
 </section>
@@ -207,12 +207,12 @@
     <div class="cta-content">
         <div class="section-label centered-label">
             <div class="yellow-line"></div>
-            <span>// Join the network</span>
+            <span data-i18n="home.ctaJoinLabel">// Join the network</span>
             <div class="yellow-line"></div>
         </div>
-        <h2>Entrá al <span>comando.</span></h2>
-        <p>Unite al Discord para participar en eventos, encontrar equipo y seguir la actividad oficial de MCV.</p>
-        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-primary pulse-rust"><i data-lucide="message-square"></i> Entrar al Discord</a>
+        <h2><span data-i18n="home.ctaJoinTitle">Entrá al </span><span data-i18n="home.ctaJoinTitleSpan">comando.</span></h2>
+        <p data-i18n="home.ctaJoinDesc">Unite al Discord para participar en eventos, encontrar equipo y seguir la actividad oficial de MCV.</p>
+        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-primary pulse-rust"><i data-lucide="message-square"></i> <span data-i18n="home.ctaJoinBtn">Entrar al Discord</span></a>
     </div>
 </section>
 
@@ -221,18 +221,18 @@
         <div class="footer-brand">
             <img src="logo.png" alt="MCV" class="footer-logo">
             <h2>MCV <span>OFICIAL</span></h2>
-            <p>Clan competitivo de Rust, host de eventos y comunidad conectada a Discord, streams y herramientas propias.</p>
+            <p data-i18n="footer.taglineP">Clan competitivo de Rust, host de eventos y comunidad conectada a Discord, streams y herramientas propias.</p>
         </div>
         <div class="footer-links">
             <div>
-                <span class="link-title">// Navegación</span>
-                <a href="index.html">Clan</a>
-                <a href="events.html">Torneos</a>
-                <a href="bot.html">Bot</a>
-                <a href="tickets.html">Tickets</a>
+                <span class="link-title" data-i18n="footer.navTitle">// Navegación</span>
+                <a href="index.html"><span data-i18n="nav.clan">Clan</span></a>
+                <a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a>
+                <a href="bot.html"><span data-i18n="nav.bot">Bot</span></a>
+                <a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>
             </div>
             <div>
-                <span class="link-title">// Redes</span>
+                <span class="link-title" data-i18n="footer.socialTitle">// Redes</span>
                 <a href="https://discord.gg/mBRrUA8wH6" target="_blank">Discord</a>
                 <a href="https://www.twitch.tv/mcvteam" target="_blank">Twitch</a>
                 <a href="https://www.youtube.com/@McompanyV" target="_blank">YouTube</a>
@@ -241,12 +241,13 @@
         </div>
     </div>
     <div class="footer-bottom">
-        <span>© 2026 MCV Clan. Todos los derechos reservados.</span>
-        <span>No afiliado a Facepunch Studios</span>
-        <a href="login.html" class="footer-admin-link">Admin</a>
+        <span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>
+        <span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>
+        <a href="login.html" class="footer-admin-link" data-i18n="footer.admin">Admin</a>
     </div>
 </footer>
 
+<script src="mcv-i18n.js"></script>
 <script>
     lucide.createIcons();
 
@@ -255,6 +256,7 @@
         if (!strip) return;
         var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
         if (!API) return;
+        var T = typeof mcvT === 'function' ? mcvT : function (k) { return k; };
         fetch(API + '/api/tournaments/for-site')
             .then(function (r) { return r.json(); })
             .then(function (d) {
@@ -262,7 +264,7 @@
                 var t = d.tournament;
                 strip.hidden = false;
                 document.getElementById('home-event-mode').textContent =
-                    d.mode === 'live' ? 'Inscripciones abiertas' : d.mode === 'recap' ? 'Último resultado' : 'Torneo';
+                    d.mode === 'live' ? T('home.eventBadgeLive') : d.mode === 'recap' ? T('home.eventBadgeRecap') : T('home.eventBadgeTournament');
                 document.getElementById('home-event-title').textContent = t.title || '';
                 var cta = document.getElementById('home-event-cta');
                 cta.href = 'tournament.html?slug=' + encodeURIComponent(t.slug || '');

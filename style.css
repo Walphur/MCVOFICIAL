@@ -1570,3 +1570,51 @@ body.tournament-page {
     justify-content: center;
     box-sizing: border-box;
 }
+
+/* —— ES / EN language switch (mcv-i18n.js) —— */
+.mcv-lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.mcv-lang-label {
+    color: var(--muted);
+    margin-right: 2px;
+    user-select: none;
+}
+.mcv-lang-btn {
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.mcv-lang-btn:hover {
+    border-color: rgba(250, 166, 26, 0.55);
+    color: var(--primary);
+}
+.mcv-lang-btn.active {
+    border-color: var(--primary);
+    color: #000;
+    background: var(--primary);
+}
+.mcv-lang-switch--admin {
+    margin-right: 10px;
+}
+.mcv-lang-switch--login {
+    width: 100%;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}

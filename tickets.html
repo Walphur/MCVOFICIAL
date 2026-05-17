@@ -12,7 +12,7 @@
     <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain tickets-page">
+<body class="grain tickets-page" data-mcv-page="tickets">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -20,54 +20,55 @@
         <div class="logo-text">MCV <span>OFICIAL</span></div>
     </a>
     <ul class="nav-links">
-        <li><a href="index.html">Clan</a></li>
-        <li><a href="events.html">Torneos</a></li>
-        <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html" class="active">Tickets</a></li>
-        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+        <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="tickets.html" class="active"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
     </ul>
 </nav>
 
 <section class="page-section">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Soporte y reclutamiento</span>
+        <span data-i18n="tickets.sectionTag">// Soporte y reclutamiento</span>
     </div>
-    <h2>Abrí un <span>ticket.</span></h2>
+    <h2><span data-i18n="tickets.title">Abrí un </span><span data-i18n="tickets.titleSpan">ticket.</span></h2>
 
     <div class="form-container">
         <div class="tickets-intro">
-            <h3>Cómo funciona</h3>
-            <p>Completá el formulario y al enviar te llevamos a Discord para abrir un ticket oficial con el staff (reclutamiento, soporte de torneo o reportes).</p>
+            <h3 data-i18n="tickets.introH">Cómo funciona</h3>
+            <p data-i18n="tickets.introP">Completá el formulario y al enviar te llevamos a Discord para abrir un ticket oficial con el staff (reclutamiento, soporte de torneo o reportes).</p>
         </div>
 
         <form action="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">
             <div class="input-group">
-                <label><i data-lucide="tag"></i> Tipo de ticket</label>
+                <label><i data-lucide="tag"></i> <span data-i18n="tickets.typeLabel">Tipo de ticket</span></label>
                 <select required>
-                    <option value="">Elegí una opción…</option>
-                    <option value="recruit">Reclutamiento (unirte a MCV)</option>
-                    <option value="tournament">Soporte de torneo</option>
-                    <option value="report">Reporte de jugador</option>
-                    <option value="other">Otro</option>
+                    <option value="" data-i18n="tickets.selectPlaceholder">Elegí una opción…</option>
+                    <option value="recruit" data-i18n="tickets.optRecruit">Reclutamiento (unirte a MCV)</option>
+                    <option value="tournament" data-i18n="tickets.optTournament">Soporte de torneo</option>
+                    <option value="report" data-i18n="tickets.optReport">Reporte de jugador</option>
+                    <option value="other" data-i18n="tickets.optOther">Otro</option>
                 </select>
             </div>
 
             <div class="input-group">
-                <label><i data-lucide="user"></i> Usuario de Discord</label>
-                <input type="text" placeholder="ej. usuario o usuario#0" required autocomplete="username">
+                <label><i data-lucide="user"></i> <span data-i18n="tickets.discordLabel">Usuario de Discord</span></label>
+                <input type="text" data-i18n-placeholder="tickets.discordPh" placeholder="ej. usuario o usuario#0" required autocomplete="username">
             </div>
 
             <div class="input-group">
-                <label><i data-lucide="message-square"></i> Descripción breve</label>
-                <textarea placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
+                <label><i data-lucide="message-square"></i> <span data-i18n="tickets.descLabel">Descripción breve</span></label>
+                <textarea data-i18n-placeholder="tickets.descPh" placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
             </div>
 
-            <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> Ir a Discord</button>
+            <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> <span data-i18n="tickets.submit">Ir a Discord</span></button>
         </form>
     </div>
 </section>
 
+<script src="mcv-i18n.js"></script>
 <script>lucide.createIcons();</script>
 </body>
 </html>
