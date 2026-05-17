@@ -1,4 +1,6 @@
 mcv-backend/.env
 mcv-backend/node_modules/
+uploads/*
+!uploads/.gitkeep
 node_modules/
 .DS_Store

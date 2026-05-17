@@ -1,65 +1,162 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MCV</title>
+    <meta name="theme-color" content="#FAA61A">
+    <!-- Si mcvoficial.com (u otro) es solo estático y da 405 en /api, poné aquí la URL del Web Service en Render, sin barra final. -->
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Admin Login - MCV</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-body">
 
     <div class="login-container">
-        <div class="login-header">
-            <div class="icon">🔒</div>
+        <div class="login-brand">
+            <img src="logo.png" width="48" height="48" alt="">
             <div>
                 <span class="tagline">// MCV ADMIN</span>
                 <h2>CONTROL ROOM</h2>
             </div>
         </div>
 
-        <p id="login-error" class="login-error" style="display:none;color:var(--red);font-family:JetBrains Mono;font-size:0.85rem;"></p>
+        <p id="login-error" class="login-error" role="alert"></p>
+        <p id="login-diag" class="login-diag" role="status"></p>
 
         <form class="login-form" id="login-form">
             <div class="input-group">
-                <label>CONTRASEÑA</label>
-                <input type="password" name="password" autocomplete="current-password" required>
+                <label for="login-password">Contraseña de entorno</label>
+                <input id="login-password" type="password" name="password" autocomplete="current-password" required placeholder="ADMIN_PASSWORD del servidor">
             </div>
-            <button type="submit" class="btn-primary w-100" style="width:100%;justify-content:center;">ENTER CONTROL ROOM</button>
+            <button type="submit" class="btn-primary login-submit">Entrar al panel</button>
         </form>
 
-        <a href="index.html" class="back-link">← BACK TO SITE</a>
+        <p class="login-hint">Usá <code>ADMIN_PASSWORD</code> para entrar. En Render también necesitás <code>JWT_SECRET</code> (mejor una clave larga distinta de la contraseña).</p>
+        <p class="login-hint login-hint-api">Si en la consola ves <strong>405</strong> o <strong>404</strong> en <code>/api/auth/login</code>, este dominio <strong>no está ejecutando Node</strong> (suele ser Cloudflare/GitHub Pages con el HTML solamente). Opciones: (A) en Render conectá el dominio personalizado al <em>mismo</em> Web Service que corre <code>npm start</code>; (B) una sola vez abrí <code>login.html?api=https://TU-APP.onrender.com</code> (queda guardado); (C) completá el <code>meta name=&quot;mcv-api&quot;</code> en el <code>&lt;head&gt;</code> con esa URL de Render.</p>
+
+        <div class="login-footer-links">
+            <a href="index.html" class="back-link">← Sitio público</a>
+            <a href="events.html" class="back-link">Eventos</a>
+        </div>
     </div>
 
+    <!-- Si ves 405: mcvoficial.com no ejecuta Node. Descomentá la línea de abajo y poné la URL exacta de tu Web Service en Render (Dashboard → Copy URL). -->
+    <!-- <script src="https://TU-SERVICIO.onrender.com/mcv-api-config.js"></script> -->
+<script src="mcv-api-base.js"></script>
 <script>
 (function () {
-    var API = window.location.origin;
     var form = document.getElementById('login-form');
     var err = document.getElementById('login-error');
+    var diag = document.getElementById('login-diag');
+
+    function apiBase() {
+        return typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
+    }
+
+    function runDiag() {
+        var API = apiBase();
+        diag.textContent = '';
+        diag.style.display = 'none';
+        if (!API) {
+            diag.textContent = 'Sin URL del API: usá ?api=https://tu-backend.onrender.com en esta página.';
+            diag.style.display = 'block';
+            return;
+        }
+        diag.textContent = 'Comprobando servidor…';
+        diag.style.display = 'block';
+        fetch(API + '/api/auth/status', { cache: 'no-store' })
+            .then(function (r) { return r.text().then(function (t) { return { ok: r.ok, t: t, status: r.status }; }); })
+            .then(function (x) {
+                if (x.status === 405 || x.status === 404) {
+                    diag.textContent =
+                        'HTTP ' + x.status + ': ' + API + ' no responde como API Node (dominio solo estático). Usá login.html?api=https://TU-APP.onrender.com o la meta mcv-api con la URL de Render.';
+                    return;
+                }
+                var d = {};
+                try { d = x.t ? JSON.parse(x.t) : {}; } catch (e) { d = {}; }
+                if (!x.ok || d.loginPossible == null) {
+                    diag.textContent = 'No se pudo leer /api/auth/status (HTTP ' + x.status + '). URL usada: ' + API;
+                    return;
+                }
+                var parts = [];
+                parts.push('API: ' + API);
+                if (!d.hasAdminPassword) parts.push('Falta ADMIN_PASSWORD en el servidor.');
+                if (!d.hasJwtSecret || !d.jwtLengthOk) parts.push('Falta JWT_SECRET o es muy corto (mín. 12 caracteres) en Render.');
+                if (d.jwtHadWhitespace) parts.push('JWT_SECRET tenía espacios/saltos al inicio o fin (ya se ignoran al firmar; igual conviene limpiarlo en Render).');
+                if (!d.hasDatabaseUrl) parts.push('DATABASE_URL no está definido (el panel puede cargar vacío).');
+                if (d.loginPossible) parts.push('Login habilitado: probá la contraseña.');
+                diag.textContent = parts.join(' ');
+            })
+            .catch(function () {
+                diag.textContent = 'No hay conexión a ' + API + ' (¿servicio dormido, URL mal o CORS?).';
+            });
+    }
+
+    var qs = new URLSearchParams(window.location.search || '');
+    if (qs.get('expired') === '1') {
+        err.textContent = 'Sesión expirada o token inválido. Volvé a entrar.';
+        err.style.display = 'block';
+    }
+
+    runDiag();
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         err.style.display = 'none';
+        err.textContent = '';
+        var API = apiBase();
+        if (!API) {
+            err.textContent = 'No hay URL del API. Abrí esta página desde el mismo host que el servidor Node o usá ?api=https://tu-backend.onrender.com';
+            err.style.display = 'block';
+            return;
+        }
         var pw = form.password.value;
         var btn = form.querySelector('button[type="submit"]');
         btn.disabled = true;
         fetch(API + '/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pw })
+            body: JSON.stringify({ password: pw }),
+            cache: 'no-store'
         })
-            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (r) {
+                return r.text().then(function (text) {
+                    if (r.status === 405 || r.status === 404) {
+                        err.textContent =
+                            'HTTP ' + r.status + ': este sitio no está sirviendo la API (dominio apuntando solo a archivos estáticos). Abrí una vez login.html?api=https://TU-SERVICIO.onrender.com o configurá la meta mcv-api con la URL de tu Web Service en Render.';
+                        err.style.display = 'block';
+                        throw new Error('bad-route');
+                    }
+                    var d = {};
+                    try {
+                        d = text ? JSON.parse(text) : {};
+                    } catch (ignore) {
+                        err.textContent = 'El servidor no devolvió JSON (¿' + API + ' no es el backend?). Código HTTP ' + r.status + '.';
+                        err.style.display = 'block';
+                        throw new Error('parse');
+                    }
+                    return { ok: r.ok, d: d };
+                });
+            })
             .then(function (x) {
                 if (!x.ok || !x.d.token) {
-                    err.textContent = x.d.error || 'Login fallido';
+                    err.textContent = (x.d && x.d.error) ? x.d.error : 'Login fallido';
                     err.style.display = 'block';
                     return;
                 }
-                sessionStorage.setItem('mcv_admin_jwt', x.d.token);
+                var tok = String(x.d.token).trim();
+                sessionStorage.setItem('mcv_admin_jwt', tok);
+                try { localStorage.setItem('mcv_admin_jwt', tok); } catch (ignore) {}
                 window.location.href = 'admin.html';
             })
-            .catch(function () {
-                err.textContent = 'Sin conexión al servidor.';
+            .catch(function (e) {
+                if (e && (e.message === 'parse' || e.message === 'bad-route')) return;
+                err.textContent = 'Sin conexión al servidor (revisá URL, HTTPS y que el servicio esté arriba).';
                 err.style.display = 'block';
             })
             .finally(function () {

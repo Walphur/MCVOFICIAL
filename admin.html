@@ -1,58 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Room - MCV</title>
+    <meta name="theme-color" content="#FAA61A">
+    <!-- Si el dominio público es solo estático, poné la URL del Web Service Render (sin / final). -->
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Control Room - MCV</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="admin-body">
 
     <nav class="admin-navbar">
-        <div class="admin-logo">🔒 MCV CONTROL ROOM <span>// ADMIN</span></div>
+        <div class="admin-logo"><img src="logo.png" width="36" height="36" alt=""> MCV CONTROL ROOM <span>// ADMIN</span></div>
         <div class="admin-actions">
-            <button type="button" class="btn-outline" id="refresh-btn">🔄 REFRESH</button>
-            <a href="login.html"><button type="button" class="btn-outline">🔑 LOGIN</button></a>
-            <button type="button" class="btn-outline" id="logout-btn">🚪 LOGOUT</button>
+            <button type="button" class="btn-outline" id="refresh-btn">🔄 Actualizar</button>
+            <a href="login.html"><button type="button" class="btn-outline">🔑 Login</button></a>
+            <button type="button" class="btn-outline" id="logout-btn">🚪 Salir</button>
         </div>
     </nav>
 
     <main class="admin-main">
         <header class="dashboard-header">
             <div>
-                <span class="tagline">// TEAMS & BRACKET</span>
+                <span class="tagline">// PANEL ADMIN</span>
                 <h1>CONTROL <span>ROOM.</span></h1>
-                <p id="tournament-summary">Torneo: <strong id="slug-label">last-squad-standing</strong></p>
+                <p id="tournament-summary" class="admin-summary-line">Torneo seleccionado: <strong id="slug-label">…</strong>
+                <select id="admin-tournament-select" class="admin-slug-select" title="Elegí qué torneo gestionás"></select></p>
             </div>
             <div class="dashboard-buttons">
-                <button type="button" class="btn-primary-small" id="export-csv">📥 EXPORT CSV</button>
-                <button type="button" class="btn-primary-small" id="gen-bracket">⚔️ GENERAR BRACKET</button>
-                <button type="button" class="btn-primary-small" id="next-round">➡️ SIGUIENTE RONDA</button>
+                <button type="button" class="btn-outline" id="goto-tournaments-tab" title="Crear o finalizar torneos">🏆 Torneos</button>
+                <button type="button" class="btn-primary-small" id="export-csv">📥 Exportar CSV</button>
+                <button type="button" class="btn-primary-small" id="gen-bracket">⚔️ Generar bracket</button>
+                <button type="button" class="btn-primary-small" id="next-round">➡️ Siguiente ronda</button>
             </div>
         </header>
 
         <p id="admin-banner" class="admin-banner"></p>
 
-        <div class="tabs">
-            <button type="button" class="tab active" data-tab="teams">👑 TEAMS</button>
-            <button type="button" class="tab" data-tab="bracket">⚔️ BRACKET</button>
+        <div class="admin-cta-strip" id="admin-cta-strip">
+            <div class="admin-cta-strip-inner">
+                <span class="admin-cta-text"><strong>Nuevo evento</strong> — creá el torneo en la pestaña Torneos; después cargá equipos en Equipos.</span>
+                <button type="button" class="btn-primary-small" id="admin-open-torneos">Ir a Torneos</button>
+            </div>
+        </div>
+
+        <div class="tabs admin-tabs" role="tablist" aria-label="Secciones del panel">
+            <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false">🏆 Torneos</button>
+            <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true">👑 Equipos</button>
+            <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false">⚔️ Bracket</button>
+        </div>
+
+        <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
+            <p class="admin-tournaments-intro">Acá creás torneos nuevos o los finalizás con póster. Los equipos se cargan en la pestaña <strong>Equipos</strong> (registro web o alta manual).</p>
+            <div class="admin-tournament-grid">
+                <div class="data-area">
+                    <h3 class="admin-form-title">Crear torneo</h3>
+                    <p class="admin-form-hint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
+                    <form id="form-new-tournament" class="admin-stack-form">
+                        <label>Título *<input name="title" required placeholder="Ej. MCV Winter Cup"></label>
+                        <label>Slug (opcional)<input name="slug" placeholder="mcv-winter-cup"></label>
+                        <label>Descripción<textarea name="description" rows="2" placeholder="Una línea para la web"></textarea></label>
+                        <label>Formato<input name="format_label" placeholder="5v5" value="5v5"></label>
+                        <label>Max equipos<input name="max_teams" type="number" min="2" value="30"></label>
+                        <label>Prize pool<input name="prize_pool_text" placeholder="$150"></label>
+                        <label>Prize sub<input name="prize_sub_text" placeholder="Winner takes all"></label>
+                        <label>Match day (texto)<input name="match_day_display" placeholder="16 MAY 2026"></label>
+                        <label>Starts (ISO opcional)<input name="starts_at" placeholder="2026-05-16T18:00:00+02"></label>
+                        <label>Cierre inscripciones (ISO)<input name="registration_closes_at" placeholder="2026-05-15T23:59:00+02"></label>
+                        <label>Check-in<input name="check_in_display" value="15 min antes del match"></label>
+                        <label>Server<input name="format_server_text" placeholder="Rustoria RTG"></label>
+                        <label>Marquee<input name="marquee_text" placeholder="MCV — TORNEO —"></label>
+                        <label>Twitch channel<input name="twitch_channel" value="mcvteam"></label>
+                        <label>Estado inicial
+                            <select name="status">
+                                <option value="draft">draft (no público en listas)</option>
+                                <option value="open">open (registro)</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn-primary-small">Crear torneo</button>
+                    </form>
+                </div>
+                <div class="data-area">
+                    <h3 class="admin-form-title">Finalizar + póster</h3>
+                    <p class="admin-form-hint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 5MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
+                    <form id="form-finish-tournament" class="admin-stack-form">
+                        <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional"></label>
+                        <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
+                        <label>Imagen póster<input name="poster" type="file" accept="image/*"></label>
+                        <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
+                        <button type="submit" class="btn-primary-small">Finalizar torneo</button>
+                    </form>
+                    <p class="admin-form-hint" style="margin-top:12px;">Cambiar estado sin finalizar: usá PATCH desde consola o añadimos toggles después.</p>
+                </div>
+            </div>
         </div>
 
         <div id="teams-panel">
+            <div class="data-area admin-manual-box">
+                <h3 class="admin-manual-title">Agregar equipo (manual)</h3>
+                <p class="admin-form-hint admin-readable">Si no se inscribieron solos, cargalos acá. Mismos datos que el formulario público: 5 jugadores con Steam64 (17 dígitos) y Discord.</p>
+                <form id="form-admin-add-team" class="admin-manual-form">
+                    <div class="admin-manual-row">
+                        <label>Equipo *<input name="teamName" required placeholder="Nombre del team"></label>
+                        <label>Tag<input name="teamTag" placeholder="TAG"></label>
+                        <label>Capitán *<input name="captainName" required placeholder="Nombre visible"></label>
+                    </div>
+                    <div class="admin-manual-row">
+                        <label>Estado al guardar
+                            <select name="initialStatus">
+                                <option value="accepted" selected>Aceptado (listo para bracket)</option>
+                                <option value="pending">Pendiente (revisar después)</option>
+                            </select>
+                        </label>
+                        <label class="admin-checkbox-row admin-checkbox-inline"><input type="checkbox" name="skipBans" value="1"> Omitir chequeo VAC/Game ban (Steam API)</label>
+                    </div>
+                    <p class="admin-form-hint admin-readable">Jugadores (los 5 obligatorios)</p>
+                    <div class="admin-players-grid">
+                        <span class="admin-players-head">#</span>
+                        <span class="admin-players-head">Nombre</span>
+                        <span class="admin-players-head">Steam64</span>
+                        <span class="admin-players-head">Discord</span>
+                        <span>1</span><input name="p1_name" required placeholder="Nick"><input name="p1_steam" required placeholder="76561198…"><input name="p1_discord" required placeholder="user#0">
+                        <span>2</span><input name="p2_name" required><input name="p2_steam" required><input name="p2_discord" required>
+                        <span>3</span><input name="p3_name" required><input name="p3_steam" required><input name="p3_discord" required>
+                        <span>4</span><input name="p4_name" required><input name="p4_steam" required><input name="p4_discord" required>
+                        <span>5</span><input name="p5_name" required><input name="p5_steam" required><input name="p5_discord" required>
+                    </div>
+                    <button type="submit" class="btn-primary-small">Guardar equipo</button>
+                </form>
+            </div>
+
             <div class="filters" id="filters">
-                <button type="button" class="filter active" data-filter="all">ALL <span id="c-all">0</span></button>
-                <button type="button" class="filter" data-filter="pending">PENDING <span id="c-pending">0</span></button>
-                <button type="button" class="filter" data-filter="accepted">APPROVED <span id="c-accepted">0</span></button>
-                <button type="button" class="filter" data-filter="declined">REJECTED <span id="c-declined">0</span></button>
+                <button type="button" class="filter active" data-filter="all">Todos <span id="c-all">0</span></button>
+                <button type="button" class="filter" data-filter="pending">Pendientes <span id="c-pending">0</span></button>
+                <button type="button" class="filter" data-filter="accepted">Aprobados <span id="c-accepted">0</span></button>
+                <button type="button" class="filter" data-filter="declined">Rechazados <span id="c-declined">0</span></button>
             </div>
 
             <div class="winner-row">
-                <label class="winner-label">Ganador del torneo (ID registro aceptado)</label>
-                <input type="number" id="winner-id" class="winner-input" min="1" placeholder="registration id">
-                <button type="button" class="btn-primary-small" id="save-winner">GUARDAR GANADOR</button>
-                <button type="button" class="btn-outline" id="clear-winner">LIMPIAR</button>
+                <label class="winner-label">Ganador (ID de registro aceptado)</label>
+                <input type="number" id="winner-id" class="winner-input" min="1" placeholder="Ej. 12">
+                <button type="button" class="btn-primary-small" id="save-winner">Guardar ganador</button>
+                <button type="button" class="btn-outline" id="clear-winner">Limpiar</button>
             </div>
 
             <div class="data-area" id="data-area">
@@ -67,17 +162,27 @@
         </div>
     </main>
 
+<script src="mcv-api-base.js"></script>
 <script>
 (function () {
-    var API = window.location.origin;
-    var SLUG = 'last-squad-standing';
-    var token = sessionStorage.getItem('mcv_admin_jwt');
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var token = (sessionStorage.getItem("mcv_admin_jwt") || localStorage.getItem("mcv_admin_jwt") || "").trim();
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.href = "login.html";
         return;
     }
 
-    var state = { list: [], filter: 'all', tab: 'teams' };
+    var state = {
+        list: [],
+        filter: 'all',
+        tab: 'teams',
+        slug: sessionStorage.getItem('mcv_admin_slug') || 'last-squad-standing'
+    };
+
+    function clearAdminSession() {
+        sessionStorage.removeItem("mcv_admin_jwt");
+        try { localStorage.removeItem("mcv_admin_jwt"); } catch (e) {}
+    }
 
     function authHeaders() {
         return {
@@ -117,15 +222,15 @@
         var box = document.getElementById('data-area');
         var rows = filtered();
         if (!rows.length) {
-            box.innerHTML = '<p class="empty-hint">NO TEAMS IN THIS VIEW.</p>';
+            box.innerHTML = '<p class="empty-hint">No hay equipos en esta vista.</p>';
             return;
         }
-        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>Team</th><th>Tag</th><th>Captain</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>Equipo</th><th>Tag</th><th>Capitán</th><th>Estado</th><th>Alta</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
-            html += '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.team_name) + '</td><td>' + esc(r.team_tag) + '</td><td>' + esc(r.captain_name) + '</td><td><span class="pill pill-' + esc(r.status) + '">' + esc(r.status) + '</span></td><td>' + esc(String(r.created_at).slice(0, 16)) + '</td><td class="row-actions">';
-            html += '<button type="button" class="btn-tiny" data-act="accepted" data-id="' + r.id + '">OK</button> ';
-            html += '<button type="button" class="btn-tiny" data-act="pending" data-id="' + r.id + '">WAIT</button> ';
-            html += '<button type="button" class="btn-tiny danger" data-act="declined" data-id="' + r.id + '">NO</button>';
+            html += '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.team_name) + '</td><td>' + esc(r.team_tag) + '</td><td>' + esc(r.captain_name) + '</td><td><span class="pill pill-' + esc(r.status) + '">' + esc({ pending: 'Pendiente', accepted: 'Aceptado', declined: 'Rechazado' }[r.status] || r.status) + '</span></td><td>' + esc(String(r.created_at).slice(0, 16)) + '</td><td class="row-actions">';
+            html += '<button type="button" class="btn-tiny" data-act="accepted" data-id="' + r.id + '">Aceptar</button> ';
+            html += '<button type="button" class="btn-tiny" data-act="pending" data-id="' + r.id + '">Pendiente</button> ';
+            html += '<button type="button" class="btn-tiny danger" data-act="declined" data-id="' + r.id + '">Rechazar</button>';
             html += '</td></tr>';
         });
         html += '</tbody></table>';
@@ -146,8 +251,8 @@
         })
             .then(function (r) {
                 if (r.status === 401) {
-                    sessionStorage.removeItem('mcv_admin_jwt');
-                    window.location.href = 'login.html';
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) {
@@ -166,42 +271,57 @@
 
     function loadAll() {
         banner('', false);
-        return fetch(API + '/api/admin/registrations?slug=' + encodeURIComponent(SLUG), { headers: { 'Authorization': 'Bearer ' + token } })
+        return fetch(API + '/api/admin/registrations?slug=' + encodeURIComponent(state.slug), { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function (r) {
                 if (r.status === 401) {
-                    sessionStorage.removeItem('mcv_admin_jwt');
-                    window.location.href = 'login.html';
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
                     return Promise.reject();
                 }
-                return r.json();
+                return r.json().then(function (data) {
+                    if (!r.ok) {
+                        var msg = (data && data.error) ? data.error : ('Error HTTP ' + r.status);
+                        banner(msg, true);
+                        throw new Error(msg);
+                    }
+                    return data;
+                });
             })
             .then(function (data) {
                 state.list = data.registrations || [];
                 setCounts();
                 renderTeams();
-                return fetch(API + '/api/tournaments/' + encodeURIComponent(SLUG));
+                return fetch(API + '/api/tournaments/' + encodeURIComponent(state.slug));
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var t = data.tournament;
-                if (t && t.winner_registration_id) {
-                    document.getElementById('winner-id').value = String(t.winner_registration_id);
+                var winInput = document.getElementById('winner-id');
+                if (t && t.winner_registration_id && winInput) {
+                    winInput.value = String(t.winner_registration_id);
+                } else if (winInput) {
+                    winInput.value = '';
                 }
             })
-            .catch(function () {
-                document.getElementById('data-area').innerHTML = '<p class="empty-hint">Error cargando datos (¿DATABASE_URL en el servidor?).</p>';
+            .catch(function (e) {
+                var msg = (e && e.message) ? e.message : 'Error cargando datos.';
+                if (!document.getElementById('admin-banner').textContent) {
+                    banner(msg, true);
+                }
+                document.getElementById('data-area').innerHTML =
+                    '<p class="empty-hint">No se pudieron cargar los equipos. Si dice «Base de datos no disponible», en Render agregá <code>DATABASE_URL</code> (PostgreSQL) al Web Service.</p>';
             });
     }
 
     function loadBracketView() {
         var box = document.getElementById('bracket-area');
         box.innerHTML = '<p class="empty-hint">Cargando bracket…</p>';
-        fetch(API + '/api/tournaments/' + encodeURIComponent(SLUG) + '/bracket')
+        fetch(API + '/api/tournaments/' + encodeURIComponent(state.slug) + '/bracket')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 var matches = data.matches || [];
                 if (!matches.length) {
-                    box.innerHTML = '<p class="empty-hint">Aún no hay bracket. Aprobá equipos y pulsá GENERAR BRACKET.</p>';
+                    box.innerHTML = '<p class="empty-hint">Todavía no hay bracket. Aprobá equipos y pulsá «Generar bracket».</p>';
                     return;
                 }
                 var byRound = {};
@@ -212,7 +332,7 @@
                 var html = '';
                 Object.keys(byRound).sort(function (a, b) { return Number(a) - Number(b); }).forEach(function (rn) {
                     html += '<h3 class="bracket-round-title">Ronda ' + esc(rn) + '</h3>';
-                    html += '<table class="admin-table"><thead><tr><th>#</th><th>A</th><th>B</th><th>Ganador</th><th>Acción</th></tr></thead><tbody>';
+                    html += '<table class="admin-table"><thead><tr><th>#</th><th>Lado A</th><th>Lado B</th><th>Ganador</th><th>Acción</th></tr></thead><tbody>';
                     byRound[rn].forEach(function (m) {
                         html += '<tr><td>' + esc(m.slot_no) + '</td><td>' + esc(m.side_a_name || '—') + '</td><td>' + esc(m.side_b_name || 'BYE') + '</td><td>' + esc(m.winner_name || '—') + '</td><td>';
                         if (m.registration_a_id && m.registration_b_id && !m.winner_registration_id) {
@@ -248,19 +368,223 @@
                 });
             })
             .catch(function () {
-                box.innerHTML = '<p class="empty-hint">Error leyendo bracket.</p>';
+                box.innerHTML = '<p class="empty-hint">No se pudo leer el bracket.</p>';
             });
+    }
+
+    function syncSlugLabel() {
+        var el = document.getElementById('slug-label');
+        if (el) el.textContent = state.slug;
+    }
+
+    function refreshTournamentSelect() {
+        return fetch(API + '/api/admin/tournaments', { headers: { Authorization: 'Bearer ' + token } })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json();
+            })
+            .then(function (data) {
+                var sel = document.getElementById('admin-tournament-select');
+                sel.innerHTML = '';
+                (data.tournaments || []).forEach(function (t) {
+                    var o = document.createElement('option');
+                    o.value = t.slug;
+                    o.textContent = t.slug + ' · ' + (t.title || '') + ' (' + t.status + ')';
+                    sel.appendChild(o);
+                });
+                var found = false;
+                for (var i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === state.slug) found = true;
+                }
+                if (!found) {
+                    var o2 = document.createElement('option');
+                    o2.value = state.slug;
+                    o2.textContent = state.slug + ' (sin listar)';
+                    sel.appendChild(o2);
+                }
+                sel.value = state.slug;
+                syncSlugLabel();
+            })
+            .catch(function () { syncSlugLabel(); });
+    }
+
+    document.getElementById('admin-tournament-select').addEventListener('change', function () {
+        state.slug = this.value;
+        sessionStorage.setItem('mcv_admin_slug', state.slug);
+        syncSlugLabel();
+        loadAll();
+    });
+
+    document.getElementById('form-new-tournament').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var fd = new FormData(e.target);
+        var body = {
+            title: fd.get('title'),
+            slug: (fd.get('slug') || '').trim() || undefined,
+            description: (fd.get('description') || '').trim() || null,
+            format_label: (fd.get('format_label') || '').trim() || '5v5',
+            max_teams: fd.get('max_teams') ? Number(fd.get('max_teams')) : 30,
+            prize_pool_text: (fd.get('prize_pool_text') || '').trim() || null,
+            prize_sub_text: (fd.get('prize_sub_text') || '').trim() || null,
+            match_day_display: (fd.get('match_day_display') || '').trim() || null,
+            starts_at: (fd.get('starts_at') || '').trim() || null,
+            registration_closes_at: (fd.get('registration_closes_at') || '').trim() || null,
+            check_in_display: (fd.get('check_in_display') || '').trim() || null,
+            format_server_text: (fd.get('format_server_text') || '').trim() || null,
+            marquee_text: (fd.get('marquee_text') || '').trim() || null,
+            twitch_channel: (fd.get('twitch_channel') || '').trim() || 'mcvteam',
+            status: fd.get('status') || 'draft'
+        };
+        banner('Creando torneo…', false);
+        fetch(API + '/api/admin/tournaments', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        })
+            .then(function (r) {
+                var ct = (r.headers.get('content-type') || '').toLowerCase();
+                if (ct.indexOf('application/json') === -1) {
+                    return r.text().then(function () {
+                        return {
+                            ok: false,
+                            d: { error: 'Respuesta no JSON (HTTP ' + r.status + '). Revisá la URL de la API en meta mcv-api o el servicio en Render.' }
+                        };
+                    });
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                state.slug = x.d.tournament.slug;
+                sessionStorage.setItem('mcv_admin_slug', state.slug);
+                banner('Torneo creado: ' + state.slug, false);
+                e.target.reset();
+                return refreshTournamentSelect();
+            })
+            .then(function () { loadAll(); })
+            .catch(function (err) { banner(err.message || 'Error', true); });
+    });
+
+    document.getElementById('form-finish-tournament').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var fd = new FormData();
+        var wf = document.getElementById('form-finish-tournament');
+        var wid = wf.winnerRegistrationId.value.trim();
+        var wname = wf.winnerOverrideName.value.trim();
+        if (wid) fd.append('winnerRegistrationId', wid);
+        fd.append('winnerOverrideName', wname);
+        var fileInput = wf.poster;
+        if (fileInput.files && fileInput.files[0]) {
+            fd.append('poster', fileInput.files[0]);
+        }
+        var clearEl = wf.querySelector('input[name="clearData"]');
+        fd.append('clearData', clearEl && clearEl.checked ? '1' : '0');
+        banner('Finalizando…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/finish', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: fd
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error(x.d.error || 'Error');
+                banner(x.d.cleared ? 'Torneo finalizado; inscripciones y bracket eliminados.' : 'Torneo finalizado.', false);
+                wf.reset();
+                return refreshTournamentSelect();
+            })
+            .then(function () { loadAll(); })
+            .catch(function (err) { banner(err.message || 'Error', true); });
+    });
+
+    function activateTournamentsTab() {
+        var tab = document.querySelector('.tab[data-tab="tournaments"]');
+        if (tab) tab.click();
+        requestAnimationFrame(function () {
+            var panel = document.getElementById('tournaments-panel');
+            if (panel && panel.scrollIntoView) {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
     }
 
     document.querySelectorAll('.tab').forEach(function (t) {
         t.addEventListener('click', function () {
-            document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+            document.querySelectorAll('.tab').forEach(function (x) {
+                x.classList.remove('active');
+                x.setAttribute('aria-selected', 'false');
+            });
             t.classList.add('active');
+            t.setAttribute('aria-selected', 'true');
             state.tab = t.getAttribute('data-tab');
             document.getElementById('teams-panel').style.display = state.tab === 'teams' ? 'block' : 'none';
             document.getElementById('bracket-panel').style.display = state.tab === 'bracket' ? 'block' : 'none';
+            var tp = document.getElementById('tournaments-panel');
+            if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
             if (state.tab === 'bracket') loadBracketView();
         });
+    });
+
+    document.getElementById('goto-tournaments-tab').addEventListener('click', function () {
+        activateTournamentsTab();
+    });
+    var openTorneos = document.getElementById('admin-open-torneos');
+    if (openTorneos) {
+        openTorneos.addEventListener('click', function () {
+            activateTournamentsTab();
+        });
+    }
+
+    document.getElementById('form-admin-add-team').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var fd = new FormData(form);
+        var players = [];
+        for (var i = 1; i <= 5; i++) {
+            players.push({
+                name: fd.get('p' + i + '_name'),
+                steamId64: String(fd.get('p' + i + '_steam') || '').replace(/\D/g, ''),
+                discord: fd.get('p' + i + '_discord')
+            });
+        }
+        var skipEl = form.querySelector('input[name="skipBans"]');
+        var body = {
+            teamName: fd.get('teamName'),
+            teamTag: (fd.get('teamTag') || '').trim() || null,
+            captainName: fd.get('captainName'),
+            players: players,
+            status: fd.get('initialStatus') || 'accepted',
+            skipBansCheck: Boolean(skipEl && skipEl.checked)
+        };
+        banner('Guardando equipo…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/registrations', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                var id = x.d.registration && x.d.registration.id;
+                banner('Equipo guardado' + (id ? ' (registro #' + id + ').' : '.'), false);
+                form.reset();
+                var sel = form.querySelector('select[name="initialStatus"]');
+                if (sel) sel.selectedIndex = 0;
+                loadAll();
+            })
+            .catch(function (err) {
+                banner(err.message || 'Error', true);
+            });
     });
 
     document.querySelectorAll('.filter').forEach(function (f) {
@@ -273,18 +597,20 @@
     });
 
     document.getElementById('refresh-btn').addEventListener('click', function () {
-        loadAll();
-        if (state.tab === 'bracket') loadBracketView();
+        refreshTournamentSelect().then(function () {
+            loadAll();
+            if (state.tab === 'bracket') loadBracketView();
+        });
     });
 
     document.getElementById('logout-btn').addEventListener('click', function () {
-        sessionStorage.removeItem('mcv_admin_jwt');
+        clearAdminSession();
         window.location.href = 'login.html';
     });
 
     document.getElementById('gen-bracket').addEventListener('click', function () {
         banner('Generando bracket…', false);
-        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/bracket/generate', {
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/bracket/generate', {
             method: 'POST',
             headers: authHeaders(),
             body: '{}'
@@ -300,7 +626,7 @@
 
     document.getElementById('next-round').addEventListener('click', function () {
         banner('Avanzando ronda…', false);
-        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/bracket/next-round', {
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/bracket/next-round', {
             method: 'POST',
             headers: authHeaders(),
             body: '{}'
@@ -322,7 +648,7 @@
     document.getElementById('save-winner').addEventListener('click', function () {
         var v = document.getElementById('winner-id').value.trim();
         banner('Guardando ganador…', false);
-        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/winner', {
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/winner', {
             method: 'PATCH',
             headers: authHeaders(),
             body: JSON.stringify({ winnerRegistrationId: v ? Number(v) : null })
@@ -337,7 +663,7 @@
 
     document.getElementById('clear-winner').addEventListener('click', function () {
         document.getElementById('winner-id').value = '';
-        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/winner', {
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/winner', {
             method: 'PATCH',
             headers: authHeaders(),
             body: JSON.stringify({ winnerRegistrationId: null })
@@ -361,12 +687,19 @@
         var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'mcv-registrations-' + SLUG + '.csv';
+        a.download = 'mcv-registrations-' + state.slug + '.csv';
         a.click();
         URL.revokeObjectURL(a.href);
     });
 
-    loadAll();
+    try {
+        var qTab = new URLSearchParams(window.location.search).get('tab');
+        if (qTab === 'torneos' || qTab === 'tournaments') {
+            activateTournamentsTab();
+        }
+    } catch (e3) {}
+
+    refreshTournamentSelect().then(loadAll).catch(loadAll);
 })();
 </script>
 </body>

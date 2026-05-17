@@ -3,6 +3,7 @@
 require("dotenv").config();
 
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
@@ -14,21 +15,40 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
 
-const STEAM_API_KEY = process.env.STEAM_API_KEY || "";
-const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK || "";
+const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
+const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const DISCORD_LOOKUP_CHANNEL_ID = process.env.DISCORD_LOOKUP_CHANNEL_ID || "";
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "";
 const HEXAYTRON_BOT_ID = process.env.HEXAYTRON_BOT_ID || "";
+const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
+
+/** BattleMetrics JSON API: el token JWT mejora límites y acceso; sin token algunos endpoints siguen públicos limitados. */
+function battlemetricsHeaders() {
+    const h = {
+        Accept: "application/vnd.api+json"
+    };
+    if (BATTLEMETRICS_TOKEN) {
+        h.Authorization = `Bearer ${BATTLEMETRICS_TOKEN}`;
+    }
+    return h;
+}
 
 app.use(express.json());
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN || true
+        origin: process.env.CORS_ORIGIN || true,
+        methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        exposedHeaders: ["Content-Type"]
     })
 );
 
-registerTournamentApi(app, { getPool, steamApiKey: STEAM_API_KEY });
+registerTournamentApi(app, {
+    getPool,
+    steamApiKey: STEAM_API_KEY,
+    uploadRoot: path.join(ROOT_DIR, "uploads")
+});
 
 const cache = new Map();
 const CACHE_TIME = 1000 * 60 * 10;
@@ -106,6 +126,31 @@ function calcularScore({ horas, vacBans, gameBans, kdr, headshotPct }) {
 }
 
 function parseHexaytronMessage(message) {
+    const raw = messageToSearchableRaw(message);
+
+    const steamMatch = raw.match(/\b\d{17}\b/);
+
+    const bmMatch =
+        raw.match(/battlemetrics\.com\/players\/(\d+)/i) ||
+        raw.match(/battlemetrics\.com\/rcon\/players\/(\d+)/i);
+
+    if (!steamMatch || !bmMatch) {
+        if (message.author?.tag?.toLowerCase().includes("hexaytron")) {
+            console.log("DEBUG Hexaytron sin match:");
+            console.log(raw);
+        }
+
+        return null;
+    }
+
+    return {
+        steamId: steamMatch[0],
+        bmId: bmMatch[1]
+    };
+}
+
+/** Texto buscable de un mensaje (contenido + embeds + componentes). */
+function messageToSearchableRaw(message) {
     const parts = [];
 
     parts.push(message.content || "");
@@ -146,27 +191,56 @@ function parseHexaytronMessage(message) {
         }
     }
 
-    const raw = parts.join("\n");
+    return parts.join("\n");
+}
 
-    const steamMatch = raw.match(/\b\d{17}\b/);
-
+/**
+ * Si el mensaje menciona este SteamID64 y un link de BattleMetrics, devuelve el id BM.
+ * Sirve para releer el canal cuando la API de BM no resuelve por Steam.
+ */
+function extractBmIdForSteamMessage(message, steamId) {
+    if (!steamId || !/^\d{17}$/.test(String(steamId))) {
+        return null;
+    }
+    const raw = messageToSearchableRaw(message);
+    if (!new RegExp(`\\b${steamId}\\b`).test(raw)) {
+        return null;
+    }
     const bmMatch =
         raw.match(/battlemetrics\.com\/players\/(\d+)/i) ||
         raw.match(/battlemetrics\.com\/rcon\/players\/(\d+)/i);
+    return bmMatch ? bmMatch[1] : null;
+}
 
-    if (!steamMatch || !bmMatch) {
-        if (message.author?.tag?.toLowerCase().includes("hexaytron")) {
-            console.log("DEBUG Hexaytron sin match:");
-            console.log(raw);
-        }
-
+/**
+ * Busca en los últimos mensajes del canal de lookup si Hexaytron (u otro) ya publicó el link BM para este Steam.
+ */
+async function resolveBmFromChannelHistory(steamId) {
+    if (!steamId || !discordClient.isReady() || !DISCORD_LOOKUP_CHANNEL_ID) {
         return null;
     }
-
-    return {
-        steamId: steamMatch[0],
-        bmId: bmMatch[1]
-    };
+    try {
+        const channel = await discordClient.channels.fetch(DISCORD_LOOKUP_CHANNEL_ID).catch(() => null);
+        if (!channel || !channel.isTextBased()) {
+            return null;
+        }
+        const msgs = await channel.messages.fetch({ limit: 100 });
+        const sorted = [...msgs.values()].sort((a, b) => b.createdTimestamp - a.createdTimestamp);
+        for (const m of sorted) {
+            if (HEXAYTRON_BOT_ID && m.author?.bot && m.author.id !== HEXAYTRON_BOT_ID) {
+                continue;
+            }
+            const bmId = extractBmIdForSteamMessage(m, steamId);
+            if (bmId) {
+                console.log(`BM desde historial Discord (${m.author?.tag || "?"}): ${steamId} -> ${bmId}`);
+                setDiscordBM(steamId, bmId);
+                return bmId;
+            }
+        }
+    } catch (e) {
+        console.log("resolveBmFromChannelHistory:", e.message);
+    }
+    return null;
 }
 
 const discordClient = new Client({
@@ -321,9 +395,7 @@ async function getBattleMetricsServers(bmId) {
     try {
         const { data } = await axios.get(`https://api.battlemetrics.com/players/${bmId}/relationships/servers`, {
             timeout: 12000,
-            headers: {
-                Accept: "application/vnd.api+json"
-            }
+            headers: battlemetricsHeaders()
         });
 
         const included = data.included || [];
@@ -391,29 +463,34 @@ app.post("/escaner-rapido", async (req, res) => {
 
         const cached = getCache(steamId);
         if (cached) {
-            const bmFromDiscord = getDiscordBM(steamId);
-
-            if (bmFromDiscord && !cached.bmId) {
-                cached.bmId = bmFromDiscord;
-                cached.bmUrl = `https://www.battlemetrics.com/players/${bmFromDiscord}`;
-                setCache(steamId, cached);
+            if (!cached.bmId) {
+                let bmFix = getDiscordBM(steamId) || (await resolveBmFromChannelHistory(steamId));
+                if (bmFix) {
+                    cached.bmId = bmFix;
+                    cached.bmUrl = `https://www.battlemetrics.com/players/${bmFix}`;
+                    cached.servidoresBM = await getBattleMetricsServers(bmFix);
+                    setCache(steamId, cached);
+                }
             }
 
             return res.json({ success: true, jugador: cached });
         }
 
         let bmId = getDiscordBM(steamId);
+        if (!bmId) {
+            bmId = await resolveBmFromChannelHistory(steamId);
+        }
 
         if (!bmId) {
             try {
                 const bmRes = await axios.get(
                     `https://api.battlemetrics.com/players?filter[search]=${steamId}`,
-                    { timeout: 12000 }
+                    { timeout: 12000, headers: battlemetricsHeaders() }
                 );
 
                 if (bmRes.data?.data?.length > 0) {
                     bmId = bmRes.data.data[0].id;
-                    console.log("BM directo:", bmId);
+                    console.log("BM directo API:", bmId);
                 }
             } catch {
                 /* ignore */
@@ -539,6 +616,7 @@ app.get("/discord-status", (req, res) => {
         ready: discordClient.isReady(),
         user: discordClient.user?.tag || null,
         channelId: DISCORD_LOOKUP_CHANNEL_ID || null,
+        lookupChannelForBmHistory: Boolean(DISCORD_LOOKUP_CHANNEL_ID),
         cachedPlayers: discordBMCache.size
     });
 });
@@ -548,12 +626,42 @@ app.get("/api/health", (req, res) => {
         ok: true,
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
-        discordBot: discordClient.isReady()
+        discordBot: discordClient.isReady(),
+        battlemetricsAuth: Boolean(BATTLEMETRICS_TOKEN)
     });
 });
 
 app.get("/test", (req, res) => {
     res.send("Servidor funcionando");
+});
+
+/** Sirve el logo como favicon (Chrome pide /favicon.ico aunque haya link rel icon). */
+const logoPath = path.join(ROOT_DIR, "logo.png");
+app.get("/favicon.ico", (req, res) => {
+    if (fs.existsSync(logoPath)) {
+        res.type("image/png");
+        return res.sendFile(logoPath);
+    }
+    res.status(204).end();
+});
+
+/**
+ * Para cuando el HTML está en un dominio estático pero el API está en Render:
+ * en login.html cargá <script src="https://TU-SERVICIO.onrender.com/mcv-api-config.js"></script>
+ * antes de mcv-api-base.js. Usa RENDER_EXTERNAL_URL (automático en Render) o PUBLIC_API_URL.
+ */
+app.get("/mcv-api-config.js", (req, res) => {
+    res.type("application/javascript; charset=utf-8");
+    res.set("Cache-Control", "private, max-age=120");
+    const base = String(process.env.PUBLIC_API_URL || process.env.RENDER_EXTERNAL_URL || "")
+        .trim()
+        .replace(/\/$/, "");
+    if (!base) {
+        return res.send(
+            "// MCV: sin PUBLIC_API_URL ni RENDER_EXTERNAL_URL. En Render suele existir RENDER_EXTERNAL_URL solo en el servicio desplegado.\n"
+        );
+    }
+    res.send(`window.MCV_API_BASE=${JSON.stringify(base)};\n`);
 });
 
 app.use(express.static(ROOT_DIR));

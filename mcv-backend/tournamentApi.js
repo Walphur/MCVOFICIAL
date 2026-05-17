@@ -1,11 +1,56 @@
 "use strict";
 
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 const axios = require("axios");
 
+function makePosterUpload(uploadRoot) {
+    if (!uploadRoot) {
+        return null;
+    }
+    const dest = path.join(uploadRoot, "tournaments");
+    const storage = multer.diskStorage({
+        destination(req, file, cb) {
+            fs.mkdirSync(dest, { recursive: true });
+            cb(null, dest);
+        },
+        filename(req, file, cb) {
+            const ext = path.extname(file.originalname || "").toLowerCase();
+            const ok = [".png", ".jpg", ".jpeg", ".webp", ".gif"];
+            const suffix = ok.includes(ext) ? ext : ".webp";
+            cb(null, `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${suffix}`);
+        }
+    });
+    return multer({
+        storage,
+        limits: { fileSize: 5 * 1024 * 1024 },
+        fileFilter(req, file, cb) {
+            if (!file.mimetype.startsWith("image/")) {
+                cb(new Error("Solo imágenes"));
+                return;
+            }
+            cb(null, true);
+        }
+    });
+}
+
+function slugifyTitle(title) {
+    const base = String(title || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 48);
+    return (base || "torneo") + "-" + crypto.randomBytes(3).toString("hex");
+}
+
 function jwtSecret() {
-    const s = process.env.JWT_SECRET;
-    if (!s || String(s).length < 12) {
+    const s = String(process.env.JWT_SECRET || "").trim();
+    if (!s || s.length < 12) {
         return null;
     }
     return s;
@@ -62,18 +107,129 @@ async function rosterBansCheck(steamIds, steamApiKey) {
     return { ok: dirty.length === 0, skipped: false, dirty };
 }
 
-function registerTournamentApi(app, { getPool, steamApiKey }) {
+function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
+    const posterUpload = makePosterUpload(uploadRoot || null);
+
+    app.get("/api/auth/status", (req, res) => {
+        const rawJwt = String(process.env.JWT_SECRET || "");
+        const jwtTrim = rawJwt.trim();
+        const hasAdminPassword = Boolean(String(process.env.ADMIN_PASSWORD || "").trim());
+        const hasJwtSecret = Boolean(jwtTrim);
+        const jwtLengthOk = jwtTrim.length >= 12;
+        const loginPossible = hasAdminPassword && jwtLengthOk;
+        return res.json({
+            loginPossible,
+            hasAdminPassword,
+            hasJwtSecret,
+            jwtLengthOk,
+            jwtHadWhitespace: rawJwt.length !== jwtTrim.length,
+            hasDatabaseUrl: Boolean(String(process.env.DATABASE_URL || "").trim())
+        });
+    });
+
     app.post("/api/auth/login", (req, res) => {
-        const adminPw = process.env.ADMIN_PASSWORD;
+        const adminPw = String(process.env.ADMIN_PASSWORD || "").trim();
         const secret = jwtSecret();
         if (!adminPw || !secret) {
             return res.status(503).json({ error: "ADMIN_PASSWORD o JWT_SECRET no configurados" });
         }
-        if (String(req.body?.password || "") !== adminPw) {
+        const given = String(req.body?.password || "").trim();
+        if (given !== adminPw) {
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: "12h" });
         return res.json({ token });
+    });
+
+    app.get("/api/tournaments/stats", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const ev = await pool.query(
+                `SELECT COUNT(*)::int AS c FROM tournaments WHERE status IN ('finished','open','closed')`
+            );
+            const teams = await pool.query(`SELECT COUNT(*)::int AS c FROM tournament_registrations`);
+            return res.json({
+                eventsHosted: ev.rows[0].c,
+                teamsRegistered: teams.rows[0].c
+            });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "stats" });
+        }
+    });
+
+    app.get("/api/tournaments", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT t.slug, t.title, t.status, t.starts_at, t.ended_at, t.format_label, t.prize_pool_text,
+            t.poster_url, t.winner_registration_id, t.winner_override_name,
+            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+           FROM tournaments t
+           WHERE t.status IN ('open','closed','finished')
+           ORDER BY (t.status = 'open') DESC, t.starts_at DESC NULLS LAST, t.id DESC`
+            );
+            return res.json({ tournaments: r.rows });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "list" });
+        }
+    });
+
+    app.get("/api/tournaments/for-site", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const openQ = await pool.query(
+                `SELECT t.*,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status IN ('pending','accepted')) AS active_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'accepted') AS accepted_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'pending') AS pending_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'declined') AS declined_count,
+            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+           FROM tournaments t WHERE t.status = 'open'
+           ORDER BY t.starts_at DESC NULLS LAST, t.id DESC LIMIT 1`
+            );
+            if (openQ.rows.length > 0) {
+                return res.json({ mode: "live", tournament: openQ.rows[0] });
+            }
+            const finQ = await pool.query(
+                `SELECT t.*,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status IN ('pending','accepted')) AS active_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'accepted') AS accepted_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'pending') AS pending_count,
+            (SELECT COUNT(*)::int FROM tournament_registrations r
+              WHERE r.tournament_id = t.id AND r.status = 'declined') AS declined_count,
+            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+           FROM tournaments t WHERE t.status = 'finished'
+           ORDER BY t.ended_at DESC NULLS LAST, t.id DESC LIMIT 1`
+            );
+            if (finQ.rows.length > 0) {
+                return res.json({ mode: "recap", tournament: finQ.rows[0] });
+            }
+            return res.json({ mode: "empty", tournament: null });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "for-site" });
+        }
     });
 
     app.get("/api/tournaments/:slug", async (req, res) => {
@@ -93,7 +249,8 @@ function registerTournamentApi(app, { getPool, steamApiKey }) {
             WHERE r.tournament_id = t.id AND r.status = 'pending') AS pending_count,
           (SELECT COUNT(*)::int FROM tournament_registrations r
             WHERE r.tournament_id = t.id AND r.status = 'declined') AS declined_count,
-          (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name
+          (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+          COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
          FROM tournaments t WHERE t.slug = $1`,
                 [slug]
             );
@@ -156,7 +313,7 @@ function registerTournamentApi(app, { getPool, steamApiKey }) {
             const { id: tournamentId, max_teams: maxTeams, status } = tr.rows[0];
             if (status !== "open") {
                 await client.query("ROLLBACK");
-                return res.status(400).json({ error: "El torneo no acepta registros" });
+                return res.status(400).json({ error: "El torneo no acepta registros (solo estado abierto)" });
             }
 
             const cnt = await client.query(
@@ -223,6 +380,110 @@ function registerTournamentApi(app, { getPool, steamApiKey }) {
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "Error listando registros" });
+        }
+    });
+
+    app.post("/api/admin/tournaments/:slug/registrations", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const { slug } = req.params;
+        const { teamName, teamTag, captainName, players, status, skipBansCheck } = req.body || {};
+
+        if (!teamName || !captainName || !Array.isArray(players) || players.length !== 5) {
+            return res.status(400).json({
+                error: "Datos inválidos: teamName, captainName y 5 jugadores requeridos"
+            });
+        }
+
+        const roster = [];
+        const steamIds = [];
+        const seenSteam = new Set();
+        for (let i = 0; i < players.length; i++) {
+            const p = players[i] || {};
+            const name = String(p.name || "").trim();
+            const steam = String(p.steamId64 || "").replace(/\D/g, "");
+            const discord = String(p.discord || "").trim();
+            if (!name || steam.length !== 17 || !discord) {
+                return res.status(400).json({
+                    error: `Jugador ${i + 1}: nombre, SteamID64 (17 dígitos) y Discord requeridos`
+                });
+            }
+            if (seenSteam.has(steam)) {
+                return res.status(400).json({ error: "SteamID64 duplicado en el roster" });
+            }
+            seenSteam.add(steam);
+            steamIds.push(steam);
+            roster.push({ name, steamId64: steam, discord });
+        }
+
+        const regStatus = ["pending", "accepted", "declined"].includes(status) ? status : "accepted";
+
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+            const tr = await client.query(
+                "SELECT id, max_teams, status FROM tournaments WHERE slug = $1 FOR UPDATE",
+                [slug]
+            );
+            if (tr.rows.length === 0) {
+                await client.query("ROLLBACK");
+                return res.status(404).json({ error: "Torneo no encontrado" });
+            }
+            const { id: tournamentId, max_teams: maxTeams, status: tStatus } = tr.rows[0];
+            if (tStatus === "finished") {
+                await client.query("ROLLBACK");
+                return res.status(400).json({ error: "No se pueden agregar equipos a un torneo finalizado" });
+            }
+
+            const cnt = await client.query(
+                `SELECT COUNT(*)::int AS c FROM tournament_registrations
+         WHERE tournament_id = $1 AND status IN ('pending','accepted')`,
+                [tournamentId]
+            );
+            if (cnt.rows[0].c >= maxTeams) {
+                await client.query("ROLLBACK");
+                return res.status(400).json({ error: "Cupo de equipos completo" });
+            }
+
+            const doBanCheck = !skipBansCheck;
+            const ban = await rosterBansCheck(steamIds, doBanCheck ? steamApiKey : "");
+            if (!ban.ok) {
+                await client.query("ROLLBACK");
+                return res.status(400).json({
+                    success: false,
+                    error: "VAC o Game ban detectado en el roster",
+                    dirty: ban.dirty
+                });
+            }
+
+            const ins = await client.query(
+                `INSERT INTO tournament_registrations
+          (tournament_id, team_name, team_tag, captain_name, roster, status)
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6)
+         RETURNING id, team_name, status, created_at`,
+                [
+                    tournamentId,
+                    String(teamName).trim(),
+                    teamTag ? String(teamTag).trim() : null,
+                    String(captainName).trim(),
+                    JSON.stringify(roster),
+                    regStatus
+                ]
+            );
+            await client.query("COMMIT");
+            return res.status(201).json({
+                success: true,
+                registration: ins.rows[0],
+                bansCheckSkipped: ban.skipped
+            });
+        } catch (e) {
+            await client.query("ROLLBACK");
+            console.error(e);
+            return res.status(500).json({ error: "No se pudo guardar el registro" });
+        } finally {
+            client.release();
         }
     });
 
@@ -312,6 +573,243 @@ function registerTournamentApi(app, { getPool, steamApiKey }) {
             client.release();
         }
     });
+
+    app.get("/api/admin/tournaments", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT t.*,
+            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+           FROM tournaments t ORDER BY t.id DESC`
+            );
+            return res.json({ tournaments: r.rows });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "list admin" });
+        }
+    });
+
+    app.post("/api/admin/tournaments", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const b = req.body || {};
+        let slug = String(b.slug || "")
+            .trim()
+            .toLowerCase();
+        if (!slug) {
+            slug = slugifyTitle(b.title || "torneo");
+        }
+        if (!/^[a-z0-9-]{2,64}$/.test(slug)) {
+            return res.status(400).json({ error: "slug: 2-64 caracteres, minúsculas, números y guiones" });
+        }
+        if (!String(b.title || "").trim()) {
+            return res.status(400).json({ error: "title requerido" });
+        }
+        const status = ["draft", "open", "closed", "finished"].includes(b.status) ? b.status : "draft";
+        try {
+            const ins = await pool.query(
+                `INSERT INTO tournaments (
+            slug, title, description, format_label, max_teams, starts_at, status,
+            prize_pool_text, prize_sub_text, registration_closes_at, match_day_display,
+            check_in_display, format_server_text, marquee_text, twitch_channel
+          ) VALUES ($1,$2,$3,$4,$5,$6::timestamptz,$7,$8,$9,$10::timestamptz,$11,$12,$13,$14,$15)
+          RETURNING *`,
+                [
+                    slug,
+                    String(b.title).trim(),
+                    b.description ? String(b.description) : null,
+                    b.format_label ? String(b.format_label) : "5v5",
+                    Number(b.max_teams) > 0 ? Number(b.max_teams) : 30,
+                    b.starts_at || null,
+                    status,
+                    b.prize_pool_text ? String(b.prize_pool_text) : null,
+                    b.prize_sub_text ? String(b.prize_sub_text) : null,
+                    b.registration_closes_at || null,
+                    b.match_day_display ? String(b.match_day_display) : null,
+                    b.check_in_display ? String(b.check_in_display) : null,
+                    b.format_server_text ? String(b.format_server_text) : null,
+                    b.marquee_text ? String(b.marquee_text) : null,
+                    b.twitch_channel ? String(b.twitch_channel) : "mcvteam"
+                ]
+            );
+            return res.status(201).json({ tournament: ins.rows[0] });
+        } catch (e) {
+            if (e.code === "23505") {
+                return res.status(409).json({ error: "Ese slug ya existe" });
+            }
+            console.error(e);
+            return res.status(500).json({ error: "create tournament" });
+        }
+    });
+
+    const allowedPatch = new Set([
+        "title",
+        "description",
+        "status",
+        "format_label",
+        "max_teams",
+        "starts_at",
+        "prize_pool_text",
+        "prize_sub_text",
+        "registration_closes_at",
+        "match_day_display",
+        "check_in_display",
+        "format_server_text",
+        "marquee_text",
+        "twitch_channel",
+        "poster_url",
+        "winner_override_name"
+    ]);
+
+    app.patch("/api/admin/tournaments/:slug", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const { slug } = req.params;
+        const b = req.body || {};
+        const sets = [];
+        const vals = [];
+        let i = 1;
+        for (const key of Object.keys(b)) {
+            if (!allowedPatch.has(key)) {
+                continue;
+            }
+            if (key === "max_teams") {
+                const n = Number(b[key]);
+                if (n > 0) {
+                    sets.push(`max_teams = $${i++}`);
+                    vals.push(n);
+                }
+                continue;
+            }
+            if (key === "starts_at" || key === "registration_closes_at") {
+                sets.push(`${key} = $${i++}::timestamptz`);
+                vals.push(b[key] || null);
+                continue;
+            }
+            sets.push(`${key} = $${i++}`);
+            vals.push(b[key] == null ? null : String(b[key]));
+        }
+        if (!sets.length) {
+            return res.status(400).json({ error: "Nada para actualizar" });
+        }
+        vals.push(slug);
+        try {
+            const q = `UPDATE tournaments SET ${sets.join(", ")} WHERE slug = $${i} RETURNING *`;
+            const r = await pool.query(q, vals);
+            if (!r.rows.length) {
+                return res.status(404).json({ error: "Torneo no encontrado" });
+            }
+            return res.json({ tournament: r.rows[0] });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "patch tournament" });
+        }
+    });
+
+    app.post(
+        "/api/admin/tournaments/:slug/finish",
+        authAdmin,
+        (req, res, next) => {
+            if (!posterUpload) {
+                res.status(503).json({ error: "Subida de archivos no disponible en el servidor" });
+                return;
+            }
+            posterUpload.single("poster")(req, res, (err) => {
+                if (err) {
+                    res.status(400).json({ error: err.message || "upload" });
+                    return;
+                }
+                next();
+            });
+        },
+        async (req, res) => {
+            const pool = getPool();
+            if (!pool) {
+                return res.status(503).json({ error: "Base de datos no disponible" });
+            }
+            const { slug } = req.params;
+            const widRaw = req.body?.winnerRegistrationId;
+            let winnerId = null;
+            if (widRaw !== undefined && widRaw !== null && String(widRaw).trim() !== "") {
+                const n = Number(widRaw);
+                if (!Number.isFinite(n) || n < 1) {
+                    return res.status(400).json({ error: "winnerRegistrationId inválido" });
+                }
+                winnerId = n;
+            }
+            const newPoster = req.file ? `/uploads/tournaments/${req.file.filename}` : null;
+            const client = await pool.connect();
+            try {
+                await client.query("BEGIN");
+                const t = await client.query(
+                    `SELECT id, winner_registration_id, winner_override_name, poster_url
+           FROM tournaments WHERE slug = $1 FOR UPDATE`,
+                    [slug]
+                );
+                if (!t.rows.length) {
+                    await client.query("ROLLBACK");
+                    return res.status(404).json({ error: "Torneo no encontrado" });
+                }
+                const row = t.rows[0];
+                const tid = row.id;
+                const nextWin = winnerId != null ? winnerId : row.winner_registration_id;
+                if (winnerId != null) {
+                    const check = await client.query(
+                        `SELECT id FROM tournament_registrations
+             WHERE id = $1 AND tournament_id = $2 AND status = 'accepted'`,
+                        [winnerId, tid]
+                    );
+                    if (!check.rows.length) {
+                        await client.query("ROLLBACK");
+                        return res.status(400).json({
+                            error: "El ganador debe ser un equipo aceptado de este torneo (o dejá el ID vacío y usá nombre manual)"
+                        });
+                    }
+                }
+                let nextOverride = row.winner_override_name;
+                if (Object.prototype.hasOwnProperty.call(req.body, "winnerOverrideName")) {
+                    const trimmed = String(req.body.winnerOverrideName || "").trim();
+                    nextOverride = trimmed || null;
+                }
+                const nextPoster = newPoster || row.poster_url;
+                const clearRegs = String(req.body?.clearData || "") === "1";
+                await client.query(
+                    `UPDATE tournaments SET
+            status = 'finished',
+            ended_at = COALESCE(ended_at, NOW()),
+            winner_registration_id = $2,
+            winner_override_name = COALESCE(
+              NULLIF(TRIM($3::text), ''),
+              NULLIF(TRIM(winner_override_name), ''),
+              (SELECT tr.team_name FROM tournament_registrations tr WHERE tr.id = $2)
+            ),
+            poster_url = $4
+           WHERE id = $1`,
+                    [tid, nextWin, nextOverride, nextPoster]
+                );
+                if (clearRegs) {
+                    await client.query("DELETE FROM tournament_matches WHERE tournament_id = $1", [tid]);
+                    await client.query("DELETE FROM tournament_registrations WHERE tournament_id = $1", [tid]);
+                }
+                await client.query("COMMIT");
+                return res.json({ success: true, cleared: clearRegs });
+            } catch (e) {
+                await client.query("ROLLBACK");
+                console.error(e);
+                return res.status(500).json({ error: "finish tournament" });
+            } finally {
+                client.release();
+            }
+        }
+    );
 
     app.post("/api/admin/tournaments/:slug/bracket/generate", authAdmin, async (req, res) => {
         const pool = getPool();

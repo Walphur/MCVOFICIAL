@@ -2,6 +2,8 @@
 # 1) Creá un PostgreSQL en Render y copiá su Internal Database URL.
 # 2) Desplegá este repo como Web Service con root directory: mcv-backend
 # 3) En Environment del Web Service añadí DATABASE_URL (link a la BD) y el resto según .env.example
+# 4) Si usás dominio propio (ej. mcvoficial.com): conectalo a ESTE Web Service en Render (Custom Domain).
+#    Si el dominio apunta solo a hosting estático (GitHub/Cloudflare Pages), POST /api/* dará 405: usá ?api= o meta mcv-api (ver login.html).
 
 services:
   - type: web

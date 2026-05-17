@@ -65,3 +65,51 @@ VALUES (
         'open'
     )
 ON CONFLICT (slug) DO NOTHING;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS prize_pool_text TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS prize_sub_text TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS poster_url TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS registration_closes_at TIMESTAMPTZ;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS match_day_display TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS check_in_display TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS format_server_text TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS twitch_channel TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS winner_override_name TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS ended_at TIMESTAMPTZ;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS marquee_text TEXT;
+
+-- split
+UPDATE tournaments
+SET
+    status = 'finished',
+    ended_at = COALESCE(ended_at, TIMESTAMPTZ '2026-05-16 20:00:00+02'),
+    prize_pool_text = COALESCE(prize_pool_text, '$150'),
+    prize_sub_text = COALESCE(prize_sub_text, 'Pago al capitán del equipo ganador'),
+    match_day_display = COALESCE(match_day_display, '16 MAY 2026'),
+    check_in_display = COALESCE(check_in_display, '15 min antes del match'),
+    format_server_text = COALESCE(format_server_text, 'Rustoria RTG'),
+    marquee_text = COALESCE(marquee_text, 'LAST SQUAD STANDING — EVENTO FINALIZADO'),
+    twitch_channel = COALESCE(twitch_channel, 'mcvteam')
+WHERE slug = 'last-squad-standing'
+  AND status = 'open';

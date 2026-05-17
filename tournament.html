@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCV Oficial - Last Squad Standing</title>
+    <title>MCV — Torneo</title>
     <meta name="theme-color" content="#FAA61A">
+    <!-- Si el dominio público es solo estático, poné la URL del Web Service Render (sin / final). -->
+    <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -18,7 +21,8 @@
     </a>
     <ul class="nav-links">
         <li><a href="index.html">Clan</a></li>
-        <li><a href="tournament.html" class="active">Tournament</a></li>
+        <li><a href="events.html">Eventos</a></li>
+        <li><a href="tournament.html" class="active">Torneo</a></li>
         <li><a href="bot.html">Bot</a></li>
         <li><a href="tickets.html">Tickets</a></li>
         <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
@@ -32,17 +36,31 @@
     <div class="tournament-hero-content">
         <div class="section-label centered-label">
             <div class="yellow-line"></div>
-            <span>// MCV Clan / Rust / 5v5</span>
+            <span id="t-hero-tag">// MCV · Rust</span>
             <div class="yellow-line"></div>
         </div>
 
-        <h1>Last Squad <span>Standing.</span></h1>
-        <p>30 equipos. 5 jugadores por roster. Un solo bracket competitivo. Registro, reglas y verificación del equipo en un mismo lugar.</p>
+        <h1 id="t-hero-title">Torneo</h1>
+        <p id="t-hero-desc">Cargando…</p>
 
-        <div class="tournament-actions">
-            <a href="#register" class="btn-primary pulse-rust"><i data-lucide="zap"></i> Registrar team</a>
-            <a href="#rules" class="btn-secondary"><i data-lucide="scroll-text"></i> Ver reglas</a>
+        <div class="tournament-actions" id="t-hero-actions">
+            <a href="#register" class="btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> Registrar team</a>
+            <a href="#rules" class="btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> Ver reglas</a>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+        </div>
+        <p id="t-hero-status" class="t-hero-status" style="display:none;"></p>
+    </div>
+</section>
+
+<section id="winner-showcase" class="winner-showcase" style="display:none;">
+    <div class="winner-showcase-inner">
+        <div class="winner-showcase-text">
+            <span class="section-label"><span class="yellow-line"></span> // Resultado</span>
+            <h2 id="t-winner-heading">Campeón</h2>
+            <p id="t-winner-sub" class="winner-sub"></p>
+        </div>
+        <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
+            <img id="t-winner-poster" src="" alt="Póster del torneo">
         </div>
     </div>
 </section>
@@ -51,32 +69,32 @@
     <div class="tournament-stat">
         <i data-lucide="coins"></i>
         <span>// Prize Pool</span>
-        <strong>$150</strong>
-        <small>Winner takes all</small>
+        <strong id="t-stat-prize">—</strong>
+        <small id="t-stat-prize-sub">—</small>
     </div>
     <div class="tournament-stat">
         <i data-lucide="users"></i>
         <span>// Team Slots</span>
-        <strong id="tournament-slots">0/30</strong>
-        <small>30 equipos max</small>
+        <strong id="tournament-slots">—/—</strong>
+        <small id="t-stat-slots-sub">—</small>
     </div>
     <div class="tournament-stat">
         <i data-lucide="calendar-days"></i>
         <span>// Match Day</span>
-        <strong>MAY 16</strong>
-        <small>18:00 CEST - 2026</small>
+        <strong id="t-stat-day">—</strong>
+        <small id="t-stat-day-sub">—</small>
     </div>
     <div class="tournament-stat">
         <i data-lucide="swords"></i>
         <span>// Format</span>
-        <strong>5v5</strong>
-        <small>PvP competitivo</small>
+        <strong id="t-stat-format">—</strong>
+        <small id="t-stat-format-sub">PvP</small>
     </div>
 </section>
 
 <div class="marquee tournament-marquee">
-    <div class="marquee-content">
-        MCV CLAN - 5V5 TOURNAMENT - RUST - LAST SQUAD STANDING - MCV CLAN - 5V5 TOURNAMENT - RUST - LAST SQUAD STANDING -
+    <div class="marquee-content" id="t-marquee">
+        MCV CLAN — RUST — TORNEOS —
     </div>
 </div>
 
@@ -88,37 +106,37 @@
 
     <div class="section-heading-row tournament-heading">
         <h2>Know the <span>protocol.</span></h2>
-        <p>Todo equipo registrado acepta estas reglas. La organización puede pedir clips, screen share o revisión adicional si el match lo requiere.</p>
+        <p id="t-rules-intro">Reglas y calendario del evento.</p>
     </div>
 
     <div class="tournament-info-grid">
         <article class="tournament-panel schedule-panel">
             <div class="panel-title"><i data-lucide="calendar-clock"></i><h3>Schedule</h3></div>
-            <div class="schedule-item"><span>Registration closes</span><span class="highlight">May 15 - 2026</span></div>
-            <div class="schedule-item"><span>Match day</span><span class="highlight">May 16 - 18:00 CEST</span></div>
-            <div class="schedule-item"><span>Check-in</span><span class="highlight">15 min before</span></div>
+            <div class="schedule-item"><span>Cierre inscripciones</span><span class="highlight" id="t-sch-close">—</span></div>
+            <div class="schedule-item"><span>Match day</span><span class="highlight" id="t-sch-day">—</span></div>
+            <div class="schedule-item"><span>Check-in</span><span class="highlight" id="t-sch-check">—</span></div>
             <div class="schedule-item border-none"><span>Max delay</span><span class="highlight">10 min = forfeit</span></div>
         </article>
 
         <article class="tournament-panel prize-panel">
             <div class="panel-title"><i data-lucide="trophy"></i><h3>Prize Pool</h3></div>
             <span class="stat-title highlight-text">1st place</span>
-            <div class="prize-amount">$150</div>
-            <p class="prize-sub">Pago al capitán del equipo ganador</p>
+            <div class="prize-amount" id="t-prize-amount">—</div>
+            <p class="prize-sub" id="t-prize-sub">—</p>
         </article>
 
         <article class="tournament-panel format-panel">
             <div class="panel-title"><i data-lucide="swords"></i><h3>Format</h3></div>
             <div class="format-grid">
-                <div><span class="stat-title">// Mode</span><p>5v5 PvP</p></div>
-                <div><span class="stat-title">// Platform</span><p>PC - Rust</p></div>
-                <div><span class="stat-title">// Server</span><p>Rustoria RTG</p></div>
+                <div><span class="stat-title">// Mode</span><p id="t-fmt-mode">5v5 PvP</p></div>
+                <div><span class="stat-title">// Platform</span><p>PC — Rust</p></div>
+                <div><span class="stat-title">// Server</span><p id="t-fmt-server">—</p></div>
                 <div><span class="stat-title">// System</span><p>Elimination</p></div>
             </div>
         </article>
     </div>
 
-    <div class="rules-card tournament-panel">
+    <div class="rules-card tournament-panel" id="t-rules-card">
         <div class="panel-title"><i data-lucide="scroll-text"></i><h3>Tournament Rules</h3></div>
         <div class="rules-grid tournament-rules-grid">
             <div class="rule-item"><h4><span class="rule-num">01</span> Team Requirements</h4><ul><li>5 main players per team.</li><li>One captain responsible for communication.</li><li>No roster changes without admin approval.</li></ul></div>
@@ -146,10 +164,12 @@
 
     <div class="section-heading-row tournament-heading">
         <h2>Register your <span>squad.</span></h2>
-        <p>Completá los 5 jugadores. El sistema consulta Steam bans desde el backend local y notifica el resultado.</p>
+        <p id="t-reg-blurb">Completá los 5 jugadores. Validamos VAC/Game ban vía Steam.</p>
     </div>
 
-    <form class="squad-form" action="#" method="POST">
+    <p id="t-reg-closed" class="t-reg-closed" style="display:none;">Las inscripciones para este torneo están cerradas. Seguinos en <a href="events.html">Eventos</a> o en Discord.</p>
+
+    <form class="squad-form" action="#" method="POST" id="t-squad-form">
         <div class="form-row team-row">
             <div class="input-group"><label><i data-lucide="hash"></i> Team name</label><input name="teamName" type="text" placeholder="e.g. Rust Lords" required autocomplete="organization"></div>
             <div class="input-group"><label><i data-lucide="hash"></i> Team tag</label><input name="teamTag" type="text" placeholder="RL" required maxlength="12"></div>
@@ -158,11 +178,11 @@
 
         <div class="divider"><span>// Roster</span><span class="line"></span><span>5 players required</span></div>
 
-        <div class="player-row"><div class="player-num">01</div><div class="input-group"><label><i data-lucide="user"></i> Player 1 name</label><input name="p1_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p1_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p1_discord" type="text" placeholder="username or Discord#1234" required></div></div>
-        <div class="player-row"><div class="player-num">02</div><div class="input-group"><label><i data-lucide="user"></i> Player 2 name</label><input name="p2_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p2_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p2_discord" type="text" placeholder="username or Discord#1234" required></div></div>
-        <div class="player-row"><div class="player-num">03</div><div class="input-group"><label><i data-lucide="user"></i> Player 3 name</label><input name="p3_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p3_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p3_discord" type="text" placeholder="username or Discord#1234" required></div></div>
-        <div class="player-row"><div class="player-num">04</div><div class="input-group"><label><i data-lucide="user"></i> Player 4 name</label><input name="p4_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p4_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p4_discord" type="text" placeholder="username or Discord#1234" required></div></div>
-        <div class="player-row"><div class="player-num">05</div><div class="input-group"><label><i data-lucide="user"></i> Player 5 name</label><input name="p5_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p5_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p5_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">01</div><div class="input-group"><label><i data-lucide="user"></i> Player 1 name</label><input name="p1_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p1_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric"></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p1_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">02</div><div class="input-group"><label><i data-lucide="user"></i> Player 2 name</label><input name="p2_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p2_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric"></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p2_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">03</div><div class="input-group"><label><i data-lucide="user"></i> Player 3 name</label><input name="p3_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p3_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric"></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p3_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">04</div><div class="input-group"><label><i data-lucide="user"></i> Player 4 name</label><input name="p4_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p4_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric"></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p4_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">05</div><div class="input-group"><label><i data-lucide="user"></i> Player 5 name</label><input name="p5_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p5_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric"></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p5_discord" type="text" placeholder="username or Discord#1234" required></div></div>
 
         <div class="form-footer">
             <p>All registrations are reviewed by MCV admins. You'll be notified on Discord once your team is approved.</p>
@@ -182,36 +202,143 @@
     </div>
 </section>
 
+<script src="mcv-api-base.js"></script>
 <script>
-    lucide.createIcons();
+(function () {
+    var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
+    var resolvedSlug = null;
+    var tournament = null;
 
-    const TOURNAMENT_SLUG = 'last-squad-standing';
-    const API = window.location.origin;
+    function setText(id, txt) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = txt == null ? '' : String(txt);
+    }
 
-    (function twitchParent() {
+    function fmtDate(iso) {
+        if (!iso) return '—';
+        try {
+            var d = new Date(iso);
+            if (isNaN(d.getTime())) return String(iso).slice(0, 16);
+            return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+        } catch (e) {
+            return '—';
+        }
+    }
+
+    function twitchFrame(ch) {
         var iframe = document.getElementById('twitch-embed');
         if (!iframe) return;
         var host = location.hostname || 'localhost';
-        iframe.src = 'https://player.twitch.tv/?channel=mcvteam&parent=' + encodeURIComponent(host);
-    })();
-
-    async function loadTournamentMeta() {
-        var el = document.getElementById('tournament-slots');
-        if (!el) return;
-        try {
-            var r = await fetch(API + '/api/tournaments/' + TOURNAMENT_SLUG);
-            if (!r.ok) throw new Error('bad');
-            var data = await r.json();
-            var t = data.tournament;
-            el.textContent = (t.active_count != null ? t.active_count : 0) + '/' + (t.max_teams || 30);
-        } catch (e) {
-            el.textContent = '—/—';
-        }
+        iframe.src = 'https://player.twitch.tv/?channel=' + encodeURIComponent(ch || 'mcvteam') + '&parent=' + encodeURIComponent(host);
     }
-    loadTournamentMeta();
 
-    document.querySelector('.squad-form').addEventListener('submit', async function(e) {
+    function applyTournament(t) {
+        tournament = t;
+        document.title = 'MCV — ' + (t.title || 'Torneo');
+        setText('t-hero-title', t.title || 'Torneo');
+        setText('t-hero-desc', t.description || '');
+        setText('t-marquee', t.marquee_text || ('MCV — ' + (t.title || 'TORNEO') + ' —'));
+        setText('t-stat-prize', t.prize_pool_text || '—');
+        setText('t-stat-prize-sub', t.prize_sub_text || '');
+        setText('t-stat-slots-sub', (t.max_teams || '—') + ' equipos max');
+        setText('t-stat-day', t.match_day_display || fmtDate(t.starts_at));
+        setText('t-stat-day-sub', t.starts_at ? fmtDate(t.starts_at) : '');
+        setText('t-stat-format', t.format_label || '5v5');
+        setText('t-prize-amount', t.prize_pool_text || '—');
+        setText('t-prize-sub', t.prize_sub_text || '');
+        setText('t-fmt-mode', (t.format_label || '5v5') + ' PvP');
+        setText('t-fmt-server', t.format_server_text || '—');
+        setText('t-sch-close', t.registration_closes_at ? fmtDate(t.registration_closes_at) : '—');
+        setText('t-sch-day', t.match_day_display || fmtDate(t.starts_at));
+        setText('t-sch-check', t.check_in_display || '15 min antes');
+        twitchFrame(t.twitch_channel);
+
+        var slots = document.getElementById('tournament-slots');
+        if (slots) {
+            slots.textContent = (t.active_count != null ? t.active_count : 0) + '/' + (t.max_teams || 30);
+        }
+
+        var st = document.getElementById('t-hero-status');
+        var regBtn = document.getElementById('t-btn-register');
+        var form = document.getElementById('t-squad-form');
+        var closedMsg = document.getElementById('t-reg-closed');
+        var rulesCard = document.getElementById('t-rules-card');
+
+        if (t.status === 'open') {
+            st.style.display = 'none';
+            regBtn.style.display = '';
+            form.style.display = '';
+            closedMsg.style.display = 'none';
+            if (rulesCard) rulesCard.style.display = '';
+        } else {
+            regBtn.style.display = 'none';
+            form.style.display = 'none';
+            closedMsg.style.display = 'block';
+            st.style.display = 'block';
+            st.textContent = t.status === 'finished' ? 'Evento finalizado — gracias a todos los equipos.' : 'Inscripciones cerradas para este torneo.';
+            if (t.status === 'finished' && rulesCard) rulesCard.style.display = 'none';
+        }
+
+        var winSec = document.getElementById('winner-showcase');
+        var showWin = t.status === 'finished' && (t.winner_display_name || t.poster_url);
+        if (showWin) {
+            winSec.style.display = 'block';
+            setText('t-winner-heading', t.winner_display_name || 'Campeón');
+            setText('t-winner-sub', t.ended_at ? 'Cerró el ' + fmtDate(t.ended_at) : '');
+            if (t.poster_url) {
+                document.getElementById('t-winner-poster-wrap').style.display = 'block';
+                document.getElementById('t-winner-poster').src = t.poster_url;
+            } else {
+                document.getElementById('t-winner-poster-wrap').style.display = 'none';
+            }
+        } else {
+            winSec.style.display = 'none';
+        }
+
+        lucide.createIcons();
+    }
+
+    function loadSlotsOnly() {
+        if (!resolvedSlug) return;
+        fetch(API + '/api/tournaments/' + encodeURIComponent(resolvedSlug))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.tournament) applyTournament(data.tournament);
+            })
+            .catch(function () {});
+    }
+
+    function resolveSlug() {
+        var q = new URLSearchParams(location.search).get('slug');
+        if (q) return Promise.resolve(q.trim());
+        return fetch(API + '/api/tournaments/for-site')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.tournament && d.tournament.slug) return d.tournament.slug;
+                return 'last-squad-standing';
+            })
+            .catch(function () { return 'last-squad-standing'; });
+    }
+
+    resolveSlug().then(function (slug) {
+        resolvedSlug = slug;
+        return fetch(API + '/api/tournaments/' + encodeURIComponent(slug));
+    }).then(function (r) {
+        if (!r.ok) throw new Error('bad');
+        return r.json();
+    }).then(function (data) {
+        applyTournament(data.tournament);
+    }).catch(function () {
+        setText('t-hero-title', 'Torneo');
+        setText('t-hero-desc', 'No se encontró el torneo o el servidor no responde.');
+    });
+
+    document.getElementById('t-squad-form').addEventListener('submit', function (e) {
         e.preventDefault();
+        if (!resolvedSlug || !tournament || tournament.status !== 'open') {
+            alert('Este torneo no acepta registros.');
+            return;
+        }
         var form = e.target;
         var btn = form.querySelector('button[type="submit"]');
         var originalText = btn.innerHTML;
@@ -228,7 +355,6 @@
                 discord: fd.get('p' + i + '_discord')
             });
         }
-
         var body = {
             teamName: fd.get('teamName'),
             teamTag: fd.get('teamTag'),
@@ -236,33 +362,35 @@
             players: players
         };
 
-        try {
-            var res = await fetch(API + '/api/tournaments/' + TOURNAMENT_SLUG + '/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+        fetch(API + '/api/tournaments/' + encodeURIComponent(resolvedSlug) + '/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+            .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) {
+                    alert(x.d.error || 'No se pudo registrar.');
+                    return;
+                }
+                if (x.d.bansCheckSkipped) {
+                    alert('Registro guardado. El servidor no tiene STEAM_API_KEY; no se validaron bans automáticamente.');
+                } else {
+                    alert('Registro enviado. Pendiente de aprobación.');
+                }
+                form.reset();
+                loadSlotsOnly();
+            })
+            .catch(function () { alert('Error de conexión.'); })
+            .finally(function () {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
             });
-            var data = await res.json().catch(function() { return {}; });
-            if (!res.ok) {
-                alert(data.error || 'No se pudo registrar el equipo.');
-                return;
-            }
-            if (data.bansCheckSkipped) {
-                alert('Registro guardado (pendiente de revisión). Nota: el servidor no tiene STEAM_API_KEY; no se pudo validar VAC/Game ban automáticamente.');
-            } else {
-                alert('Registro enviado. Estado: pendiente de aprobación por staff MCV.');
-            }
-            form.reset();
-            loadTournamentMeta();
-        } catch (err) {
-            console.error(err);
-            alert('Error de conexión con el servidor.');
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            lucide.createIcons();
-        }
     });
+
+    lucide.createIcons();
+})();
 </script>
 </body>
 </html>

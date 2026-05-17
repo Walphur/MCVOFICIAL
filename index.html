@@ -10,9 +10,12 @@
     <meta property="og:image" content="banner.png">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#FAA61A">
-
+    <!-- Si el dominio público es solo estático, poné la URL del Web Service Render (sin / final). -->
+    <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
+    <script src="mcv-api-base.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="grain home-page">
@@ -24,7 +27,8 @@
     </a>
     <ul class="nav-links">
         <li><a href="index.html" class="active">Clan</a></li>
-        <li><a href="tournament.html">Tournament</a></li>
+        <li><a href="events.html">Eventos</a></li>
+        <li><a href="tournament.html">Torneo</a></li>
         <li><a href="bot.html">Bot</a></li>
         <li><a href="tickets.html">Tickets</a></li>
         <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
@@ -46,9 +50,17 @@
         <p>Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
 
         <div class="home-actions">
-            <a href="tournament.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Ver eventos</a>
+            <a href="events.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Ver eventos</a>
             <a href="bot.html" class="btn-secondary"><i data-lucide="shield-check"></i> Abrir tracker</a>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+        </div>
+
+        <div id="home-event-strip" class="home-event-strip" hidden>
+            <div class="home-event-strip-inner">
+                <span class="home-event-badge" id="home-event-mode">Torneo</span>
+                <span class="home-event-title" id="home-event-title"></span>
+                <a id="home-event-cta" href="tournament.html" class="home-event-cta">Ver detalle</a>
+            </div>
         </div>
     </div>
 </section>
@@ -96,7 +108,7 @@
             <h3>Investiga jugadores</h3>
             <p>Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
         </a>
-        <a href="tournament.html" class="home-feature-card">
+        <a href="events.html" class="home-feature-card">
             <i data-lucide="trophy"></i>
             <span>Eventos</span>
             <h3>Torneos activos</h3>
@@ -216,7 +228,8 @@
             <div>
                 <span class="link-title">// Navigation</span>
                 <a href="index.html">Clan</a>
-                <a href="tournament.html">Tournament</a>
+                <a href="events.html">Eventos</a>
+                <a href="tournament.html">Torneo</a>
                 <a href="bot.html">Bot</a>
                 <a href="tickets.html">Tickets</a>
             </div>
@@ -238,6 +251,26 @@
 
 <script>
     lucide.createIcons();
+
+    (function () {
+        var strip = document.getElementById('home-event-strip');
+        if (!strip) return;
+        var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
+        if (!API) return;
+        fetch(API + '/api/tournaments/for-site')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.tournament) return;
+                var t = d.tournament;
+                strip.hidden = false;
+                document.getElementById('home-event-mode').textContent =
+                    d.mode === 'live' ? 'Inscripciones abiertas' : d.mode === 'recap' ? 'Último resultado' : 'Torneo';
+                document.getElementById('home-event-title').textContent = t.title || '';
+                var cta = document.getElementById('home-event-cta');
+                cta.href = 'tournament.html?slug=' + encodeURIComponent(t.slug || '');
+            })
+            .catch(function () {});
+    })();
 
     const inviteCode = "mBRrUA8wH6";
     const apiUrl = `https://discord.com/api/v9/invites/${inviteCode}?with_counts=true`;
