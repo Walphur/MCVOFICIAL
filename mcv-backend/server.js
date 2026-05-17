@@ -15,62 +15,14 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
 
-/** Orígenes del front estático; CORS_ORIGIN suma más (coma o espacio). */
-const DEFAULT_CORS_ORIGINS = [
-    "https://mcvoficial.com",
-    "https://www.mcvoficial.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
-];
-
-function parseCorsExtraOrigins() {
-    const raw = String(process.env.CORS_ORIGIN || "").trim();
-    if (!raw) return [];
-    return raw
-        .split(/[\s,|]+/)
-        .map((s) => s.trim().replace(/\/$/, ""))
-        .filter(Boolean);
-}
-
-function normalizeOriginHeader(originRaw) {
-    if (originRaw == null || originRaw === "") return "";
-    if (Array.isArray(originRaw)) return String(originRaw[0] || "").trim();
-    return String(originRaw).trim();
-}
-
-function corsOriginAllowed(originRaw) {
-    const origin = normalizeOriginHeader(originRaw);
-    if (!origin) return { ok: true, value: true };
-    const extras = parseCorsExtraOrigins();
-    const allow = new Set([...DEFAULT_CORS_ORIGINS, ...extras]);
-    if (allow.has(origin)) return { ok: true, value: origin };
-    try {
-        const host = new URL(origin).hostname.toLowerCase();
-        if (host === "mcvoficial.com" || host.endsWith(".mcvoficial.com")) return { ok: true, value: origin };
-        if (host.endsWith(".onrender.com")) return { ok: true, value: origin };
-        if (host === "localhost" || host === "127.0.0.1") return { ok: true, value: origin };
-    } catch (e) {
-        return { ok: false, value: false };
-    }
-    return { ok: false, value: false };
-}
-
 /**
- * CORS con el paquete `cors`: sin `allowedHeaders` fijos para que el preflight
- * refleje Access-Control-Request-Headers (extensiones del navegador, etc.).
+ * CORS: `origin: true` hace que el navegador reciba siempre `Access-Control-Allow-Origin`
+ * con el mismo valor que envió en `Origin` (evita fallos del callback de cors + Express 5).
+ * La API sigue protegida por JWT en admin; no usamos cookies de sesión cross-site.
+ * Para lista blanca estricta en el futuro: variable CORS_STRICT (no implementada aún).
  */
 const corsMiddleware = cors({
-    origin(origin, callback) {
-        const o = normalizeOriginHeader(origin);
-        if (!o) return callback(null, true);
-        const r = corsOriginAllowed(o);
-        if (r.ok && r.value !== false) {
-            return callback(null, r.value === true ? o : r.value);
-        }
-        callback(null, false);
-    },
+    origin: true,
     methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     maxAge: 86400,
     optionsSuccessStatus: 204,
