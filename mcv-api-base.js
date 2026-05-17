@@ -3,11 +3,11 @@
  *
  * Orden de prioridad:
  * 1) ?api=https://tu-render.onrender.com en la URL (se guarda en localStorage)
- * 2) localStorage / sessionStorage "mcv_api_base"
- * 3) <meta name="mcv-api" content="https://..."> en el HTML (útil si el dominio público es solo estático)
- * 4) window.MCV_API_BASE (podés setearlo con mcv-local-api.js; ver mcv-local-api.example.js)
- * 5) mcvoficial.com (solo estático) → https://mcv-oficial.onrender.com (debe coincidir con el nombre del Web Service en Render)
- * 6) window.location.origin (Node sirve el mismo sitio)
+ * 2) <meta name="mcv-api" content="https://...">
+ * 3) window.MCV_API_BASE (mcv-local-api.js, etc.)
+ * 4) En mcvoficial.com / www: localStorage solo si el host es *.onrender.com; si no, https://mcv-oficial.onrender.com
+ * 5) Otros hosts: localStorage mcv_api_base (si no es el mismo origen que la página)
+ * 6) window.location.origin (mismo host que el Node)
  */
 (function (w) {
     var KEY = "mcv_api_base";
@@ -50,21 +50,6 @@
         var host = String(w.location.hostname || "").toLowerCase();
         var isStaticMcv = host === "mcvoficial.com" || host === "www.mcvoficial.com";
 
-        var stored =
-            (function () {
-                try {
-                    return w.localStorage.getItem(KEY) || w.sessionStorage.getItem(KEY);
-                } catch (e) {
-                    return null;
-                }
-            })();
-        if (stored && strip(stored)) {
-            var st = strip(stored);
-            if (!(isStaticMcv && st === strip(w.location.origin))) {
-                return st;
-            }
-        }
-
         if (typeof document !== "undefined") {
             var metaEl = document.querySelector('meta[name="mcv-api"]');
             var metaContent = metaEl && metaEl.getAttribute("content");
@@ -83,9 +68,41 @@
             }
         }
 
-        /* Sitio estático en mcvoficial.com: la API vive en Render (renombrá la URL si cambiaste el servicio). */
+        /* Sitio estático MCV: no usar localStorage antes del default Render (evita URL vieja / mismo origen → 404). */
         if (isStaticMcv) {
+            var stored2 = null;
+            try {
+                stored2 = w.localStorage.getItem(KEY) || w.sessionStorage.getItem(KEY);
+            } catch (e2) {
+                stored2 = null;
+            }
+            var st2 = strip(stored2 || "");
+            if (st2) {
+                try {
+                    var h2 = new URL(st2).hostname.toLowerCase();
+                    if (h2.endsWith(".onrender.com")) {
+                        return st2;
+                    }
+                } catch (e3) {
+                    /* ignore */
+                }
+            }
             return "https://mcv-oficial.onrender.com";
+        }
+
+        var stored =
+            (function () {
+                try {
+                    return w.localStorage.getItem(KEY) || w.sessionStorage.getItem(KEY);
+                } catch (e) {
+                    return null;
+                }
+            })();
+        if (stored && strip(stored)) {
+            var st = strip(stored);
+            if (!(isStaticMcv && st === strip(w.location.origin))) {
+                return st;
+            }
         }
 
         var o = w.location.origin;

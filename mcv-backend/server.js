@@ -15,22 +15,12 @@ const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
 
 /**
- * CORS explícito (HTML en mcvoficial.com + API en Render).
- * El paquete `cors` con `origin: true` a veces no aplica bien al preflight con Express 5;
- * este middleware responde OPTIONS y fija cabeceras en todas las respuestas.
- * Orígenes extra: variable CORS_ORIGINS (coma-separada).
+ * CORS: refleja cualquier Origin http(s) válido (equivalente a cors `origin: true`).
+ * La API no usa cookies cross-site; login va por JSON + JWT en storage.
+ * Lista blanca opcional: CORS_STRICT=1 + CORS_ORIGINS (coma) para restringir.
  */
-function buildAllowedOrigins() {
-    const set = new Set([
-        "https://mcvoficial.com",
-        "https://www.mcvoficial.com",
-        "http://mcvoficial.com",
-        "http://www.mcvoficial.com",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500"
-    ]);
+function parseStrictOrigins() {
+    const set = new Set();
     String(process.env.CORS_ORIGINS || "")
         .split(",")
         .map((s) => s.trim())
@@ -43,7 +33,7 @@ function buildAllowedOrigins() {
                     set.add(o);
                 }
             } catch (_) {
-                set.add(o);
+                /* ignore */
             }
         });
     for (const key of ["PUBLIC_API_URL", "RENDER_EXTERNAL_URL"]) {
@@ -58,11 +48,20 @@ function buildAllowedOrigins() {
     return set;
 }
 
-const ALLOWED_ORIGINS = buildAllowedOrigins();
+const STRICT_CORS = String(process.env.CORS_STRICT || "").trim() === "1";
+const STRICT_ORIGINS = parseStrictOrigins();
 
 function applyCors(req, res) {
-    const origin = req.headers.origin;
-    if (origin && ALLOWED_ORIGINS.has(origin)) {
+    const origin = String(req.headers.origin || "").trim();
+    let allow = false;
+    if (origin && /^https?:\/\/.+/i.test(origin)) {
+        if (!STRICT_CORS) {
+            allow = true;
+        } else if (STRICT_ORIGINS.has(origin)) {
+            allow = true;
+        }
+    }
+    if (allow) {
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Vary", "Origin");
     }
