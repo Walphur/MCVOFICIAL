@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCV — Eventos</title>
+    <title>MCV — Torneos</title>
     <meta name="theme-color" content="#FAA61A">
     <!-- Si el dominio público es solo estático, poné la URL del Web Service Render (sin / final). -->
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="mcv-api-base.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
 <body class="grain events-page">
 
@@ -35,8 +36,8 @@
             <span>// MCV · Rust · Competencia</span>
             <div class="yellow-line"></div>
         </div>
-        <h1>Eventos <span>& Torneos.</span></h1>
-        <p class="events-lead">Próximos torneos, historial con campeones y acceso directo al registro cuando el evento esté abierto.</p>
+        <h1>Torneos <span>MCV.</span></h1>
+        <p class="events-lead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
         <div class="events-hero-actions">
             <a href="tournament.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Torneo destacado</a>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
@@ -58,7 +59,7 @@
 <section class="events-stats-strip">
     <div class="events-stat">
         <span class="events-stat-num" id="stat-hosted">—</span>
-        <span class="events-stat-label">Eventos en la web</span>
+        <span class="events-stat-label">Torneos en la web</span>
     </div>
     <div class="events-stat">
         <span class="events-stat-num" id="stat-teams">—</span>
@@ -89,7 +90,6 @@
     </div>
 </main>
 
-<script src="mcv-api-base.js"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -161,7 +161,7 @@
             var upcoming = list.filter(function (t) { return t.status === 'open' || t.status === 'closed'; });
             var finished = list.filter(function (t) { return t.status === 'finished'; });
             if (!upcoming.length) {
-                renderEmpty(up, 'No hay eventos próximos. Volvé pronto o mirá el historial.');
+                renderEmpty(up, 'No hay torneos próximos. Volvé pronto o mirá el historial.');
             } else {
                 up.innerHTML = upcoming.map(function (t) { return card(t, false); }).join('');
             }

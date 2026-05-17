@@ -5,7 +5,7 @@
 :root {
     --background: #0A0A0A;
     --foreground: #F2F2F2;
-    --primary: #FACC15; 
+    --primary: #FAA61A;
     --border: #27272A;
     --input-bg: #141414;
     --muted: #A1A1AA;
@@ -46,7 +46,7 @@ input, textarea, .stat-title, .stat-value, .player-num, .section-label span, .ru
     z-index: 10;
 }
 
-@keyframes pulseRust { 0%,100% { box-shadow: 0 0 0 0 rgba(250,204,21,0.5); } 50% { box-shadow: 0 0 0 12px rgba(250,204,21,0); } }
+@keyframes pulseRust { 0%,100% { box-shadow: 0 0 0 0 rgba(250,166,26,0.5); } 50% { box-shadow: 0 0 0 12px rgba(250,166,26,0); } }
 .pulse-rust { animation: pulseRust 2.4s ease-in-out infinite; }
 @keyframes pulseRed { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
 .pulse-red { animation: pulseRed 2s ease-in-out infinite; }
@@ -78,7 +78,7 @@ h2 span { color: var(--primary); }
 
 .btn-primary { background: var(--primary); color: #000; border: none; padding: 15px 30px; cursor: pointer; font-size: 1.4rem; text-transform: uppercase; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px;}
 .btn-primary:hover { background: #EAB308; }
-.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--foreground); padding: 15px 30px; cursor: pointer; margin-left: 15px; font-size: 1.4rem; text-transform: uppercase; transition: 0.3s;}
+.btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--foreground); padding: 15px 30px; cursor: pointer; margin-left: 0; font-size: 1.4rem; text-transform: uppercase; transition: 0.3s;}
 .btn-secondary:hover { border-color: var(--primary); color: var(--primary);}
 
 /* HERO GENÉRICO (Para todas las páginas) */
@@ -193,7 +193,7 @@ textarea { resize: vertical; min-height: 120px; }
 .video-card:hover .video-thumb img { opacity: 1; transform: scale(1.05);}
 
 .video-duration { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: #fff; padding: 3px 6px; font-family: "JetBrains Mono"; font-size: 0.75rem; border-radius: 3px;}
-.play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: rgba(250,204,21,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; opacity: 0; transition: 0.3s;}
+.play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background: rgba(250,166,26,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #000; opacity: 0; transition: 0.3s;}
 .video-card:hover .play-btn { opacity: 1;}
 
 .video-info { padding: 20px; }
@@ -298,8 +298,8 @@ textarea { resize: vertical; min-height: 120px; }
 .format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .format-grid p { margin: 5px 0 0 0; color: var(--foreground); font-size: 1rem;}
 
-.prize-box { border: 1px solid var(--primary); background: rgba(250,204,21,0.1); padding: 25px; position: relative;}
-.absolute-right { position: absolute; top: 15px; right: 15px; color: rgba(250,204,21,0.5); font-size: 0.7rem;}
+.prize-box { border: 1px solid var(--primary); background: rgba(250,166,26,0.1); padding: 25px; position: relative;}
+.absolute-right { position: absolute; top: 15px; right: 15px; color: rgba(250,166,26,0.5); font-size: 0.7rem;}
 .highlight-text { color: var(--primary); font-size: 0.8rem;}
 .prize-amount { font-family: "Bebas Neue"; font-size: 5rem; color: var(--primary); line-height: 1; margin: 10px 0;}
 .prize-sub { margin: 0; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;}
@@ -1217,7 +1217,7 @@ body.tournament-page {
     padding: 72px 24px 48px;
     text-align: center;
     border-bottom: 1px solid var(--border);
-    background: radial-gradient(ellipse at 50% 0%, rgba(250, 204, 21, 0.12), transparent 55%), var(--background);
+    background: radial-gradient(ellipse at 50% 0%, rgba(250, 166, 26, 0.12), transparent 55%), var(--background);
 }
 
 .events-hero-inner { max-width: 880px; margin: 0 auto; }
@@ -1295,7 +1295,7 @@ body.tournament-page {
     transition: border-color 0.2s;
 }
 
-.events-card:hover { border-color: rgba(250, 204, 21, 0.45); }
+.events-card:hover { border-color: rgba(250, 166, 26, 0.45); }
 
 .events-card-poster { width: 120px; flex-shrink: 0; background: #000; }
 .events-card-poster img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 120px; }
@@ -1339,7 +1339,7 @@ body.tournament-page {
 /* Tournament recap */
 .winner-showcase {
     border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(250, 204, 21, 0.08), transparent);
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.08), transparent);
 }
 
 .winner-showcase-inner {
@@ -1398,7 +1398,7 @@ body.tournament-page {
     align-items: center;
     gap: 12px 18px;
     padding: 14px 18px;
-    border: 1px solid rgba(250, 204, 21, 0.22);
+    border: 1px solid rgba(250, 166, 26, 0.22);
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
@@ -1409,7 +1409,7 @@ body.tournament-page {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--primary);
-    border: 1px solid rgba(250, 204, 21, 0.35);
+    border: 1px solid rgba(250, 166, 26, 0.35);
     padding: 4px 8px;
     border-radius: 4px;
 }
@@ -1446,7 +1446,7 @@ body.tournament-page {
     padding: 20px 22px;
     border-radius: 12px;
     border: 1px solid var(--border);
-    background: linear-gradient(120deg, rgba(250, 204, 21, 0.1), rgba(255,255,255,.02));
+    background: linear-gradient(120deg, rgba(250, 166, 26, 0.1), rgba(255,255,255,.02));
 }
 .events-featured-label {
     font-family: "JetBrains Mono", monospace;
@@ -1478,3 +1478,93 @@ body.tournament-page {
     100% { background-position: 0 0; }
 }
 
+/* ---------- Live streams ---------- */
+.live-page .live-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 96px;
+    padding-bottom: 80px;
+}
+.live-page .live-heading {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    line-height: 1.05;
+}
+.live-page .live-heading span { color: var(--primary); }
+.live-page .live-lead {
+    color: var(--muted);
+    font-family: "IBM Plex Sans", sans-serif;
+    max-width: 56ch;
+    margin: 0 0 36px;
+    line-height: 1.55;
+    font-size: 0.98rem;
+}
+.live-streams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+    gap: 28px;
+}
+.live-stream-card {
+    background: #080808;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.25s ease;
+}
+.live-stream-card:hover { border-color: rgba(239, 68, 68, 0.45); }
+.stream-frame-wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background: #050505;
+}
+.stream-frame-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.live-stream-meta {
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--input-bg);
+}
+.live-stream-meta h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.live-stream-meta.kick h3 { color: #53FC18; }
+.live-stream-meta.twitch h3 { color: #9146FF; }
+.live-stream-meta .lucide { flex-shrink: 0; }
+
+/* ---------- Tickets ---------- */
+.tickets-page .tickets-intro {
+    margin-bottom: 32px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+}
+.tickets-page .tickets-intro h3 {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 2rem;
+    margin: 0 0 10px;
+    letter-spacing: 0.04em;
+}
+.tickets-page .tickets-intro p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+    font-family: "IBM Plex Sans", sans-serif;
+}
+.tickets-page .form-container { margin-top: 0; }
+.tickets-page .btn-primary.w-100 {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+}

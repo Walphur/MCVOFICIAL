@@ -2,12 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tickets - MCV OFICIAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Tickets</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="mcv-api-base.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain">
+<body class="grain tickets-page">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -18,51 +23,51 @@
         <li><a href="index.html">Clan</a></li>
         <li><a href="events.html">Torneos</a></li>
         <li><a href="bot.html">Bot</a></li>
-        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="tickets.html" class="active">Tickets</a></li>
         <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
     </ul>
 </nav>
 
-    <section class="page-section">
-        <div class="section-label">
-            <div class="yellow-line"></div>
-            <span>// Support & Recruitment</span>
-        </div>
-        <h2>Open a <span>Ticket.</span></h2>
+<section class="page-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Soporte y reclutamiento</span>
+    </div>
+    <h2>Abrí un <span>ticket.</span></h2>
 
-        <div class="form-container">
-            <div style="margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
-                <h3 style="font-family: 'Bebas Neue'; font-size: 2rem; margin: 0;">How it works</h3>
-                <p style="color: var(--muted); font-family: 'JetBrains Mono'; font-size: 0.9rem;">To join MCV or request tournament support, fill out this brief overview. You will be redirected to our Discord to open an official ticket with the High Command.</p>
+    <div class="form-container">
+        <div class="tickets-intro">
+            <h3>Cómo funciona</h3>
+            <p>Completá el formulario y al enviar te llevamos a Discord para abrir un ticket oficial con el staff (reclutamiento, soporte de torneo o reportes).</p>
+        </div>
+
+        <form action="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">
+            <div class="input-group">
+                <label><i data-lucide="tag"></i> Tipo de ticket</label>
+                <select required>
+                    <option value="">Elegí una opción…</option>
+                    <option value="recruit">Reclutamiento (unirte a MCV)</option>
+                    <option value="tournament">Soporte de torneo</option>
+                    <option value="report">Reporte de jugador</option>
+                    <option value="other">Otro</option>
+                </select>
             </div>
 
-            <form action="https://discord.gg/mBRrUA8wH6" target="_blank">
-                <div class="input-group">
-                    <label><i data-lucide="tag"></i> TICKET TYPE</label>
-                    <select required>
-                        <option value="">Select an option...</option>
-                        <option value="recruit">Clan Recruitment (Join MCV)</option>
-                        <option value="tournament">Tournament Support</option>
-                        <option value="report">Player Report</option>
-                        <option value="other">Other Inquiry</option>
-                    </select>
-                </div>
+            <div class="input-group">
+                <label><i data-lucide="user"></i> Usuario de Discord</label>
+                <input type="text" placeholder="ej. usuario o usuario#0" required autocomplete="username">
+            </div>
 
-                <div class="input-group">
-                    <label><i data-lucide="user"></i> DISCORD USERNAME</label>
-                    <input type="text" placeholder="e.g. yourname#1234" required>
-                </div>
+            <div class="input-group">
+                <label><i data-lucide="message-square"></i> Descripción breve</label>
+                <textarea placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
+            </div>
 
-                <div class="input-group">
-                    <label><i data-lucide="message-square"></i> BRIEF DESCRIPTION</label>
-                    <textarea placeholder="Tell us why you are opening this ticket. (If applying for the clan, mention your hours in Rust and specialty)." required></textarea>
-                </div>
+            <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> Ir a Discord</button>
+        </form>
+    </div>
+</section>
 
-                <button type="submit" class="btn-primary w-100" style="width: 100%; justify-content: center;"><i data-lucide="send"></i> PROCEED TO DISCORD TICKET</button>
-            </form>
-        </div>
-    </section>
-
-    <script>lucide.createIcons();</script>
+<script>lucide.createIcons();</script>
 </body>
 </html>

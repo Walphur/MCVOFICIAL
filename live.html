@@ -2,12 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Live Streams - MCV OFICIAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Streams en vivo</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="mcv-api-base.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="grain">
+<body class="grain live-page">
 
 <nav class="navbar">
     <a href="index.html" class="logo-link">
@@ -23,36 +28,47 @@
     </ul>
 </nav>
 
-<section class="page-section" style="padding-top: 120px; max-width: 1200px; margin: 0 auto;">
+<main class="page-section live-layout">
     <div class="section-label">
         <div class="yellow-line"></div>
-        <span>// Live Coverage</span>
+        <span>// Cobertura en vivo</span>
     </div>
-    <h2 style="font-size: 3rem; margin-bottom: 40px; color: white;">MCV <span>LIVE STREAMS.</span></h2>
+    <h1 class="live-heading">MCV <span>Live.</span></h1>
+    <p class="live-lead">Kick y Twitch oficiales del clan. Si el embed de Twitch no carga, revisá bloqueadores o probá desde mcvoficial.com.</p>
 
-    <div class="stream-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 30px;">
-        
-        <div class="stream-card" style="background: #080808; border: 1px solid #222;">
-            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                <iframe src="https://player.kick.com/mcompanyv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+    <div class="live-streams">
+        <article class="live-stream-card">
+            <div class="stream-frame-wrap">
+                <iframe src="https://player.kick.com/mcompanyv" title="Kick MCV" allowfullscreen></iframe>
             </div>
-            <div style="padding: 20px;">
-                <h3 style="margin: 0; color: #53FC18;"><i data-lucide="radio" style="vertical-align: middle; margin-right: 10px;"></i> KICK - Líder</h3>
+            <div class="live-stream-meta kick">
+                <h3><i data-lucide="radio"></i> Kick — principal</h3>
             </div>
-        </div>
+        </article>
 
-        <div class="stream-card" style="background: #080808; border: 1px solid #222;">
-            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                <iframe src="https://player.twitch.tv/?channel=mcvteam&parent=127.0.0.1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+        <article class="live-stream-card">
+            <div class="stream-frame-wrap" id="twitch-mount"></div>
+            <div class="live-stream-meta twitch">
+                <h3><i data-lucide="twitch"></i> Twitch — clan oficial</h3>
             </div>
-            <div style="padding: 20px;">
-                <h3 style="margin: 0; color: #9146FF;"><i data-lucide="twitch" style="vertical-align: middle; margin-right: 10px;"></i> TWITCH - Clan Oficial</h3>
-            </div>
-        </div>
-
+        </article>
     </div>
-</section>
+</main>
 
-<script>lucide.createIcons();</script>
+<script>
+(function () {
+    lucide.createIcons();
+    var ch = "mcvteam";
+    var parents = ["mcvoficial.com", "www.mcvoficial.com", "127.0.0.1", "localhost"];
+    var h = location.hostname;
+    if (h && parents.indexOf(h) === -1) parents.push(h);
+    var q = parents.map(function (p) { return "parent=" + encodeURIComponent(p); }).join("&");
+    var src = "https://player.twitch.tv/?channel=" + encodeURIComponent(ch) + "&" + q;
+    var el = document.getElementById("twitch-mount");
+    if (el) {
+        el.innerHTML = '<iframe src="' + src + '" title="Twitch MCV" allowfullscreen></iframe>';
+    }
+})();
+</script>
 </body>
 </html>

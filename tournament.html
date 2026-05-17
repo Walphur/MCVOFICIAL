@@ -10,7 +10,8 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="mcv-api-base.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
 <body class="grain tournament-page">
 
@@ -201,7 +202,6 @@
     </div>
 </section>
 
-<script src="mcv-api-base.js"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -227,8 +227,11 @@
     function twitchFrame(ch) {
         var iframe = document.getElementById('twitch-embed');
         if (!iframe) return;
-        var host = location.hostname || 'localhost';
-        iframe.src = 'https://player.twitch.tv/?channel=' + encodeURIComponent(ch || 'mcvteam') + '&parent=' + encodeURIComponent(host);
+        var parents = ['mcvoficial.com', 'www.mcvoficial.com', '127.0.0.1', 'localhost'];
+        var h = location.hostname;
+        if (h && parents.indexOf(h) === -1) parents.push(h);
+        var q = parents.map(function (p) { return 'parent=' + encodeURIComponent(p); }).join('&');
+        iframe.src = 'https://player.twitch.tv/?channel=' + encodeURIComponent(ch || 'mcvteam') + '&' + q;
     }
 
     function applyTournament(t) {
