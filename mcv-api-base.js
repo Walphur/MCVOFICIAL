@@ -6,7 +6,8 @@
  * 2) localStorage / sessionStorage "mcv_api_base"
  * 3) <meta name="mcv-api" content="https://..."> en el HTML (útil si el dominio público es solo estático)
  * 4) window.MCV_API_BASE
- * 5) window.location.origin (correcto cuando Node sirve el mismo sitio, ej. Render con custom domain al Web Service)
+ * 5) mcvoficial.com (solo estático) → https://mcv-oficial.onrender.com
+ * 6) window.location.origin (Node sirve el mismo sitio)
  */
 (function (w) {
     var KEY = "mcv_api_base";
@@ -46,6 +47,9 @@
             }
         }
 
+        var host = String(w.location.hostname || "").toLowerCase();
+        var isStaticMcv = host === "mcvoficial.com" || host === "www.mcvoficial.com";
+
         var stored =
             (function () {
                 try {
@@ -55,7 +59,10 @@
                 }
             })();
         if (stored && strip(stored)) {
-            return strip(stored);
+            var st = strip(stored);
+            if (!(isStaticMcv && st === strip(w.location.origin))) {
+                return st;
+            }
         }
 
         if (typeof document !== "undefined") {
@@ -74,6 +81,11 @@
                 persist(fromG);
                 return strip(fromG);
             }
+        }
+
+        /* Sitio estático en mcvoficial.com: la API vive en Render (renombrá la URL si cambiaste el servicio). */
+        if (isStaticMcv) {
+            return "https://mcv-oficial.onrender.com";
         }
 
         var o = w.location.origin;
