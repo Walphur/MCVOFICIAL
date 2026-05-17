@@ -5,12 +5,18 @@
  * 1) ?api=https://tu-render.onrender.com en la URL (se guarda en localStorage)
  * 2) <meta name="mcv-api" content="https://...">
  * 3) window.MCV_API_BASE (mcv-local-api.js, etc.)
- * 4) En mcvoficial.com / www: localStorage solo si el host es *.onrender.com; si no, https://mcv-oficial.onrender.com
+ * 4) En mcvoficial.com (y www): por defecto mismo origen (https://mcvoficial.com/…) — así funciona con dominio custom en Render.
+ *    localStorage solo si apunta a *.onrender.com válido (p. ej. preview). Si el HTML es solo estático en otro CDN con este dominio, poné meta mcv-api o ?api= al backend.
  * 5) Otros hosts: localStorage mcv_api_base (si no es el mismo origen que la página)
  * 6) window.location.origin (mismo host que el Node)
  */
 (function (w) {
     var KEY = "mcv_api_base";
+
+    /** Hostname antiguo en docs; en Render no hay servicio en esa URL. */
+    function isWrongRenderApiHost(hostname) {
+        return String(hostname || "").toLowerCase() === "mcv-oficial.onrender.com";
+    }
 
     function strip(s) {
         return String(s || "").replace(/\/$/, "");
@@ -29,6 +35,11 @@
 
     function persist(origin) {
         if (!origin) return;
+        try {
+            if (isWrongRenderApiHost(new URL(strip(origin)).hostname)) return;
+        } catch (e0) {
+            /* ignore */
+        }
         try {
             w.localStorage.setItem(KEY, origin);
         } catch (e) {}
@@ -68,7 +79,7 @@
             }
         }
 
-        /* Sitio estático MCV: no usar localStorage antes del default Render (evita URL vieja / mismo origen → 404). */
+        /* mcvoficial.com: mismo host que el Web Service en Render (custom domain) → API en el mismo origen. */
         if (isStaticMcv) {
             var stored2 = null;
             try {
@@ -80,14 +91,18 @@
             if (st2) {
                 try {
                     var h2 = new URL(st2).hostname.toLowerCase();
-                    if (h2.endsWith(".onrender.com")) {
+                    if (h2.endsWith(".onrender.com") && !isWrongRenderApiHost(h2)) {
                         return st2;
                     }
                 } catch (e3) {
                     /* ignore */
                 }
             }
-            return "https://mcv-oficial.onrender.com";
+            var oStatic = strip(w.location.origin || "");
+            if (oStatic && !/^file:/i.test(w.location.protocol || "")) {
+                return oStatic;
+            }
+            return "https://mcvoficial.onrender.com";
         }
 
         var stored =
@@ -100,7 +115,13 @@
             })();
         if (stored && strip(stored)) {
             var st = strip(stored);
-            if (!(isStaticMcv && st === strip(w.location.origin))) {
+            var badStored = false;
+            try {
+                badStored = isWrongRenderApiHost(new URL(st).hostname);
+            } catch (eBad) {
+                badStored = false;
+            }
+            if (!badStored && !(isStaticMcv && st === strip(w.location.origin))) {
                 return st;
             }
         }

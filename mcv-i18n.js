@@ -84,7 +84,8 @@
             "events.colPastSub": "Torneos finalizados y campeones.",
             "events.emptyUp": "No hay torneos próximos. Volvé pronto o mirá el historial.",
             "events.emptyPast": "Todavía no hay torneos cerrados en la base.",
-            "events.connectFail": "No se pudo conectar al servidor.",
+            "events.connectFail":
+                "No se pudo conectar al API. Si en Render no hay un Web Service desplegado en la URL del backend, el navegador muestra CORS + error: abrí en una pestaña la URL del API (ej. …onrender.com/api/health): si ves solo \"Not Found\", tenés que crear o desplegar el servicio Node (root mcv-backend, start npm start) y luego poner esa URL en meta mcv-api o events.html?api=…",
             "events.cardDetail": "Ver detalle →",
             "events.badgePast": "Finalizado",
             "tournament.teamsMaxSuffix": " equipos máx.",
@@ -189,6 +190,8 @@
             "login.diagNoApiUrl": "Sin URL del API: usá ?api=https://tu-backend.onrender.com en esta página.",
             "login.diagChecking": "Comprobando servidor (en Render gratis puede tardar unos segundos si estaba dormido)…",
             "login.diag405": "HTTP {status}: {api} no responde como API Node (dominio solo estático). Usá login.html?api=https://TU-APP.onrender.com o la meta mcv-api con la URL de Render.",
+            "login.diagRenderPlain404":
+                "El host {api} responde 404 plano (no es tu Express): en Render no hay Web Service en esa URL o el nombre del servicio cambió. En Dashboard → New Web Service → este repo, root directory mcv-backend, build npm install, start npm start; copiá la URL .onrender.com que te dé Render y abrí login.html?api=ESE_URL una vez (o rellená meta mcv-api).",
             "login.diagStatusRead": "No se pudo leer /api/auth/status (HTTP {status}). URL usada: {api}",
             "login.diagLineApi": "API: {api}",
             "login.diagAdminMissing": "Falta ADMIN_PASSWORD en el servidor.",
@@ -196,13 +199,15 @@
             "login.diagJwtWs": "JWT_SECRET tenía espacios/saltos al inicio o fin (ya se ignoran al firmar; igual conviene limpiarlo en Render).",
             "login.diagDbMissing": "DATABASE_URL no está definido (el panel puede cargar vacío).",
             "login.diagLoginOk": "Login habilitado: probá la contraseña.",
-            "login.diagNoConnect": "No hay conexión a {api}. En Render gratis el servicio se duerme: esperá ~30 s y recargá. Si la URL del Web Service no es mcv-oficial.onrender.com, usá login.html?api=TU_URL o mcv-local-api.js (ver comentario arriba).",
+            "login.diagNoConnect":
+                "Fallo al llamar a {api} (a veces el navegador muestra CORS cuando el servidor no es tu API). Abrí en otra pestaña {api}/api/health: si ves solo la palabra Not Found, Render no tiene servicio en esa URL (cabecera típica x-render-routing: no-server). Creá o redeployá el Web Service (root mcv-backend) y usá la URL exacta que muestre Render en login.html?api=… o meta mcv-api. Si el servicio existe pero está dormido (plan gratis), esperá ~30 s y recargá.",
             "login.errExpired": "Sesión expirada o token inválido. Volvé a entrar.",
             "login.errNoApiUrl": "No hay URL del API. Abrí esta página desde el mismo host que el servidor Node o usá ?api=https://tu-backend.onrender.com",
             "login.err405": "HTTP {status}: este sitio no está sirviendo la API (dominio apuntando solo a archivos estáticos). Abrí una vez login.html?api=https://TU-SERVICIO.onrender.com o configurá la meta mcv-api con la URL de tu Web Service en Render.",
             "login.errBadJson": "El servidor no devolvió JSON (¿{api} no es el backend?). Código HTTP {status}.",
             "login.errLoginFailed": "Login fallido",
-            "login.errNoConnectRetry": "Sin conexión al servidor tras varios intentos (Render cold start o URL incorrecta). Recargá en unos segundos o usá ?api= con la URL exacta de tu Web Service.",
+            "login.errNoConnectRetry":
+                "Sin conexión al servidor tras varios intentos. Si /api/health en el navegador da \"Not Found\", no hay Web Service en esa URL de Render: desplegá el backend y usá ?api= con la URL que te muestre el dashboard. Si el servicio existe, puede ser cold start (esperá y recargá).",
             "admin.introTournaments": "Acá creás torneos nuevos o los finalizás con póster. Los equipos se cargan en la pestaña <strong>Equipos</strong> (registro web o alta manual).",
             "admin.formCreateTitle": "Crear torneo",
             "admin.formCreateHint": "Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).",
@@ -300,7 +305,8 @@
             "events.colPastSub": "Finished tournaments and champions.",
             "events.emptyUp": "No upcoming tournaments. Check back soon or browse history.",
             "events.emptyPast": "No finished tournaments in the database yet.",
-            "events.connectFail": "Could not connect to the server.",
+            "events.connectFail":
+                "Could not reach the API. If no Render Web Service is deployed at the backend URL, the browser often shows CORS + failure: open the API URL in a tab (e.g. …onrender.com/api/health). If you only see the word Not Found, create or deploy the Node service (root mcv-backend, start npm start), then set that URL in meta mcv-api or events.html?api=…",
             "events.cardDetail": "Details →",
             "events.badgePast": "Finished",
             "tournament.teamsMaxSuffix": " teams max",
@@ -405,6 +411,8 @@
             "login.diagNoApiUrl": "No API URL: use ?api=https://your-backend.onrender.com on this page.",
             "login.diagChecking": "Checking server (free Render may take a few seconds if it was asleep)…",
             "login.diag405": "HTTP {status}: {api} is not responding as a Node API (static domain only). Use login.html?api=https://YOUR-APP.onrender.com or meta mcv-api with your Render URL.",
+            "login.diagRenderPlain404":
+                "{api} returns a plain 404 (not your Express app): there is no Render Web Service at that URL or the service name changed. In the dashboard create a Web Service from this repo, root directory mcv-backend, build npm install, start npm start; copy the .onrender.com URL Render shows and open login.html?api=THAT_URL once (or set meta mcv-api).",
             "login.diagStatusRead": "Could not read /api/auth/status (HTTP {status}). URL used: {api}",
             "login.diagLineApi": "API: {api}",
             "login.diagAdminMissing": "ADMIN_PASSWORD is missing on the server.",
@@ -412,13 +420,15 @@
             "login.diagJwtWs": "JWT_SECRET had leading/trailing whitespace (ignored when signing; still worth cleaning in Render).",
             "login.diagDbMissing": "DATABASE_URL is not set (the panel may load empty).",
             "login.diagLoginOk": "Login enabled: try the password.",
-            "login.diagNoConnect": "No connection to {api}. On free Render the service sleeps: wait ~30s and reload. If your Web Service URL differs, use login.html?api=YOUR_URL or mcv-local-api.js (see comment above).",
+            "login.diagNoConnect":
+                "Failed to reach {api} (the browser may show CORS when the response is not your API). Open {api}/api/health in another tab: if you only see Not Found, Render has no service on that URL (typical header x-render-routing: no-server). Create or redeploy the Web Service (root mcv-backend) and use the exact URL from the dashboard in login.html?api=… or meta mcv-api. If the service exists but slept (free tier), wait ~30s and reload.",
             "login.errExpired": "Session expired or invalid token. Sign in again.",
             "login.errNoApiUrl": "No API URL. Open this page from the same host as the Node server or use ?api=https://your-backend.onrender.com",
             "login.err405": "HTTP {status}: this site is not serving the API (domain pointing to static files only). Open login.html?api=https://YOUR-SERVICE.onrender.com once or set meta mcv-api to your Render Web Service URL.",
             "login.errBadJson": "Server did not return JSON (is {api} not the backend?). HTTP {status}.",
             "login.errLoginFailed": "Login failed",
-            "login.errNoConnectRetry": "No server connection after several attempts (Render cold start or wrong URL). Reload in a few seconds or use ?api= with your exact Web Service URL.",
+            "login.errNoConnectRetry":
+                "No server connection after several attempts. If /api/health in the browser shows Not Found, there is no Web Service at that Render URL: deploy the backend and use ?api= with the URL from your dashboard. If the service exists, it may be a cold start (wait and reload).",
             "admin.introTournaments": "Create new tournaments or finish them with a poster here. Teams are managed under the <strong>Teams</strong> tab (web signup or manual entry).",
             "admin.formCreateTitle": "Create tournament",
             "admin.formCreateHint": "Starts as draft or open. Slug can be empty (auto-generated).",

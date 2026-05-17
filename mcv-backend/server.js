@@ -20,7 +20,12 @@ const ROOT_DIR = path.join(__dirname, "..");
  * Lista blanca opcional: CORS_STRICT=1 + CORS_ORIGINS (coma) para restringir.
  */
 function parseStrictOrigins() {
-    const set = new Set();
+    const set = new Set([
+        "https://mcvoficial.com",
+        "https://www.mcvoficial.com",
+        "http://mcvoficial.com",
+        "http://www.mcvoficial.com"
+    ]);
     String(process.env.CORS_ORIGINS || "")
         .split(",")
         .map((s) => s.trim())
@@ -721,6 +726,16 @@ app.get("/mcv-api-config.js", (req, res) => {
         );
     }
     res.send(`window.MCV_API_BASE=${JSON.stringify(base)};\n`);
+});
+
+/** 404 JSON para /api sin ruta (evita que static se coma rutas y el navegador vea CORS “vacío”). */
+app.use((req, res, next) => {
+    const pathOnly = String(req.path || "").split("?")[0];
+    if (pathOnly.startsWith("/api")) {
+        applyCors(req, res);
+        return res.status(404).json({ error: "not_found", path: pathOnly });
+    }
+    next();
 });
 
 app.use(express.static(ROOT_DIR));

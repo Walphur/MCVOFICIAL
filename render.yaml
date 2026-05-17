@@ -1,4 +1,9 @@
 # Render Blueprint: https://render.com/docs/blueprint-spec
+#
+# Comprobación rápida: curl -sI https://mcvoficial.onrender.com/api/health → HTTP 200.
+# El subdominio .onrender.com coincide con el nombre del Web Service (ej. MCVOFICIAL → mcvoficial).
+# No confundir con mcv-oficial.onrender.com (guión): otra URL, suele responder no-server / 404.
+#
 # 1) Creá un PostgreSQL en Render y copiá su Internal Database URL.
 # 2) Desplegá este repo como Web Service con root directory: mcv-backend
 # 3) En Environment del Web Service añadí DATABASE_URL (link a la BD) y el resto según .env.example
@@ -7,7 +12,7 @@
 
 services:
   - type: web
-    name: mcv-oficial
+    name: mcvoficial
     runtime: node
     rootDir: mcv-backend
     buildCommand: npm install

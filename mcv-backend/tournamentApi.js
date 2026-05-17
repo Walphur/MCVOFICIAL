@@ -161,28 +161,6 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         }
     });
 
-    app.get("/api/tournaments", async (req, res) => {
-        const pool = getPool();
-        if (!pool) {
-            return res.status(503).json({ error: "Base de datos no disponible" });
-        }
-        try {
-            const r = await pool.query(
-                `SELECT t.slug, t.title, t.status, t.starts_at, t.ended_at, t.format_label, t.prize_pool_text,
-            t.poster_url, t.winner_registration_id, t.winner_override_name,
-            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
-            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
-           FROM tournaments t
-           WHERE t.status IN ('open','closed','finished')
-           ORDER BY (t.status = 'open') DESC, t.starts_at DESC NULLS LAST, t.id DESC`
-            );
-            return res.json({ tournaments: r.rows });
-        } catch (e) {
-            console.error(e);
-            return res.status(500).json({ error: "list" });
-        }
-    });
-
     app.get("/api/tournaments/for-site", async (req, res) => {
         const pool = getPool();
         if (!pool) {
@@ -229,6 +207,28 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "for-site" });
+        }
+    });
+
+    app.get("/api/tournaments", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT t.slug, t.title, t.status, t.starts_at, t.ended_at, t.format_label, t.prize_pool_text,
+            t.poster_url, t.winner_registration_id, t.winner_override_name,
+            (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
+            COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+           FROM tournaments t
+           WHERE t.status IN ('open','closed','finished')
+           ORDER BY (t.status = 'open') DESC, t.starts_at DESC NULLS LAST, t.id DESC`
+            );
+            return res.json({ tournaments: r.rows });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "list" });
         }
     });
 
