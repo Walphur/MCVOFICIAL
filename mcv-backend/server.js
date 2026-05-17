@@ -15,6 +15,40 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
 
+/** Orígenes del front estático; CORS_ORIGIN suma más (coma o espacio). */
+const DEFAULT_CORS_ORIGINS = [
+    "https://mcvoficial.com",
+    "https://www.mcvoficial.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500"
+];
+
+function parseCorsExtraOrigins() {
+    const raw = String(process.env.CORS_ORIGIN || "").trim();
+    if (!raw) return [];
+    return raw
+        .split(/[\s,|]+/)
+        .map((s) => s.trim().replace(/\/$/, ""))
+        .filter(Boolean);
+}
+
+function corsOriginAllowed(origin) {
+    if (!origin) return { ok: true, value: true };
+    const extras = parseCorsExtraOrigins();
+    const allow = new Set([...DEFAULT_CORS_ORIGINS, ...extras]);
+    if (allow.has(origin)) return { ok: true, value: origin };
+    try {
+        const host = new URL(origin).hostname.toLowerCase();
+        if (host.endsWith(".onrender.com")) return { ok: true, value: origin };
+        if (host === "localhost" || host === "127.0.0.1") return { ok: true, value: origin };
+    } catch (e) {
+        return { ok: false, value: false };
+    }
+    return { ok: false, value: false };
+}
+
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
@@ -34,15 +68,18 @@ function battlemetricsHeaders() {
     return h;
 }
 
-app.use(express.json());
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN || true,
+        origin(origin, callback) {
+            const r = corsOriginAllowed(origin);
+            callback(null, r.ok ? r.value : false);
+        },
         methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
         exposedHeaders: ["Content-Type"]
     })
 );
+app.use(express.json());
 
 registerTournamentApi(app, {
     getPool,
