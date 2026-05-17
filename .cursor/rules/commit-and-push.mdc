@@ -1,0 +1,13 @@
+---
+description: Tras modificar código en este repo, siempre commit y push a origin.
+alwaysApply: true
+---
+
+# Git: commit y push automáticos
+
+Cuando hagas cambios en el workspace (código, estáticos, config del proyecto):
+
+1. Al terminar la tarea, ejecutá `git status` / `git diff` si hace falta y **creá un commit** con mensaje claro en español o inglés (estilo del repo).
+2. Hacé **`git push`** a la rama actual (normalmente `main`), salvo que el usuario pida explícitamente no pushear.
+
+No acumules cambios sin commitear al cerrar una sesión de implementación.
