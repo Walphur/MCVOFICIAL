@@ -4,3 +4,5 @@ uploads/*
 !uploads/.gitkeep
 node_modules/
 .DS_Store
+# URL local del API (no subir; usá mcv-local-api.example.js como plantilla)
+mcv-local-api.js

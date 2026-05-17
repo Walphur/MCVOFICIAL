@@ -1466,6 +1466,8 @@ body.tournament-page {
     color: var(--muted);
 }
 
+.events-card-list.events-anchor { scroll-margin-top: 100px; }
+
 .events-skeleton {
     height: 88px;
     border-radius: 10px;

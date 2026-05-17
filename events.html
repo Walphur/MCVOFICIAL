@@ -39,7 +39,7 @@
         <h1>Torneos <span>MCV.</span></h1>
         <p class="events-lead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
         <div class="events-hero-actions">
-            <a href="tournament.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Torneo destacado</a>
+            <a href="#upcoming-list" id="events-hero-featured" class="btn-primary pulse-rust"><i data-lucide="swords"></i> Torneo destacado</a>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
         </div>
     </div>
@@ -78,7 +78,7 @@
                 <h2><i data-lucide="calendar-clock"></i> Próximos</h2>
                 <p class="events-col-sub">Inscripciones abiertas o en curso.</p>
             </div>
-            <div id="upcoming-list" class="events-card-list"><div class="events-skeleton" aria-hidden="true"></div></div>
+            <div id="upcoming-list" class="events-card-list events-anchor"><div class="events-skeleton" aria-hidden="true"></div></div>
         </section>
         <section class="events-column">
             <div class="events-col-head">
@@ -93,6 +93,8 @@
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
+    var heroFeatured = document.getElementById('events-hero-featured');
+    var heroSlugFromFeatured = false;
 
     function esc(s) {
         if (s == null) return '';
@@ -132,6 +134,12 @@
         .then(function (d) {
             var st = d.mode === 'live' ? 'En vivo / registro' : d.mode === 'recap' ? 'Recap' : 'Sin activos';
             document.getElementById('stat-live').textContent = st;
+            if (d.tournament && d.tournament.slug) {
+                heroSlugFromFeatured = true;
+                if (heroFeatured) {
+                    heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
+                }
+            }
             if (d.tournament) {
                 var fe = document.getElementById('events-featured');
                 fe.hidden = false;
@@ -150,7 +158,9 @@
                     'tournament.html?slug=' + encodeURIComponent(d.tournament.slug || '');
             }
         })
-        .catch(function () { document.getElementById('stat-live').textContent = '—'; });
+        .catch(function () {
+            document.getElementById('stat-live').textContent = '—';
+        });
 
     fetch(API + '/api/tournaments')
         .then(function (r) { return r.json(); })
@@ -160,6 +170,9 @@
             var past = document.getElementById('past-list');
             var upcoming = list.filter(function (t) { return t.status === 'open' || t.status === 'closed'; });
             var finished = list.filter(function (t) { return t.status === 'finished'; });
+            if (heroFeatured && !heroSlugFromFeatured && upcoming.length) {
+                heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(upcoming[0].slug);
+            }
             if (!upcoming.length) {
                 renderEmpty(up, 'No hay torneos próximos. Volvé pronto o mirá el historial.');
             } else {

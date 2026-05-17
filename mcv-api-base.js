@@ -5,8 +5,8 @@
  * 1) ?api=https://tu-render.onrender.com en la URL (se guarda en localStorage)
  * 2) localStorage / sessionStorage "mcv_api_base"
  * 3) <meta name="mcv-api" content="https://..."> en el HTML (útil si el dominio público es solo estático)
- * 4) window.MCV_API_BASE
- * 5) mcvoficial.com (solo estático) → https://mcv-oficial.onrender.com
+ * 4) window.MCV_API_BASE (podés setearlo con mcv-local-api.js; ver mcv-local-api.example.js)
+ * 5) mcvoficial.com (solo estático) → https://mcv-oficial.onrender.com (debe coincidir con el nombre del Web Service en Render)
  * 6) window.location.origin (Node sirve el mismo sitio)
  */
 (function (w) {

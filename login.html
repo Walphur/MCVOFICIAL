@@ -45,8 +45,8 @@
         </div>
     </div>
 
-    <!-- Si ves 405: mcvoficial.com no ejecuta Node. Descomentá la línea de abajo y poné la URL exacta de tu Web Service en Render (Dashboard → Copy URL). -->
-    <!-- <script src="https://TU-SERVICIO.onrender.com/mcv-api-config.js"></script> -->
+    <!-- Si tu Web Service en Render tiene otra URL: copiá mcv-local-api.example.js → mcv-local-api.js, editá la URL y descomentá la línea de abajo (antes de mcv-api-base.js). -->
+    <!-- <script src="mcv-local-api.js"></script> -->
 <script src="mcv-api-base.js"></script>
 <script>
 (function () {
@@ -58,6 +58,20 @@
         return typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
     }
 
+    function fetchRetry(url, options, maxAttempts) {
+        maxAttempts = maxAttempts || 5;
+        var delayMs = 2200;
+        function attempt(n) {
+            return fetch(url, options || {}).catch(function (err) {
+                if (n >= maxAttempts) throw err;
+                return new Promise(function (resolve) {
+                    setTimeout(function () { resolve(attempt(n + 1)); }, delayMs);
+                });
+            });
+        }
+        return attempt(1);
+    }
+
     function runDiag() {
         var API = apiBase();
         diag.textContent = '';
@@ -67,9 +81,9 @@
             diag.style.display = 'block';
             return;
         }
-        diag.textContent = 'Comprobando servidor…';
+        diag.textContent = 'Comprobando servidor (en Render gratis puede tardar unos segundos si estaba dormido)…';
         diag.style.display = 'block';
-        fetch(API + '/api/auth/status', { cache: 'no-store' })
+        fetchRetry(API + '/api/auth/status', { cache: 'no-store' })
             .then(function (r) { return r.text().then(function (t) { return { ok: r.ok, t: t, status: r.status }; }); })
             .then(function (x) {
                 if (x.status === 405 || x.status === 404) {
@@ -93,7 +107,10 @@
                 diag.textContent = parts.join(' ');
             })
             .catch(function () {
-                diag.textContent = 'No hay conexión a ' + API + ' (¿servicio dormido, URL mal o CORS?).';
+                diag.textContent =
+                    'No hay conexión a ' +
+                    API +
+                    '. En Render gratis el servicio se duerme: esperá ~30 s y recargá. Si la URL del Web Service no es mcv-oficial.onrender.com, usá login.html?api=TU_URL o mcv-local-api.js (ver comentario arriba).';
             });
     }
 
@@ -118,7 +135,7 @@
         var pw = form.password.value;
         var btn = form.querySelector('button[type="submit"]');
         btn.disabled = true;
-        fetch(API + '/api/auth/login', {
+        fetchRetry(API + '/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: pw }),
@@ -156,7 +173,8 @@
             })
             .catch(function (e) {
                 if (e && (e.message === 'parse' || e.message === 'bad-route')) return;
-                err.textContent = 'Sin conexión al servidor (revisá URL, HTTPS y que el servicio esté arriba).';
+                err.textContent =
+                    'Sin conexión al servidor tras varios intentos (Render cold start o URL incorrecta). Recargá en unos segundos o usá ?api= con la URL exacta de tu Web Service.';
                 err.style.display = 'block';
             })
             .finally(function () {

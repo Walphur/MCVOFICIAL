@@ -317,25 +317,38 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.tournament && d.tournament.slug) return d.tournament.slug;
-                return 'last-squad-standing';
+                return null;
             })
-            .catch(function () { return 'last-squad-standing'; });
+            .catch(function () { return null; });
     }
 
     resolveSlug().then(function (slug) {
         resolvedSlug = slug;
-        return fetch(API + '/api/tournaments/' + encodeURIComponent(slug));
+        if (!resolvedSlug) {
+            setText('t-hero-title', 'Torneos MCV');
+            setText('t-hero-desc', 'No hay torneo seleccionado o el servidor no respondió. Elegí uno en la página Torneos o probá de nuevo más tarde.');
+            var reg = document.getElementById('register');
+            if (reg) reg.style.display = 'none';
+            var ws = document.getElementById('winner-showcase');
+            if (ws) ws.style.display = 'none';
+            var ev = document.getElementById('event');
+            if (ev) ev.style.display = 'none';
+            return Promise.reject('no-slug');
+        }
+        return fetch(API + '/api/tournaments/' + encodeURIComponent(resolvedSlug));
     }).then(function (r) {
-        if (!r.ok) throw new Error('bad');
+        if (!r || !r.ok) throw new Error('bad');
         return r.json();
     }).then(function (data) {
         applyTournament(data.tournament);
-    }).catch(function () {
+    }).catch(function (reason) {
+        if (reason === 'no-slug') return;
         setText('t-hero-title', 'Torneo');
         setText('t-hero-desc', 'No se encontró el torneo o el servidor no responde.');
     });
 
-    document.getElementById('t-squad-form').addEventListener('submit', function (e) {
+    var squadForm = document.getElementById('t-squad-form');
+    if (squadForm) squadForm.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!resolvedSlug || !tournament || tournament.status !== 'open') {
             alert('Este torneo no acepta registros.');
@@ -390,6 +403,7 @@
                 lucide.createIcons();
             });
     });
+    }
 
     lucide.createIcons();
 })();
