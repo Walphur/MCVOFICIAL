@@ -6,7 +6,6 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const axios = require("axios");
-const cors = require("cors");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
 const { registerTournamentApi } = require("./tournamentApi");
@@ -41,12 +40,51 @@ function corsOriginAllowed(origin) {
     if (allow.has(origin)) return { ok: true, value: origin };
     try {
         const host = new URL(origin).hostname.toLowerCase();
+        if (host === "mcvoficial.com" || host.endsWith(".mcvoficial.com")) return { ok: true, value: origin };
         if (host.endsWith(".onrender.com")) return { ok: true, value: origin };
         if (host === "localhost" || host === "127.0.0.1") return { ok: true, value: origin };
     } catch (e) {
         return { ok: false, value: false };
     }
     return { ok: false, value: false };
+}
+
+/**
+ * CORS explícito (Express 5 + preflight): refleja Access-Control-Request-Headers
+ * para que extensiones del navegador no rompan el preflight.
+ */
+function mcvCors(req, res, next) {
+    const origin = req.headers.origin;
+    if (origin) {
+        const r = corsOriginAllowed(origin);
+        if (r.ok && r.value !== false) {
+            const allow = r.value === true ? origin : r.value;
+            res.setHeader("Access-Control-Allow-Origin", allow);
+            res.setHeader("Access-Control-Allow-Credentials", "true");
+        }
+    }
+
+    if (req.method === "OPTIONS") {
+        if (origin) {
+            const r = corsOriginAllowed(origin);
+            if (!r.ok || r.value === false) {
+                return res.sendStatus(403);
+            }
+            const allow = r.value === true ? origin : r.value;
+            res.setHeader("Access-Control-Allow-Origin", allow);
+            res.setHeader("Access-Control-Allow-Credentials", "true");
+        }
+        res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,POST,PATCH,PUT,DELETE,OPTIONS");
+        const reqHdr = req.headers["access-control-request-headers"];
+        res.setHeader(
+            "Access-Control-Allow-Headers",
+            reqHdr || "Content-Type, Authorization, Accept, Accept-Language"
+        );
+        res.setHeader("Access-Control-Max-Age", "86400");
+        return res.sendStatus(204);
+    }
+
+    next();
 }
 
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
@@ -68,17 +106,7 @@ function battlemetricsHeaders() {
     return h;
 }
 
-app.use(
-    cors({
-        origin(origin, callback) {
-            const r = corsOriginAllowed(origin);
-            callback(null, r.ok ? r.value : false);
-        },
-        methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        exposedHeaders: ["Content-Type"]
-    })
-);
+app.use(mcvCors);
 app.use(express.json());
 
 registerTournamentApi(app, {
