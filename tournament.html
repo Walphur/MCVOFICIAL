@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV Oficial - Last Squad Standing</title>
+    <meta name="theme-color" content="#FAA61A">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="grain tournament-page">
+
+<nav class="navbar">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="index.html">Clan</a></li>
+        <li><a href="tournament.html" class="active">Tournament</a></li>
+        <li><a href="bot.html">Bot</a></li>
+        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+    </ul>
+</nav>
+
+<section id="top" class="tournament-hero">
+    <div class="tournament-hero-bg" aria-hidden="true"></div>
+    <div class="tournament-hero-shade" aria-hidden="true"></div>
+
+    <div class="tournament-hero-content">
+        <div class="section-label centered-label">
+            <div class="yellow-line"></div>
+            <span>// MCV Clan / Rust / 5v5</span>
+            <div class="yellow-line"></div>
+        </div>
+
+        <h1>Last Squad <span>Standing.</span></h1>
+        <p>30 equipos. 5 jugadores por roster. Un solo bracket competitivo. Registro, reglas y verificación del equipo en un mismo lugar.</p>
+
+        <div class="tournament-actions">
+            <a href="#register" class="btn-primary pulse-rust"><i data-lucide="zap"></i> Registrar team</a>
+            <a href="#rules" class="btn-secondary"><i data-lucide="scroll-text"></i> Ver reglas</a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> Discord</a>
+        </div>
+    </div>
+</section>
+
+<section id="event" class="tournament-summary">
+    <div class="tournament-stat">
+        <i data-lucide="coins"></i>
+        <span>// Prize Pool</span>
+        <strong>$150</strong>
+        <small>Winner takes all</small>
+    </div>
+    <div class="tournament-stat">
+        <i data-lucide="users"></i>
+        <span>// Team Slots</span>
+        <strong id="tournament-slots">0/30</strong>
+        <small>30 equipos max</small>
+    </div>
+    <div class="tournament-stat">
+        <i data-lucide="calendar-days"></i>
+        <span>// Match Day</span>
+        <strong>MAY 16</strong>
+        <small>18:00 CEST - 2026</small>
+    </div>
+    <div class="tournament-stat">
+        <i data-lucide="swords"></i>
+        <span>// Format</span>
+        <strong>5v5</strong>
+        <small>PvP competitivo</small>
+    </div>
+</section>
+
+<div class="marquee tournament-marquee">
+    <div class="marquee-content">
+        MCV CLAN - 5V5 TOURNAMENT - RUST - LAST SQUAD STANDING - MCV CLAN - 5V5 TOURNAMENT - RUST - LAST SQUAD STANDING -
+    </div>
+</div>
+
+<section id="rules" class="page-section tournament-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Rules / Schedule / Format</span>
+    </div>
+
+    <div class="section-heading-row tournament-heading">
+        <h2>Know the <span>protocol.</span></h2>
+        <p>Todo equipo registrado acepta estas reglas. La organización puede pedir clips, screen share o revisión adicional si el match lo requiere.</p>
+    </div>
+
+    <div class="tournament-info-grid">
+        <article class="tournament-panel schedule-panel">
+            <div class="panel-title"><i data-lucide="calendar-clock"></i><h3>Schedule</h3></div>
+            <div class="schedule-item"><span>Registration closes</span><span class="highlight">May 15 - 2026</span></div>
+            <div class="schedule-item"><span>Match day</span><span class="highlight">May 16 - 18:00 CEST</span></div>
+            <div class="schedule-item"><span>Check-in</span><span class="highlight">15 min before</span></div>
+            <div class="schedule-item border-none"><span>Max delay</span><span class="highlight">10 min = forfeit</span></div>
+        </article>
+
+        <article class="tournament-panel prize-panel">
+            <div class="panel-title"><i data-lucide="trophy"></i><h3>Prize Pool</h3></div>
+            <span class="stat-title highlight-text">1st place</span>
+            <div class="prize-amount">$150</div>
+            <p class="prize-sub">Pago al capitán del equipo ganador</p>
+        </article>
+
+        <article class="tournament-panel format-panel">
+            <div class="panel-title"><i data-lucide="swords"></i><h3>Format</h3></div>
+            <div class="format-grid">
+                <div><span class="stat-title">// Mode</span><p>5v5 PvP</p></div>
+                <div><span class="stat-title">// Platform</span><p>PC - Rust</p></div>
+                <div><span class="stat-title">// Server</span><p>Rustoria RTG</p></div>
+                <div><span class="stat-title">// System</span><p>Elimination</p></div>
+            </div>
+        </article>
+    </div>
+
+    <div class="rules-card tournament-panel">
+        <div class="panel-title"><i data-lucide="scroll-text"></i><h3>Tournament Rules</h3></div>
+        <div class="rules-grid tournament-rules-grid">
+            <div class="rule-item"><h4><span class="rule-num">01</span> Team Requirements</h4><ul><li>5 main players per team.</li><li>One captain responsible for communication.</li><li>No roster changes without admin approval.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">02</span> Mandatory Rules</h4><ul><li>Record all rounds when requested.</li><li>Screen share during reviews.</li><li>Stay in assigned voice channels.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">03</span> Fair Play</h4><ul><li>No cheats, scripts, macros or exploits.</li><li>Suspicious behavior triggers investigation.</li><li>Admin decisions are final.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">04</span> Match Format</h4><ul><li>BO1 / BO3 / BO5 announced per stage.</li><li>Spawn or side defined by organizers.</li><li>Late teams may lose by forfeit.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">05</span> Technical Issues</h4><ul><li>Report issues immediately.</li><li>Reconnect time is limited.</li><li>Admins decide pause or rematch.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">06</span> Reviews</h4><ul><li>One review request per match.</li><li>Clips are primary evidence.</li><li>Requests must be made quickly.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">07</span> Prize</h4><ul><li>Prize paid via PayPal.</li><li>Captain distributes to team.</li><li>MCV is not responsible after payment.</li></ul></div>
+            <div class="rule-item"><h4><span class="rule-num">08</span> Communication</h4><ul><li>Official announcements are in Discord.</li><li>Only admin messages are official.</li><li>Teams must follow match calls.</li></ul></div>
+        </div>
+    </div>
+
+    <div class="fair-play-notice tournament-fair">
+        <i data-lucide="shield-alert"></i>
+        <p><span>Fair Play Notice:</span> MCV puede descalificar equipos por cheats, boosting, scripts o incumplimiento de reglas. Traé skill, no excusas.</p>
+    </div>
+</section>
+
+<section id="register" class="register-section tournament-register">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Registration</span>
+    </div>
+
+    <div class="section-heading-row tournament-heading">
+        <h2>Register your <span>squad.</span></h2>
+        <p>Completá los 5 jugadores. El sistema consulta Steam bans desde el backend local y notifica el resultado.</p>
+    </div>
+
+    <form class="squad-form" action="#" method="POST">
+        <div class="form-row team-row">
+            <div class="input-group"><label><i data-lucide="hash"></i> Team name</label><input name="teamName" type="text" placeholder="e.g. Rust Lords" required autocomplete="organization"></div>
+            <div class="input-group"><label><i data-lucide="hash"></i> Team tag</label><input name="teamTag" type="text" placeholder="RL" required maxlength="12"></div>
+            <div class="input-group"><label class="highlight-label"><i data-lucide="crown"></i> Captain</label><input name="captainName" type="text" placeholder="Captain name" required autocomplete="name"></div>
+        </div>
+
+        <div class="divider"><span>// Roster</span><span class="line"></span><span>5 players required</span></div>
+
+        <div class="player-row"><div class="player-num">01</div><div class="input-group"><label><i data-lucide="user"></i> Player 1 name</label><input name="p1_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p1_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p1_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">02</div><div class="input-group"><label><i data-lucide="user"></i> Player 2 name</label><input name="p2_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p2_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p2_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">03</div><div class="input-group"><label><i data-lucide="user"></i> Player 3 name</label><input name="p3_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p3_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p3_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">04</div><div class="input-group"><label><i data-lucide="user"></i> Player 4 name</label><input name="p4_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p4_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p4_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+        <div class="player-row"><div class="player-num">05</div><div class="input-group"><label><i data-lucide="user"></i> Player 5 name</label><input name="p5_name" type="text" placeholder="In-game name" required></div><div class="input-group"><label><i data-lucide="gamepad-2"></i> SteamID64</label><input name="p5_steam" type="text" placeholder="17 digits - 7656..." required inputmode="numeric" ></div><div class="input-group"><label><i data-lucide="message-circle"></i> Discord ID</label><input name="p5_discord" type="text" placeholder="username or Discord#1234" required></div></div>
+
+        <div class="form-footer">
+            <p>All registrations are reviewed by MCV admins. You'll be notified on Discord once your team is approved.</p>
+            <button type="submit" class="btn-primary"><i data-lucide="shield-check"></i> Submit for approval</button>
+        </div>
+    </form>
+</section>
+
+<section id="live" class="live-section tournament-live">
+    <div class="section-label">
+        <div class="red-line"></div>
+        <span style="color:#EF4444;">// Live Broadcast</span>
+    </div>
+    <h2>En <span style="color:#EF4444;">vivo.</span></h2>
+    <div class="twitch-container">
+        <iframe id="twitch-embed" title="Twitch MCV" src="about:blank" frameborder="0" allowfullscreen="true" scrolling="no" class="twitch-player"></iframe>
+    </div>
+</section>
+
+<script>
+    lucide.createIcons();
+
+    const TOURNAMENT_SLUG = 'last-squad-standing';
+    const API = window.location.origin;
+
+    (function twitchParent() {
+        var iframe = document.getElementById('twitch-embed');
+        if (!iframe) return;
+        var host = location.hostname || 'localhost';
+        iframe.src = 'https://player.twitch.tv/?channel=mcvteam&parent=' + encodeURIComponent(host);
+    })();
+
+    async function loadTournamentMeta() {
+        var el = document.getElementById('tournament-slots');
+        if (!el) return;
+        try {
+            var r = await fetch(API + '/api/tournaments/' + TOURNAMENT_SLUG);
+            if (!r.ok) throw new Error('bad');
+            var data = await r.json();
+            var t = data.tournament;
+            el.textContent = (t.active_count != null ? t.active_count : 0) + '/' + (t.max_teams || 30);
+        } catch (e) {
+            el.textContent = '—/—';
+        }
+    }
+    loadTournamentMeta();
+
+    document.querySelector('.squad-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var form = e.target;
+        var btn = form.querySelector('button[type="submit"]');
+        var originalText = btn.innerHTML;
+        btn.innerHTML = "<i data-lucide='shield'></i> Enviando registro...";
+        btn.disabled = true;
+        lucide.createIcons();
+
+        var fd = new FormData(form);
+        var players = [];
+        for (var i = 1; i <= 5; i++) {
+            players.push({
+                name: fd.get('p' + i + '_name'),
+                steamId64: String(fd.get('p' + i + '_steam') || '').replace(/\D/g, ''),
+                discord: fd.get('p' + i + '_discord')
+            });
+        }
+
+        var body = {
+            teamName: fd.get('teamName'),
+            teamTag: fd.get('teamTag'),
+            captainName: fd.get('captainName'),
+            players: players
+        };
+
+        try {
+            var res = await fetch(API + '/api/tournaments/' + TOURNAMENT_SLUG + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            var data = await res.json().catch(function() { return {}; });
+            if (!res.ok) {
+                alert(data.error || 'No se pudo registrar el equipo.');
+                return;
+            }
+            if (data.bansCheckSkipped) {
+                alert('Registro guardado (pendiente de revisión). Nota: el servidor no tiene STEAM_API_KEY; no se pudo validar VAC/Game ban automáticamente.');
+            } else {
+                alert('Registro enviado. Estado: pendiente de aprobación por staff MCV.');
+            }
+            form.reset();
+            loadTournamentMeta();
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión con el servidor.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    });
+</script>
+</body>
+</html>

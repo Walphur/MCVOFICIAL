@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV Tracker - Anti-Cheat</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-main: #050505;
+            --bg-card: #0a0a0a;
+            --border-color: #1a1a1a;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --primary: #FAA61A;
+            --mcv-red: #ff0000;
+            --mcv-safe: #53FC18;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tracker-container {
+            max-width: 1000px;
+            margin: 120px auto 50px auto;
+            padding: 0 20px;
+        }
+
+        .search-view {
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .search-view h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4.5rem;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            font-weight: normal;
+        }
+
+        .search-view p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+.search-box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 15px;
+    max-width: 720px;
+    margin: 0 auto 45px auto;
+    align-items: center;
+}
+
+.search-input-wrapper {
+    position: relative;
+    width: 100%;
+    height: 55px;
+}
+.search-input-wrapper i,
+.search-input-wrapper svg {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.tracker-input {
+    width: 100%;
+    height: 55px;
+    box-sizing: border-box;
+    padding: 0 18px 0 54px;
+    background-color: #111111;
+    border: 1px solid var(--border-color);
+    color: #ffffff;
+    font-size: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    border-radius: 6px;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.tracker-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(250, 166, 26, 0.12);
+}
+
+.tracker-btn,
+#search-btn {
+    height: 55px;
+    min-width: 140px;
+    box-sizing: border-box;
+    background-color: var(--primary);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0 28px;
+    font-weight: bold;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tracker-btn:hover,
+#search-btn:hover {
+    background-color: #e09415;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(250, 166, 26, 0.18);
+}
+
+
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feature-card,
+        .profile-card,
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .feature-card {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)),
+        var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 30px 20px;
+    text-align: center;
+    border-radius: 8px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)),
+        var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 30px 20px;
+    text-align: center;
+    border-radius: 8px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-top: 2px solid transparent;
+    background: linear-gradient(90deg, transparent, rgba(250,166,26,0.18), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.45s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(250,166,26,0.55);
+    box-shadow: 0 14px 40px rgba(250,166,26,0.08);
+}
+
+.feature-card:hover::before {
+    transform: translateX(100%);
+}
+
+.feature-card i {
+    color: var(--primary);
+    margin-bottom: 15px;
+    width: 34px;
+    height: 34px;
+    filter: drop-shadow(0 0 10px rgba(250,166,26,0.35));
+}
+
+.feature-card h3 {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.feature-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.45;
+}
+
+
+        .results-view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .profile-card {
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .profile-top {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .avatar-box {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            background: #111;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--text-muted);
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-info h2 {
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .badge.clean {
+            background: rgba(83, 252, 24, 0.1);
+            color: var(--mcv-safe);
+            border: 1px solid rgba(83, 252, 24, 0.2);
+        }
+
+        .badge.warn {
+            background: rgba(250, 166, 26, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(250, 166, 26, 0.2);
+        }
+
+        .badge.danger {
+            background: rgba(255, 0, 0, 0.12);
+            color: var(--mcv-red);
+            border: 1px solid rgba(255, 0, 0, 0.25);
+        }
+
+        .steam-id-text {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-item span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item strong {
+            font-size: 1.4rem;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .profile-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        .profile-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tabs-container {
+            display: flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            background: #111;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            background: #111;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .content-card {
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .content-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .stat-hero-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-hero-box,
+        .pve-box,
+        .res-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+
+        .stat-hero-box {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-hero-val {
+            font-size: 2.2rem;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .stat-hero-label,
+        .pve-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-bot {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .pve-grid,
+        .links-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .pve-box {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .pve-val,
+        .res-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .res-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .res-box {
+            padding: 15px;
+        }
+
+        .res-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .status-box {
+            background: #111;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-box.success {
+            border-left: 4px solid var(--mcv-safe);
+        }
+
+        .status-box.success i {
+            color: var(--mcv-safe);
+        }
+
+        .status-box h4 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .status-box p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .link-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .link-btn:hover {
+            border-color: var(--primary);
+            background: #111;
+        }
+
+        #manual-bm-box {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .search-box,
+            .profile-top,
+            .profile-footer {
+                flex-direction: column;
+            }
+
+            .profile-top {
+                text-align: center;
+            }
+
+            .profile-info h2 {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .stats-row {
+                justify-content: center;
+                gap: 20px;
+            }
+
+            .stat-hero-grid,
+            .pve-grid,
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+<nav class="navbar">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+
+    <ul class="nav-links">
+        <li><a href="index.html">Clan</a></li>
+        <li><a href="tournament.html">Tournament</a></li>
+        <li><a href="bot.html" class="active">Bot</a></li>
+        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span>Streams</a></li>
+    </ul>
+</nav>
+
+<div class="tracker-container">
+    <div id="view-search" class="search-view">
+        <div class="section-label" style="justify-content: center; margin-bottom: 20px;">
+            <div class="yellow-line"></div>
+            <span>// SYSTEM TERMINAL</span>
+        </div>
+
+        <h1>INVESTIGA JUGADORES</h1>
+        <p>Obtiene información completa sobre cualquier jugador: bans, horas jugadas, historial de servidores y análisis de amigos.</p>
+
+        <form id="search-form" class="search-box">
+            <div class="search-input-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" id="steam-input" class="tracker-input" placeholder="Pegá el SteamID64 o link de Steam..." required>
+            </div>
+
+            <button type="submit" id="search-btn">BUSCAR</button>
+        </form>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <i data-lucide="shield"></i>
+                <h3>VAC y Game Bans</h3>
+                <p>Detecta bans de VAC y fechas del último ban registrado en Valve.</p>
+            </div>
+
+            <div class="feature-card">
+                <i data-lucide="clock"></i>
+                <h3>Horas de Juego</h3>
+                <p>Cruza datos con la API de Steam para verificar horas totales en Rust.</p>
+            </div>
+
+            <div class="feature-card">
+                <i data-lucide="server"></i>
+                <h3>Bases de Datos</h3>
+                <p>Conecta con BattleMetrics y AtlasLookup para historiales.</p>
+            </div>
+
+            <div class="feature-card">
+                <i data-lucide="users"></i>
+                <h3>Discord Webhooks</h3>
+                <p>Genera reportes instantáneos directo al canal de administración.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-results" class="results-view">
+        <a href="#" onclick="showSearch()" style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 20px;">
+            <i data-lucide="arrow-left" style="width: 16px;"></i> Volver al escáner
+        </a>
+
+        <div class="profile-card">
+            <div class="profile-top">
+                <div class="avatar-box">?</div>
+
+                <div class="profile-info">
+                    <h2>
+                        <span id="res-name">Jugador Analizado</span>
+                        <span id="risk-badge" class="badge clean">CLEAN</span>
+                    </h2>
+
+                    <div class="steam-id-text" id="res-id">76561198000000000</div>
+
+                    <div class="stats-row">
+                        <div class="stat-item"><span>Horas en Rust</span><strong id="h-rust">Privado</strong></div>
+                        <div class="stat-item"><span>K/D Ratio</span><strong id="h-kd">N/A</strong></div>
+                        <div class="stat-item"><span>Headshot %</span><strong id="h-hs">N/A</strong></div>
+                        <div class="stat-item"><span>VAC Bans</span><strong id="h-vac">0</strong></div>
+                        <div class="stat-item"><span>Game Bans</span><strong id="h-game">0</strong></div>
+                        <div class="stat-item"><span>Rust 2 semanas</span><strong id="h-rust-2w">N/A</strong></div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-footer">
+                <span><i data-lucide="shield" style="width: 14px; vertical-align: text-bottom;"></i> Escaneo MCV Completado</span>
+                <a href="#" target="_blank" id="btn-steam-out">Ver perfil en Steam <i data-lucide="external-link" style="width: 14px;"></i></a>
+            </div>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="openTab(event, 'tab-bans')">Bans</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-stats')">Stats</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-servers')">Servidores</button>
+            <button class="tab-btn" onclick="openTab(event, 'tab-links')">Investigar</button>
+        </div>
+
+        <div id="tab-bans" class="tab-content active">
+            <div class="content-card">
+                <h3 style="color: var(--mcv-red);"><i data-lucide="shield-alert"></i> Bans Oficiales</h3>
+                <div id="ban-status" class="status-box success">
+                    <i data-lucide="check-circle" style="width: 24px; height: 24px;"></i>
+                    <div>
+                        <h4>Sin bans oficiales</h4>
+                        <p>Este jugador no tiene VAC bans ni Game bans registrados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-stats" class="tab-content">
+            <div class="content-card">
+                <h3 style="color: var(--mcv-red);"><i data-lucide="crosshair"></i> Estadísticas de Combate</h3>
+
+                <div class="stat-hero-grid">
+                    <div class="stat-hero-box">
+                        <div class="stat-hero-val" id="stat-kills" style="color: #22c55e;">0</div>
+                        <div class="stat-hero-label">Kills</div>
+                    </div>
+
+                    <div class="stat-hero-box">
+                        <div class="stat-hero-val" id="stat-deaths" style="color: #ef4444;">0</div>
+                        <div class="stat-hero-label">Deaths</div>
+                    </div>
+
+                    <div class="stat-hero-box">
+                        <div class="stat-hero-val" id="stat-kd-full" style="color: var(--primary);">0.00</div>
+                        <div class="stat-hero-label">K/D Ratio</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-top">
+                        <span style="display:flex; align-items:center; gap:8px; color:var(--primary);">
+                            <i data-lucide="skull" style="width:16px;"></i> Headshot Rate
+                        </span>
+                        <strong id="stat-hs-pct">0%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="stat-hs-bar" style="width: 0%; background: var(--mcv-safe);"></div>
+                    </div>
+                    <div class="progress-bot" id="stat-hs-sub">0 headshots de 0 kills</div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-top">
+                        <span style="display:flex; align-items:center; gap:8px; color:var(--mcv-safe);">
+                            <i data-lucide="target" style="width:16px;"></i> Precisión
+                        </span>
+                        <strong id="stat-acc-pct">0%</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="stat-acc-bar" style="width: 0%; background: #16a34a;"></div>
+                    </div>
+                    <div class="progress-bot" id="stat-acc-sub">0 impactos de 0 disparos</div>
+                </div>
+
+                <div class="pve-grid">
+                    <div class="pve-box">
+                        <i data-lucide="users" style="color:#60a5fa; width:20px; height:20px;"></i>
+                        <div>
+                            <div class="pve-val" id="stat-npcs">0</div>
+                            <div class="pve-label">NPCs Killed</div>
+                        </div>
+                    </div>
+
+                    <div class="pve-box">
+                        <i data-lucide="flame" style="color:#fb923c; width:20px; height:20px;"></i>
+                        <div>
+                            <div class="pve-val" id="stat-animals">0</div>
+                            <div class="pve-label">Animals Killed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3 style="color: var(--primary);"><i data-lucide="hammer"></i> Recursos y Construcción</h3>
+
+                <div class="res-grid">
+                    <div class="res-box"><div class="res-head"><i data-lucide="tree-pine" style="color:#22c55e; width:14px;"></i> Madera</div><div class="res-val" id="stat-wood">0K</div></div>
+                    <div class="res-box"><div class="res-head"><i data-lucide="mountain" style="color:#9ca3af; width:14px;"></i> Piedra</div><div class="res-val" id="stat-stone">0K</div></div>
+                    <div class="res-box"><div class="res-head"><i data-lucide="mountain" style="color:#fb923c; width:14px;"></i> Metal</div><div class="res-val" id="stat-metal">0K</div></div>
+                    <div class="res-box"><div class="res-head"><i data-lucide="hammer" style="color:var(--primary); width:14px;"></i> Estructuras</div><div class="res-val" id="stat-structures">0</div></div>
+                    <div class="res-box"><div class="res-head"><i data-lucide="package" style="color:#a78bfa; width:14px;"></i> Crafteados</div><div class="res-val" id="stat-crafted">0</div></div>
+                    <div class="res-box"><div class="res-head"><i data-lucide="package" style="color:#60a5fa; width:14px;"></i> Barriles</div><div class="res-val" id="stat-barrels">0</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-servers" class="tab-content">
+             <div class="content-card">
+                <h3 style="color: var(--text-muted);"><i data-lucide="database"></i> Historial de Servidores</h3>
+                <div id="servers-list"></div>
+            </div>
+        </div>
+
+
+        <div id="tab-links" class="tab-content">
+            <div class="content-card">
+                <h3 style="color: var(--primary);"><i data-lucide="link"></i> Links de Investigación</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                    Utiliza estas herramientas externas para profundizar en el SteamID.
+                </p>
+
+                <div class="links-grid">
+                    <a href="#" target="_blank" class="link-btn link-uk"><span style="display:flex; gap:10px; align-items:center;"><i data-lucide="search"></i> SteamID.uk</span> <i data-lucide="external-link" style="width:16px;"></i></a>
+                    <a href="#" target="_blank" class="link-btn link-atlas"><span style="display:flex; gap:10px; align-items:center;"><i data-lucide="map"></i> Atlas Lookup</span> <i data-lucide="external-link" style="width:16px;"></i></a>
+                    <a href="#" target="_blank" class="link-btn link-ruststats"><span style="display:flex; gap:10px; align-items:center;"><i data-lucide="bar-chart-2"></i> RustStats.io</span> <i data-lucide="external-link" style="width:16px;"></i></a>
+                    <a href="#" target="_blank" class="link-btn link-bm"><span style="display:flex; gap:10px; align-items:center;"><i data-lucide="crosshair"></i> BattleMetrics</span> <i data-lucide="external-link" style="width:16px;"></i></a>
+                </div>
+
+                <div id="discord-helper-box" style="display:none; margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
+    <h3 style="color: var(--primary);">
+        <i data-lucide="message-circle"></i> Consulta en Discord
+    </h3>
+
+    <p style="color: var(--text-muted); font-size: 0.85rem;">
+        No se encontró BattleMetrics automáticamente. Abrí Discord y ejecutá este comando en el canal:
+    </p>
+
+    <div style="background:#111; border:1px solid var(--border-color); border-radius:6px; padding:15px; margin-bottom:15px;">
+        <code id="discord-command" style="color:var(--primary); font-size:0.95rem;">
+            /player identifier: STEAMID
+        </code>
+    </div>
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+
+        <button type="button" id="copy-discord-command-btn" class="tracker-btn">
+    COPIAR COMANDO
+</button>
+
+        <a
+            id="discord-channel-link"
+            href="https://discord.com/channels/1440751672644337754/1498701446823285048"
+            target="_blank"
+            class="tracker-btn"
+            style="text-decoration:none;"
+        >
+            ABRIR DISCORD
+        </a>
+
+        <button type="button" id="retry-bm-btn" class="tracker-btn">
+            REINTENTAR
+        </button>
+    </div>
+
+    <p id="discord-helper-msg" style="color: var(--text-muted); font-size: 0.85rem;">
+        Después de que Hexaytron responda, volvé acá y tocá Reintentar.
+    </p>
+</div>
+
+
+                <div id="manual-bm-box">
+                    <h3 style="color: var(--primary); margin-top: 0;">
+                        <i data-lucide="database"></i> Vincular BattleMetrics Manual
+                    </h3>
+
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">
+                        Si no se encontró el ID automáticamente, abrí Atlas o BattleMetrics, copiá el link directo del perfil y pegalo acá.
+                    </p>
+
+                    <div class="search-box" style="max-width:100%; margin:0;">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="link"></i>
+                            <input type="text" id="manual-bm-url" class="tracker-input" placeholder="https://www.battlemetrics.com/players/69786516">
+                        </div>
+
+                        <button type="button" id="save-bm-btn" class="tracker-btn">GUARDAR BM</button>
+                    </div>
+
+                    <p id="manual-bm-msg" style="color: var(--text-muted); font-size: 0.85rem;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer style="border-top: 1px solid var(--border-color); padding: 20px; margin-top: 50px; display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.8rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
+    <span>Motor Anti-Cheat v3 • Steam, Discord & BattleMetrics API</span>
+    <span>MCV Clan</span>
+</footer>
+
+<script>
+    let currentSteamId = null;
+
+    lucide.createIcons();
+
+    function openTab(evt, tabName) {
+        const tabcontent = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("active");
+        }
+
+        const tablinks = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.className += " active";
+
+        if (tabName === "tab-stats") {
+            const bars = document.querySelectorAll(".progress-bar");
+            bars.forEach(bar => {
+                const targetWidth = bar.getAttribute("data-width") || "0%";
+                bar.style.width = "0%";
+                setTimeout(() => {
+                    bar.style.width = targetWidth;
+                }, 50);
+            });
+        }
+    }
+
+    function showSearch() {
+        document.getElementById("view-results").style.display = "none";
+        document.getElementById("view-search").style.display = "block";
+        document.getElementById("steam-input").value = "";
+    }
+
+    function updateBattleMetricsButton(jug) {
+    const btnBM = document.querySelector(".link-bm");
+    const discordBox = document.getElementById("discord-helper-box");
+    const discordCommand = document.getElementById("discord-command");
+    const discordLink = document.getElementById("discord-channel-link");
+
+    if (!jug.bmId) {
+        btnBM.href = jug.bmSearchUrl || `https://www.battlemetrics.com/players?filter[search]=${jug.steamId}`;
+        btnBM.style.opacity = "0.6";
+        btnBM.style.borderColor = "#333";
+        btnBM.style.color = "#888";
+        btnBM.innerHTML = `
+            <span style="display:flex; gap:10px; align-items:center;">
+                <i data-lucide="search"></i> Buscar en BM
+            </span>
+            <i data-lucide="external-link" style="width:16px;"></i>
+        `;
+
+        discordBox.style.display = "block";
+        discordCommand.innerText = `/player identifier: ${jug.steamId}`;
+        discordLink.href = jug.discordChannelUrl || "https://discord.com/channels/1440751672644337754/1498701446823285048";
+    } else {
+        btnBM.href = `https://www.battlemetrics.com/players/${jug.bmId}`;
+        btnBM.style.opacity = "1";
+        btnBM.style.borderColor = "";
+        btnBM.style.color = "#fff";
+        btnBM.innerHTML = `
+            <span style="display:flex; gap:10px; align-items:center;">
+                <i data-lucide="crosshair"></i> BattleMetrics
+            </span>
+            <i data-lucide="external-link" style="width:16px;"></i>
+        `;
+
+        discordBox.style.display = "none";
+    }
+
+    btnBM.target = "_blank";
+    lucide.createIcons();
+}
+
+
+    function renderJugador(jug) {
+        currentSteamId = jug.steamId;
+
+        document.getElementById("res-name").innerText = jug.nombre;
+        document.getElementById("res-id").innerText = jug.steamId;
+
+        document.querySelector(".avatar-box").innerHTML =
+            jug.avatar
+                ? `<img src="${jug.avatar}" style="width:100%; height:100%; border-radius:8px; object-fit:cover;">`
+                : "?";
+
+        const badge = document.getElementById("risk-badge");
+        badge.className = "badge clean";
+        badge.innerText = "CLEAN";
+
+        if (jug.riskScore >= 60) {
+            badge.className = "badge danger";
+            badge.innerText = "ALTO RIESGO";
+        } else if (jug.riskScore >= 30) {
+            badge.className = "badge warn";
+            badge.innerText = "SOSPECHOSO";
+        }
+
+        document.getElementById("h-rust").innerText =
+            jug.horas !== "Privado" ? jug.horas + "h" : "Privado";
+        document.getElementById("h-rust-2w").innerText =
+            jug.rust2WeeksHours === null || jug.rust2WeeksHours === undefined
+            ? "Privado"
+            : jug.rust2WeeksHours + "h";
+
+        document.getElementById("h-kd").innerText = jug.kdr;
+        document.getElementById("h-kd").style.color =
+            Number(jug.kdr) >= 1 ? "#22c55e" : Number(jug.kdr) > 0 ? "#ef4444" : "#888";
+
+        document.getElementById("h-hs").innerText = jug.headshotPct + "%";
+        document.getElementById("h-vac").innerText = jug.vacBans;
+        document.getElementById("h-game").innerText = jug.gameBans;
+
+        document.getElementById("stat-kills").innerText = Number(jug.kills || 0).toLocaleString("es-ES");
+        document.getElementById("stat-deaths").innerText = Number(jug.deaths || 0).toLocaleString("es-ES");
+        document.getElementById("stat-kd-full").innerText = jug.kdr;
+        document.getElementById("stat-kd-full").style.color = Number(jug.kdr) >= 1 ? "#22c55e" : "#ef4444";
+
+        document.getElementById("stat-hs-pct").innerText = jug.headshotPct + "%";
+        document.getElementById("stat-hs-bar").setAttribute("data-width", Math.min(Number(jug.headshotPct || 0), 100) + "%");
+        document.getElementById("stat-hs-bar").style.width = Math.min(Number(jug.headshotPct || 0), 100) + "%";
+
+        document.getElementById("stat-acc-pct").innerText = jug.accuracy + "%";
+        document.getElementById("stat-acc-bar").setAttribute("data-width", Math.min(Number(jug.accuracy || 0), 100) + "%");
+        document.getElementById("stat-acc-bar").style.width = Math.min(Number(jug.accuracy || 0), 100) + "%";
+
+        document.getElementById("stat-hs-sub").innerText =
+            `${Number(jug.hsRaw || 0).toLocaleString("es-ES")} headshots de ${Number(jug.kills || 0).toLocaleString("es-ES")} kills`;
+
+        document.getElementById("stat-acc-sub").innerText =
+            `${Number(jug.hitRaw || 0).toLocaleString("es-ES")} impactos de ${Number(jug.firedRaw || 0).toLocaleString("es-ES")} disparos`;
+
+        document.getElementById("stat-npcs").innerText = Number(jug.npcs || 0).toLocaleString("es-ES");
+        document.getElementById("stat-animals").innerText = Number(jug.animals || 0).toLocaleString("es-ES");
+
+        document.getElementById("stat-wood").innerText = jug.wood || "0K";
+        document.getElementById("stat-stone").innerText = jug.stone || "0K";
+        document.getElementById("stat-metal").innerText = jug.metal || "0K";
+        document.getElementById("stat-structures").innerText = Number(jug.structures || 0).toLocaleString("es-ES");
+        document.getElementById("stat-crafted").innerText = Number(jug.crafted || 0).toLocaleString("es-ES");
+        document.getElementById("stat-barrels").innerText = Number(jug.barrels || 0).toLocaleString("es-ES");
+
+        document.getElementById("btn-steam-out").href = `https://steamcommunity.com/profiles/${jug.steamId}`;
+        document.querySelector(".link-uk").href = `https://steamid.uk/profile/${jug.steamId}`;
+        document.querySelector(".link-atlas").href = `https://atlasrust.com/player-lookup`;
+        document.querySelector(".link-ruststats").href = `https://ruststats.io/profile/${jug.steamId}`;
+
+        const serversList = document.getElementById("servers-list");
+
+if (serversList) {
+    if (!jug.servidoresBM || jug.servidoresBM.length === 0) {
+        serversList.innerHTML = `
+            <div class="status-box">
+                <i data-lucide="server" style="width:24px; height:24px; color:var(--text-muted);"></i>
+                <div>
+                    <h4>Sin servidores disponibles</h4>
+                    <p>BattleMetrics no devolvió historial público para este jugador.</p>
+                </div>
+            </div>
+        `;
+    } else {
+        serversList.innerHTML = jug.servidoresBM.map(server => `
+            <a href="${server.url}" target="_blank" class="link-btn" style="margin-bottom:10px;">
+                <span>
+                    <strong>${server.name}</strong><br>
+                    <small style="color:var(--text-muted);">
+                        ${server.status || "unknown"} • ${server.players ?? "?"}/${server.maxPlayers ?? "?"}
+                    </small>
+                </span>
+                <i data-lucide="external-link" style="width:16px;"></i>
+            </a>
+        `).join("");
+    }
+}
+
+
+        updateBattleMetricsButton(jug);
+
+        document.getElementById("view-search").style.display = "none";
+        document.getElementById("view-results").style.display = "block";
+
+        lucide.createIcons();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("search-form");
+        const btn = document.getElementById("search-btn");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const input = document.getElementById("steam-input").value;
+
+            if (!input) {
+                alert("Pegá un SteamID o link de Steam");
+                return;
+            }
+
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i>';
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            lucide.createIcons();
+
+            try {
+                const res = await fetch("/escaner-rapido", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ link: input })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert("Error: " + (data.error || "No se pudo analizar"));
+                    return;
+                }
+
+                renderJugador(data.jugador);
+            } catch (err) {
+                alert("Error de conexión con el servidor. Verificá que node server.js esté encendido.");
+            } finally {
+                btn.innerText = "BUSCAR";
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }
+        });
+
+        document.getElementById("copy-discord-command-btn").addEventListener("click", async () => {
+    const command = document.getElementById("discord-command").innerText;
+    const msg = document.getElementById("discord-helper-msg");
+
+    try {
+        await navigator.clipboard.writeText(command);
+        msg.innerText = "Comando copiado. Pegalo en el canal de Discord.";
+    } catch (err) {
+        msg.innerText = "No se pudo copiar. Seleccioná el comando manualmente.";
+    }
+});
+
+
+        document.getElementById("retry-bm-btn").addEventListener("click", async () => {
+    if (!currentSteamId) return;
+
+    const msg = document.getElementById("discord-helper-msg");
+    msg.innerText = "Reintentando lectura desde Discord...";
+
+    try {
+        const res = await fetch("/escaner-rapido", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                link: currentSteamId
+            })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+            msg.innerText = "Todavía no se pudo leer el resultado.";
+            return;
+        }
+
+        renderJugador(data.jugador);
+
+        if (data.jugador.bmId) {
+            msg.innerText = "BattleMetrics encontrado correctamente.";
+        } else {
+            msg.innerText = "Todavía no aparece BM. Esperá la respuesta de Hexaytron y reintentá.";
+        }
+    } catch (err) {
+        msg.innerText = "Error conectando con el servidor.";
+    }
+});
+
+        document.getElementById("save-bm-btn").addEventListener("click", async () => {
+            const battleMetricsUrl = document.getElementById("manual-bm-url").value;
+            const msg = document.getElementById("manual-bm-msg");
+            const saveBtn = document.getElementById("save-bm-btn");
+
+            if (!currentSteamId) {
+                msg.innerText = "Primero buscá un jugador.";
+                return;
+            }
+
+            if (!battleMetricsUrl) {
+                msg.innerText = "Pegá un link de BattleMetrics.";
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.innerText = "GUARDANDO...";
+
+            try {
+                const res = await fetch("/api/battlemetrics/manual", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        steamId: currentSteamId,
+                        battleMetricsUrl
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    msg.innerText = "Error: " + data.error;
+                    return;
+                }
+
+                updateBattleMetricsButton({
+                    steamId: currentSteamId,
+                    bmId: data.bmId
+                });
+
+                document.getElementById("manual-bm-box").style.display = "none";
+                document.getElementById("manual-bm-url").value = "";
+                msg.innerText = "BattleMetrics guardado correctamente.";
+            } catch (err) {
+                msg.innerText = "Error conectando con el servidor.";
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "GUARDAR BM";
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# 1) Creá un PostgreSQL en Render y copiá su Internal Database URL.
+# 2) Desplegá este repo como Web Service con root directory: mcv-backend
+# 3) En Environment del Web Service añadí DATABASE_URL (link a la BD) y el resto según .env.example
+
+services:
+  - type: web
+    name: mcv-oficial
+    runtime: node
+    rootDir: mcv-backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health

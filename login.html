@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Admin Login - MCV</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <div class="login-container">
+        <div class="login-header">
+            <div class="icon">🔒</div>
+            <div>
+                <span class="tagline">// MCV ADMIN</span>
+                <h2>CONTROL ROOM</h2>
+            </div>
+        </div>
+
+        <p id="login-error" class="login-error" style="display:none;color:var(--red);font-family:JetBrains Mono;font-size:0.85rem;"></p>
+
+        <form class="login-form" id="login-form">
+            <div class="input-group">
+                <label>CONTRASEÑA</label>
+                <input type="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-primary w-100" style="width:100%;justify-content:center;">ENTER CONTROL ROOM</button>
+        </form>
+
+        <a href="index.html" class="back-link">← BACK TO SITE</a>
+    </div>
+
+<script>
+(function () {
+    var API = window.location.origin;
+    var form = document.getElementById('login-form');
+    var err = document.getElementById('login-error');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        err.style.display = 'none';
+        var pw = form.password.value;
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        fetch(API + '/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pw })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok || !x.d.token) {
+                    err.textContent = x.d.error || 'Login fallido';
+                    err.style.display = 'block';
+                    return;
+                }
+                sessionStorage.setItem('mcv_admin_jwt', x.d.token);
+                window.location.href = 'admin.html';
+            })
+            .catch(function () {
+                err.textContent = 'Sin conexión al servidor.';
+                err.style.display = 'block';
+            })
+            .finally(function () {
+                btn.disabled = false;
+            });
+    });
+})();
+</script>
+</body>
+</html>

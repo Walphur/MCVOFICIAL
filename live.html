@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Streams - MCV OFICIAL</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="grain">
+
+<nav class="navbar">
+    <a href="index.html" class="logo-link">
+        <img src="logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="index.html">Clan</a></li>
+        <li><a href="tournament.html">Tournament</a></li>
+        <li><a href="bot.html">Bot</a></li>
+        <li><a href="tickets.html">Tickets</a></li>
+        <li><a href="live.html" class="live-link active"><span class="live-dot pulse-red"></span>Streams</a></li>
+    </ul>
+</nav>
+
+<section class="page-section" style="padding-top: 120px; max-width: 1200px; margin: 0 auto;">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Live Coverage</span>
+    </div>
+    <h2 style="font-size: 3rem; margin-bottom: 40px; color: white;">MCV <span>LIVE STREAMS.</span></h2>
+
+    <div class="stream-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 30px;">
+        
+        <div class="stream-card" style="background: #080808; border: 1px solid #222;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                <iframe src="https://player.kick.com/mcompanyv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div style="padding: 20px;">
+                <h3 style="margin: 0; color: #53FC18;"><i data-lucide="radio" style="vertical-align: middle; margin-right: 10px;"></i> KICK - Líder</h3>
+            </div>
+        </div>
+
+        <div class="stream-card" style="background: #080808; border: 1px solid #222;">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                <iframe src="https://player.twitch.tv/?channel=mcvteam&parent=127.0.0.1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div style="padding: 20px;">
+                <h3 style="margin: 0; color: #9146FF;"><i data-lucide="twitch" style="vertical-align: middle; margin-right: 10px;"></i> TWITCH - Clan Oficial</h3>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Control Room - MCV</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-body">
+
+    <nav class="admin-navbar">
+        <div class="admin-logo">🔒 MCV CONTROL ROOM <span>// ADMIN</span></div>
+        <div class="admin-actions">
+            <button type="button" class="btn-outline" id="refresh-btn">🔄 REFRESH</button>
+            <a href="login.html"><button type="button" class="btn-outline">🔑 LOGIN</button></a>
+            <button type="button" class="btn-outline" id="logout-btn">🚪 LOGOUT</button>
+        </div>
+    </nav>
+
+    <main class="admin-main">
+        <header class="dashboard-header">
+            <div>
+                <span class="tagline">// TEAMS & BRACKET</span>
+                <h1>CONTROL <span>ROOM.</span></h1>
+                <p id="tournament-summary">Torneo: <strong id="slug-label">last-squad-standing</strong></p>
+            </div>
+            <div class="dashboard-buttons">
+                <button type="button" class="btn-primary-small" id="export-csv">📥 EXPORT CSV</button>
+                <button type="button" class="btn-primary-small" id="gen-bracket">⚔️ GENERAR BRACKET</button>
+                <button type="button" class="btn-primary-small" id="next-round">➡️ SIGUIENTE RONDA</button>
+            </div>
+        </header>
+
+        <p id="admin-banner" class="admin-banner"></p>
+
+        <div class="tabs">
+            <button type="button" class="tab active" data-tab="teams">👑 TEAMS</button>
+            <button type="button" class="tab" data-tab="bracket">⚔️ BRACKET</button>
+        </div>
+
+        <div id="teams-panel">
+            <div class="filters" id="filters">
+                <button type="button" class="filter active" data-filter="all">ALL <span id="c-all">0</span></button>
+                <button type="button" class="filter" data-filter="pending">PENDING <span id="c-pending">0</span></button>
+                <button type="button" class="filter" data-filter="accepted">APPROVED <span id="c-accepted">0</span></button>
+                <button type="button" class="filter" data-filter="declined">REJECTED <span id="c-declined">0</span></button>
+            </div>
+
+            <div class="winner-row">
+                <label class="winner-label">Ganador del torneo (ID registro aceptado)</label>
+                <input type="number" id="winner-id" class="winner-input" min="1" placeholder="registration id">
+                <button type="button" class="btn-primary-small" id="save-winner">GUARDAR GANADOR</button>
+                <button type="button" class="btn-outline" id="clear-winner">LIMPIAR</button>
+            </div>
+
+            <div class="data-area" id="data-area">
+                <p class="empty-hint">Cargando…</p>
+            </div>
+        </div>
+
+        <div id="bracket-panel" style="display:none;">
+            <div class="data-area" id="bracket-area">
+                <p class="empty-hint">Sin datos de bracket.</p>
+            </div>
+        </div>
+    </main>
+
+<script>
+(function () {
+    var API = window.location.origin;
+    var SLUG = 'last-squad-standing';
+    var token = sessionStorage.getItem('mcv_admin_jwt');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    var state = { list: [], filter: 'all', tab: 'teams' };
+
+    function authHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        };
+    }
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function banner(msg, isErr) {
+        var el = document.getElementById('admin-banner');
+        el.textContent = msg || '';
+        el.style.color = isErr ? 'var(--red)' : 'var(--muted)';
+    }
+
+    function setCounts() {
+        var all = state.list.length;
+        var p = state.list.filter(function (r) { return r.status === 'pending'; }).length;
+        var a = state.list.filter(function (r) { return r.status === 'accepted'; }).length;
+        var d = state.list.filter(function (r) { return r.status === 'declined'; }).length;
+        document.getElementById('c-all').textContent = String(all);
+        document.getElementById('c-pending').textContent = String(p);
+        document.getElementById('c-accepted').textContent = String(a);
+        document.getElementById('c-declined').textContent = String(d);
+    }
+
+    function filtered() {
+        if (state.filter === 'all') return state.list.slice();
+        return state.list.filter(function (r) { return r.status === state.filter; });
+    }
+
+    function renderTeams() {
+        var box = document.getElementById('data-area');
+        var rows = filtered();
+        if (!rows.length) {
+            box.innerHTML = '<p class="empty-hint">NO TEAMS IN THIS VIEW.</p>';
+            return;
+        }
+        var html = '<table class="admin-table"><thead><tr><th>ID</th><th>Team</th><th>Tag</th><th>Captain</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>';
+        rows.forEach(function (r) {
+            html += '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.team_name) + '</td><td>' + esc(r.team_tag) + '</td><td>' + esc(r.captain_name) + '</td><td><span class="pill pill-' + esc(r.status) + '">' + esc(r.status) + '</span></td><td>' + esc(String(r.created_at).slice(0, 16)) + '</td><td class="row-actions">';
+            html += '<button type="button" class="btn-tiny" data-act="accepted" data-id="' + r.id + '">OK</button> ';
+            html += '<button type="button" class="btn-tiny" data-act="pending" data-id="' + r.id + '">WAIT</button> ';
+            html += '<button type="button" class="btn-tiny danger" data-act="declined" data-id="' + r.id + '">NO</button>';
+            html += '</td></tr>';
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+        box.querySelectorAll('button[data-act]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                patchReg(Number(btn.getAttribute('data-id')), btn.getAttribute('data-act'));
+            });
+        });
+    }
+
+    function patchReg(id, status) {
+        banner('Actualizando…', false);
+        fetch(API + '/api/admin/registrations/' + id, {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ status: status })
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    sessionStorage.removeItem('mcv_admin_jwt');
+                    window.location.href = 'login.html';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) {
+                    if (!r.ok) throw new Error(d.error || 'Error');
+                    return d;
+                });
+            })
+            .then(function () {
+                banner('Actualizado.', false);
+                loadAll();
+            })
+            .catch(function (e) {
+                if (e && e.message) banner(e.message, true);
+            });
+    }
+
+    function loadAll() {
+        banner('', false);
+        return fetch(API + '/api/admin/registrations?slug=' + encodeURIComponent(SLUG), { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(function (r) {
+                if (r.status === 401) {
+                    sessionStorage.removeItem('mcv_admin_jwt');
+                    window.location.href = 'login.html';
+                    return Promise.reject();
+                }
+                return r.json();
+            })
+            .then(function (data) {
+                state.list = data.registrations || [];
+                setCounts();
+                renderTeams();
+                return fetch(API + '/api/tournaments/' + encodeURIComponent(SLUG));
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var t = data.tournament;
+                if (t && t.winner_registration_id) {
+                    document.getElementById('winner-id').value = String(t.winner_registration_id);
+                }
+            })
+            .catch(function () {
+                document.getElementById('data-area').innerHTML = '<p class="empty-hint">Error cargando datos (¿DATABASE_URL en el servidor?).</p>';
+            });
+    }
+
+    function loadBracketView() {
+        var box = document.getElementById('bracket-area');
+        box.innerHTML = '<p class="empty-hint">Cargando bracket…</p>';
+        fetch(API + '/api/tournaments/' + encodeURIComponent(SLUG) + '/bracket')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var matches = data.matches || [];
+                if (!matches.length) {
+                    box.innerHTML = '<p class="empty-hint">Aún no hay bracket. Aprobá equipos y pulsá GENERAR BRACKET.</p>';
+                    return;
+                }
+                var byRound = {};
+                matches.forEach(function (m) {
+                    if (!byRound[m.round_no]) byRound[m.round_no] = [];
+                    byRound[m.round_no].push(m);
+                });
+                var html = '';
+                Object.keys(byRound).sort(function (a, b) { return Number(a) - Number(b); }).forEach(function (rn) {
+                    html += '<h3 class="bracket-round-title">Ronda ' + esc(rn) + '</h3>';
+                    html += '<table class="admin-table"><thead><tr><th>#</th><th>A</th><th>B</th><th>Ganador</th><th>Acción</th></tr></thead><tbody>';
+                    byRound[rn].forEach(function (m) {
+                        html += '<tr><td>' + esc(m.slot_no) + '</td><td>' + esc(m.side_a_name || '—') + '</td><td>' + esc(m.side_b_name || 'BYE') + '</td><td>' + esc(m.winner_name || '—') + '</td><td>';
+                        if (m.registration_a_id && m.registration_b_id && !m.winner_registration_id) {
+                            html += '<button type="button" class="btn-tiny" data-win="' + m.id + '" data-side="' + m.registration_a_id + '">A</button> ';
+                            html += '<button type="button" class="btn-tiny" data-win="' + m.id + '" data-side="' + m.registration_b_id + '">B</button>';
+                        } else {
+                            html += '—';
+                        }
+                        html += '</td></tr>';
+                    });
+                    html += '</tbody></table>';
+                });
+                if (data.winnerRegistrationId) {
+                    html += '<p class="champ-line">Campeón (registro): <strong>' + esc(data.winnerRegistrationId) + '</strong></p>';
+                }
+                box.innerHTML = html;
+                box.querySelectorAll('button[data-win]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var mid = Number(btn.getAttribute('data-win'));
+                        var wid = Number(btn.getAttribute('data-side'));
+                        fetch(API + '/api/admin/matches/' + mid + '/winner', {
+                            method: 'PATCH',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ winnerRegistrationId: wid })
+                        })
+                            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                            .then(function (x) {
+                                if (!x.ok) throw new Error(x.d.error || 'Error');
+                                loadBracketView();
+                            })
+                            .catch(function (e) { banner(e.message, true); });
+                    });
+                });
+            })
+            .catch(function () {
+                box.innerHTML = '<p class="empty-hint">Error leyendo bracket.</p>';
+            });
+    }
+
+    document.querySelectorAll('.tab').forEach(function (t) {
+        t.addEventListener('click', function () {
+            document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+            t.classList.add('active');
+            state.tab = t.getAttribute('data-tab');
+            document.getElementById('teams-panel').style.display = state.tab === 'teams' ? 'block' : 'none';
+            document.getElementById('bracket-panel').style.display = state.tab === 'bracket' ? 'block' : 'none';
+            if (state.tab === 'bracket') loadBracketView();
+        });
+    });
+
+    document.querySelectorAll('.filter').forEach(function (f) {
+        f.addEventListener('click', function () {
+            document.querySelectorAll('.filter').forEach(function (x) { x.classList.remove('active'); });
+            f.classList.add('active');
+            state.filter = f.getAttribute('data-filter');
+            renderTeams();
+        });
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+        loadAll();
+        if (state.tab === 'bracket') loadBracketView();
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function () {
+        sessionStorage.removeItem('mcv_admin_jwt');
+        window.location.href = 'login.html';
+    });
+
+    document.getElementById('gen-bracket').addEventListener('click', function () {
+        banner('Generando bracket…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/bracket/generate', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: '{}'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error(x.d.error || 'Error');
+                banner('Bracket ronda 1 creado.', false);
+                loadBracketView();
+            })
+            .catch(function (e) { banner(e.message, true); });
+    });
+
+    document.getElementById('next-round').addEventListener('click', function () {
+        banner('Avanzando ronda…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/bracket/next-round', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: '{}'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error(x.d.error || 'Error');
+                if (x.d.finished) {
+                    banner('Torneo finalizado. Campeón registro: ' + (x.d.championRegistrationId || '—'), false);
+                } else {
+                    banner('Ronda ' + x.d.round + ' creada.', false);
+                }
+                loadBracketView();
+                loadAll();
+            })
+            .catch(function (e) { banner(e.message, true); });
+    });
+
+    document.getElementById('save-winner').addEventListener('click', function () {
+        var v = document.getElementById('winner-id').value.trim();
+        banner('Guardando ganador…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/winner', {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ winnerRegistrationId: v ? Number(v) : null })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error(x.d.error || 'Error');
+                banner('Ganador guardado.', false);
+            })
+            .catch(function (e) { banner(e.message, true); });
+    });
+
+    document.getElementById('clear-winner').addEventListener('click', function () {
+        document.getElementById('winner-id').value = '';
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(SLUG) + '/winner', {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ winnerRegistrationId: null })
+        })
+            .then(function () { banner('Ganador limpiado.', false); })
+            .catch(function (e) { banner(e.message, true); });
+    });
+
+    document.getElementById('export-csv').addEventListener('click', function () {
+        var rows = [['id', 'team_name', 'team_tag', 'captain', 'status', 'created_at', 'roster_json']];
+        state.list.forEach(function (r) {
+            rows.push([r.id, r.team_name, r.team_tag || '', r.captain_name, r.status, r.created_at, JSON.stringify(r.roster || [])]);
+        });
+        var csv = rows.map(function (line) {
+            return line.map(function (cell) {
+                var s = String(cell == null ? '' : cell);
+                if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+                return s;
+            }).join(',');
+        }).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mcv-registrations-' + SLUG + '.csv';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
+
+    loadAll();
+})();
+</script>
+</body>
+</html>
