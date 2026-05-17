@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const axios = require("axios");
+const cors = require("cors");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
 const { registerTournamentApi } = require("./tournamentApi");
@@ -33,7 +34,14 @@ function parseCorsExtraOrigins() {
         .filter(Boolean);
 }
 
-function corsOriginAllowed(origin) {
+function normalizeOriginHeader(originRaw) {
+    if (originRaw == null || originRaw === "") return "";
+    if (Array.isArray(originRaw)) return String(originRaw[0] || "").trim();
+    return String(originRaw).trim();
+}
+
+function corsOriginAllowed(originRaw) {
+    const origin = normalizeOriginHeader(originRaw);
     if (!origin) return { ok: true, value: true };
     const extras = parseCorsExtraOrigins();
     const allow = new Set([...DEFAULT_CORS_ORIGINS, ...extras]);
@@ -50,42 +58,24 @@ function corsOriginAllowed(origin) {
 }
 
 /**
- * CORS explícito (Express 5 + preflight): refleja Access-Control-Request-Headers
- * para que extensiones del navegador no rompan el preflight.
+ * CORS con el paquete `cors`: sin `allowedHeaders` fijos para que el preflight
+ * refleje Access-Control-Request-Headers (extensiones del navegador, etc.).
  */
-function mcvCors(req, res, next) {
-    const origin = req.headers.origin;
-    if (origin) {
-        const r = corsOriginAllowed(origin);
+const corsMiddleware = cors({
+    origin(origin, callback) {
+        const o = normalizeOriginHeader(origin);
+        if (!o) return callback(null, true);
+        const r = corsOriginAllowed(o);
         if (r.ok && r.value !== false) {
-            const allow = r.value === true ? origin : r.value;
-            res.setHeader("Access-Control-Allow-Origin", allow);
-            res.setHeader("Access-Control-Allow-Credentials", "true");
+            return callback(null, r.value === true ? o : r.value);
         }
-    }
-
-    if (req.method === "OPTIONS") {
-        if (origin) {
-            const r = corsOriginAllowed(origin);
-            if (!r.ok || r.value === false) {
-                return res.sendStatus(403);
-            }
-            const allow = r.value === true ? origin : r.value;
-            res.setHeader("Access-Control-Allow-Origin", allow);
-            res.setHeader("Access-Control-Allow-Credentials", "true");
-        }
-        res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,POST,PATCH,PUT,DELETE,OPTIONS");
-        const reqHdr = req.headers["access-control-request-headers"];
-        res.setHeader(
-            "Access-Control-Allow-Headers",
-            reqHdr || "Content-Type, Authorization, Accept, Accept-Language"
-        );
-        res.setHeader("Access-Control-Max-Age", "86400");
-        return res.sendStatus(204);
-    }
-
-    next();
-}
+        callback(null, false);
+    },
+    methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    maxAge: 86400,
+    optionsSuccessStatus: 204,
+    preflightContinue: false
+});
 
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
@@ -106,7 +96,7 @@ function battlemetricsHeaders() {
     return h;
 }
 
-app.use(mcvCors);
+app.use(corsMiddleware);
 app.use(express.json());
 
 registerTournamentApi(app, {
