@@ -47,13 +47,18 @@
 </section>
 
 <section id="events-featured" class="events-featured" hidden>
-    <div class="events-featured-inner">
-        <div class="events-featured-copy">
-            <span class="events-featured-label" id="events-featured-label">Destacado</span>
-            <h3 id="events-featured-title"></h3>
-            <p id="events-featured-meta" class="events-featured-meta"></p>
+    <div class="events-featured-card">
+        <div id="events-featured-poster-wrap" class="events-featured-poster" hidden>
+            <img id="events-featured-poster" src="" alt="">
         </div>
-        <a id="events-featured-link" href="tournament.html" class="btn-primary pulse-rust" data-i18n="events.featuredOpen">Abrir</a>
+        <div class="events-featured-inner">
+            <div class="events-featured-copy">
+                <span class="events-featured-label" id="events-featured-label">Destacado</span>
+                <h3 id="events-featured-title"></h3>
+                <p id="events-featured-meta" class="events-featured-meta"></p>
+            </div>
+            <a id="events-featured-link" href="tournament.html" class="btn-primary pulse-rust" data-i18n="events.featuredOpen">Abrir</a>
+        </div>
     </div>
 </section>
 
@@ -125,46 +130,72 @@
         el.innerHTML = '<p class="events-empty">' + esc(msg) + '</p>';
     }
 
-    fetch(API + '/api/tournaments/stats')
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-            document.getElementById('stat-hosted').textContent = d.eventsHosted != null ? d.eventsHosted : '—';
-            document.getElementById('stat-teams').textContent = d.teamsRegistered != null ? d.teamsRegistered : '—';
-        })
-        .catch(function () {});
+    Promise.all([
+        fetch(API + '/api/tournaments/stats')
+            .then(function (r) {
+                return r.json();
+            })
+            .catch(function () {
+                return {};
+            }),
+        fetch(API + '/api/tournaments/for-site')
+            .then(function (r) {
+                return r.json();
+            })
+            .catch(function () {
+                return {};
+            })
+    ]).then(function (pair) {
+        var st0 = pair[0] || {};
+        var d = pair[1] || {};
+        document.getElementById('stat-hosted').textContent = st0.eventsHosted != null ? st0.eventsHosted : '—';
+        document.getElementById('stat-teams').textContent = st0.teamsRegistered != null ? st0.teamsRegistered : '—';
 
-    fetch(API + '/api/tournaments/for-site')
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-            var st = d.mode === 'live' ? T('events.statModeLive') : d.mode === 'recap' ? T('events.statModeRecap') : T('events.statModeIdle');
-            document.getElementById('stat-live').textContent = st;
-            if (d.tournament && d.tournament.slug) {
-                heroSlugFromFeatured = true;
-                if (heroFeatured) {
-                    heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
-                }
+        var st = d.mode === 'live' ? T('events.statModeLive') : d.mode === 'recap' ? T('events.statModeRecap') : T('events.statModeIdle');
+        document.getElementById('stat-live').textContent = st;
+        if (d.tournament && d.tournament.slug) {
+            heroSlugFromFeatured = true;
+            if (heroFeatured) {
+                heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
             }
-            if (d.tournament) {
-                var fe = document.getElementById('events-featured');
-                fe.hidden = false;
-                document.getElementById('events-featured-label').textContent =
-                    d.mode === 'live' ? T('events.featuredLabelLive') : T('events.featuredLabelDefault');
-                document.getElementById('events-featured-title').textContent = d.tournament.title || '';
-                var meta = [];
-                if (d.tournament.format_label) meta.push(d.tournament.format_label);
-                if (d.tournament.match_day_display) meta.push(d.tournament.match_day_display);
-                if (d.tournament.prize_pool_text) meta.push(d.tournament.prize_pool_text);
-                if (d.mode === 'recap' && (d.tournament.winner_display_name || d.tournament.winner_team_name)) {
-                    meta.push(T('events.championPrefix') + (d.tournament.winner_display_name || d.tournament.winner_team_name));
-                }
-                document.getElementById('events-featured-meta').textContent = meta.join(' · ');
-                document.getElementById('events-featured-link').href =
-                    'tournament.html?slug=' + encodeURIComponent(d.tournament.slug || '');
+        }
+        if (d.tournament) {
+            var fe = document.getElementById('events-featured');
+            fe.hidden = false;
+            document.getElementById('events-featured-label').textContent =
+                d.mode === 'live' ? T('events.featuredLabelLive') : T('events.featuredLabelDefault');
+            document.getElementById('events-featured-title').textContent = d.tournament.title || '';
+            var meta = [];
+            if (d.tournament.format_label) meta.push(d.tournament.format_label);
+            if (d.tournament.match_day_display) meta.push(d.tournament.match_day_display);
+            if (d.tournament.prize_pool_text) meta.push(d.tournament.prize_pool_text);
+            if (d.mode === 'recap' && (d.tournament.winner_display_name || d.tournament.winner_team_name)) {
+                meta.push(T('events.championPrefix') + (d.tournament.winner_display_name || d.tournament.winner_team_name));
             }
-        })
-        .catch(function () {
-            document.getElementById('stat-live').textContent = '—';
-        });
+            document.getElementById('events-featured-meta').textContent = meta.join(' · ');
+            document.getElementById('events-featured-link').href =
+                'tournament.html?slug=' + encodeURIComponent(d.tournament.slug || '');
+            var pw = document.getElementById('events-featured-poster-wrap');
+            var pi = document.getElementById('events-featured-poster');
+            if (d.tournament.poster_url && pw && pi) {
+                pi.src = d.tournament.poster_url;
+                pw.hidden = false;
+            } else if (pw) {
+                pw.hidden = true;
+                if (pi) pi.removeAttribute('src');
+            }
+            var stTeams = document.getElementById('stat-teams');
+            if (
+                stTeams &&
+                d.mode === 'recap' &&
+                d.tournament.display_slots_num != null &&
+                d.tournament.display_slots_max != null
+            ) {
+                stTeams.textContent =
+                    String(d.tournament.display_slots_num) + '/' + String(d.tournament.display_slots_max);
+            }
+        }
+    });
 
     fetch(API + '/api/tournaments')
         .then(function (r) { return r.json(); })

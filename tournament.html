@@ -262,7 +262,11 @@
 
         var slots = document.getElementById('tournament-slots');
         if (slots) {
-            slots.textContent = (t.active_count != null ? t.active_count : 0) + '/' + (t.max_teams || 30);
+            if (t.display_slots_num != null && t.display_slots_max != null) {
+                slots.textContent = String(t.display_slots_num) + '/' + String(t.display_slots_max);
+            } else {
+                slots.textContent = (t.active_count != null ? t.active_count : 0) + '/' + (t.max_teams || 30);
+            }
         }
 
         var st = document.getElementById('t-hero-status');

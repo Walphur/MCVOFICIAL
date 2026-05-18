@@ -512,10 +512,85 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         const id = Number(req.params.id);
         const status = req.body?.status;
         const adminNotes = req.body?.adminNotes;
-        if (!["pending", "accepted", "declined"].includes(status)) {
+        const rosterBody = req.body?.roster;
+        const hasStatus = status !== undefined && status !== null && String(status).length > 0;
+        const hasRoster = rosterBody !== undefined;
+
+        if (!hasStatus && !hasRoster) {
+            return res.status(400).json({ error: "Enviá status y/o roster (array de 5 jugadores)" });
+        }
+        if (hasStatus && !["pending", "accepted", "declined"].includes(status)) {
             return res.status(400).json({ error: "status debe ser pending, accepted o declined" });
         }
+
+        let rosterJson = null;
+        if (hasRoster) {
+            if (!Array.isArray(rosterBody) || rosterBody.length !== 5) {
+                return res.status(400).json({ error: "roster debe ser un array de exactamente 5 jugadores" });
+            }
+            const roster = [];
+            const steamIds = [];
+            const seenSteam = new Set();
+            for (let i = 0; i < rosterBody.length; i++) {
+                const p = rosterBody[i] || {};
+                const name = String(p.name || "").trim();
+                const steam = String(p.steamId64 || "").replace(/\D/g, "");
+                const discord = String(p.discord || "").trim();
+                if (!name || steam.length !== 17 || !discord) {
+                    return res.status(400).json({
+                        error: `Jugador ${i + 1}: nombre, SteamID64 (17 dígitos) y Discord requeridos`
+                    });
+                }
+                if (seenSteam.has(steam)) {
+                    return res.status(400).json({ error: "SteamID64 duplicado en el roster" });
+                }
+                seenSteam.add(steam);
+                steamIds.push(steam);
+                roster.push({ name, steamId64: steam, discord });
+            }
+            rosterJson = JSON.stringify(roster);
+        }
+
         try {
+            if (hasStatus && hasRoster && adminNotes !== undefined) {
+                const r = await pool.query(
+                    `UPDATE tournament_registrations
+         SET status = $1, roster = $2::jsonb, admin_notes = $3, updated_at = NOW()
+         WHERE id = $4
+         RETURNING *`,
+                    [status, rosterJson, String(adminNotes), id]
+                );
+                if (r.rows.length === 0) {
+                    return res.status(404).json({ error: "Registro no encontrado" });
+                }
+                return res.json({ registration: r.rows[0] });
+            }
+            if (hasStatus && hasRoster) {
+                const r = await pool.query(
+                    `UPDATE tournament_registrations
+         SET status = $1, roster = $2::jsonb, updated_at = NOW()
+         WHERE id = $3
+         RETURNING *`,
+                    [status, rosterJson, id]
+                );
+                if (r.rows.length === 0) {
+                    return res.status(404).json({ error: "Registro no encontrado" });
+                }
+                return res.json({ registration: r.rows[0] });
+            }
+            if (hasRoster) {
+                const r = await pool.query(
+                    `UPDATE tournament_registrations
+         SET roster = $1::jsonb, updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+                    [rosterJson, id]
+                );
+                if (r.rows.length === 0) {
+                    return res.status(404).json({ error: "Registro no encontrado" });
+                }
+                return res.json({ registration: r.rows[0] });
+            }
             const r =
                 adminNotes === undefined
                     ? await pool.query(
@@ -688,7 +763,9 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         "marquee_text",
         "twitch_channel",
         "poster_url",
-        "winner_override_name"
+        "winner_override_name",
+        "display_slots_num",
+        "display_slots_max"
     ]);
 
     app.patch("/api/admin/tournaments/:slug", authAdmin, async (req, res) => {
@@ -710,6 +787,19 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                 if (n > 0) {
                     sets.push(`max_teams = $${i++}`);
                     vals.push(n);
+                }
+                continue;
+            }
+            if (key === "display_slots_num" || key === "display_slots_max") {
+                const raw = b[key];
+                if (raw === null || raw === undefined || String(raw).trim() === "") {
+                    sets.push(`${key} = NULL`);
+                } else {
+                    const n = Number(raw);
+                    if (Number.isFinite(n) && n >= 0) {
+                        sets.push(`${key} = $${i++}`);
+                        vals.push(Math.floor(n));
+                    }
                 }
                 continue;
             }
@@ -737,6 +827,52 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             return res.status(500).json({ error: "patch tournament" });
         }
     });
+
+    app.post(
+        "/api/admin/tournaments/:slug/poster",
+        authAdmin,
+        (req, res, next) => {
+            const pool0 = getPool();
+            if (!pool0) {
+                return res.status(503).json({ error: "Base de datos no disponible" });
+            }
+            if (!posterUpload) {
+                res.status(503).json({ error: "Subida de archivos no disponible en el servidor" });
+                return;
+            }
+            posterUpload.single("poster")(req, res, (err) => {
+                if (err) {
+                    res.status(400).json({ error: err.message || "upload" });
+                    return;
+                }
+                next();
+            });
+        },
+        async (req, res) => {
+            const pool = getPool();
+            if (!pool) {
+                return res.status(503).json({ error: "Base de datos no disponible" });
+            }
+            if (!req.file) {
+                return res.status(400).json({ error: "Falta archivo de imagen (campo poster)" });
+            }
+            const url = `/uploads/tournaments/${req.file.filename}`;
+            const { slug } = req.params;
+            try {
+                const r = await pool.query(`UPDATE tournaments SET poster_url = $1 WHERE slug = $2 RETURNING *`, [
+                    url,
+                    slug
+                ]);
+                if (!r.rows.length) {
+                    return res.status(404).json({ error: "Torneo no encontrado" });
+                }
+                return res.json({ tournament: r.rows[0], poster_url: url });
+            } catch (e) {
+                console.error(e);
+                return res.status(500).json({ error: "poster" });
+            }
+        }
+    );
 
     app.post(
         "/api/admin/tournaments/:slug/finish",

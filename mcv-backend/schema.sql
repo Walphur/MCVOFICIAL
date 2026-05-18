@@ -150,3 +150,14 @@ SET
     status = 'finished',
     ended_at = COALESCE(ended_at, TIMESTAMPTZ '2026-05-16 20:00:00+02')
 WHERE slug = 'last-squad-standing';
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS display_slots_num INT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS display_slots_max INT;
+
+-- split
+UPDATE tournaments
+SET display_slots_num = 32, display_slots_max = 32
+WHERE slug = 'last-squad-standing';

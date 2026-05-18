@@ -99,6 +99,26 @@
                     <p class="admin-form-hint" style="margin-top:12px;" data-i18n="admin.formFinishHint2">Cambiar estado sin finalizar: usá PATCH desde consola o añadimos toggles después.</p>
                 </div>
             </div>
+            <div class="data-area admin-public-edit">
+                <h3 class="admin-form-title">Edición web (torneo del selector superior)</h3>
+                <p class="admin-form-hint">Para torneos <strong>finalizados</strong>: subí póster, ajustá slots mostrados (ej. 32/32) y editá el JSON del roster del registro ganador.</p>
+                <div class="admin-manual-row">
+                    <label>Slots mostrados (núm.)<input type="number" id="edit-slots-num" min="0" placeholder="ej. 32"></label>
+                    <label>Slots mostrados (máx.)<input type="number" id="edit-slots-max" min="1" placeholder="ej. 32"></label>
+                    <label>Nombre campeón (override)<input id="edit-winner-override" placeholder="Opcional"></label>
+                </div>
+                <button type="button" class="btn-primary-small" id="btn-save-tournament-display">Guardar texto / slots</button>
+                <hr class="admin-sep">
+                <form id="form-poster-only" class="admin-stack-form">
+                    <label>Imagen póster (solo sube archivo; no cierra el torneo)<input name="poster" type="file" accept="image/*"></label>
+                    <button type="submit" class="btn-primary-small">Subir póster</button>
+                </form>
+                <hr class="admin-sep">
+                <p class="admin-form-hint">Roster del equipo ganador — registro ID <code id="edit-winner-reg-display">—</code></p>
+                <textarea id="edit-winner-roster-json" rows="10" class="admin-json-textarea" spellcheck="false"></textarea>
+                <p class="admin-form-hint">Array JSON de 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code></p>
+                <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
+            </div>
         </div>
 
         <div id="teams-panel">
@@ -306,6 +326,30 @@
                 } else if (winInput) {
                     winInput.value = '';
                 }
+                var sn = document.getElementById('edit-slots-num');
+                var sm = document.getElementById('edit-slots-max');
+                var wo = document.getElementById('edit-winner-override');
+                if (sn) sn.value = t && t.display_slots_num != null ? String(t.display_slots_num) : '';
+                if (sm) sm.value = t && t.display_slots_max != null ? String(t.display_slots_max) : '';
+                if (wo) wo.value = t && t.winner_override_name ? String(t.winner_override_name) : '';
+                var widEl = document.getElementById('edit-winner-reg-display');
+                var ta = document.getElementById('edit-winner-roster-json');
+                if (widEl) widEl.textContent = t && t.winner_registration_id ? String(t.winner_registration_id) : '—';
+                if (ta) {
+                    if (t && t.winner_roster) {
+                        var wr = t.winner_roster;
+                        if (typeof wr === 'string') {
+                            try {
+                                wr = JSON.parse(wr);
+                            } catch (e1) {
+                                wr = null;
+                            }
+                        }
+                        ta.value = wr && typeof wr === 'object' ? JSON.stringify(wr, null, 2) : '';
+                    } else {
+                        ta.value = '';
+                    }
+                }
             })
             .catch(function (e) {
                 var msg = (e && e.message) ? e.message : 'Error cargando datos.';
@@ -502,6 +546,111 @@
             })
             .then(function () { loadAll(); })
             .catch(function (err) { banner(err.message || 'Error', true); });
+    });
+
+    document.getElementById('btn-save-tournament-display').addEventListener('click', function () {
+        var sn = document.getElementById('edit-slots-num').value.trim();
+        var sm = document.getElementById('edit-slots-max').value.trim();
+        var wo = document.getElementById('edit-winner-override').value.trim();
+        var body = {};
+        if (sn !== '') body.display_slots_num = Number(sn);
+        else body.display_slots_num = null;
+        if (sm !== '') body.display_slots_max = Number(sm);
+        else body.display_slots_max = null;
+        body.winner_override_name = wo || null;
+        banner('Guardando…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug), {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Guardado.', false);
+                loadAll();
+            })
+            .catch(function (e) {
+                banner(e.message || 'Error', true);
+            });
+    });
+
+    document.getElementById('form-poster-only').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var wf = e.target;
+        var fd = new FormData();
+        if (!wf.poster.files || !wf.poster.files[0]) {
+            banner('Elegí un archivo de imagen.', true);
+            return;
+        }
+        fd.append('poster', wf.poster.files[0]);
+        banner('Subiendo póster…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/poster', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: fd
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Póster actualizado.', false);
+                wf.reset();
+            })
+            .catch(function (err) {
+                banner(err.message || 'Error', true);
+            });
+    });
+
+    document.getElementById('btn-save-winner-roster').addEventListener('click', function () {
+        var ta = document.getElementById('edit-winner-roster-json');
+        var wid = document.getElementById('edit-winner-reg-display').textContent.trim();
+        if (!wid || wid === '—') {
+            banner('No hay registro ganador (winner_registration_id).', true);
+            return;
+        }
+        var arr;
+        try {
+            arr = JSON.parse(ta.value || '[]');
+        } catch (e2) {
+            banner('JSON inválido.', true);
+            return;
+        }
+        banner('Guardando roster…', false);
+        fetch(API + '/api/admin/registrations/' + encodeURIComponent(wid), {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ roster: arr })
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Roster actualizado.', false);
+                loadAll();
+            })
+            .catch(function (e) {
+                banner(e.message || 'Error', true);
+            });
     });
 
     function activateTournamentsTab() {
