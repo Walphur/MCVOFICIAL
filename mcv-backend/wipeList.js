@@ -135,15 +135,29 @@ async function registerSlashCommands(client, guildId) {
 
     const rest = new REST({ version: "10" }).setToken(token);
     await rest.put(Routes.applicationGuildCommands(appId, guildId), { body: [cmd] });
-    console.log("Discord: comando /mcv-wipe registrado en el servidor.");
+    console.log(`Discord: /mcv-wipe registrado en guild ${guildId}.`);
+}
+
+/** Si DISCORD_WIPE_GUILD_ID está definido, el slash solo (o también) va a ese servidor — ej. clan privado. Si no, usa el guild principal. */
+function collectWipeSlashGuildIds(mainGuildId) {
+    const raw = String(process.env.DISCORD_WIPE_GUILD_ID || "").trim();
+    if (raw) {
+        const parts = raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+        return [...new Set(parts)];
+    }
+    const main = String(mainGuildId || "").trim();
+    return main ? [main] : [];
 }
 
 function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
+    const guildIds = collectWipeSlashGuildIds(guildId);
     const onReady = async () => {
-        try {
-            await registerSlashCommands(client, guildId);
-        } catch (e) {
-            console.warn("Discord: no se pudo registrar /mcv-wipe:", e.message);
+        for (const gid of guildIds) {
+            try {
+                await registerSlashCommands(client, gid);
+            } catch (e) {
+                console.warn(`Discord: no se pudo registrar /mcv-wipe en guild ${gid}:`, e.message);
+            }
         }
     };
     if (client.isReady()) {
