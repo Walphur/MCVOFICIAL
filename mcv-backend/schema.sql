@@ -113,3 +113,40 @@ SET
     twitch_channel = COALESCE(twitch_channel, 'mcvteam')
 WHERE slug = 'last-squad-standing'
   AND status = 'open';
+
+-- split
+-- Campeón FUNKOS TEAM + roster (Steam64 de ejemplo; reemplazá en admin si querés IDs reales).
+DELETE FROM tournament_registrations
+WHERE tournament_id = (SELECT id FROM tournaments WHERE slug = 'last-squad-standing')
+  AND team_name = 'FUNKOS TEAM';
+
+INSERT INTO tournament_registrations (tournament_id, team_name, team_tag, captain_name, roster, status)
+SELECT t.id,
+    'FUNKOS TEAM',
+    'FUNKOS',
+    '! Luk4s1t0.',
+    '[
+      {"name":"! Luk4s1t0.","steamId64":"76561198204000001","discord":"luk4s#0"},
+      {"name":"AdRiiDR","steamId64":"76561198204000002","discord":"adriidr#0"},
+      {"name":"Benny","steamId64":"76561198204000003","discord":"benny#0"},
+      {"name":"EdinZ","steamId64":"76561198204000004","discord":"edinz#0"},
+      {"name":"hyunnah","steamId64":"76561198204000005","discord":"hyunnah#0"}
+    ]'::jsonb,
+    'accepted'
+FROM tournaments t
+WHERE t.slug = 'last-squad-standing';
+
+UPDATE tournaments
+SET
+    winner_registration_id = (
+        SELECT id
+        FROM tournament_registrations
+        WHERE tournament_id = (SELECT id FROM tournaments WHERE slug = 'last-squad-standing')
+          AND team_name = 'FUNKOS TEAM'
+        ORDER BY id DESC
+        LIMIT 1
+    ),
+    winner_override_name = NULL,
+    status = 'finished',
+    ended_at = COALESCE(ended_at, TIMESTAMPTZ '2026-05-16 20:00:00+02')
+WHERE slug = 'last-squad-standing';

@@ -9,9 +9,9 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css">
-    <script src="mcv-purge-legacy-api.js?v=2"></script>
-    <script src="mcv-api-base.js?v=2"></script>
+    <link rel="stylesheet" href="style.css?v=3">
+    <script src="mcv-purge-legacy-api.js?v=3"></script>
+    <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
 <body class="grain tournament-page" data-mcv-page="tournament">
@@ -59,6 +59,7 @@
             <span class="section-label"><span class="yellow-line"></span> // Resultado</span>
             <h2 id="t-winner-heading" data-i18n="tournament.winnerLabel">Campeón</h2>
             <p id="t-winner-sub" class="winner-sub"></p>
+            <ul id="t-winner-roster" class="winner-roster" style="display:none;" aria-label="Roster campeón"></ul>
         </div>
         <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
             <img id="t-winner-poster" src="" alt="Póster del torneo">
@@ -203,7 +204,7 @@
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=2"></script>
+<script src="mcv-i18n.js?v=3"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -286,11 +287,34 @@
         }
 
         var winSec = document.getElementById('winner-showcase');
-        var showWin = t.status === 'finished' && (t.winner_display_name || t.poster_url);
+        var rosterEl = document.getElementById('t-winner-roster');
+        var roster = t.winner_roster;
+        if (typeof roster === 'string') {
+            try {
+                roster = JSON.parse(roster);
+            } catch (e) {
+                roster = null;
+            }
+        }
+        var hasRoster = Array.isArray(roster) && roster.length > 0;
+        var showWin = t.status === 'finished' && (t.winner_display_name || t.poster_url || hasRoster);
         if (showWin) {
             winSec.style.display = 'block';
             setText('t-winner-heading', t.winner_display_name || T('tournament.winnerDefault'));
             setText('t-winner-sub', t.ended_at ? T('tournament.winnerClosedPrefix') + fmtDate(t.ended_at) : '');
+            if (hasRoster && rosterEl) {
+                rosterEl.style.display = 'flex';
+                rosterEl.innerHTML = roster
+                    .map(function (p) {
+                        var n = esc(p.name || '');
+                        var d = esc(p.discord || '');
+                        return '<li><span class="winner-roster-name">' + n + '</span><span class="winner-roster-disc">' + d + '</span></li>';
+                    })
+                    .join('');
+            } else if (rosterEl) {
+                rosterEl.style.display = 'none';
+                rosterEl.innerHTML = '';
+            }
             if (t.poster_url) {
                 document.getElementById('t-winner-poster-wrap').style.display = 'block';
                 document.getElementById('t-winner-poster').src = t.poster_url;
@@ -299,6 +323,10 @@
             }
         } else {
             winSec.style.display = 'none';
+            if (rosterEl) {
+                rosterEl.style.display = 'none';
+                rosterEl.innerHTML = '';
+            }
         }
 
         lucide.createIcons();

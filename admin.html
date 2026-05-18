@@ -90,7 +90,7 @@
                     <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
                     <p class="admin-form-hint" data-i18n="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 5MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
                     <form id="form-finish-tournament" class="admin-stack-form">
-                        <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional"></label>
+                        <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
                         <label>Imagen póster<input name="poster" type="file" accept="image/*"></label>
                         <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
@@ -121,6 +121,7 @@
                         <label class="admin-checkbox-row admin-checkbox-inline"><input type="checkbox" name="skipBans" value="1"> Omitir chequeo VAC/Game ban (Steam API)</label>
                     </div>
                     <p class="admin-form-hint admin-readable" data-i18n="admin.playersHint">Jugadores (los 5 obligatorios)</p>
+                    <div class="admin-players-scroll">
                     <div class="admin-players-grid">
                         <span class="admin-players-head">#</span>
                         <span class="admin-players-head">Nombre</span>
@@ -131,6 +132,7 @@
                         <span>3</span><input name="p3_name" required><input name="p3_steam" required><input name="p3_discord" required>
                         <span>4</span><input name="p4_name" required><input name="p4_steam" required><input name="p4_discord" required>
                         <span>5</span><input name="p5_name" required><input name="p5_steam" required><input name="p5_discord" required>
+                    </div>
                     </div>
                     <button type="submit" class="btn-primary-small">Guardar equipo</button>
                 </form>

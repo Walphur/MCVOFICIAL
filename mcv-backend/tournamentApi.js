@@ -28,13 +28,29 @@ function makePosterUpload(uploadRoot) {
         storage,
         limits: { fileSize: 5 * 1024 * 1024 },
         fileFilter(req, file, cb) {
-            if (!file.mimetype.startsWith("image/")) {
-                cb(new Error("Solo imágenes"));
+            if (file.mimetype.startsWith("image/")) {
+                cb(null, true);
                 return;
             }
-            cb(null, true);
+            const name = String(file.originalname || "").toLowerCase();
+            if (file.mimetype === "application/octet-stream" && /\.(png|jpe?g|webp|gif)$/i.test(name)) {
+                cb(null, true);
+                return;
+            }
+            cb(new Error("Solo imágenes (PNG, JPG, WebP, GIF)"));
         }
     });
+}
+
+/** Vacío → null; si viene texto, debe ser ISO parseable por JS/Postgres. */
+function optTimestamp(val) {
+    const s = String(val == null ? "" : val).trim();
+    if (!s) return null;
+    const ms = Date.parse(s);
+    if (Number.isNaN(ms)) {
+        return false;
+    }
+    return s;
 }
 
 function slugifyTitle(title) {
@@ -250,7 +266,8 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
           (SELECT COUNT(*)::int FROM tournament_registrations r
             WHERE r.tournament_id = t.id AND r.status = 'declined') AS declined_count,
           (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
-          COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
+          COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name,
+          (SELECT r.roster FROM tournament_registrations r WHERE r.id = t.winner_registration_id) AS winner_roster
          FROM tournaments t WHERE t.slug = $1`,
                 [slug]
             );
@@ -612,6 +629,13 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             return res.status(400).json({ error: "title requerido" });
         }
         const status = ["draft", "open", "closed", "finished"].includes(b.status) ? b.status : "draft";
+        const startsAt = optTimestamp(b.starts_at);
+        const regCloses = optTimestamp(b.registration_closes_at);
+        if (startsAt === false || regCloses === false) {
+            return res.status(400).json({
+                error: "Fecha inválida en Starts o Cierre inscripciones (ISO 8601, ej. 2026-05-16T18:00:00+02). Dejá ambos vacíos si no los usás."
+            });
+        }
         try {
             const ins = await pool.query(
                 `INSERT INTO tournaments (
@@ -626,11 +650,11 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                     b.description ? String(b.description) : null,
                     b.format_label ? String(b.format_label) : "5v5",
                     Number(b.max_teams) > 0 ? Number(b.max_teams) : 30,
-                    b.starts_at || null,
+                    startsAt,
                     status,
                     b.prize_pool_text ? String(b.prize_pool_text) : null,
                     b.prize_sub_text ? String(b.prize_sub_text) : null,
-                    b.registration_closes_at || null,
+                    regCloses,
                     b.match_day_display ? String(b.match_day_display) : null,
                     b.check_in_display ? String(b.check_in_display) : null,
                     b.format_server_text ? String(b.format_server_text) : null,
@@ -718,6 +742,10 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         "/api/admin/tournaments/:slug/finish",
         authAdmin,
         (req, res, next) => {
+            const pool0 = getPool();
+            if (!pool0) {
+                return res.status(503).json({ error: "Base de datos no disponible" });
+            }
             if (!posterUpload) {
                 res.status(503).json({ error: "Subida de archivos no disponible en el servidor" });
                 return;
@@ -770,7 +798,8 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                     if (!check.rows.length) {
                         await client.query("ROLLBACK");
                         return res.status(400).json({
-                            error: "El ganador debe ser un equipo aceptado de este torneo (o dejá el ID vacío y usá nombre manual)"
+                            error:
+                                "ID de registro ganador inválido o no está aceptado en este torneo. Dejá el campo ID vacío y usá solo «Nombre campeón» (manual), o poné el ID real del equipo en la lista de Equipos."
                         });
                     }
                 }
