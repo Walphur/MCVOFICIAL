@@ -111,11 +111,13 @@
                 </div>
                 <div class="data-area">
                     <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
-                    <p class="admin-form-hint" data-i18n="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 15 MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
+                    <p class="admin-form-hint" data-i18n-html="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés pegar un enlace https a la imagen del póster (recomendado: no se pierde al reiniciar el servidor) o subir archivo (máx. 15 MB). Con la casilla marcada se borran inscripciones y bracket; campeón y póster quedan en la web.</p>
                     <form id="form-finish-tournament" class="admin-stack-form">
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
-                        <label>Imagen póster<input name="poster" type="file" accept="image/*"></label>
+                        <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="url" inputmode="url" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
+                        <p class="admin-form-hint" style="margin:0 0 10px;">Para que la imagen se vea en la web, usá el <strong>enlace directo al archivo</strong> (termina en .jpg, .png, etc.). En Imgur: abrí la imagen → clic derecho → «copiar dirección de imagen»; el link del álbum (/a/…) no sirve como imagen embebida.</p>
+                        <label>O subir archivo de imagen<input name="poster" type="file" accept="image/*"></label>
                         <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
                         <button type="submit" class="btn-primary-small">Finalizar torneo</button>
                     </form>
@@ -124,7 +126,7 @@
             </div>
             <div class="data-area admin-public-edit">
                 <h3 class="admin-form-title">Edición web (torneo del selector superior)</h3>
-                <p class="admin-form-hint">Para torneos <strong>finalizados</strong>: subí póster, ajustá slots mostrados (ej. 32/32) y editá el JSON del roster del registro ganador.</p>
+                <p class="admin-form-hint">Para torneos <strong>finalizados</strong>: póster por <strong>URL</strong> (recomendado) o archivo, slots mostrados y JSON del roster ganador.</p>
                 <div class="admin-manual-row">
                     <label>Slots mostrados (núm.)<input type="number" id="edit-slots-num" min="0" placeholder="ej. 32"></label>
                     <label>Slots mostrados (máx.)<input type="number" id="edit-slots-max" min="1" placeholder="ej. 32"></label>
@@ -133,8 +135,10 @@
                 <button type="button" class="btn-primary-small" id="btn-save-tournament-display">Guardar texto / slots</button>
                 <hr class="admin-sep">
                 <form id="form-poster-only" class="admin-stack-form">
-                    <label>Imagen póster (solo sube archivo; no cierra el torneo)<input name="poster" type="file" accept="image/*"></label>
-                    <button type="submit" class="btn-primary-small">Subir póster</button>
+                    <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="url" inputmode="url" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
+                    <p class="admin-form-hint" style="margin:0 0 10px;">Enlace <strong>directo a la imagen</strong>; el álbum Imgur (/a/…) no se muestra bien en la web.</p>
+                    <label>O subir archivo (opcional)<input name="poster" type="file" accept="image/*"></label>
+                    <button type="submit" class="btn-primary-small">Guardar póster</button>
                 </form>
                 <hr class="admin-sep">
                 <p class="admin-form-hint">Roster del equipo ganador — registro ID <code id="edit-winner-reg-display">—</code></p>
@@ -723,6 +727,11 @@
         var wname = wf.winnerOverrideName.value.trim();
         if (wid) fd.append('winnerRegistrationId', wid);
         fd.append('winnerOverrideName', wname);
+        var posterUrlEl = document.getElementById('finish-poster-url');
+        var posterUrl = posterUrlEl ? String(posterUrlEl.value || '').trim() : '';
+        if (posterUrl) {
+            fd.append('posterUrl', posterUrl);
+        }
         var fileInput = wf.poster;
         if (fileInput.files && fileInput.files[0]) {
             fd.append('poster', fileInput.files[0]);
@@ -784,12 +793,19 @@
         e.preventDefault();
         var wf = e.target;
         var fd = new FormData();
-        if (!wf.poster.files || !wf.poster.files[0]) {
-            banner('Elegí un archivo de imagen.', true);
+        var urlEl = document.getElementById('poster-only-url');
+        var url = urlEl ? String(urlEl.value || '').trim() : '';
+        if (url) {
+            fd.append('posterUrl', url);
+        }
+        if (wf.poster.files && wf.poster.files[0]) {
+            fd.append('poster', wf.poster.files[0]);
+        }
+        if (!url && !(wf.poster.files && wf.poster.files[0])) {
+            banner('Pegá una URL https… o elegí un archivo de imagen.', true);
             return;
         }
-        fd.append('poster', wf.poster.files[0]);
-        banner('Subiendo póster…', false);
+        banner('Guardando póster…', false);
         fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/poster', {
             method: 'POST',
             headers: { Authorization: 'Bearer ' + token },

@@ -20,6 +20,17 @@ const {
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = path.join(__dirname, "..");
+/** Pósteres y subidas: en Render sin disco persistente usar MCV_UPLOAD_ROOT apuntando a un volume montado. */
+const MCV_UPLOAD_ROOT_ENV = String(process.env.MCV_UPLOAD_ROOT || "").trim();
+const UPLOAD_ROOT = MCV_UPLOAD_ROOT_ENV ? path.resolve(MCV_UPLOAD_ROOT_ENV) : path.join(ROOT_DIR, "uploads");
+try {
+    fs.mkdirSync(path.join(UPLOAD_ROOT, "tournaments"), { recursive: true });
+} catch (e) {
+    console.warn("MCV uploads dir:", e.message);
+}
+if (MCV_UPLOAD_ROOT_ENV) {
+    console.log(`Uploads en disco persistente: ${UPLOAD_ROOT}`);
+}
 
 /**
  * CORS: refleja cualquier Origin http(s) válido (equivalente a cors `origin: true`).
@@ -119,7 +130,7 @@ function battlemetricsHeaders() {
 registerTournamentApi(app, {
     getPool,
     steamApiKey: STEAM_API_KEY,
-    uploadRoot: path.join(ROOT_DIR, "uploads")
+    uploadRoot: UPLOAD_ROOT
 });
 
 registerWipeListApi(app, {
@@ -838,6 +849,7 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use("/uploads", express.static(UPLOAD_ROOT));
 app.use(express.static(ROOT_DIR));
 
 async function boot() {

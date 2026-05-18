@@ -42,6 +42,25 @@ function makePosterUpload(uploadRoot) {
     });
 }
 
+/** URL absoluta para póster (Imgur, S3, etc.). Rechaza data:/javascript:. */
+function normalizeExternalPosterUrl(raw) {
+    const s = String(raw == null ? "" : raw).trim();
+    if (!s) {
+        return null;
+    }
+    if (s.length > 2048) {
+        return null;
+    }
+    const lower = s.toLowerCase();
+    if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+        return null;
+    }
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        return null;
+    }
+    return s;
+}
+
 /** Vacío → null; si viene texto, debe ser ISO parseable por JS/Postgres. */
 function optTimestamp(val) {
     const s = String(val == null ? "" : val).trim();
@@ -125,6 +144,24 @@ async function rosterBansCheck(steamIds, steamApiKey) {
 
 function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
     const posterUpload = makePosterUpload(uploadRoot || null);
+
+    function optionalPosterMultipart(req, res, next) {
+        if (posterUpload) {
+            return posterUpload.single("poster")(req, res, (err) => {
+                if (err) {
+                    const code = err.code;
+                    const msg =
+                        code === "LIMIT_FILE_SIZE"
+                            ? "Imagen demasiado grande (máx. 15 MB). Probá comprimir o exportar WebP/JPEG."
+                            : err.message || "upload";
+                    res.status(400).json({ error: msg });
+                    return;
+                }
+                next();
+            });
+        }
+        return multer().none()(req, res, next);
+    }
 
     app.get("/api/auth/status", (req, res) => {
         const rawJwt = String(process.env.JWT_SECRET || "");
@@ -891,42 +928,31 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             if (!pool0) {
                 return res.status(503).json({ error: "Base de datos no disponible" });
             }
-            if (!posterUpload) {
-                res.status(503).json({ error: "Subida de archivos no disponible en el servidor" });
-                return;
-            }
-            posterUpload.single("poster")(req, res, (err) => {
-                if (err) {
-                    const code = err.code;
-                    const msg =
-                        code === "LIMIT_FILE_SIZE"
-                            ? "Imagen demasiado grande (máx. 15 MB). Probá comprimir o exportar WebP/JPEG."
-                            : err.message || "upload";
-                    res.status(400).json({ error: msg });
-                    return;
-                }
-                next();
-            });
+            optionalPosterMultipart(req, res, next);
         },
         async (req, res) => {
             const pool = getPool();
             if (!pool) {
                 return res.status(503).json({ error: "Base de datos no disponible" });
             }
-            if (!req.file) {
-                return res.status(400).json({ error: "Falta archivo de imagen (campo poster)" });
-            }
-            const url = `/uploads/tournaments/${req.file.filename}`;
             const { slug } = req.params;
+            const extUrl = normalizeExternalPosterUrl(req.body?.posterUrl);
+            const uploaded = req.file ? `/uploads/tournaments/${req.file.filename}` : null;
+            const nextUrl = extUrl || uploaded;
+            if (!nextUrl) {
+                return res.status(400).json({
+                    error: "Pegá una URL https://… en posterUrl o subí un archivo de imagen (prioridad: URL si ambos)."
+                });
+            }
             try {
                 const r = await pool.query(`UPDATE tournaments SET poster_url = $1 WHERE slug = $2 RETURNING *`, [
-                    url,
+                    nextUrl,
                     slug
                 ]);
                 if (!r.rows.length) {
                     return res.status(404).json({ error: "Torneo no encontrado" });
                 }
-                return res.json({ tournament: r.rows[0], poster_url: url });
+                return res.json({ tournament: r.rows[0], poster_url: nextUrl });
             } catch (e) {
                 console.error(e);
                 return res.status(500).json({ error: "poster" });
@@ -942,22 +968,7 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             if (!pool0) {
                 return res.status(503).json({ error: "Base de datos no disponible" });
             }
-            if (!posterUpload) {
-                res.status(503).json({ error: "Subida de archivos no disponible en el servidor" });
-                return;
-            }
-            posterUpload.single("poster")(req, res, (err) => {
-                if (err) {
-                    const code = err.code;
-                    const msg =
-                        code === "LIMIT_FILE_SIZE"
-                            ? "Imagen demasiado grande (máx. 15 MB). Probá comprimir o exportar WebP/JPEG."
-                            : err.message || "upload";
-                    res.status(400).json({ error: msg });
-                    return;
-                }
-                next();
-            });
+            optionalPosterMultipart(req, res, next);
         },
         async (req, res) => {
             const pool = getPool();
@@ -974,7 +985,9 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                 }
                 winnerId = n;
             }
-            const newPoster = req.file ? `/uploads/tournaments/${req.file.filename}` : null;
+            const extPoster = normalizeExternalPosterUrl(req.body?.posterUrl);
+            const uploaded = req.file ? `/uploads/tournaments/${req.file.filename}` : null;
+            const newPoster = extPoster || uploaded;
             const client = await pool.connect();
             try {
                 await client.query("BEGIN");

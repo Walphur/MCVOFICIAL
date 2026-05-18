@@ -7,7 +7,10 @@
 # 1) Creá un PostgreSQL en Render y copiá su Internal Database URL.
 # 2) Desplegá este repo como Web Service con root directory: mcv-backend
 # 3) En Environment del Web Service añadí DATABASE_URL (link a la BD) y el resto según .env.example
-# 4) Si usás dominio propio (ej. mcvoficial.com): conectalo a ESTE Web Service en Render (Custom Domain).
+# 4) Pósteres de torneos: por defecto se guardan en disco del contenedor y se pierden al redeploy en Render.
+#    Solución A: en el Web Service → Disks → montá un volumen (plan de pago) y definí MCV_UPLOAD_ROOT al mountPath (ej. /var/mcv-uploads).
+#    Solución B: subí la imagen a hosting externo (Imgur, S3, etc.) y guardá la URL absoluta en poster_url (PATCH admin o SQL).
+# 5) Si usás dominio propio (ej. mcvoficial.com): conectalo a ESTE Web Service en Render (Custom Domain).
 #    Si el dominio apunta solo a hosting estático (GitHub/Cloudflare Pages), POST /api/* dará 405: usá ?api= o meta mcv-api (ver login.html).
 
 services:
@@ -18,3 +21,11 @@ services:
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /api/health
+    # Descomentá si tenés instancia con Disk en Render (suele requerir plan de pago). Luego en Environment: MCV_UPLOAD_ROOT=/var/mcv-uploads
+    # disk:
+    #   name: mcv-uploads
+    #   mountPath: /var/mcv-uploads
+    #   sizeGB: 1
+    # envVars:
+    #   - key: MCV_UPLOAD_ROOT
+    #     value: /var/mcv-uploads

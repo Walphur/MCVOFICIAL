@@ -1798,6 +1798,21 @@ body.tournament-page {
     padding: 2px 8px;
     border-radius: 4px;
 }
+.players-bulk-hint {
+    margin-top: 12px;
+    max-width: 52rem;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.55;
+}
+.players-bulk-hint a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+.players-bulk-hint strong,
+.players-bulk-hint em {
+    color: var(--foreground);
+}
 .players-main {
     max-width: 1200px;
     margin: 0 auto;
