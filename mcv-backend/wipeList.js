@@ -69,6 +69,67 @@ function isAutoImportDiscordId(discordUserId) {
     return id.startsWith(HEX_WIPE_DISCORD_PREFIX) || id.startsWith(PASTE_WIPE_DISCORD_PREFIX);
 }
 
+function parseCreatorSteamSet() {
+    const raw = String(process.env.MCV_WIPE_CREATOR_STEAMS || "").trim();
+    if (!raw) {
+        return new Set();
+    }
+    const out = new Set();
+    for (const part of raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean)) {
+        const d = part.replace(/\D/g, "");
+        if (d.length === 17) {
+            out.add(d);
+        }
+    }
+    return out;
+}
+
+/** Nombres de persona Steam (minúsculas) que marcan creadores MCV si no pasás SteamIDs en MCV_WIPE_CREATOR_STEAMS. */
+function parseCreatorNameSet() {
+    const fromEnv = String(process.env.MCV_WIPE_CREATOR_NAMES || "").trim();
+    if (fromEnv) {
+        return new Set(fromEnv.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
+    }
+    return new Set(["art of war", "ivaan"]);
+}
+
+function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function personaMatchesCreatorName(personaLower, nameLower) {
+    if (!nameLower || !personaLower) {
+        return false;
+    }
+    if (personaLower === nameLower) {
+        return true;
+    }
+    if (nameLower.includes(" ")) {
+        return personaLower.includes(nameLower);
+    }
+    return new RegExp(`\\b${escapeRegExp(nameLower)}\\b`, "i").test(personaLower);
+}
+
+function memberIsMcvCreator(row, creatorSteams, creatorNames) {
+    const steam = String(row.steam_id64 || "").trim();
+    if (creatorSteams.size && creatorSteams.has(steam)) {
+        return true;
+    }
+    if (!creatorNames.size) {
+        return false;
+    }
+    const persona = String(row.persona_name || "").trim().toLowerCase();
+    if (!persona) {
+        return false;
+    }
+    for (const n of creatorNames) {
+        if (personaMatchesCreatorName(persona, n)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function extractSteamIdsFromText(text, max) {
     const lim = typeof max === "number" && max > 0 ? max : 250;
     const s = String(text || "");
@@ -132,7 +193,13 @@ function registerWipeListApi(app, { getPool, steamApiKey }) {
          FROM wipe_list_members
          ORDER BY LOWER(COALESCE(persona_name, '')) ASC, steam_id64 ASC`
             );
-            return res.json({ members: r.rows });
+            const creatorSteams = parseCreatorSteamSet();
+            const creatorNames = parseCreatorNameSet();
+            const members = r.rows.map((row) => ({
+                ...row,
+                mcv_creator: memberIsMcvCreator(row, creatorSteams, creatorNames)
+            }));
+            return res.json({ members });
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "wipe-list" });
@@ -160,7 +227,7 @@ function registerWipeListApi(app, { getPool, steamApiKey }) {
         }
         const text = String(req.body?.text ?? "");
         const mode = req.body?.mode === "replace_auto" ? "replace_auto" : "merge";
-        const label = String(req.body?.label ?? "").trim() || "Importación panel admin";
+        const label = String(req.body?.label ?? "").trim() || null;
         const ids = extractSteamIdsFromText(text, 250);
         if (!ids.length) {
             return res.status(400).json({ error: "Sin SteamID64 de 17 dígitos en el texto" });
@@ -384,7 +451,7 @@ async function applyEnvWipeSteamImport({ getPool, steamApiKey }) {
             await upsertMember(pool, {
                 discordUserId: `${PASTE_WIPE_DISCORD_PREFIX}${sid}`,
                 steamId64: sid,
-                discordLabel: "MCV_WIPE_IMPORT_STEAMS",
+                discordLabel: null,
                 steamApiKey
             });
         }

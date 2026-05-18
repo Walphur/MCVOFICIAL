@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=6">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -43,7 +43,13 @@
         <a href="events.html" class="btn-secondary"><i data-lucide="trophy"></i> <span data-i18n="players.ctaEvents">Torneos</span></a>
     </div>
     <p class="players-hero-hint" data-i18n="players.hintSlash">En Discord usá <code>/mcv-wipe</code> y pegá tu SteamID64 (17 dígitos).</p>
-    <p class="players-hero-hint players-bulk-hint" data-i18n-html="players.bulkStaffHint"></p>
+    <details class="players-hero-details">
+        <summary class="players-hero-details-summary"><span data-i18n="players.detailsSummary">Más opciones: canal Hexaytron, staff y lista fija</span></summary>
+        <div class="players-hero-details-body">
+            <p class="players-hero-hint" data-i18n-html="players.hintAdvanced"></p>
+            <p class="players-hero-hint players-bulk-hint" data-i18n-html="players.bulkStaffHint"></p>
+        </div>
+    </details>
 </section>
 
 <main class="players-main">
@@ -60,7 +66,7 @@
     </div>
 </footer>
 
-<script src="mcv-i18n.js?v=3"></script>
+<script src="mcv-i18n.js?v=5"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -80,23 +86,52 @@
             .replace(/"/g, "&quot;");
     }
 
+    function cardDiscordSubline(m) {
+        var did = String(m.discord_user_id || "");
+        var dn = m.discord_username ? String(m.discord_username).trim() : "";
+        if (dn === "Importación panel admin" || dn === "MCV_WIPE_IMPORT_STEAMS") {
+            dn = "";
+        }
+        var isPaste = did.indexOf("paste:") === 0;
+        var isHex = did.indexOf("wipehx:") === 0;
+        if (isPaste || isHex) {
+            if (dn) {
+                return esc(dn);
+            }
+            return isHex ? T("players.cardViaHex") : T("players.cardWipeList");
+        }
+        return dn ? esc(dn) : T("players.discordUnknown");
+    }
+
     function card(m) {
         var name = esc(m.persona_name || m.steam_id64);
         var av = m.avatar_url ? esc(m.avatar_url) : "";
-        var sub = m.discord_username ? esc(m.discord_username) : T("players.discordUnknown");
+        var sub = cardDiscordSubline(m);
+        var creator = m.mcv_creator === true;
+        var crownTitle = esc(T("players.creatorTitle"));
+        var crown =
+            '<span class="players-card-crown" title="' +
+            crownTitle +
+            '" aria-label="' +
+            crownTitle +
+            '"><i data-lucide="crown"></i></span>';
         var href = "https://steamcommunity.com/profiles/" + encodeURIComponent(m.steam_id64);
         var img = av
             ? '<img class="players-card-avatar" src="' + av + '" alt="" width="72" height="72" loading="lazy">'
             : '<div class="players-card-avatar players-card-avatar-fallback"><i data-lucide="user"></i></div>';
         return (
-            '<article class="players-card">' +
+            '<article class="players-card' +
+            (creator ? " players-card-creator" : "") +
+            '">' +
             '<div class="players-card-media">' +
             img +
             "</div>" +
             '<div class="players-card-body">' +
-            "<h3>" +
+            '<h3 class="players-card-heading">' +
+            (creator ? crown : "") +
+            '<span class="players-card-name">' +
             name +
-            "</h3>" +
+            "</span></h3>" +
             '<p class="players-card-sub">' +
             sub +
             "</p>" +

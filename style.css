@@ -1798,6 +1798,41 @@ body.tournament-page {
     padding: 2px 8px;
     border-radius: 4px;
 }
+.players-hero-details {
+    margin: 10px auto 0;
+    max-width: 38rem;
+    text-align: left;
+}
+.players-hero-details-summary {
+    cursor: pointer;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    list-style: none;
+    padding: 6px 0;
+}
+.players-hero-details-summary::-webkit-details-marker {
+    display: none;
+}
+.players-hero-details-summary::before {
+    content: "▸ ";
+    color: var(--primary);
+    font-size: 0.85em;
+}
+.players-hero-details[open] .players-hero-details-summary::before {
+    content: "▾ ";
+}
+.players-hero-details-body {
+    margin-top: 4px;
+    padding: 0 0 4px 10px;
+    border-left: 2px solid rgba(250, 166, 26, 0.22);
+}
+.players-hero-details-body .players-hero-hint {
+    margin-bottom: 10px;
+}
+.players-hero-details-body .players-hero-hint:last-child {
+    margin-bottom: 0;
+}
 .players-bulk-hint {
     margin-top: 12px;
     max-width: 52rem;
@@ -1865,10 +1900,31 @@ body.tournament-page {
     width: 32px;
     height: 32px;
 }
-.players-card-body h3 {
+.players-card-body h3,
+.players-card-heading {
     margin: 0 0 6px;
     font-size: 1.15rem;
     letter-spacing: 0.02em;
+}
+.players-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.players-card-crown {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary);
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(250, 166, 26, 0.35));
+}
+.players-card-crown svg {
+    width: 1.15em;
+    height: 1.15em;
+}
+.players-card-creator {
+    border-color: rgba(250, 166, 26, 0.35);
 }
 .players-card-sub {
     margin: 0 0 10px;
