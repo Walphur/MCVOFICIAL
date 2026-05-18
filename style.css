@@ -1233,6 +1233,21 @@ body.tournament-page {
     .admin-tournament-grid { grid-template-columns: 1fr; }
 }
 
+.admin-btn-spaced {
+    margin-top: 12px;
+    margin-right: 8px;
+}
+
+.danger-text {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.45);
+}
+
+.danger-text:hover {
+    color: #fca5a5;
+    border-color: rgba(252, 165, 165, 0.55);
+}
+
 .admin-form-title { margin: 0 0 8px; font-family: "Bebas Neue"; font-size: 1.6rem; }
 .admin-form-hint { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.88rem; line-height: 1.55; margin: 0 0 14px; }
 
@@ -1283,10 +1298,10 @@ body.tournament-page {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 960px;
-    margin: -28px auto 0;
-    padding: 0 16px 40px;
+    margin: 20px auto 28px;
+    padding: 0 16px;
     position: relative;
-    z-index: 2;
+    z-index: 0;
 }
 
 .events-stat {
@@ -1312,7 +1327,7 @@ body.tournament-page {
     letter-spacing: 0.08em;
 }
 
-.events-main { max-width: 1180px; margin: 0 auto; padding: 24px 16px 80px; }
+.events-main { max-width: 1180px; margin: 0 auto; padding: 8px 16px 80px; position: relative; z-index: 1; }
 
 .events-columns {
     display: grid;
@@ -1321,7 +1336,7 @@ body.tournament-page {
 }
 
 @media (max-width: 900px) {
-    .events-stats-strip { grid-template-columns: 1fr; margin-top: 16px; }
+    .events-stats-strip { grid-template-columns: 1fr; margin-top: 16px; margin-bottom: 20px; }
     .events-columns { grid-template-columns: 1fr; }
 }
 
@@ -1370,6 +1385,7 @@ body.tournament-page {
     letter-spacing: 0.06em;
 }
 .events-badge-live { border: 1px solid rgba(74, 222, 128, 0.45); color: #4ADE80; }
+.events-badge-draft { border: 1px solid rgba(250, 166, 26, 0.45); color: var(--primary); }
 .events-badge-past { border: 1px solid var(--border); color: var(--muted); }
 
 .events-empty {
@@ -1394,7 +1410,7 @@ body.tournament-page {
     display: grid;
     grid-template-columns: 1fr minmax(200px, 340px);
     gap: 28px;
-    align-items: center;
+    align-items: start;
 }
 
 @media (max-width: 800px) {
@@ -1409,8 +1425,10 @@ body.tournament-page {
     margin: 16px 0 0;
     padding: 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 10px;
+    max-width: 360px;
     font-family: "IBM Plex Sans", sans-serif;
     font-size: 0.95rem;
 }
@@ -1422,7 +1440,8 @@ body.tournament-page {
     border: 1px solid var(--border);
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.35);
-    min-width: 120px;
+    min-width: 0;
+    width: 100%;
 }
 .winner-roster-name { font-weight: 700; color: var(--foreground); }
 .winner-roster-disc { font-size: 0.82rem; color: var(--muted); }
@@ -1505,8 +1524,8 @@ body.tournament-page {
 /* Events — destacado */
 .events-featured {
     max-width: 1080px;
-    margin: 8px auto 0;
-    padding: 0 16px;
+    margin: 8px auto 4px;
+    padding: 0 16px 12px;
 }
 .events-featured[hidden] { display: none !important; }
 .events-featured-card {
@@ -1533,12 +1552,26 @@ body.tournament-page {
 }
 .events-featured-inner {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 16px;
     padding: 22px 24px;
     border-left: 1px solid var(--border);
+}
+.events-featured-inner .btn-primary {
+    align-self: flex-start;
+    max-width: 100%;
+}
+@media (min-width: 880px) {
+    .events-featured-inner {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .events-featured-inner .btn-primary {
+        flex-shrink: 0;
+    }
 }
 @media (max-width: 720px) {
     .events-featured-card {

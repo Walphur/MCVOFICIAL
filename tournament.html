@@ -305,9 +305,23 @@
             regBtn.style.display = 'none';
             form.style.display = 'none';
             closedMsg.style.display = 'block';
+            closedMsg.removeAttribute('data-i18n-html');
+            if (t.status === 'draft') {
+                closedMsg.innerHTML = tpl('tournament.regDraftHtml');
+            } else {
+                closedMsg.setAttribute('data-i18n-html', 'tournament.regClosedHtml');
+                closedMsg.innerHTML = tpl('tournament.regClosedHtml');
+            }
             st.style.display = 'block';
-            st.textContent = t.status === 'finished' ? T('tournament.statusFinished') : T('tournament.statusClosed');
+            if (t.status === 'finished') {
+                st.textContent = T('tournament.statusFinished');
+            } else if (t.status === 'draft') {
+                st.textContent = T('tournament.statusDraft');
+            } else {
+                st.textContent = T('tournament.statusClosed');
+            }
             if (t.status === 'finished' && rulesCard) rulesCard.style.display = 'none';
+            else if (rulesCard) rulesCard.style.display = '';
         }
 
         var winSec = document.getElementById('winner-showcase');

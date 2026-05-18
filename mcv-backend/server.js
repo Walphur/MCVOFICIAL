@@ -9,7 +9,12 @@ const axios = require("axios");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
 const { registerTournamentApi } = require("./tournamentApi");
-const { registerWipeListApi, attachWipeListDiscord, attachWipeListMessageHook } = require("./wipeList");
+const {
+    registerWipeListApi,
+    attachWipeListDiscord,
+    attachWipeListMessageHook,
+    upsertWipeFromHexaytronChannel
+} = require("./wipeList");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -323,8 +328,70 @@ const discordClient = new Client({
     partials: [Partials.Message, Partials.Channel]
 });
 
+async function syncWipeRegisterChannelHistory() {
+    const cid = DISCORD_WIPE_REGISTER_CHANNEL_ID;
+    if (!cid || !discordClient.isReady()) {
+        return;
+    }
+    const poolW = getPool();
+    if (!poolW) {
+        return;
+    }
+    try {
+        const ch = await discordClient.channels.fetch(cid).catch(() => null);
+        if (!ch || !ch.isTextBased()) {
+            return;
+        }
+        let before;
+        let imported = 0;
+        let scanned = 0;
+        const maxScan = 400;
+        const maxImport = 100;
+        while (scanned < maxScan && imported < maxImport) {
+            const batch = await ch.messages.fetch({ limit: 100, before });
+            if (!batch.size) {
+                break;
+            }
+            const arr = [...batch.values()].sort((a, b) => b.createdTimestamp - a.createdTimestamp);
+            for (const m of arr) {
+                scanned += 1;
+                if (!m.author?.bot) {
+                    continue;
+                }
+                if (HEXAYTRON_BOT_ID && m.author.id !== HEXAYTRON_BOT_ID) {
+                    continue;
+                }
+                const raw = messageToSearchableRaw(m);
+                const sm = raw.match(/\b\d{17}\b/);
+                if (!sm) {
+                    continue;
+                }
+                await upsertWipeFromHexaytronChannel(poolW, {
+                    steamApiKey: STEAM_API_KEY,
+                    steamId64: sm[0],
+                    botTag: m.author?.tag || m.author?.username || ""
+                });
+                imported += 1;
+                if (imported >= maxImport) {
+                    break;
+                }
+            }
+            before = batch.last()?.id;
+            if (batch.size < 100) {
+                break;
+            }
+        }
+        if (imported) {
+            console.log(`Wipe: ${imported} filas desde historial del canal de registro (${cid}).`);
+        }
+    } catch (e) {
+        console.warn("syncWipeRegisterChannelHistory:", e.message);
+    }
+}
+
 discordClient.on("ready", () => {
     console.log(`Discord bot conectado como ${discordClient.user.tag}`);
+    syncWipeRegisterChannelHistory().catch((e) => console.warn("sync wipe canal:", e.message));
 });
 
 async function handleBotMessage(message) {
@@ -343,6 +410,21 @@ async function handleBotMessage(message) {
 
         if (HEXAYTRON_BOT_ID && message.author.id !== HEXAYTRON_BOT_ID) {
             return;
+        }
+
+        if (DISCORD_WIPE_REGISTER_CHANNEL_ID && message.channelId === DISCORD_WIPE_REGISTER_CHANNEL_ID) {
+            const rawWipe = messageToSearchableRaw(message);
+            const steamW = rawWipe.match(/\b\d{17}\b/);
+            if (steamW) {
+                const poolW = getPool();
+                if (poolW) {
+                    await upsertWipeFromHexaytronChannel(poolW, {
+                        steamApiKey: STEAM_API_KEY,
+                        steamId64: steamW[0],
+                        botTag: message.author?.tag || message.author?.username || ""
+                    }).catch((e) => console.warn("Import wipe desde canal Hexaytron:", e.message));
+                }
+            }
         }
 
         const parsed = parseHexaytronMessage(message);

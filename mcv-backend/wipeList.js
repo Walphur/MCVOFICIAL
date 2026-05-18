@@ -59,10 +59,19 @@ async function fetchSteamProfile(steamApiKey, steamId64) {
     }
 }
 
+/** Placeholders importados desde Hexaytron en canal (DISCORD_WIPE_REGISTER_CHANNEL_ID). */
+const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
+
 async function upsertMember(pool, { discordUserId, steamId64, discordLabel, steamApiKey }) {
     const steam = await fetchSteamProfile(steamApiKey, steamId64);
     const persona = steam?.persona || steamId64;
     const avatar = steam?.avatar || "";
+    if (!String(discordUserId || "").startsWith(HEX_WIPE_DISCORD_PREFIX)) {
+        await pool.query(`DELETE FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id LIKE $2`, [
+            steamId64,
+            `${HEX_WIPE_DISCORD_PREFIX}%`
+        ]);
+    }
     await pool.query(
         `INSERT INTO wipe_list_members (discord_user_id, steam_id64, persona_name, avatar_url, discord_username, updated_at)
      VALUES ($1, $2, $3, $4, $5, NOW())
@@ -224,13 +233,18 @@ function attachWipeListMessageHook(client, { getPool, steamApiKey, channelId }) 
                 return;
             }
             const text = String(message.content || "").trim();
-            const m = text.match(/^!mcvsteam\s+(\d{10,20})\b/i);
-            if (!m) {
-                return;
+            let raw = "";
+            const mcmd = text.match(/^!mcvsteam\s+(\d{10,20})\b/i);
+            if (mcmd) {
+                raw = mcmd[1].replace(/\D/g, "");
+            } else {
+                const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+                const bare = lines.length === 1 && /^\d{17}$/.test(lines[0]) ? lines[0] : "";
+                if (bare) {
+                    raw = bare;
+                }
             }
-            const raw = m[1].replace(/\D/g, "");
             if (raw.length !== 17) {
-                await message.react("❌").catch(() => {});
                 return;
             }
             const pool = getPool();
@@ -251,9 +265,35 @@ function attachWipeListMessageHook(client, { getPool, steamApiKey, channelId }) 
     });
 }
 
+/**
+ * Mensajes del bot Hexaytron en DISCORD_WIPE_REGISTER_CHANNEL_ID: si hay SteamID64 en el embed/texto,
+ * se agrega a jugadores.html (mismo canal que !mcvsteam hasta tener el flujo completo).
+ */
+async function upsertWipeFromHexaytronChannel(pool, { steamApiKey, steamId64, botTag }) {
+    if (!pool || !/^\d{17}$/.test(String(steamId64 || ""))) {
+        return;
+    }
+    const taken = await pool.query(
+        `SELECT 1 FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id NOT LIKE $2 LIMIT 1`,
+        [steamId64, `${HEX_WIPE_DISCORD_PREFIX}%`]
+    );
+    if (taken.rows.length) {
+        return;
+    }
+    const pseudoId = `${HEX_WIPE_DISCORD_PREFIX}${steamId64}`;
+    const label = botTag ? `Hexaytron · ${botTag}` : "Hexaytron";
+    await upsertMember(pool, {
+        discordUserId: pseudoId,
+        steamId64,
+        discordLabel: label,
+        steamApiKey
+    });
+}
+
 module.exports = {
     registerWipeListApi,
     attachWipeListDiscord,
     attachWipeListMessageHook,
-    fetchSteamProfile
+    fetchSteamProfile,
+    upsertWipeFromHexaytronChannel
 };

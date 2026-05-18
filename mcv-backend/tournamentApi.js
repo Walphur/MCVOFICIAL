@@ -166,7 +166,7 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             const [finishedQ, listedQ, teams] = await Promise.all([
                 pool.query(`SELECT COUNT(*)::int AS c FROM tournaments WHERE status = 'finished'`),
                 pool.query(
-                    `SELECT COUNT(*)::int AS c FROM tournaments WHERE status IN ('finished','open','closed')`
+                    `SELECT COUNT(*)::int AS c FROM tournaments WHERE status IN ('finished','open','closed','draft')`
                 ),
                 pool.query(`SELECT COUNT(*)::int AS c FROM tournament_registrations`)
             ]);
@@ -263,8 +263,8 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
             COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
            FROM tournaments t
-           WHERE t.status IN ('open','closed','finished')
-           ORDER BY (t.status = 'open') DESC, t.starts_at DESC NULLS LAST, t.id DESC`
+           WHERE t.status IN ('open','closed','finished','draft')
+           ORDER BY (t.status = 'open') DESC, (t.status = 'draft') DESC, t.starts_at DESC NULLS LAST, t.id DESC`
             );
             return res.json({ tournaments: r.rows });
         } catch (e) {
@@ -850,6 +850,36 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "patch tournament" });
+        }
+    });
+
+    app.delete("/api/admin/tournaments/:slug", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const { slug } = req.params;
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+            const tid = await client.query("SELECT id FROM tournaments WHERE slug = $1", [slug]);
+            if (tid.rows.length === 0) {
+                await client.query("ROLLBACK");
+                return res.status(404).json({ error: "Torneo no encontrado" });
+            }
+            const id = tid.rows[0].id;
+            await client.query("UPDATE tournaments SET winner_registration_id = NULL WHERE id = $1", [id]);
+            await client.query("DELETE FROM tournament_matches WHERE tournament_id = $1", [id]);
+            await client.query("DELETE FROM tournament_registrations WHERE tournament_id = $1", [id]);
+            await client.query("DELETE FROM tournaments WHERE id = $1", [id]);
+            await client.query("COMMIT");
+            return res.json({ ok: true, deletedSlug: slug });
+        } catch (e) {
+            await client.query("ROLLBACK");
+            console.error(e);
+            return res.status(500).json({ error: "delete tournament" });
+        } finally {
+            client.release();
         }
     });
 

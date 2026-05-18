@@ -113,7 +113,11 @@
     function card(t, isPast) {
         var winner = t.winner_display_name || t.winner_team_name || '';
         var poster = t.poster_url ? '<div class="events-card-poster"><img src="' + esc(t.poster_url) + '" alt=""></div>' : '';
-        var badge = isPast ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>' : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
+        var badge = isPast
+            ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>'
+            : t.status === 'draft'
+              ? '<span class="events-badge events-badge-draft">' + esc(T('events.badgeDraft')) + '</span>'
+              : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
         var link = '<a class="events-card-link" href="tournament.html?slug=' + encodeURIComponent(t.slug) + '">' + esc(T('events.cardDetail')) + '</a>';
         var champPrefix = T('events.championPrefix');
         return (
@@ -205,7 +209,7 @@
             var list = data.tournaments || [];
             var up = document.getElementById('upcoming-list');
             var past = document.getElementById('past-list');
-            var upcoming = list.filter(function (t) { return t.status === 'open' || t.status === 'closed'; });
+            var upcoming = list.filter(function (t) { return t.status === 'open' || t.status === 'closed' || t.status === 'draft'; });
             var finished = list.filter(function (t) { return t.status === 'finished'; });
             if (heroFeatured && !heroSlugFromFeatured && upcoming.length) {
                 heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(upcoming[0].slug);

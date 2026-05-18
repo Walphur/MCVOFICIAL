@@ -50,32 +50,64 @@
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
             <p class="admin-tournaments-intro" data-i18n-html="admin.introTournaments"></p>
             <div class="admin-tournament-grid">
-                <div class="data-area">
-                    <h3 class="admin-form-title" data-i18n="admin.formCreateTitle">Crear torneo</h3>
-                    <p class="admin-form-hint" data-i18n="admin.formCreateHint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
-                    <form id="form-new-tournament" class="admin-stack-form">
-                        <label>Título *<input name="title" required placeholder="Ej. MCV Winter Cup"></label>
-                        <label>Slug (opcional)<input name="slug" placeholder="mcv-winter-cup"></label>
-                        <label>Descripción<textarea name="description" rows="2" placeholder="Una línea para la web"></textarea></label>
-                        <label>Formato<input name="format_label" placeholder="5v5" value="5v5"></label>
-                        <label>Max equipos<input name="max_teams" type="number" min="2" value="30"></label>
-                        <label>Prize pool<input name="prize_pool_text" placeholder="$150"></label>
-                        <label>Prize sub<input name="prize_sub_text" placeholder="Winner takes all"></label>
-                        <label>Match day (texto)<input name="match_day_display" placeholder="16 MAY 2026"></label>
-                        <label>Starts (ISO opcional)<input name="starts_at" placeholder="2026-05-16T18:00:00+02"></label>
-                        <label>Cierre inscripciones (ISO)<input name="registration_closes_at" placeholder="2026-05-15T23:59:00+02"></label>
-                        <label>Check-in<input name="check_in_display" value="15 min antes del match"></label>
-                        <label>Server<input name="format_server_text" placeholder="Rustoria RTG"></label>
-                        <label>Marquee<input name="marquee_text" placeholder="MCV — TORNEO —"></label>
-                        <label>Twitch channel<input name="twitch_channel" value="mcvteam"></label>
-                        <label>Estado inicial
-                            <select name="status">
-                                <option value="draft">draft (no público en listas)</option>
-                                <option value="open">open (registro)</option>
-                            </select>
-                        </label>
-                        <button type="submit" class="btn-primary-small">Crear torneo</button>
-                    </form>
+                <div class="data-area admin-tournament-left">
+                    <div id="admin-pane-create" class="admin-pane-create">
+                        <h3 class="admin-form-title" data-i18n="admin.formCreateTitle">Crear torneo</h3>
+                        <p class="admin-form-hint" data-i18n="admin.formCreateHint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
+                        <form id="form-new-tournament" class="admin-stack-form">
+                            <label>Título *<input name="title" required placeholder="Ej. MCV Winter Cup"></label>
+                            <label>Slug (opcional)<input name="slug" placeholder="mcv-winter-cup"></label>
+                            <label>Descripción<textarea name="description" rows="2" placeholder="Una línea para la web"></textarea></label>
+                            <label>Formato<input name="format_label" placeholder="5v5" value="5v5"></label>
+                            <label>Max equipos<input name="max_teams" type="number" min="2" value="30"></label>
+                            <label>Prize pool<input name="prize_pool_text" placeholder="$150"></label>
+                            <label>Prize sub<input name="prize_sub_text" placeholder="Winner takes all"></label>
+                            <label>Match day (texto)<input name="match_day_display" placeholder="16 MAY 2026"></label>
+                            <label>Starts (ISO opcional)<input name="starts_at" placeholder="2026-05-16T18:00:00+02"></label>
+                            <label>Cierre inscripciones (ISO)<input name="registration_closes_at" placeholder="2026-05-15T23:59:00+02"></label>
+                            <label>Check-in<input name="check_in_display" value="15 min antes del match"></label>
+                            <label>Server<input name="format_server_text" placeholder="Rustoria RTG"></label>
+                            <label>Marquee<input name="marquee_text" placeholder="MCV — TORNEO —"></label>
+                            <label>Twitch channel<input name="twitch_channel" value="mcvteam"></label>
+                            <label>Estado inicial
+                                <select name="status">
+                                    <option value="draft">draft (visible en Próximos; sin registro web)</option>
+                                    <option value="open">open (registro web)</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn-primary-small">Crear torneo</button>
+                        </form>
+                    </div>
+                    <div id="admin-pane-edit" class="admin-pane-edit" hidden>
+                        <h3 class="admin-form-title" data-i18n="admin.formEditTitle">Editar torneo seleccionado</h3>
+                        <p class="admin-form-hint"><span data-i18n="admin.formEditSlugLabel">Slug</span> <code id="edit-t-slug"></code> · <span data-i18n="admin.formEditStatusLabel">Estado</span>: <strong id="edit-t-status"></strong></p>
+                        <form id="form-edit-tournament" class="admin-stack-form">
+                            <label>Título *<input name="edit_title" id="edit-t-title" required></label>
+                            <label>Descripción<textarea name="edit_description" id="edit-t-description" rows="2"></textarea></label>
+                            <label>Formato<input name="edit_format_label" id="edit-t-format"></label>
+                            <label>Max equipos<input name="edit_max_teams" id="edit-t-max-teams" type="number" min="2"></label>
+                            <label>Prize pool<input name="edit_prize_pool_text" id="edit-t-prize"></label>
+                            <label>Prize sub<input name="edit_prize_sub_text" id="edit-t-prize-sub"></label>
+                            <label>Match day (texto)<input name="edit_match_day_display" id="edit-t-match-day"></label>
+                            <label>Starts (ISO opcional)<input name="edit_starts_at" id="edit-t-starts"></label>
+                            <label>Cierre inscripciones (ISO)<input name="edit_registration_closes_at" id="edit-t-reg-close"></label>
+                            <label>Check-in<input name="edit_check_in_display" id="edit-t-checkin"></label>
+                            <label>Server<input name="edit_format_server_text" id="edit-t-server"></label>
+                            <label>Marquee<input name="edit_marquee_text" id="edit-t-marquee"></label>
+                            <label>Twitch channel<input name="edit_twitch_channel" id="edit-t-twitch"></label>
+                            <label>Estado
+                                <select name="edit_status" id="edit-t-status-select">
+                                    <option value="draft">draft</option>
+                                    <option value="open">open</option>
+                                    <option value="closed">closed</option>
+                                    <option value="finished">finished</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn-primary-small" data-i18n="admin.formEditSave">Guardar cambios</button>
+                        </form>
+                        <button type="button" class="btn-outline admin-btn-spaced" id="btn-show-create-tournament" data-i18n="admin.btnShowCreate">＋ Crear otro torneo</button>
+                        <button type="button" class="btn-outline danger-text admin-btn-spaced" id="btn-delete-tournament" data-i18n="admin.btnDeleteTournament">Eliminar este torneo…</button>
+                    </div>
                 </div>
                 <div class="data-area">
                     <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
@@ -287,8 +319,63 @@
             });
     }
 
+    function toggleAdminCreateEditPanels(showEdit) {
+        var pc = document.getElementById('admin-pane-create');
+        var pe = document.getElementById('admin-pane-edit');
+        if (!pc || !pe) return;
+        pc.hidden = !!showEdit;
+        pe.hidden = !showEdit;
+    }
+
+    function fillEditTournamentForm(t) {
+        if (!t) return;
+        function setv(id, v) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.value = v == null || v === '' ? '' : String(v);
+        }
+        setv('edit-t-title', t.title);
+        setv('edit-t-description', t.description);
+        setv('edit-t-format', t.format_label);
+        setv('edit-t-max-teams', t.max_teams);
+        setv('edit-t-prize', t.prize_pool_text);
+        setv('edit-t-prize-sub', t.prize_sub_text);
+        setv('edit-t-match-day', t.match_day_display);
+        setv('edit-t-starts', t.starts_at || '');
+        setv('edit-t-reg-close', t.registration_closes_at || '');
+        setv('edit-t-checkin', t.check_in_display);
+        setv('edit-t-server', t.format_server_text);
+        setv('edit-t-marquee', t.marquee_text);
+        setv('edit-t-twitch', t.twitch_channel);
+        var sel = document.getElementById('edit-t-status-select');
+        if (sel) sel.value = t.status || 'draft';
+        var slugEl = document.getElementById('edit-t-slug');
+        if (slugEl) slugEl.textContent = t.slug || '';
+        var stEl = document.getElementById('edit-t-status');
+        if (stEl) stEl.textContent = t.status || '';
+    }
+
     function loadAll() {
         banner('', false);
+        if (!state.slug) {
+            state.list = [];
+            setCounts();
+            renderTeams();
+            toggleAdminCreateEditPanels(false);
+            var winInput0 = document.getElementById('winner-id');
+            if (winInput0) winInput0.value = '';
+            var sn0 = document.getElementById('edit-slots-num');
+            var sm0 = document.getElementById('edit-slots-max');
+            var wo0 = document.getElementById('edit-winner-override');
+            if (sn0) sn0.value = '';
+            if (sm0) sm0.value = '';
+            if (wo0) wo0.value = '';
+            var widEl0 = document.getElementById('edit-winner-reg-display');
+            var ta0 = document.getElementById('edit-winner-roster-json');
+            if (widEl0) widEl0.textContent = '—';
+            if (ta0) ta0.value = '';
+            return Promise.resolve();
+        }
         return fetch(API + '/api/admin/registrations?slug=' + encodeURIComponent(state.slug), { headers: { 'Authorization': 'Bearer ' + token } })
             .then(function (r) {
                 if (r.status === 401) {
@@ -311,9 +398,17 @@
                 renderTeams();
                 return fetch(API + '/api/tournaments/' + encodeURIComponent(state.slug));
             })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                var t = data.tournament;
+            .then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+            .then(function (x) {
+                var t = x.ok && x.d && x.d.tournament ? x.d.tournament : null;
+                toggleAdminCreateEditPanels(Boolean(t));
+                if (t) {
+                    fillEditTournamentForm(t);
+                }
                 var winInput = document.getElementById('winner-id');
                 if (t && t.winner_registration_id && winInput) {
                     winInput.value = String(t.winner_registration_id);
@@ -346,6 +441,7 @@
                 }
             })
             .catch(function (e) {
+                toggleAdminCreateEditPanels(false);
                 var msg = (e && e.message) ? e.message : 'Error cargando datos.';
                 if (!document.getElementById('admin-banner').textContent) {
                     banner(msg, true);
@@ -440,15 +536,30 @@
                 });
                 var found = false;
                 for (var i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === state.slug) found = true;
+                    if (sel.options[i].value === state.slug) {
+                        found = true;
+                        break;
+                    }
                 }
-                if (!found) {
+                if (!found && state.slug) {
                     var o2 = document.createElement('option');
                     o2.value = state.slug;
                     o2.textContent = state.slug + ' (sin listar)';
                     sel.appendChild(o2);
+                } else if (!found && sel.options.length) {
+                    state.slug = sel.options[0].value;
+                    try {
+                        sessionStorage.setItem('mcv_admin_slug', state.slug);
+                    } catch (e1) {}
+                } else if (!found) {
+                    state.slug = '';
+                    try {
+                        sessionStorage.removeItem('mcv_admin_slug');
+                    } catch (e2) {}
                 }
-                sel.value = state.slug;
+                if (sel.options.length) {
+                    sel.value = state.slug;
+                }
                 syncSlugLabel();
             })
             .catch(function () { syncSlugLabel(); });
@@ -508,7 +619,92 @@
                 return refreshTournamentSelect();
             })
             .then(function () { loadAll(); })
-            .catch(function (err) { banner(err.message || 'Error', true); });
+            .catch(function (err) { banner((err && err.message) ? err.message : 'Error', true); });
+    });
+
+    document.getElementById('form-edit-tournament').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var fd = new FormData(e.target);
+        function tr(name) {
+            return String(fd.get(name) || '').trim();
+        }
+        var body = {
+            title: tr('edit_title'),
+            description: tr('edit_description') || null,
+            format_label: tr('edit_format_label') || '5v5',
+            max_teams: fd.get('edit_max_teams') ? Number(fd.get('edit_max_teams')) : 30,
+            prize_pool_text: tr('edit_prize_pool_text') || null,
+            prize_sub_text: tr('edit_prize_sub_text') || null,
+            match_day_display: tr('edit_match_day_display') || null,
+            starts_at: tr('edit_starts_at') || null,
+            registration_closes_at: tr('edit_registration_closes_at') || null,
+            check_in_display: tr('edit_check_in_display') || null,
+            format_server_text: tr('edit_format_server_text') || null,
+            marquee_text: tr('edit_marquee_text') || null,
+            twitch_channel: tr('edit_twitch_channel') || 'mcvteam',
+            status: fd.get('edit_status') || 'draft'
+        };
+        if (!body.title) {
+            banner('Título requerido.', true);
+            return;
+        }
+        banner('Guardando torneo…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug), {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Torneo actualizado.', false);
+                return refreshTournamentSelect();
+            })
+            .then(function () { loadAll(); })
+            .catch(function (err) { banner((err && err.message) ? err.message : 'Error', true); });
+    });
+
+    document.getElementById('btn-show-create-tournament').addEventListener('click', function () {
+        toggleAdminCreateEditPanels(false);
+    });
+
+    document.getElementById('btn-delete-tournament').addEventListener('click', function () {
+        if (!window.confirm('¿Eliminar el torneo «' + state.slug + '» y todos sus equipos/bracket? No se puede deshacer.')) {
+            return;
+        }
+        banner('Eliminando…', false);
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug), {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token }
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Torneo eliminado.', false);
+                state.slug = '';
+                try {
+                    sessionStorage.removeItem('mcv_admin_slug');
+                } catch (e0) {}
+                return refreshTournamentSelect();
+            })
+            .then(function () {
+                loadAll();
+            })
+            .catch(function (err) { banner((err && err.message) ? err.message : 'Error', true); });
     });
 
     document.getElementById('form-finish-tournament').addEventListener('submit', function (e) {
@@ -539,7 +735,7 @@
                 return refreshTournamentSelect();
             })
             .then(function () { loadAll(); })
-            .catch(function (err) { banner(err.message || 'Error', true); });
+            .catch(function (err) { banner((err && err.message) ? err.message : 'Error', true); });
     });
 
     document.getElementById('btn-save-tournament-display').addEventListener('click', function () {
