@@ -148,7 +148,8 @@
     ]).then(function (pair) {
         var st0 = pair[0] || {};
         var d = pair[1] || {};
-        document.getElementById('stat-hosted').textContent = st0.eventsHosted != null ? st0.eventsHosted : '—';
+        var onSite = st0.tournamentsOnSite != null ? st0.tournamentsOnSite : st0.eventsHosted;
+        document.getElementById('stat-hosted').textContent = onSite != null ? onSite : '—';
         document.getElementById('stat-teams').textContent = st0.teamsRegistered != null ? st0.teamsRegistered : '—';
 
         var st = d.mode === 'live' ? T('events.statModeLive') : d.mode === 'recap' ? T('events.statModeRecap') : T('events.statModeIdle');

@@ -41,7 +41,9 @@
             "home.statHosted": "// Torneos hosteados",
             "home.statDiscord": "// Miembros Discord",
             "home.statOnline": "// Online ahora",
-            "home.statWipes": "// Wipes activos",
+            "home.statWipes": "// Jugadores al wipe",
+            "home.statWipesHint":
+                "Confirmados para el wipe actual (ej. lista Hexaytron). Número vía MCV_HOME_WIPE_PLAYERS en el servidor; sync automática con Discord es el siguiente paso.",
             "home.strip1": "Red MCV",
             "home.strip2": "Torneos Rust",
             "home.strip3": "Anti-cheat",
@@ -262,7 +264,9 @@
             "home.statHosted": "// Hosted tournaments",
             "home.statDiscord": "// Discord members",
             "home.statOnline": "// Online now",
-            "home.statWipes": "// Active wipes",
+            "home.statWipes": "// Wipe roster",
+            "home.statWipesHint":
+                "Players confirmed for the current wipe (e.g. Hexaytron list). Set MCV_HOME_WIPE_PLAYERS on the server; automatic Discord sync is planned next.",
             "home.strip1": "MCV network",
             "home.strip2": "Rust tournaments",
             "home.strip3": "Anti-cheat",

@@ -163,13 +163,27 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             return res.status(503).json({ error: "Base de datos no disponible" });
         }
         try {
-            const ev = await pool.query(
-                `SELECT COUNT(*)::int AS c FROM tournaments WHERE status IN ('finished','open','closed')`
-            );
-            const teams = await pool.query(`SELECT COUNT(*)::int AS c FROM tournament_registrations`);
+            const [finishedQ, listedQ, teams] = await Promise.all([
+                pool.query(`SELECT COUNT(*)::int AS c FROM tournaments WHERE status = 'finished'`),
+                pool.query(
+                    `SELECT COUNT(*)::int AS c FROM tournaments WHERE status IN ('finished','open','closed')`
+                ),
+                pool.query(`SELECT COUNT(*)::int AS c FROM tournament_registrations`)
+            ]);
+            const rawWipe = String(process.env.MCV_HOME_WIPE_PLAYERS || "").trim();
+            const wipeParsed = rawWipe === "" ? NaN : Number.parseInt(rawWipe, 10);
+            const wipePlayersConfirmed =
+                Number.isFinite(wipeParsed) && wipeParsed >= 0 ? wipeParsed : null;
+
+            const tournamentsFinished = finishedQ.rows[0].c;
+            const tournamentsOnSite = listedQ.rows[0].c;
             return res.json({
-                eventsHosted: ev.rows[0].c,
-                teamsRegistered: teams.rows[0].c
+                tournamentsFinished,
+                tournamentsOnSite,
+                teamsRegistered: teams.rows[0].c,
+                /** @deprecated misma semántica que tournamentsOnSite */
+                eventsHosted: tournamentsOnSite,
+                wipePlayersConfirmed
             });
         } catch (e) {
             console.error(e);

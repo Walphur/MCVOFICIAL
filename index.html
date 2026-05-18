@@ -68,7 +68,7 @@
 <section class="stats-bar home-stats">
     <div class="stat-box">
         <span class="stat-title" data-i18n="home.statHosted">// Torneos hosteados</span>
-        <span class="stat-value">05</span>
+        <span class="stat-value" id="stat-hosted-count">—</span>
     </div>
     <div class="stat-box">
         <span class="stat-title" data-i18n="home.statDiscord">// Discord members</span>
@@ -79,8 +79,8 @@
         <span class="stat-value" id="discord-online">--</span>
     </div>
     <div class="stat-box">
-        <span class="stat-title" data-i18n="home.statWipes">// Active wipes</span>
-        <span class="stat-value">42</span>
+        <span class="stat-title" data-i18n="home.statWipes" data-i18n-title="home.statWipesHint">// Wipe roster</span>
+        <span class="stat-value" id="stat-wipe-count">—</span>
     </div>
 </section>
 
@@ -275,18 +275,53 @@
 
     const inviteCode = "mBRrUA8wH6";
     const apiUrl = `https://discord.com/api/v9/invites/${inviteCode}?with_counts=true`;
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
 
-    fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
+    function fmtHostedCount(n) {
+        if (n == null || !Number.isFinite(Number(n))) return "—";
+        var x = Math.floor(Number(n));
+        return x < 100 ? String(x).padStart(2, "0") : String(x);
+    }
+
+    var discordFetch = fetch(apiUrl)
+        .then(function (response) {
+            return response.json();
+        })
+        .catch(function () {
+            return null;
+        });
+    var statsFetch =
+        API &&
+        fetch(API + "/api/tournaments/stats")
+            .then(function (r) {
+                return r.json();
+            })
+            .catch(function () {
+                return null;
+            });
+
+    Promise.all([discordFetch, statsFetch || Promise.resolve(null)]).then(function (pair) {
+        var data = pair[0];
+        var stats = pair[1];
+        if (data) {
             document.getElementById("discord-total").innerText = data.approximate_member_count || "--";
             document.getElementById("discord-online").innerText = data.approximate_presence_count || "--";
-        })
-        .catch(error => {
-            console.error("Error al cargar stats de Discord:", error);
+        } else {
+            console.error("Error al cargar stats de Discord");
             document.getElementById("discord-total").innerText = "OFF";
             document.getElementById("discord-online").innerText = "OFF";
-        });
+        }
+        var hc = document.getElementById("stat-hosted-count");
+        var wc = document.getElementById("stat-wipe-count");
+        if (hc) {
+            hc.textContent =
+                stats && stats.tournamentsFinished != null ? fmtHostedCount(stats.tournamentsFinished) : "—";
+        }
+        if (wc) {
+            wc.textContent =
+                stats && stats.wipePlayersConfirmed != null ? String(stats.wipePlayersConfirmed) : "—";
+        }
+    });
 </script>
 </body>
 </html>
