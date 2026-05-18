@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -23,7 +23,6 @@
     <ul class="nav-links">
         <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
         <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
-        <li><a href="jugadores.html"><span data-i18n="nav.players">Jugadores</span></a></li>
         <li><a href="equipo.html" class="active"><span data-i18n="nav.team">Equipo</span></a></li>
         <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
         <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
@@ -38,7 +37,7 @@
         <div class="yellow-line"></div>
     </div>
     <h1 class="equipo-hero-title"><span data-i18n="team.heroTitle">Nuestro</span> <span class="equipo-hero-accent" data-i18n="team.heroTitleSpan">equipo.</span></h1>
-    <p class="equipo-hero-lead" data-i18n="team.heroLead">Quienes representan y crean contenido con el clan. Los perfiles se publican cuando el staff aprueba tu envío.</p>
+    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Primero entrá al roster del wipe con <code>/mcv-wipe</code> en Discord. Después podés cargar tu ficha con redes acá (el staff la aprueba).</p>
 </section>
 
 <main class="equipo-main">
@@ -48,53 +47,60 @@
     <div id="equipo-roster-grid" class="equipo-roster-grid"></div>
 
     <section class="equipo-form-section" id="equipo-form-anchor">
-        <h2 class="equipo-section-title" data-i18n="team.sectionForm">Sumá tu perfil</h2>
-        <p class="equipo-form-intro" data-i18n="team.formIntro">Completá el formulario. Solo se muestran links que pegues; el staff revisa antes de publicar.</p>
-        <form id="equipo-form" class="equipo-form">
-            <div class="equipo-form-grid">
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldDisplayName">Nombre en la página *</span>
-                    <input name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Cómo querés aparecer">
-                </label>
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldRole">Rol o descripción corta (opcional)</span>
-                    <input name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej. Content creator, Staff">
-                </label>
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldSteam">SteamID64 o link de perfil (opcional si pegás redes)</span>
-                    <input name="steam_id64" inputmode="numeric" data-i18n-placeholder="team.phSteam" placeholder="76561198… o URL de Steam">
-                </label>
-                <label class="equipo-field">
-                    <span>Twitch</span>
-                    <input name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
-                </label>
-                <label class="equipo-field">
-                    <span>Kick</span>
-                    <input name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
-                </label>
-                <label class="equipo-field">
-                    <span data-i18n="team.fieldX">X / Twitter</span>
-                    <input name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
-                </label>
-                <label class="equipo-field">
-                    <span>Instagram</span>
-                    <input name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
-                </label>
-                <label class="equipo-field">
-                    <span>YouTube</span>
-                    <input name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
-                </label>
-                <label class="equipo-field">
-                    <span>TikTok</span>
-                    <input name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
-                </label>
+        <h2 class="equipo-section-title" data-i18n="team.sectionForm">Tu ficha en la web</h2>
+        <p class="equipo-form-intro" data-i18n-html="team.formIntroWipe"></p>
+        <details class="equipo-form-disclosure" id="equipo-form-details">
+            <summary class="equipo-form-summary">
+                <span class="equipo-form-summary-inner"><i data-lucide="plus-circle"></i> <span data-i18n="team.formToggle">Cargar / actualizar mi ficha</span></span>
+            </summary>
+            <div class="equipo-form-disclosure-body">
+                <form id="equipo-form" class="equipo-form">
+                    <div class="equipo-form-grid">
+                        <label class="equipo-field span-2">
+                            <span data-i18n="team.fieldDisplayName">Nombre en la página *</span>
+                            <input name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Cómo querés aparecer">
+                        </label>
+                        <label class="equipo-field span-2">
+                            <span data-i18n="team.fieldRole">Rol o descripción corta (opcional)</span>
+                            <input name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej. Content creator, Staff">
+                        </label>
+                        <label class="equipo-field span-2">
+                            <span data-i18n="team.fieldSteamWipe">SteamID64 del wipe *</span>
+                            <input name="steam_id64" required inputmode="numeric" data-i18n-placeholder="team.phSteamWipe" placeholder="El mismo 17 dígitos que con /mcv-wipe">
+                        </label>
+                        <label class="equipo-field">
+                            <span>Twitch</span>
+                            <input name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
+                        </label>
+                        <label class="equipo-field">
+                            <span>Kick</span>
+                            <input name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
+                        </label>
+                        <label class="equipo-field">
+                            <span data-i18n="team.fieldX">X / Twitter</span>
+                            <input name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
+                        </label>
+                        <label class="equipo-field">
+                            <span>Instagram</span>
+                            <input name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
+                        </label>
+                        <label class="equipo-field">
+                            <span>YouTube</span>
+                            <input name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
+                        </label>
+                        <label class="equipo-field">
+                            <span>TikTok</span>
+                            <input name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
+                        </label>
+                    </div>
+                    <p class="equipo-form-hint" data-i18n-html="team.formHintWipe"></p>
+                    <p id="equipo-form-msg" class="equipo-form-msg" hidden></p>
+                    <button type="submit" class="btn-primary pulse-rust" id="equipo-form-submit">
+                        <i data-lucide="send"></i> <span data-i18n="team.formSubmit">Enviar solicitud</span>
+                    </button>
+                </form>
             </div>
-            <p class="equipo-form-hint" data-i18n="team.formHintRequired">* Obligatorio: nombre visible y al menos Steam o un link https válido.</p>
-            <p id="equipo-form-msg" class="equipo-form-msg" hidden></p>
-            <button type="submit" class="btn-primary pulse-rust" id="equipo-form-submit">
-                <i data-lucide="send"></i> <span data-i18n="team.formSubmit">Enviar solicitud</span>
-            </button>
-        </form>
+        </details>
     </section>
 </main>
 
@@ -105,7 +111,7 @@
     </div>
 </footer>
 
-<script src="mcv-i18n.js?v=6"></script>
+<script src="mcv-i18n.js?v=8"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -216,6 +222,18 @@
                 errEl.hidden = false;
                 lucide.createIcons();
             });
+    }
+
+    var formDetails = document.getElementById("equipo-form-details");
+    if (formDetails) {
+        formDetails.addEventListener("toggle", function () {
+            if (formDetails.open) {
+                lucide.createIcons();
+            }
+        });
+        if (location.hash === "#equipo-form-anchor") {
+            formDetails.open = true;
+        }
     }
 
     form.addEventListener("submit", function (e) {

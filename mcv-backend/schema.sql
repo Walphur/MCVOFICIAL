@@ -163,7 +163,7 @@ SET display_slots_num = 32, display_slots_max = 32
 WHERE slug = 'last-squad-standing';
 
 -- split
--- Lista de wipe MCV: Discord (slash /mcv-wipe o !mcvsteam en canal) → web jugadores.html
+-- Lista de wipe MCV: Discord (slash /mcv-wipe o !mcvsteam en canal) → roster interno; equipo.html valida el formulario de fichas contra esta tabla
 CREATE TABLE IF NOT EXISTS wipe_list_members (
     discord_user_id VARCHAR(32) PRIMARY KEY,
     steam_id64 VARCHAR(17) NOT NULL,

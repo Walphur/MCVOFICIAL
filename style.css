@@ -1757,7 +1757,7 @@ body.tournament-page {
     margin-bottom: 16px;
 }
 
-/* --- Jugadores wipe (jugadores.html) --- */
+/* --- Jugadores wipe (estilos legacy; la página pública fue equipo.html) --- */
 .players-page .players-hero {
     padding: 48px 20px 32px;
     text-align: center;
@@ -2173,4 +2173,44 @@ body.tournament-page {
     background: rgba(248, 113, 113, 0.1);
     color: #fca5a5;
     border: 1px solid rgba(248, 113, 113, 0.25);
+}
+.equipo-form-disclosure {
+    max-width: 720px;
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(8, 8, 8, 0.65);
+    overflow: hidden;
+}
+.equipo-form-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+    color: var(--foreground);
+    background: rgba(250, 166, 26, 0.08);
+    transition: background 0.15s, color 0.15s;
+}
+.equipo-form-summary::-webkit-details-marker {
+    display: none;
+}
+.equipo-form-summary:hover {
+    background: rgba(250, 166, 26, 0.14);
+    color: var(--primary);
+}
+.equipo-form-summary-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.equipo-form-summary-inner svg {
+    width: 22px;
+    height: 22px;
+    color: var(--primary);
+}
+.equipo-form-disclosure-body {
+    padding: 18px 18px 22px;
+    border-top: 1px solid var(--border);
 }

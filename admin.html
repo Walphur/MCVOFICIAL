@@ -147,7 +147,7 @@
                 <p class="admin-form-hint">Array JSON de 1 a 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code>. El registro público sigue exigiendo 5.</p>
                 <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
                 <hr class="admin-sep">
-                <p class="admin-form-hint">Lista wipe (jugadores.html): el bot registra con <code>/mcv-wipe</code> en Discord. Servidor privado del clan: invitá el mismo bot MCV y poné <code>DISCORD_WIPE_GUILD_ID</code> con el ID de ese servidor en Render. Opcional: canal con <code>!mcvsteam 76561198…</code> (<code>DISCORD_WIPE_REGISTER_CHANNEL_ID</code>).</p>
+                <p class="admin-form-hint">Lista wipe (roster interno para Discord y validación del formulario en equipo.html): el bot registra con <code>/mcv-wipe</code> en Discord. Servidor privado del clan: invitá el mismo bot MCV y poné <code>DISCORD_WIPE_GUILD_ID</code> con el ID de ese servidor en Render. Opcional: canal con <code>!mcvsteam 76561198…</code> (<code>DISCORD_WIPE_REGISTER_CHANNEL_ID</code>).</p>
                 <label class="admin-form-hint" style="display:block;margin-bottom:6px;">Importar SteamID64 (pegá lista, CSV o texto con links; se detectan todos los de 17 dígitos, máx. 250).</label>
                 <textarea id="wipe-import-text" rows="6" class="admin-json-textarea" spellcheck="false" placeholder="76561198140263334&#10;https://steamcommunity.com/profiles/76561198…"></textarea>
                 <label style="margin-top:10px;display:block;">Etiqueta opcional (columna Discord en la web)<input type="text" id="wipe-import-label" style="width:100%;max-width:420px;margin-top:6px;padding:8px;border-radius:6px;border:1px solid var(--border);background:#050505;color:var(--foreground);" placeholder="Ej. Lista manual wipe"></label>
@@ -233,7 +233,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=6"></script>
+<script src="mcv-i18n.js?v=8"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");

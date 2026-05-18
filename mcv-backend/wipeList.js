@@ -274,7 +274,7 @@ async function registerSlashCommands(client, guildId) {
     }
     const cmd = new SlashCommandBuilder()
         .setName("mcv-wipe")
-        .setDescription("Vinculá tu SteamID64 para el wipe MCV (aparecés en mcvoficial.com/jugadores.html)")
+        .setDescription("Vinculá tu SteamID64 para el wipe MCV (roster interno; tu ficha pública va en mcvoficial.com/equipo.html)")
         .addStringOption((o) =>
             o
                 .setName("steam64")
@@ -348,7 +348,7 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
                 steamApiKey
             });
             await interaction.editReply({
-                content: `Listo: **${persona}** quedó vinculado a tu Discord. Mirá **mcvoficial.com/jugadores.html** (puede tardar unos segundos en el CDN).`
+                content: `Listo: **${persona}** quedó vinculado a tu Discord. Podés cargar tu ficha con redes en **mcvoficial.com/equipo.html** (tocá «Cargar / actualizar mi ficha»).`
             });
         } catch (e) {
             console.error(e);
@@ -410,7 +410,7 @@ function attachWipeListMessageHook(client, { getPool, steamApiKey, channelId }) 
 
 /**
  * Mensajes del bot Hexaytron en DISCORD_WIPE_REGISTER_CHANNEL_ID: si hay SteamID64 en el embed/texto,
- * se agrega a jugadores.html (mismo canal que !mcvsteam hasta tener el flujo completo).
+ * se agrega al roster del wipe (equipo.html usa esa lista para validar el formulario de fichas).
  */
 async function upsertWipeFromHexaytronChannel(pool, { steamApiKey, steamId64, botTag }) {
     if (!pool || !/^\d{17}$/.test(String(steamId64 || ""))) {
