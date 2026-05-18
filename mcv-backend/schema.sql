@@ -161,3 +161,17 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS display_slots_max INT;
 UPDATE tournaments
 SET display_slots_num = 32, display_slots_max = 32
 WHERE slug = 'last-squad-standing';
+
+-- split
+-- Lista de wipe MCV: Discord (slash /mcv-wipe o !mcvsteam en canal) → web jugadores.html
+CREATE TABLE IF NOT EXISTS wipe_list_members (
+    discord_user_id VARCHAR(32) PRIMARY KEY,
+    steam_id64 VARCHAR(17) NOT NULL,
+    persona_name TEXT,
+    avatar_url TEXT,
+    discord_username TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_wipe_list_steam ON wipe_list_members (steam_id64);

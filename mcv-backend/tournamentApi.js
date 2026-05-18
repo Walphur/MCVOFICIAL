@@ -26,7 +26,7 @@ function makePosterUpload(uploadRoot) {
     });
     return multer({
         storage,
-        limits: { fileSize: 5 * 1024 * 1024 },
+        limits: { fileSize: 15 * 1024 * 1024 },
         fileFilter(req, file, cb) {
             if (file.mimetype.startsWith("image/")) {
                 cb(null, true);
@@ -172,8 +172,19 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             ]);
             const rawWipe = String(process.env.MCV_HOME_WIPE_PLAYERS || "").trim();
             const wipeParsed = rawWipe === "" ? NaN : Number.parseInt(rawWipe, 10);
-            const wipePlayersConfirmed =
+            let wipePlayersConfirmed =
                 Number.isFinite(wipeParsed) && wipeParsed >= 0 ? wipeParsed : null;
+            if (wipePlayersConfirmed == null) {
+                try {
+                    const wc = await pool.query(`SELECT COUNT(*)::int AS c FROM wipe_list_members`);
+                    const c = wc.rows[0].c;
+                    if (c > 0) {
+                        wipePlayersConfirmed = c;
+                    }
+                } catch (_) {
+                    /* tabla aún no existe en BD vieja */
+                }
+            }
 
             const tournamentsFinished = finishedQ.rows[0].c;
             const tournamentsOnSite = listedQ.rows[0].c;
@@ -539,8 +550,8 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
 
         let rosterJson = null;
         if (hasRoster) {
-            if (!Array.isArray(rosterBody) || rosterBody.length !== 5) {
-                return res.status(400).json({ error: "roster debe ser un array de exactamente 5 jugadores" });
+            if (!Array.isArray(rosterBody) || rosterBody.length < 1 || rosterBody.length > 5) {
+                return res.status(400).json({ error: "roster debe ser un array de 1 a 5 jugadores" });
             }
             const roster = [];
             const steamIds = [];
@@ -856,7 +867,12 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             }
             posterUpload.single("poster")(req, res, (err) => {
                 if (err) {
-                    res.status(400).json({ error: err.message || "upload" });
+                    const code = err.code;
+                    const msg =
+                        code === "LIMIT_FILE_SIZE"
+                            ? "Imagen demasiado grande (máx. 15 MB). Probá comprimir o exportar WebP/JPEG."
+                            : err.message || "upload";
+                    res.status(400).json({ error: msg });
                     return;
                 }
                 next();
@@ -902,7 +918,12 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             }
             posterUpload.single("poster")(req, res, (err) => {
                 if (err) {
-                    res.status(400).json({ error: err.message || "upload" });
+                    const code = err.code;
+                    const msg =
+                        code === "LIMIT_FILE_SIZE"
+                            ? "Imagen demasiado grande (máx. 15 MB). Probá comprimir o exportar WebP/JPEG."
+                            : err.message || "upload";
+                    res.status(400).json({ error: msg });
                     return;
                 }
                 next();

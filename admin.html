@@ -20,7 +20,6 @@
         <div class="admin-logo"><img src="logo.png" width="36" height="36" alt=""> MCV CONTROL ROOM <span>// ADMIN</span></div>
         <div class="admin-actions">
             <button type="button" class="btn-outline" id="refresh-btn"><span data-i18n="admin.refresh">🔄 Actualizar</span></button>
-            <a href="login.html"><button type="button" class="btn-outline"><span data-i18n="admin.loginBtn">🔑 Login</span></button></a>
             <button type="button" class="btn-outline" id="logout-btn"><span data-i18n="admin.logout">🚪 Salir</span></button>
         </div>
     </nav>
@@ -34,7 +33,6 @@
                 <select id="admin-tournament-select" class="admin-slug-select" data-i18n-title="admin.tournamentSelectTitle" title="Elegí qué torneo gestionás"></select></p>
             </div>
             <div class="dashboard-buttons">
-                <button type="button" class="btn-outline" id="goto-tournaments-tab" data-i18n-title="admin.gotoTorneos" title="Crear o finalizar torneos"><span data-i18n="admin.gotoTorneos">🏆 Torneos</span></button>
                 <button type="button" class="btn-primary-small" id="export-csv"><span data-i18n="admin.exportCsv">📥 Exportar CSV</span></button>
                 <button type="button" class="btn-primary-small" id="gen-bracket"><span data-i18n="admin.genBracket">⚔️ Generar bracket</span></button>
                 <button type="button" class="btn-primary-small" id="next-round"><span data-i18n="admin.nextRound">➡️ Siguiente ronda</span></button>
@@ -42,13 +40,6 @@
         </header>
 
         <p id="admin-banner" class="admin-banner"></p>
-
-        <div class="admin-cta-strip" id="admin-cta-strip">
-            <div class="admin-cta-strip-inner">
-                <span class="admin-cta-text"><strong data-i18n="admin.ctaStrong">Nuevo torneo</strong><span data-i18n="admin.ctaText"> — en la pestaña Torneos; después equipos en Equipos.</span></span>
-                <button type="button" class="btn-primary-small" id="admin-open-torneos" data-i18n="admin.ctaBtn">Ir a Torneos</button>
-            </div>
-        </div>
 
         <div class="tabs admin-tabs" role="tablist" data-i18n-aria-label="admin.tabListLabel">
             <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">🏆 Torneos</span></button>
@@ -88,7 +79,7 @@
                 </div>
                 <div class="data-area">
                     <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
-                    <p class="admin-form-hint" data-i18n="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 5MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
+                    <p class="admin-form-hint" data-i18n="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés subir imagen (máx 15 MB) o dejar vacío. Con la casilla marcada se borran todas las inscripciones y el bracket; el nombre del campeón y el póster quedan en la ficha pública.</p>
                     <form id="form-finish-tournament" class="admin-stack-form">
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
@@ -116,8 +107,11 @@
                 <hr class="admin-sep">
                 <p class="admin-form-hint">Roster del equipo ganador — registro ID <code id="edit-winner-reg-display">—</code></p>
                 <textarea id="edit-winner-roster-json" rows="10" class="admin-json-textarea" spellcheck="false"></textarea>
-                <p class="admin-form-hint">Array JSON de 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code></p>
+                <p class="admin-form-hint">Array JSON de 1 a 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code>. El registro público sigue exigiendo 5.</p>
                 <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
+                <hr class="admin-sep">
+                <p class="admin-form-hint">Lista wipe (jugadores.html): el bot registra con <code>/mcv-wipe</code> en Discord. Opcional: canal con <code>!mcvsteam 76561198…</code> (env <code>DISCORD_WIPE_REGISTER_CHANNEL_ID</code>).</p>
+                <button type="button" class="btn-outline" id="btn-wipe-list-clear">Vaciar lista wipe</button>
             </div>
         </div>
 
@@ -653,6 +647,32 @@
             });
     });
 
+    var btnWipeClear = document.getElementById('btn-wipe-list-clear');
+    if (btnWipeClear) {
+        btnWipeClear.addEventListener('click', function () {
+            if (!window.confirm('¿Borrar todos los jugadores de la lista wipe en la web?')) {
+                return;
+            }
+            banner('Borrando lista wipe…', false);
+            fetch(API + '/api/admin/wipe-list', { method: 'DELETE', headers: authHeaders() })
+                .then(function (r) {
+                    if (r.status === 401) {
+                        clearAdminSession();
+                        window.location.href = 'login.html?expired=1';
+                        return Promise.reject();
+                    }
+                    return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                })
+                .then(function (x) {
+                    if (!x || !x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                    banner('Lista wipe vaciada.', false);
+                })
+                .catch(function (e) {
+                    if (e) banner(e.message || 'Error', true);
+                });
+        });
+    }
+
     function activateTournamentsTab() {
         var tab = document.querySelector('.tab[data-tab="tournaments"]');
         if (tab) tab.click();
@@ -680,16 +700,6 @@
             if (state.tab === 'bracket') loadBracketView();
         });
     });
-
-    document.getElementById('goto-tournaments-tab').addEventListener('click', function () {
-        activateTournamentsTab();
-    });
-    var openTorneos = document.getElementById('admin-open-torneos');
-    if (openTorneos) {
-        openTorneos.addEventListener('click', function () {
-            activateTournamentsTab();
-        });
-    }
 
     document.getElementById('form-admin-add-team').addEventListener('submit', function (e) {
         e.preventDefault();

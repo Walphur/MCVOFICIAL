@@ -24,6 +24,7 @@
     <ul class="nav-links">
         <li><a href="index.html"><span data-i18n="nav.clan">Clan</span></a></li>
         <li><a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="jugadores.html"><span data-i18n="nav.players">Jugadores</span></a></li>
         <li><a href="bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
         <li><a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
         <li><a href="live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
@@ -218,6 +219,14 @@
         if (el) el.textContent = txt == null ? '' : String(txt);
     }
 
+    function esc(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/"/g, '&quot;');
+    }
+
     function fmtDate(iso) {
         if (!iso) return '—';
         try {
@@ -247,7 +256,13 @@
         setText('t-marquee', t.marquee_text || ('MCV — ' + (t.title || 'TORNEO') + ' —'));
         setText('t-stat-prize', t.prize_pool_text || '—');
         setText('t-stat-prize-sub', t.prize_sub_text || '');
-        setText('t-stat-slots-sub', (t.max_teams || '—') + T('tournament.teamsMaxSuffix'));
+        var slotCap =
+            t.display_slots_max != null && t.display_slots_max !== ''
+                ? t.display_slots_max
+                : t.max_teams != null
+                  ? t.max_teams
+                  : '—';
+        setText('t-stat-slots-sub', String(slotCap) + T('tournament.teamsMaxSuffix'));
         setText('t-stat-day', t.match_day_display || fmtDate(t.starts_at));
         setText('t-stat-day-sub', t.starts_at ? fmtDate(t.starts_at) : '');
         setText('t-stat-format', t.format_label || '5v5');
@@ -258,7 +273,12 @@
         setText('t-sch-close', t.registration_closes_at ? fmtDate(t.registration_closes_at) : '—');
         setText('t-sch-day', t.match_day_display || fmtDate(t.starts_at));
         setText('t-sch-check', t.check_in_display || T('tournament.checkinFallback'));
-        twitchFrame(t.twitch_channel);
+        if (t.status === 'finished') {
+            var iframeDone = document.getElementById('twitch-embed');
+            if (iframeDone) iframeDone.src = 'about:blank';
+        } else {
+            twitchFrame(t.twitch_channel);
+        }
 
         var slots = document.getElementById('tournament-slots');
         if (slots) {
@@ -301,10 +321,15 @@
             }
         }
         var hasRoster = Array.isArray(roster) && roster.length > 0;
-        var showWin = t.status === 'finished' && (t.winner_display_name || t.poster_url || hasRoster);
+        var showWin =
+            t.status === 'finished' &&
+            (t.winner_display_name || t.winner_team_name || t.poster_url || hasRoster);
         if (showWin) {
             winSec.style.display = 'block';
-            setText('t-winner-heading', t.winner_display_name || T('tournament.winnerDefault'));
+            setText(
+                't-winner-heading',
+                t.winner_display_name || t.winner_team_name || T('tournament.winnerDefault')
+            );
             setText('t-winner-sub', t.ended_at ? T('tournament.winnerClosedPrefix') + fmtDate(t.ended_at) : '');
             if (hasRoster && rosterEl) {
                 rosterEl.style.display = 'flex';
@@ -376,7 +401,12 @@
         if (!r || !r.ok) throw new Error('bad');
         return r.json();
     }).then(function (data) {
-        applyTournament(data.tournament);
+        try {
+            applyTournament(data.tournament);
+        } catch (e) {
+            console.error(e);
+            setText('t-hero-desc', T('tournament.renderError'));
+        }
     }).catch(function (reason) {
         if (reason === 'no-slug') return;
         setText('t-hero-title', T('tournament.defaultTitle'));
