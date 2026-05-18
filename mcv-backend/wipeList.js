@@ -61,17 +61,51 @@ async function fetchSteamProfile(steamApiKey, steamId64) {
 
 /** Placeholders importados desde Hexaytron en canal (DISCORD_WIPE_REGISTER_CHANNEL_ID). */
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
+/** Importación manual: panel admin o variable MCV_WIPE_IMPORT_STEAMS. */
+const PASTE_WIPE_DISCORD_PREFIX = "paste:";
+
+function isAutoImportDiscordId(discordUserId) {
+    const id = String(discordUserId || "");
+    return id.startsWith(HEX_WIPE_DISCORD_PREFIX) || id.startsWith(PASTE_WIPE_DISCORD_PREFIX);
+}
+
+function extractSteamIdsFromText(text, max) {
+    const lim = typeof max === "number" && max > 0 ? max : 250;
+    const s = String(text || "");
+    const seen = new Set();
+    const out = [];
+    const re = /\b\d{17}\b/g;
+    let m;
+    while ((m = re.exec(s)) !== null) {
+        if (seen.has(m[0])) {
+            continue;
+        }
+        seen.add(m[0]);
+        out.push(m[0]);
+        if (out.length >= lim) {
+            break;
+        }
+    }
+    return out;
+}
 
 async function upsertMember(pool, { discordUserId, steamId64, discordLabel, steamApiKey }) {
+    if (isAutoImportDiscordId(discordUserId)) {
+        const block = await pool.query(
+            `SELECT 1 FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id NOT LIKE $2 AND discord_user_id NOT LIKE $3 LIMIT 1`,
+            [steamId64, `${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]
+        );
+        if (block.rows.length) {
+            return { persona: steamId64, avatar: "", skipped: true };
+        }
+    }
+    await pool.query(
+        `DELETE FROM wipe_list_members WHERE steam_id64 = $1 AND (discord_user_id LIKE $2 OR discord_user_id LIKE $3)`,
+        [steamId64, `${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]
+    );
     const steam = await fetchSteamProfile(steamApiKey, steamId64);
     const persona = steam?.persona || steamId64;
     const avatar = steam?.avatar || "";
-    if (!String(discordUserId || "").startsWith(HEX_WIPE_DISCORD_PREFIX)) {
-        await pool.query(`DELETE FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id LIKE $2`, [
-            steamId64,
-            `${HEX_WIPE_DISCORD_PREFIX}%`
-        ]);
-    }
     await pool.query(
         `INSERT INTO wipe_list_members (discord_user_id, steam_id64, persona_name, avatar_url, discord_username, updated_at)
      VALUES ($1, $2, $3, $4, $5, NOW())
@@ -116,6 +150,48 @@ function registerWipeListApi(app, { getPool, steamApiKey }) {
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "wipe-list-clear" });
+        }
+    });
+
+    app.post("/api/admin/wipe-list/import", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const text = String(req.body?.text ?? "");
+        const mode = req.body?.mode === "replace_auto" ? "replace_auto" : "merge";
+        const label = String(req.body?.label ?? "").trim() || "Importación panel admin";
+        const ids = extractSteamIdsFromText(text, 250);
+        if (!ids.length) {
+            return res.status(400).json({ error: "Sin SteamID64 de 17 dígitos en el texto" });
+        }
+        try {
+            if (mode === "replace_auto") {
+                await pool.query(
+                    `DELETE FROM wipe_list_members WHERE discord_user_id LIKE $1 OR discord_user_id LIKE $2`,
+                    [`${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]
+                );
+            }
+            let applied = 0;
+            for (const sid of ids) {
+                await upsertMember(pool, {
+                    discordUserId: `${PASTE_WIPE_DISCORD_PREFIX}${sid}`,
+                    steamId64: sid,
+                    discordLabel: label,
+                    steamApiKey
+                });
+                applied += 1;
+            }
+            const r2 = await pool.query(`SELECT COUNT(*)::int AS c FROM wipe_list_members`);
+            return res.json({
+                ok: true,
+                imported: applied,
+                totalMembers: r2.rows[0]?.c ?? 0,
+                mode
+            });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "wipe-list-import" });
         }
     });
 }
@@ -274,8 +350,8 @@ async function upsertWipeFromHexaytronChannel(pool, { steamApiKey, steamId64, bo
         return;
     }
     const taken = await pool.query(
-        `SELECT 1 FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id NOT LIKE $2 LIMIT 1`,
-        [steamId64, `${HEX_WIPE_DISCORD_PREFIX}%`]
+        `SELECT 1 FROM wipe_list_members WHERE steam_id64 = $1 AND discord_user_id NOT LIKE $2 AND discord_user_id NOT LIKE $3 LIMIT 1`,
+        [steamId64, `${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]
     );
     if (taken.rows.length) {
         return;
@@ -290,10 +366,39 @@ async function upsertWipeFromHexaytronChannel(pool, { steamApiKey, steamId64, bo
     });
 }
 
+async function applyEnvWipeSteamImport({ getPool, steamApiKey }) {
+    try {
+        const raw = String(process.env.MCV_WIPE_IMPORT_STEAMS || "").trim();
+        if (!raw) {
+            return;
+        }
+        const pool = getPool();
+        if (!pool) {
+            return;
+        }
+        const ids = extractSteamIdsFromText(raw, 500);
+        if (!ids.length) {
+            return;
+        }
+        for (const sid of ids) {
+            await upsertMember(pool, {
+                discordUserId: `${PASTE_WIPE_DISCORD_PREFIX}${sid}`,
+                steamId64: sid,
+                discordLabel: "MCV_WIPE_IMPORT_STEAMS",
+                steamApiKey
+            });
+        }
+        console.log(`Wipe: ${ids.length} Steam desde variable MCV_WIPE_IMPORT_STEAMS.`);
+    } catch (e) {
+        console.warn("applyEnvWipeSteamImport:", e.message);
+    }
+}
+
 module.exports = {
     registerWipeListApi,
     attachWipeListDiscord,
     attachWipeListMessageHook,
     fetchSteamProfile,
-    upsertWipeFromHexaytronChannel
+    upsertWipeFromHexaytronChannel,
+    applyEnvWipeSteamImport
 };

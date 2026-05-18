@@ -13,7 +13,8 @@ const {
     registerWipeListApi,
     attachWipeListDiscord,
     attachWipeListMessageHook,
-    upsertWipeFromHexaytronChannel
+    upsertWipeFromHexaytronChannel,
+    applyEnvWipeSteamImport
 } = require("./wipeList");
 
 const app = express();
@@ -843,6 +844,9 @@ async function boot() {
     await initDb().catch((e) => {
         console.warn("initDb:", e.message);
     });
+    await applyEnvWipeSteamImport({ getPool, steamApiKey: STEAM_API_KEY }).catch((e) =>
+        console.warn("applyEnvWipeSteamImport:", e.message)
+    );
     app.listen(PORT, () => {
         console.log(`MCV backend en http://localhost:${PORT} (estáticos desde ${ROOT_DIR})`);
     });

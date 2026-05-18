@@ -143,6 +143,14 @@
                 <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
                 <hr class="admin-sep">
                 <p class="admin-form-hint">Lista wipe (jugadores.html): el bot registra con <code>/mcv-wipe</code> en Discord. Servidor privado del clan: invitá el mismo bot MCV y poné <code>DISCORD_WIPE_GUILD_ID</code> con el ID de ese servidor en Render. Opcional: canal con <code>!mcvsteam 76561198…</code> (<code>DISCORD_WIPE_REGISTER_CHANNEL_ID</code>).</p>
+                <label class="admin-form-hint" style="display:block;margin-bottom:6px;">Importar SteamID64 (pegá lista, CSV o texto con links; se detectan todos los de 17 dígitos, máx. 250).</label>
+                <textarea id="wipe-import-text" rows="6" class="admin-json-textarea" spellcheck="false" placeholder="76561198140263334&#10;https://steamcommunity.com/profiles/76561198…"></textarea>
+                <label style="margin-top:10px;display:block;">Etiqueta opcional (columna Discord en la web)<input type="text" id="wipe-import-label" style="width:100%;max-width:420px;margin-top:6px;padding:8px;border-radius:6px;border:1px solid var(--border);background:#050505;color:var(--foreground);" placeholder="Ej. Lista manual wipe"></label>
+                <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                    <button type="button" class="btn-primary-small" id="btn-wipe-import-merge">Importar / fusionar</button>
+                    <button type="button" class="btn-outline" id="btn-wipe-import-replace">Reemplazar solo importaciones auto</button>
+                </div>
+                <p class="admin-form-hint" style="margin-top:10px;">Fusionar: suma o actualiza sin borrar quien ya entró con <code>/mcv-wipe</code>. Reemplazar auto: borra todas las filas <code>wipehx:</code> y <code>paste:</code> y vuelve a cargar solo lo pegado arriba.</p>
                 <button type="button" class="btn-outline" id="btn-wipe-list-clear">Vaciar lista wipe</button>
             </div>
         </div>
@@ -866,6 +874,58 @@
                 .catch(function (e) {
                     if (e) banner(e.message || 'Error', true);
                 });
+        });
+    }
+
+    function postWipeListImport(mode) {
+        var ta = document.getElementById('wipe-import-text');
+        var lb = document.getElementById('wipe-import-label');
+        if (!ta) return;
+        var text = ta.value || '';
+        if (!String(text).trim()) {
+            banner('Pegá al menos un SteamID64 (17 dígitos).', true);
+            return;
+        }
+        banner('Importando lista wipe…', false);
+        fetch(API + '/api/admin/wipe-list/import', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({
+                text: text,
+                mode: mode,
+                label: lb ? String(lb.value || '').trim() : ''
+            })
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
+                banner('Importados: ' + x.d.imported + '. Total en lista: ' + x.d.totalMembers + '.', false);
+            })
+            .catch(function (e) {
+                if (e) banner((e && e.message) ? e.message : 'Error', true);
+            });
+    }
+
+    var btnWipeImportMerge = document.getElementById('btn-wipe-import-merge');
+    if (btnWipeImportMerge) {
+        btnWipeImportMerge.addEventListener('click', function () {
+            postWipeListImport('merge');
+        });
+    }
+    var btnWipeImportReplace = document.getElementById('btn-wipe-import-replace');
+    if (btnWipeImportReplace) {
+        btnWipeImportReplace.addEventListener('click', function () {
+            if (!window.confirm('Se borran todas las filas importadas automáticamente (wipehx / paste) y se cargan solo los Steam del cuadro de arriba. ¿Continuar?')) {
+                return;
+            }
+            postWipeListImport('replace_auto');
         });
     }
 
