@@ -1798,6 +1798,22 @@ body.tournament-page {
     padding: 2px 8px;
     border-radius: 4px;
 }
+.players-hero-split-note {
+    max-width: 38rem;
+    margin: 14px auto 6px;
+    line-height: 1.55;
+    text-align: center;
+}
+.players-hero-split-note strong {
+    color: var(--foreground);
+}
+.players-hero-split-note a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+.players-hero-member {
+    border-color: rgba(250, 166, 26, 0.35);
+}
 .players-hero-details {
     margin: 10px auto 0;
     max-width: 38rem;
