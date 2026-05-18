@@ -50,9 +50,69 @@ function normalizeOptionalUrl(raw) {
 }
 
 function extractSteamId64(text) {
-    const d = String(text || "").replace(/\D/g, "");
+    const s = String(text || "").trim();
+    if (!s) {
+        return null;
+    }
+    // Prefer el bloque típico SteamID64 (7656119 + 10 dígitos) dentro de URLs o texto.
+    const std = s.match(/\b7656119[0-9]{10}\b/);
+    if (std) {
+        return std[0];
+    }
+    const d = s.replace(/\D/g, "");
     if (d.length === 17) {
         return d;
+    }
+    if (d.length > 17) {
+        let pos = 0;
+        while ((pos = d.indexOf("7656119", pos)) !== -1) {
+            const slice = d.slice(pos, pos + 17);
+            if (slice.length === 17 && /^7656119\d{10}$/.test(slice)) {
+                return slice;
+            }
+            pos += 1;
+        }
+    }
+    return null;
+}
+
+/**
+ * Resuelve SteamID64 desde texto, URL /profiles/765…, /profile/765… o /id/vanity con Steam API.
+ */
+async function resolveSteamId64FromInput(raw, steamApiKey) {
+    const direct = extractSteamId64(raw);
+    if (direct) {
+        return direct;
+    }
+    const s = String(raw || "").trim();
+    if (!steamApiKey || !s) {
+        return null;
+    }
+    try {
+        const urlStr = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+        const u = new URL(urlStr);
+        const host = u.hostname.toLowerCase();
+        if (host !== "steamcommunity.com" && host !== "www.steamcommunity.com") {
+            return null;
+        }
+        const parts = u.pathname.split("/").filter(Boolean);
+        const idIdx = parts.indexOf("id");
+        if (idIdx >= 0 && parts[idIdx + 1]) {
+            const vanity = String(parts[idIdx + 1]).split("?")[0].replace(/\/$/, "");
+            if (!vanity || vanity.length > 64 || /^\d+$/.test(vanity)) {
+                return null;
+            }
+            const { data } = await axios.get("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/", {
+                params: { key: steamApiKey, vanityurl: vanity, url_type: 1 },
+                timeout: 12000
+            });
+            const sid = data?.response?.steamid;
+            if (sid && String(sid).replace(/\D/g, "").length === 17) {
+                return String(sid).replace(/\D/g, "").slice(0, 17);
+            }
+        }
+    } catch (e) {
+        console.warn("resolveSteamId64FromInput:", e.message);
     }
     return null;
 }
@@ -122,7 +182,10 @@ function registerTeamRosterApi(app, { getPool, steamApiKey }) {
         const roleLabel = String(req.body?.role_label ?? "").trim();
         const roleFinal = roleLabel.length > 120 ? roleLabel.slice(0, 120) : roleLabel || null;
 
-        const steamId64 = extractSteamId64(req.body?.steam_id64 ?? req.body?.steam ?? "");
+        const steamId64 = await resolveSteamId64FromInput(
+            req.body?.steam_id64 ?? req.body?.steam ?? "",
+            steamApiKey
+        );
         const twitchUrl = normalizeOptionalUrl(req.body?.twitch_url);
         const kickUrl = normalizeOptionalUrl(req.body?.kick_url);
         const xUrl = normalizeOptionalUrl(req.body?.x_url ?? req.body?.twitter_url);
@@ -134,7 +197,7 @@ function registerTeamRosterApi(app, { getPool, steamApiKey }) {
         if (requireWipe) {
             if (!steamId64) {
                 return res.status(400).json({
-                    error: "SteamID64 obligatorio: tiene que ser el mismo Steam que vinculaste al wipe con /mcv-wipe."
+                    error: "SteamID64 obligatorio: pegá los 17 dígitos o un link de perfil (…/profiles/765… o …/profile/765…). Con URL /id/tu_nick hace falta STEAM_API_KEY en el servidor."
                 });
             }
             const onWipe = await pool.query(
@@ -143,7 +206,8 @@ function registerTeamRosterApi(app, { getPool, steamApiKey }) {
             );
             if (!onWipe.rows.length) {
                 return res.status(403).json({
-                    error: "Ese Steam no está en el roster del wipe. Primero usá /mcv-wipe en Discord (o pedile al staff que te agreguen en admin → Lista wipe)."
+                    error:
+                        "Ese Steam no figura en la lista del wipe en el servidor. Suele pasar si vaciaron «Lista wipe» en admin: volvé a usar /mcv-wipe en Discord con este mismo Steam, o pedí al staff que importen tu SteamID64. Verificá que sea el mismo perfil que vinculaste al bot."
                 });
             }
         } else {

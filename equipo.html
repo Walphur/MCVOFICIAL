@@ -66,7 +66,7 @@
                         </label>
                         <label class="equipo-field span-2">
                             <span data-i18n="team.fieldSteamWipe">SteamID64 del wipe *</span>
-                            <input name="steam_id64" required inputmode="numeric" data-i18n-placeholder="team.phSteamWipe" placeholder="El mismo 17 dígitos que con /mcv-wipe">
+                            <input name="steam_id64" required inputmode="text" data-i18n-placeholder="team.phSteamWipe" placeholder="76561198… o link …/profiles/765…">
                         </label>
                         <label class="equipo-field">
                             <span>Twitch</span>
@@ -111,7 +111,7 @@
     </div>
 </footer>
 
-<script src="mcv-i18n.js?v=8"></script>
+<script src="mcv-i18n.js?v=9"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
