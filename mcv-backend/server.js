@@ -16,6 +16,7 @@ const {
     upsertWipeFromHexaytronChannel,
     applyEnvWipeSteamImport
 } = require("./wipeList");
+const { registerTeamRosterApi } = require("./teamRoster");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -134,6 +135,11 @@ registerTournamentApi(app, {
 });
 
 registerWipeListApi(app, {
+    getPool,
+    steamApiKey: STEAM_API_KEY
+});
+
+registerTeamRosterApi(app, {
     getPool,
     steamApiKey: STEAM_API_KEY
 });

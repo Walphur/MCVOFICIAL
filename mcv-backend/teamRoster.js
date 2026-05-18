@@ -1,0 +1,258 @@
+"use strict";
+
+const axios = require("axios");
+const jwt = require("jsonwebtoken");
+
+function jwtSecret() {
+    const s = String(process.env.JWT_SECRET || "").trim();
+    if (!s || s.length < 12) {
+        return null;
+    }
+    return s;
+}
+
+function authAdmin(req, res, next) {
+    const secret = jwtSecret();
+    if (!secret) {
+        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
+    }
+    const h = req.headers.authorization;
+    if (!h || !h.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "No autorizado" });
+    }
+    try {
+        const decoded = jwt.verify(h.slice(7), secret);
+        if (!decoded || decoded.role !== "admin") {
+            return res.status(403).json({ error: "Prohibido" });
+        }
+        next();
+    } catch {
+        return res.status(401).json({ error: "Token inválido o expirado" });
+    }
+}
+
+function normalizeOptionalUrl(raw) {
+    const s = String(raw == null ? "" : raw).trim();
+    if (!s) {
+        return null;
+    }
+    if (s.length > 512) {
+        return null;
+    }
+    const lower = s.toLowerCase();
+    if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+        return null;
+    }
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        return null;
+    }
+    return s;
+}
+
+function extractSteamId64(text) {
+    const d = String(text || "").replace(/\D/g, "");
+    if (d.length === 17) {
+        return d;
+    }
+    return null;
+}
+
+async function fetchSteamProfile(steamApiKey, steamId64) {
+    if (!steamApiKey || !steamId64) {
+        return null;
+    }
+    try {
+        const { data } = await axios.get(
+            "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/",
+            {
+                params: { key: steamApiKey, steamids: steamId64 },
+                timeout: 12000
+            }
+        );
+        const p = data?.response?.players?.[0];
+        if (!p) {
+            return null;
+        }
+        return {
+            persona: p.personaname || steamId64,
+            avatar: p.avatarfull || p.avatarmedium || p.avatar || ""
+        };
+    } catch (e) {
+        console.warn("teamRoster fetchSteamProfile:", e.message);
+        return null;
+    }
+}
+
+function registerTeamRosterApi(app, { getPool, steamApiKey }) {
+    app.get("/api/team-roster", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT id, display_name, role_label, steam_id64,
+            twitch_url, kick_url, x_url, instagram_url, youtube_url, tiktok_url,
+            persona_name, avatar_url
+         FROM team_roster_submissions
+         WHERE status = 'approved'
+         ORDER BY LOWER(display_name) ASC, id ASC`
+            );
+            return res.json({ members: r.rows });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "team-roster" });
+        }
+    });
+
+    app.post("/api/team-roster/submit", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const displayName = String(req.body?.display_name ?? "").trim();
+        if (!displayName || displayName.length > 120) {
+            return res.status(400).json({ error: "Nombre visible obligatorio (máx. 120 caracteres)" });
+        }
+        const roleLabel = String(req.body?.role_label ?? "").trim();
+        const roleFinal = roleLabel.length > 120 ? roleLabel.slice(0, 120) : roleLabel || null;
+
+        const steamId64 = extractSteamId64(req.body?.steam_id64 ?? req.body?.steam ?? "");
+        const twitchUrl = normalizeOptionalUrl(req.body?.twitch_url);
+        const kickUrl = normalizeOptionalUrl(req.body?.kick_url);
+        const xUrl = normalizeOptionalUrl(req.body?.x_url ?? req.body?.twitter_url);
+        const instagramUrl = normalizeOptionalUrl(req.body?.instagram_url);
+        const youtubeUrl = normalizeOptionalUrl(req.body?.youtube_url);
+        const tiktokUrl = normalizeOptionalUrl(req.body?.tiktok_url);
+
+        const hasAnyLink = Boolean(
+            twitchUrl || kickUrl || xUrl || instagramUrl || youtubeUrl || tiktokUrl
+        );
+        if (!steamId64 && !hasAnyLink) {
+            return res.status(400).json({
+                error: "Indicá al menos tu SteamID64 o un link de red social"
+            });
+        }
+
+        let personaName = null;
+        let avatarUrl = null;
+        if (steamId64 && steamApiKey) {
+            const sp = await fetchSteamProfile(steamApiKey, steamId64);
+            if (sp) {
+                personaName = sp.persona;
+                avatarUrl = sp.avatar || null;
+            }
+        }
+
+        try {
+            const ins = await pool.query(
+                `INSERT INTO team_roster_submissions (
+            display_name, role_label, steam_id64,
+            twitch_url, kick_url, x_url, instagram_url, youtube_url, tiktok_url,
+            persona_name, avatar_url, status, updated_at
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending', NOW())
+          RETURNING id, status, created_at`,
+                [
+                    displayName,
+                    roleFinal,
+                    steamId64,
+                    twitchUrl,
+                    kickUrl,
+                    xUrl,
+                    instagramUrl,
+                    youtubeUrl,
+                    tiktokUrl,
+                    personaName,
+                    avatarUrl
+                ]
+            );
+            const row = ins.rows[0];
+            return res.status(201).json({
+                ok: true,
+                id: row.id,
+                status: row.status,
+                created_at: row.created_at
+            });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "team-roster-submit" });
+        }
+    });
+
+    app.get("/api/admin/team-roster/submissions", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT id, display_name, role_label, steam_id64,
+            twitch_url, kick_url, x_url, instagram_url, youtube_url, tiktok_url,
+            persona_name, avatar_url, status, created_at, updated_at
+         FROM team_roster_submissions
+         ORDER BY
+           CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
+           created_at DESC
+         LIMIT 500`
+            );
+            return res.json({ submissions: r.rows });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "team-roster-admin-list" });
+        }
+    });
+
+    app.patch("/api/admin/team-roster/submissions/:id", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id) || id < 1) {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+        const st = String(req.body?.status ?? "").trim().toLowerCase();
+        if (st !== "approved" && st !== "rejected" && st !== "pending") {
+            return res.status(400).json({ error: "status debe ser pending, approved o rejected" });
+        }
+        try {
+            const r = await pool.query(
+                `UPDATE team_roster_submissions
+         SET status = $1, updated_at = NOW()
+         WHERE id = $2
+         RETURNING *`,
+                [st, id]
+            );
+            if (!r.rows.length) {
+                return res.status(404).json({ error: "No encontrado" });
+            }
+            return res.json({ ok: true, submission: r.rows[0] });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "team-roster-admin-patch" });
+        }
+    });
+
+    app.delete("/api/admin/team-roster/submissions/:id", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id) || id < 1) {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+        try {
+            const r = await pool.query(`DELETE FROM team_roster_submissions WHERE id = $1 RETURNING id`, [id]);
+            if (!r.rows.length) {
+                return res.status(404).json({ error: "No encontrado" });
+            }
+            return res.json({ ok: true, deleted: id });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "team-roster-admin-delete" });
+        }
+    });
+}
+
+module.exports = { registerTeamRosterApi };

@@ -45,6 +45,7 @@
             <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">🏆 Torneos</span></button>
             <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true"><span data-i18n="admin.tabTeams">👑 Equipos</span></button>
             <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">⚔️ Bracket</span></button>
+            <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><span data-i18n="admin.tabTeamWeb">🌐 Perfiles equipo</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
@@ -220,11 +221,19 @@
                 <p class="empty-hint" data-i18n="admin.emptyBracket">Sin datos de bracket.</p>
             </div>
         </div>
+
+        <div id="team-web-panel" class="admin-panel-anchor" style="display:none;">
+            <div class="data-area">
+                <h3 class="admin-form-title" data-i18n="admin.teamWebTitle">Solicitudes equipo (equipo.html)</h3>
+                <p class="admin-form-hint" data-i18n="admin.teamWebHint">Los envíos desde la web quedan en pendiente hasta que apruebes o rechaces.</p>
+                <div id="team-web-list"><p class="empty-hint" data-i18n="admin.emptyLoading">Cargando…</p></div>
+            </div>
+        </div>
     </main>
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=2"></script>
+<script src="mcv-i18n.js?v=6"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -252,6 +261,8 @@
             'Authorization': 'Bearer ' + token
         };
     }
+
+    var T = typeof mcvT === 'function' ? mcvT : function (k) { return k; };
 
     function esc(s) {
         if (s == null) return '';
@@ -956,6 +967,111 @@
         });
     }
 
+    function loadTeamWebRoster() {
+        var box = document.getElementById('team-web-list');
+        if (!box) return;
+        box.innerHTML = '<p class="empty-hint">' + esc(T('admin.emptyLoading')) + '</p>';
+        fetch(API + '/api/admin/team-roster/submissions', { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x || !x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                var rows = x.d.submissions || [];
+                if (!rows.length) {
+                    box.innerHTML = '<p class="empty-hint">' + esc(T('admin.teamWebEmpty')) + '</p>';
+                    return;
+                }
+                var html = '<table class="admin-table"><thead><tr>';
+                html += '<th>' + esc(T('admin.teamWebColId')) + '</th>';
+                html += '<th>' + esc(T('admin.teamWebColName')) + '</th>';
+                html += '<th>' + esc(T('admin.teamWebColSteam')) + '</th>';
+                html += '<th>' + esc(T('admin.teamWebColStatus')) + '</th>';
+                html += '<th>' + esc(T('admin.teamWebColDate')) + '</th>';
+                html += '<th>' + esc(T('admin.teamWebColActions')) + '</th></tr></thead><tbody>';
+                rows.forEach(function (s) {
+                    html += '<tr><td>' + esc(s.id) + '</td>';
+                    html += '<td>' + esc(s.display_name) + (s.role_label ? ' <small>(' + esc(s.role_label) + ')</small>' : '') + '</td>';
+                    html += '<td>' + esc(s.steam_id64 || '—') + '</td>';
+                    html += '<td><span class="pill">' + esc(s.status) + '</span></td>';
+                    html += '<td>' + esc(String(s.created_at).slice(0, 16)) + '</td>';
+                    html += '<td class="row-actions">';
+                    if (s.status !== 'approved') {
+                        html += '<button type="button" class="btn-tiny" data-team-act="approve" data-team-id="' + esc(s.id) + '">' + esc(T('admin.teamWebApprove')) + '</button> ';
+                    }
+                    if (s.status !== 'rejected') {
+                        html += '<button type="button" class="btn-tiny danger" data-team-act="reject" data-team-id="' + esc(s.id) + '">' + esc(T('admin.teamWebReject')) + '</button> ';
+                    }
+                    html += '<button type="button" class="btn-tiny danger" data-team-act="delete" data-team-id="' + esc(s.id) + '">' + esc(T('admin.teamWebDelete')) + '</button>';
+                    html += '</td></tr>';
+                });
+                html += '</tbody></table>';
+                box.innerHTML = html;
+                box.querySelectorAll('button[data-team-act]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var id = Number(btn.getAttribute('data-team-id'));
+                        var act = btn.getAttribute('data-team-act');
+                        if (act === 'delete') {
+                            if (!window.confirm('¿Borrar esta fila de la base?')) return;
+                            banner('Borrando…', false);
+                            fetch(API + '/api/admin/team-roster/submissions/' + id, {
+                                method: 'DELETE',
+                                headers: authHeaders()
+                            })
+                                .then(function (r) {
+                                    if (r.status === 401) {
+                                        clearAdminSession();
+                                        window.location.href = 'login.html?expired=1';
+                                        return Promise.reject();
+                                    }
+                                    return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                                })
+                                .then(function (x2) {
+                                    if (!x2.ok) throw new Error((x2.d && x2.d.error) ? x2.d.error : 'err');
+                                    banner(T('admin.teamWebUpdated'), false);
+                                    loadTeamWebRoster();
+                                })
+                                .catch(function (e) {
+                                    banner((e && e.message) ? e.message : 'Error', true);
+                                });
+                            return;
+                        }
+                        var st = act === 'approve' ? 'approved' : 'rejected';
+                        banner('Actualizando…', false);
+                        fetch(API + '/api/admin/team-roster/submissions/' + id, {
+                            method: 'PATCH',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ status: st })
+                        })
+                            .then(function (r) {
+                                if (r.status === 401) {
+                                    clearAdminSession();
+                                    window.location.href = 'login.html?expired=1';
+                                    return Promise.reject();
+                                }
+                                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                            })
+                            .then(function (x2) {
+                                if (!x2.ok) throw new Error((x2.d && x2.d.error) ? x2.d.error : 'err');
+                                banner(T('admin.teamWebUpdated'), false);
+                                loadTeamWebRoster();
+                            })
+                            .catch(function (e) {
+                                banner((e && e.message) ? e.message : 'Error', true);
+                            });
+                    });
+                });
+            })
+            .catch(function () {
+                box.innerHTML = '<p class="empty-hint" style="color:#f87171;">' + esc(T('admin.teamWebLoadErr')) + '</p>';
+            });
+    }
+
     document.querySelectorAll('.tab').forEach(function (t) {
         t.addEventListener('click', function () {
             document.querySelectorAll('.tab').forEach(function (x) {
@@ -967,6 +1083,13 @@
             state.tab = t.getAttribute('data-tab');
             document.getElementById('teams-panel').style.display = state.tab === 'teams' ? 'block' : 'none';
             document.getElementById('bracket-panel').style.display = state.tab === 'bracket' ? 'block' : 'none';
+            var twp = document.getElementById('team-web-panel');
+            if (twp) {
+                twp.style.display = state.tab === 'teamweb' ? 'block' : 'none';
+                if (state.tab === 'teamweb') {
+                    loadTeamWebRoster();
+                }
+            }
             var tp = document.getElementById('tournaments-panel');
             if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
             if (state.tab === 'bracket') loadBracketView();

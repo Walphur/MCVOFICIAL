@@ -175,3 +175,30 @@ CREATE TABLE IF NOT EXISTS wipe_list_members (
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_wipe_list_steam ON wipe_list_members (steam_id64);
+
+-- split
+-- Perfiles públicos equipo (equipo.html): formulario → pending → admin aprueba
+CREATE TABLE IF NOT EXISTS team_roster_submissions (
+    id SERIAL PRIMARY KEY,
+    display_name VARCHAR(120) NOT NULL,
+    role_label VARCHAR(120),
+    steam_id64 VARCHAR(17),
+    twitch_url TEXT,
+    kick_url TEXT,
+    x_url TEXT,
+    instagram_url TEXT,
+    youtube_url TEXT,
+    tiktok_url TEXT,
+    persona_name TEXT,
+    avatar_url TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_team_roster_status ON team_roster_submissions (status);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_team_roster_created ON team_roster_submissions (created_at DESC);
