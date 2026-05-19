@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="stylesheet" href="style.css?v=25">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -193,10 +193,16 @@
 
     <p id="t-reg-closed" class="t-reg-closed" style="display:none;" data-i18n-html="tournament.regClosedHtml">Las inscripciones para este torneo están cerradas. Seguinos en <a href="events.html">Torneos</a> o en Discord.</p>
 
+    <div id="t-reg-success" class="t-reg-success" hidden role="status">
+        <p><strong data-i18n="tournament.regSuccessTitle">¡Registro enviado!</strong></p>
+        <p id="t-reg-success-detail" data-i18n="tournament.regSuccessDetail">Tu equipo quedó pendiente de aprobación. Te avisamos por Discord.</p>
+        <p class="t-reg-success-id"><span data-i18n="tournament.regSuccessIdLabel">Nº de registro:</span> <strong id="t-reg-success-num">—</strong></p>
+    </div>
+
     <form class="squad-form" action="#" method="POST" id="t-squad-form">
         <div class="form-row team-row">
             <div class="input-group"><label><i data-lucide="hash"></i> Team name</label><input name="teamName" type="text" placeholder="e.g. Rust Lords" required autocomplete="organization"></div>
-            <div class="input-group"><label><i data-lucide="hash"></i> Team tag</label><input name="teamTag" type="text" placeholder="RL" required maxlength="12"></div>
+            <div class="input-group"><label><i data-lucide="hash"></i> Team tag <span class="label-optional">(opcional)</span></label><input name="teamTag" type="text" placeholder="RL" maxlength="12"></div>
             <div class="input-group"><label class="highlight-label"><i data-lucide="crown"></i> Captain</label><input name="captainName" type="text" placeholder="Captain name" required autocomplete="name"></div>
         </div>
 
@@ -226,7 +232,7 @@
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=5"></script>
+<script src="mcv-i18n.js?v=22"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -257,6 +263,15 @@
         } catch (e) {
             return '—';
         }
+    }
+
+    function isRegistrationOpen(t) {
+        if (!t || t.status !== 'open') return false;
+        if (t.registration_closes_at) {
+            var ms = new Date(t.registration_closes_at).getTime();
+            if (!Number.isNaN(ms) && Date.now() > ms) return false;
+        }
+        return true;
     }
 
     /** Alineado con el backend: /uploads/… del API, //host, host sin esquema; rechaza data:/javascript: */
@@ -363,7 +378,10 @@
         var closedMsg = document.getElementById('t-reg-closed');
         var rulesCard = document.getElementById('t-rules-card');
 
-        if (t.status === 'open') {
+        var regSuccess = document.getElementById('t-reg-success');
+        if (regSuccess) regSuccess.hidden = true;
+
+        if (isRegistrationOpen(t)) {
             st.style.display = 'none';
             regBtn.style.display = '';
             form.style.display = '';
@@ -376,6 +394,10 @@
             closedMsg.removeAttribute('data-i18n-html');
             if (t.status === 'draft') {
                 closedMsg.innerHTML = tpl('tournament.regDraftHtml');
+            } else if (t.status === 'open' && t.registration_closes_at) {
+                closedMsg.innerHTML = tpl('tournament.regExpiredHtml', {
+                    date: fmtDate(t.registration_closes_at)
+                });
             } else {
                 closedMsg.setAttribute('data-i18n-html', 'tournament.regClosedHtml');
                 closedMsg.innerHTML = tpl('tournament.regClosedHtml');
@@ -612,7 +634,7 @@
     var squadForm = document.getElementById('t-squad-form');
     if (squadForm) squadForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        if (!resolvedSlug || !tournament || tournament.status !== 'open') {
+        if (!resolvedSlug || !tournament || !isRegistrationOpen(tournament)) {
             alert(T('tournament.alertNoRegister'));
             return;
         }
@@ -650,7 +672,23 @@
                     alert(x.d.error || T('tournament.alertRegisterFail'));
                     return;
                 }
-                if (x.d.bansCheckSkipped) {
+                var successBox = document.getElementById('t-reg-success');
+                var successNum = document.getElementById('t-reg-success-num');
+                var detail = document.getElementById('t-reg-success-detail');
+                if (successBox && successNum) {
+                    form.style.display = 'none';
+                    closedMsg.style.display = 'none';
+                    successBox.hidden = false;
+                    if (x.d.registration && x.d.registration.id != null) {
+                        successNum.textContent = String(x.d.registration.id);
+                    }
+                    if (detail) {
+                        detail.textContent = x.d.bansCheckSkipped
+                            ? T('tournament.regSuccessDetailNoSteam')
+                            : T('tournament.regSuccessDetail');
+                    }
+                    successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else if (x.d.bansCheckSkipped) {
                     alert(T('tournament.alertNoSteamKey'));
                 } else {
                     alert(T('tournament.alertRegisterOk'));

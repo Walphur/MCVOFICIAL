@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=24">
+    <link rel="stylesheet" href="style.css?v=25">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -82,7 +82,7 @@
     </div>
 </main>
 
-<script src="mcv-i18n.js?v=21"></script>
+<script src="mcv-i18n.js?v=22"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -153,15 +153,43 @@
     }
 
 
+    function isRegOpen(t) {
+        if (!t || t.status !== 'open') return false;
+        if (t.registration_closes_at) {
+            var ms = new Date(t.registration_closes_at).getTime();
+            if (!Number.isNaN(ms) && Date.now() > ms) return false;
+        }
+        return true;
+    }
+
     function card(t, isPast) {
         var winner = t.winner_display_name || t.winner_team_name || '';
         var poster = cardPosterHtml(t.poster_url);
+        var open = isRegOpen(t);
         var badge = isPast
             ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>'
-            : t.status === 'draft'
-              ? '<span class="events-badge events-badge-draft">' + esc(T('events.badgeDraft')) + '</span>'
-              : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
-        var link = '<a class="events-card-link" href="tournament.html?slug=' + encodeURIComponent(t.slug) + '">' + esc(T('events.cardDetail')) + '</a>';
+            : open
+              ? '<span class="events-badge events-badge-open">' + esc(T('events.badgeOpen')) + '</span>'
+              : t.status === 'draft'
+                ? '<span class="events-badge events-badge-draft">' + esc(T('events.badgeDraft')) + '</span>'
+                : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
+        var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
+        var actions =
+            '<div class="events-card-actions">' +
+            '<a class="events-card-link" href="' +
+            esc(slugQ) +
+            '">' +
+            esc(T('events.cardDetail')) +
+            '</a>';
+        if (open) {
+            actions +=
+                '<a class="events-card-register btn-primary" href="' +
+                esc(slugQ + '#register') +
+                '">' +
+                esc(T('events.cardRegister')) +
+                '</a>';
+        }
+        actions += '</div>';
         var champPrefix = T('events.championPrefix');
         return (
             '<article class="events-card">' + poster +
@@ -170,7 +198,7 @@
             '<p class="events-card-meta">' + esc(t.format_label || '') + ' · ' + esc(t.match_day_display || '') + '</p>' +
             (t.prize_pool_text ? '<p class="events-card-prize">' + esc(t.prize_pool_text) + '</p>' : '') +
             (isPast && winner ? '<p class="events-card-winner">' + esc(champPrefix) + '<strong>' + esc(winner) + '</strong></p>' : '') +
-            link + '</div></article>'
+            actions + '</div></article>'
         );
     }
 
@@ -205,7 +233,9 @@
         if (d.tournament && d.tournament.slug) {
             heroSlugFromFeatured = true;
             if (heroFeatured) {
-                heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
+                var heroHref = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
+                if (isRegOpen(d.tournament)) heroHref += '#register';
+                heroFeatured.href = heroHref;
             }
         }
         if (

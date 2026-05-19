@@ -1667,6 +1667,24 @@ body.tournament-page {
 .events-badge-live { border: 1px solid rgba(74, 222, 128, 0.45); color: #4ADE80; }
 .events-badge-draft { border: 1px solid rgba(250, 166, 26, 0.45); color: var(--primary); }
 .events-badge-past { border: 1px solid var(--border); color: var(--muted); }
+.events-badge-open {
+    border: 1px solid rgba(250, 166, 26, 0.55);
+    color: var(--primary);
+    background: rgba(250, 166, 26, 0.08);
+}
+.events-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin-top: 12px;
+}
+.events-card-register {
+    text-decoration: none !important;
+    font-size: 0.82rem;
+    padding: 8px 14px;
+    letter-spacing: 0.06em;
+}
 
 .events-empty {
     color: var(--muted);
@@ -1982,6 +2000,29 @@ body.tournament-page {
     background: rgba(0, 0, 0, 0.35);
 }
 .t-reg-closed a { color: var(--primary); }
+
+.t-reg-success {
+    margin: 0 0 24px;
+    padding: 18px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(74, 222, 128, 0.45);
+    background: rgba(74, 222, 128, 0.08);
+}
+.t-reg-success[hidden] { display: none !important; }
+.t-reg-success p { margin: 0 0 8px; color: var(--foreground); }
+.t-reg-success-id {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.t-reg-success-id strong { color: var(--primary); }
+.label-optional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-transform: none;
+    letter-spacing: 0;
+}
 
 /* Home — torneo destacado bajo CTAs */
 .home-event-strip {

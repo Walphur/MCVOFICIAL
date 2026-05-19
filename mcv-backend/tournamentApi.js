@@ -379,7 +379,7 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         try {
             const r = await pool.query(
                 `SELECT t.slug, t.title, t.status, t.starts_at, t.ended_at, t.format_label, t.prize_pool_text,
-            t.poster_url, t.winner_registration_id, t.winner_override_name,
+            t.registration_closes_at, t.poster_url, t.winner_registration_id, t.winner_override_name,
             (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
             COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name
            FROM tournaments t
@@ -468,17 +468,25 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         try {
             await client.query("BEGIN");
             const tr = await client.query(
-                "SELECT id, max_teams, status FROM tournaments WHERE slug = $1 FOR UPDATE",
+                "SELECT id, max_teams, status, registration_closes_at FROM tournaments WHERE slug = $1 FOR UPDATE",
                 [slug]
             );
             if (tr.rows.length === 0) {
                 await client.query("ROLLBACK");
                 return res.status(404).json({ error: "Torneo no encontrado" });
             }
-            const { id: tournamentId, max_teams: maxTeams, status } = tr.rows[0];
+            const { id: tournamentId, max_teams: maxTeams, status, registration_closes_at: regCloses } =
+                tr.rows[0];
             if (status !== "open") {
                 await client.query("ROLLBACK");
                 return res.status(400).json({ error: "El torneo no acepta registros (solo estado abierto)" });
+            }
+            if (regCloses) {
+                const closeMs = new Date(regCloses).getTime();
+                if (!Number.isNaN(closeMs) && Date.now() > closeMs) {
+                    await client.query("ROLLBACK");
+                    return res.status(400).json({ error: "Las inscripciones ya cerraron" });
+                }
             }
 
             const cnt = await client.query(
