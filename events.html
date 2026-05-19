@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=7">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -117,9 +117,143 @@
         return m ? ('https://imgur.com/a/' + m[1] + '/embed?pub=true') : '';
     }
 
+    function isImgurAlbumUrl(u) {
+        return /imgur\.com\/(a|gallery)\//i.test(String(u || ''));
+    }
+
+    function normalizePosterAbs(u) {
+        var s = String(u == null ? '' : u).trim();
+        if (!s) return '';
+        if (s.charAt(0) === '/' && s.indexOf('//') !== 0) {
+            if (s.indexOf('..') !== -1) return '';
+            if (/^\/uploads\/tournaments\//i.test(s)) {
+                return API.replace(/\/$/, '') + s;
+            }
+        }
+        return s;
+    }
+
+    function cardPosterHtml(posterUrl) {
+        if (!posterUrl) return '';
+        var abs = normalizePosterAbs(posterUrl);
+        if (!abs) return '';
+        if (isImgurAlbumUrl(abs)) {
+            return (
+                '<div class="events-card-poster events-card-poster--hydrate" data-imgur="' +
+                esc(abs) +
+                '"><img src="" alt="" loading="lazy" referrerpolicy="no-referrer"></div>'
+            );
+        }
+        return (
+            '<div class="events-card-poster"><img src="' +
+            esc(abs) +
+            '" alt="" loading="lazy" referrerpolicy="no-referrer"></div>'
+        );
+    }
+
+    function hydrateImgurAlbumPosters(root) {
+        if (!root || !API) return;
+        var nodes = root.querySelectorAll('.events-card-poster--hydrate[data-imgur]');
+        for (var i = 0; i < nodes.length; i++) {
+            (function (wrap) {
+                var u = wrap.getAttribute('data-imgur');
+                if (!u) return;
+                fetch(API + '/api/public/imgur-album-cover?url=' + encodeURIComponent(u))
+                    .then(function (r) {
+                        return r.json().then(function (d) {
+                            return { ok: r.ok, d: d };
+                        });
+                    })
+                    .then(function (x) {
+                        if (!x.ok || !x.d || !x.d.directUrl) return;
+                        var img = wrap.querySelector('img');
+                        if (img) img.src = x.d.directUrl;
+                    })
+                    .catch(function () {});
+            })(nodes[i]);
+        }
+    }
+
+    function applyFeaturedPoster(posterUrl) {
+        var pw = document.getElementById('events-featured-poster-wrap');
+        var pi = document.getElementById('events-featured-poster');
+        var pEmb = document.getElementById('events-featured-poster-embed');
+        if (!pw || !pi) return;
+        if (!posterUrl) {
+            pw.hidden = true;
+            pi.removeAttribute('src');
+            if (pEmb) {
+                pEmb.hidden = true;
+                pEmb.removeAttribute('src');
+            }
+            return;
+        }
+        var abs = normalizePosterAbs(posterUrl);
+        if (isImgurAlbumUrl(abs)) {
+            fetch(API + '/api/public/imgur-album-cover?url=' + encodeURIComponent(abs))
+                .then(function (r) {
+                    return r.json().then(function (d) {
+                        return { ok: r.ok, d: d };
+                    });
+                })
+                .then(function (x) {
+                    if (x.ok && x.d && x.d.directUrl) {
+                        if (pEmb) {
+                            pEmb.hidden = true;
+                            pEmb.removeAttribute('src');
+                        }
+                        pi.hidden = false;
+                        pi.src = x.d.directUrl;
+                        pw.hidden = false;
+                        return;
+                    }
+                    var emb = imgurAlbumEmbedFromPosterUrl(abs);
+                    if (emb && pEmb) {
+                        pi.removeAttribute('src');
+                        pi.hidden = true;
+                        pEmb.hidden = false;
+                        pEmb.src = emb;
+                    } else {
+                        if (pEmb) {
+                            pEmb.hidden = true;
+                            pEmb.removeAttribute('src');
+                        }
+                        pi.hidden = false;
+                        pi.src = abs;
+                    }
+                    pw.hidden = false;
+                })
+                .catch(function () {
+                    var emb = imgurAlbumEmbedFromPosterUrl(abs);
+                    if (emb && pEmb) {
+                        pi.removeAttribute('src');
+                        pi.hidden = true;
+                        pEmb.hidden = false;
+                        pEmb.src = emb;
+                    } else {
+                        if (pEmb) {
+                            pEmb.hidden = true;
+                            pEmb.removeAttribute('src');
+                        }
+                        pi.hidden = false;
+                        pi.src = abs;
+                    }
+                    pw.hidden = false;
+                });
+            return;
+        }
+        if (pEmb) {
+            pEmb.hidden = true;
+            pEmb.removeAttribute('src');
+        }
+        pi.hidden = false;
+        pi.src = abs;
+        pw.hidden = false;
+    }
+
     function card(t, isPast) {
         var winner = t.winner_display_name || t.winner_team_name || '';
-        var poster = t.poster_url ? '<div class="events-card-poster"><img src="' + esc(t.poster_url) + '" alt=""></div>' : '';
+        var poster = cardPosterHtml(t.poster_url);
         var badge = isPast
             ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>'
             : t.status === 'draft'
@@ -188,33 +322,7 @@
             document.getElementById('events-featured-meta').textContent = meta.join(' · ');
             document.getElementById('events-featured-link').href =
                 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug || '');
-            var pw = document.getElementById('events-featured-poster-wrap');
-            var pi = document.getElementById('events-featured-poster');
-            var pEmb = document.getElementById('events-featured-poster-embed');
-            if (d.tournament.poster_url && pw && pi) {
-                var emb = imgurAlbumEmbedFromPosterUrl(d.tournament.poster_url);
-                if (emb && pEmb) {
-                    pi.removeAttribute('src');
-                    pi.hidden = true;
-                    pEmb.hidden = false;
-                    pEmb.src = emb;
-                } else {
-                    if (pEmb) {
-                        pEmb.hidden = true;
-                        pEmb.removeAttribute('src');
-                    }
-                    pi.hidden = false;
-                    pi.src = d.tournament.poster_url;
-                }
-                pw.hidden = false;
-            } else if (pw) {
-                pw.hidden = true;
-                if (pi) pi.removeAttribute('src');
-                if (pEmb) {
-                    pEmb.removeAttribute('src');
-                    pEmb.hidden = true;
-                }
-            }
+            applyFeaturedPoster(d.tournament.poster_url);
             var stTeams = document.getElementById('stat-teams');
             if (
                 stTeams &&
@@ -225,6 +333,10 @@
                 stTeams.textContent =
                     String(d.tournament.display_slots_num) + '/' + String(d.tournament.display_slots_max);
             }
+        } else {
+            var fe0 = document.getElementById('events-featured');
+            if (fe0) fe0.hidden = true;
+            applyFeaturedPoster(null);
         }
     });
 
@@ -243,11 +355,13 @@
                 renderEmpty(up, T('events.emptyUp'));
             } else {
                 up.innerHTML = upcoming.map(function (t) { return card(t, false); }).join('');
+                hydrateImgurAlbumPosters(up);
             }
             if (!finished.length) {
                 renderEmpty(past, T('events.emptyPast'));
             } else {
                 past.innerHTML = finished.map(function (t) { return card(t, true); }).join('');
+                hydrateImgurAlbumPosters(past);
             }
             lucide.createIcons();
         })

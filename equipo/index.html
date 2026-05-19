@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../logo.png">
     <link rel="alternate icon" href="../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../style.css?v=15">
+    <link rel="stylesheet" href="../style.css?v=17">
     <script src="../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -96,7 +96,7 @@
         var sid = m.steam_id64 ? String(m.steam_id64) : "";
         var steamHref = sid ? "https://steamcommunity.com/profiles/" + encodeURIComponent(sid) : "";
         var img = av
-            ? '<img class="equipo-card-avatar" src="' + av + '" alt="" width="80" height="80" loading="lazy">'
+            ? '<img class="equipo-card-avatar" src="' + av + '" alt="" width="72" height="72" loading="lazy">'
             : '<div class="equipo-card-avatar equipo-card-avatar-fallback"><i data-lucide="user"></i></div>';
         var soc =
             socBrand(m.twitch_url, "twitch", "Twitch") +
@@ -116,6 +116,7 @@
         return (
             '<article class="equipo-card">' +
             '<div class="equipo-card-top">' +
+            steamSlot +
             '<div class="equipo-card-media">' +
             img +
             "</div>" +
@@ -125,7 +126,6 @@
             "</h3>" +
             roleHtml +
             "</div>" +
-            steamSlot +
             "</div>" +
             socRow +
             "</article>"

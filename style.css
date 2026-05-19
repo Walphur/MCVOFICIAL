@@ -1482,24 +1482,40 @@ body.tournament-page {
 }
 
 .winner-showcase-inner {
-    max-width: 1080px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 20px 24px 48px;
+    padding: 12px 20px 48px;
+}
+
+.winner-recap-frame {
+    border: 2px solid rgba(250, 166, 26, 0.45);
+    border-radius: 20px;
+    background: rgba(5, 5, 5, 0.72);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.55),
+        0 22px 60px rgba(0, 0, 0, 0.48),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    padding: 22px;
+}
+
+.winner-recap-grid {
     display: grid;
     grid-template-columns: 1fr minmax(220px, 380px);
-    gap: 32px;
-    align-items: center;
+    gap: 24px;
+    align-items: start;
 }
 
 @media (max-width: 800px) {
-    .winner-showcase-inner { grid-template-columns: 1fr; }
+    .winner-recap-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .winner-showcase-text {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: flex-start;
     min-width: 0;
 }
 
@@ -1507,26 +1523,19 @@ body.tournament-page {
 
 .winner-champions-card {
     position: relative;
-    margin-top: 8px;
+    margin-top: 0;
     width: 100%;
-    max-width: 420px;
-    padding: 1px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(250, 166, 26, 0.85), rgba(250, 200, 80, 0.35), rgba(250, 166, 26, 0.5), rgba(120, 60, 10, 0.4));
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.5),
-        0 20px 50px rgba(0, 0, 0, 0.45),
-        0 0 40px rgba(250, 166, 26, 0.12);
+    max-width: 100%;
+    padding: 0;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(165deg, rgba(28, 24, 16, 0.98) 0%, #0c0c0c 55%, #080808 100%);
+    box-shadow: inset 0 0 0 1px rgba(250, 166, 26, 0.1);
     overflow: hidden;
 }
 
 .winner-champions-card::before {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    border-radius: 15px;
-    background: linear-gradient(165deg, #141008 0%, #0a0a0a 45%, #080808 100%);
-    z-index: 0;
+    display: none;
 }
 
 .winner-confetti {
@@ -1535,7 +1544,7 @@ body.tournament-page {
     z-index: 1;
     pointer-events: none;
     overflow: hidden;
-    border-radius: 15px;
+    border-radius: 13px;
     opacity: 0.75;
     background-image:
         radial-gradient(circle at 10% 20%, rgba(250, 166, 26, 0.55) 0, transparent 42%),
@@ -1598,12 +1607,13 @@ body.tournament-page {
 .winner-roster {
     list-style: none;
     margin: 0;
-    padding: 0 18px 18px;
+    padding: 0 14px 14px;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    gap: 10px;
+    gap: 8px;
     max-width: 100%;
+    box-sizing: border-box;
     font-family: "IBM Plex Sans", sans-serif;
     font-size: 0.95rem;
     position: relative;
@@ -1618,13 +1628,15 @@ body.tournament-page {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.42);
+    background: rgba(0, 0, 0, 0.5);
     min-width: 0;
     width: 100%;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    max-width: 100%;
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 .winner-roster-name { font-weight: 700; color: var(--foreground); }
 .winner-roster-disc { font-size: 0.82rem; color: var(--muted); }
@@ -1636,6 +1648,11 @@ body.tournament-page {
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
     background: #050505;
     min-width: 0;
+}
+
+.winner-poster-wrap--recap {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
 .winner-poster-wrap--photo {
@@ -2243,9 +2260,36 @@ body.tournament-page {
     max-width: 36rem;
 }
 .equipo-main {
-    max-width: 1100px;
+    max-width: min(1720px, 100%);
     margin: 0 auto;
-    padding: 8px 20px 80px;
+    padding: 8px 16px 80px;
+}
+.equipo-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+    width: 100%;
+}
+@media (max-width: 1320px) {
+    .equipo-roster-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (max-width: 820px) {
+    .equipo-roster-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 420px) {
+    .equipo-roster-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.equipo-roster-grid .equipo-card {
+    min-width: 0;
+    max-width: none;
+    width: auto;
 }
 .equipo-section-title {
     font-family: "Bebas Neue", Impact, sans-serif;
@@ -2253,18 +2297,6 @@ body.tournament-page {
     letter-spacing: 0.06em;
     margin: 36px 0 16px;
     color: var(--foreground);
-}
-.equipo-roster-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: stretch;
-    gap: 18px;
-}
-.equipo-roster-grid .equipo-card {
-    flex: 0 1 380px;
-    max-width: 100%;
-    box-sizing: border-box;
 }
 .equipo-main--form-only {
     padding-bottom: 64px;
@@ -2277,22 +2309,29 @@ body.tournament-page {
 .equipo-card {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 18px 20px;
-    border: 1px solid var(--border);
+    gap: 10px;
+    padding: 14px 14px 16px;
+    border: 1px solid rgba(250, 166, 26, 0.32);
     border-radius: 14px;
-    background: rgba(18, 18, 18, 0.95);
-    transition: border-color 0.2s, background 0.2s;
+    background: rgba(14, 14, 14, 0.96);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(250, 166, 26, 0.07);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 .equipo-card:hover {
-    border-color: rgba(250, 166, 26, 0.4);
-    background: rgba(26, 22, 16, 0.98);
+    border-color: rgba(250, 166, 26, 0.55);
+    background: rgba(22, 18, 12, 0.98);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        0 10px 28px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 1px rgba(250, 166, 26, 0.12);
 }
 .equipo-card-top {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
 }
 .equipo-card-id {
     flex: 1;
@@ -2300,7 +2339,6 @@ body.tournament-page {
 }
 .equipo-card-steam-slot {
     flex-shrink: 0;
-    margin-left: auto;
     display: flex;
     align-items: center;
 }
@@ -2309,16 +2347,16 @@ body.tournament-page {
     position: relative;
 }
 .equipo-card-avatar {
-    width: 80px;
-    height: 80px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid rgba(250, 166, 26, 0.35);
     display: block;
 }
 .equipo-card-avatar-fallback {
-    width: 80px;
-    height: 80px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2351,10 +2389,12 @@ body.tournament-page {
 .equipo-card-soc-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    padding-top: 12px;
+    padding-top: 8px;
+    margin-top: 2px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    min-height: 0;
 }
 .equipo-soc {
     display: inline-flex;
@@ -2391,11 +2431,6 @@ body.tournament-page {
 @media (max-width: 420px) {
     .equipo-card-top {
         flex-wrap: wrap;
-    }
-    .equipo-card-steam-slot {
-        margin-left: 0;
-        width: 100%;
-        justify-content: flex-end;
     }
 }
 .equipo-soc-kick {

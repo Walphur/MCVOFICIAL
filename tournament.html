@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -65,6 +65,8 @@
         <p id="t-winner-sub" class="winner-sub"></p>
     </div>
     <div class="winner-showcase-inner">
+        <div class="winner-recap-frame">
+            <div class="winner-recap-grid">
         <div class="winner-showcase-text">
             <div id="t-winner-roster-card" class="winner-champions-card" style="display:none;">
                 <div class="winner-confetti" aria-hidden="true"></div>
@@ -75,12 +77,14 @@
                 <ul id="t-winner-roster" class="winner-roster winner-roster--champions" style="display:none;" aria-label="Roster campeón"></ul>
             </div>
         </div>
-        <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
+        <div id="t-winner-poster-wrap" class="winner-poster-wrap winner-poster-wrap--recap" style="display:none;">
             <img id="t-winner-poster" src="" alt="Póster del torneo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
             <div id="t-winner-poster-iframe-shell" class="winner-poster-iframe-shell" style="display:none;">
                 <iframe id="t-winner-poster-embed" class="winner-poster-embed" title="Póster del torneo (Imgur)" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
             </div>
             <p id="t-winner-poster-err" class="winner-poster-err" hidden data-i18n="tournament.posterLoadErr">No se pudo cargar la imagen. Usá un enlace directo al archivo (.jpg, .png, .webp).</p>
+        </div>
+            </div>
         </div>
     </div>
 </section>
