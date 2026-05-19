@@ -42,19 +42,34 @@ function makePosterUpload(uploadRoot) {
     });
 }
 
-/** URL absoluta para póster (Imgur, S3, etc.). Rechaza data:/javascript:. */
+/** URL absoluta para póster (Imgur, Discord CDN, etc.). Rechaza data:/javascript:. Acepta host sin esquema y añade https:// */
 function normalizeExternalPosterUrl(raw) {
-    const s = String(raw == null ? "" : raw).trim();
+    let s = String(raw == null ? "" : raw).trim();
     if (!s) {
         return null;
     }
     if (s.length > 2048) {
         return null;
     }
-    const lower = s.toLowerCase();
-    if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+    if (s.startsWith("/") && !s.startsWith("//")) {
+        if (s.includes("..")) {
+            return null;
+        }
+        if (/^\/uploads\/tournaments\//i.test(s)) {
+            return s;
+        }
         return null;
     }
+    if (s.startsWith("//")) {
+        s = `https:${s}`;
+    } else if (!/^https?:\/\//i.test(s)) {
+        if (/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(\/|$)/i.test(s)) {
+            s = `https://${s}`;
+        } else {
+            return null;
+        }
+    }
+    const lower = s.toLowerCase();
     if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
         return null;
     }

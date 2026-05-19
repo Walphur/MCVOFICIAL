@@ -697,14 +697,20 @@ body.tournament-page {
 .tournament-stat strong { font-family: "Bebas Neue"; font-size: 3.3rem; line-height: 1; color: var(--primary); font-weight: normal; }
 .tournament-stat small { color: var(--muted); font-family: "JetBrains Mono", monospace; }
 
-.tournament-marquee { border-top: 0; background: #070707; }
+.tournament-marquee {
+    border-top: 0;
+    background: #070707;
+    text-align: center;
+}
 .tournament-marquee .marquee-content {
+    display: block;
     animation: none;
     transform: none;
     white-space: normal;
     text-align: center;
     max-width: min(1100px, 100%);
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
     padding: 0 20px;
     font-size: clamp(1.15rem, 2.8vw, 2rem);
     line-height: 1.25;
@@ -1503,6 +1509,16 @@ body.tournament-page {
 }
 
 .winner-poster-wrap img { width: 100%; display: block; vertical-align: middle; }
+
+.winner-poster-err {
+    margin: 12px 0 0;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    line-height: 1.45;
+    text-align: center;
+}
 
 .t-hero-status {
     margin-top: 18px;

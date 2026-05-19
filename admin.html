@@ -116,7 +116,7 @@
                     <form id="form-finish-tournament" class="admin-stack-form">
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
-                        <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="url" inputmode="url" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
+                        <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
                         <p class="admin-form-hint" style="margin:0 0 10px;">Para que la imagen se vea en la web, usá el <strong>enlace directo al archivo</strong> (termina en .jpg, .png, etc.). En Imgur: abrí la imagen → clic derecho → «copiar dirección de imagen»; el link del álbum (/a/…) no sirve como imagen embebida.</p>
                         <label>O subir archivo de imagen<input name="poster" type="file" accept="image/*"></label>
                         <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
@@ -136,7 +136,7 @@
                 <button type="button" class="btn-primary-small" id="btn-save-tournament-display">Guardar texto / slots</button>
                 <hr class="admin-sep">
                 <form id="form-poster-only" class="admin-stack-form">
-                    <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="url" inputmode="url" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
+                    <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
                     <p class="admin-form-hint" style="margin:0 0 10px;">Enlace <strong>directo a la imagen</strong>; el álbum Imgur (/a/…) no se muestra bien en la web.</p>
                     <label>O subir archivo (opcional)<input name="poster" type="file" accept="image/*"></label>
                     <button type="submit" class="btn-primary-small">Guardar póster</button>
@@ -401,6 +401,8 @@
         setv('edit-t-server', t.format_server_text);
         setv('edit-t-marquee', t.marquee_text);
         setv('edit-t-twitch', t.twitch_channel);
+        setv('poster-only-url', t.poster_url);
+        setv('finish-poster-url', t.poster_url);
         var sel = document.getElementById('edit-t-status-select');
         if (sel) sel.value = t.status || 'draft';
         var slugEl = document.getElementById('edit-t-slug');
