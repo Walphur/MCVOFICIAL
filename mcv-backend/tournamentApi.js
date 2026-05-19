@@ -134,6 +134,13 @@ function nextPow2(n) {
     return p;
 }
 
+/** Hash de álbum o galería Imgur desde URL pública (sin auth). */
+function extractImgurAlbumHashFromUrl(url) {
+    const s = String(url || "").trim();
+    const m = s.match(/imgur\.com\/(?:a|gallery)\/([a-zA-Z0-9]+)/i);
+    return m ? m[1] : null;
+}
+
 async function rosterBansCheck(steamIds, steamApiKey) {
     if (!steamApiKey) {
         return { ok: true, skipped: true, dirty: [] };
@@ -177,6 +184,55 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         }
         return multer().none()(req, res, next);
     }
+
+    /**
+     * Resuelve la primera imagen (o cover) de un álbum/galería Imgur para usar <img> en la web
+     * (evita iframe con marco blanco y botón Share). Opcional: IMGUR_CLIENT_ID en env; si no hay,
+     * se usa un Client-ID anónimo de solo lectura (puede fallar por rate limit).
+     */
+    app.get("/api/public/imgur-album-cover", async (req, res) => {
+        const raw = String(req.query.url || req.query.u || "").trim();
+        const hash = extractImgurAlbumHashFromUrl(raw);
+        if (!hash) {
+            return res.status(400).json({ error: "URL de álbum Imgur inválida" });
+        }
+        const clientId =
+            String(process.env.IMGUR_CLIENT_ID || "").trim() || "546c25a59c58ad7";
+        const headers = { Authorization: `Client-ID ${clientId}` };
+        const opts = { headers, timeout: 12000, validateStatus: () => true };
+        try {
+            let ax = await axios.get(`https://api.imgur.com/3/album/${encodeURIComponent(hash)}`, opts);
+            if (ax.status !== 200 || !ax.data || ax.data.success === false) {
+                ax = await axios.get(`https://api.imgur.com/3/gallery/${encodeURIComponent(hash)}`, opts);
+            }
+            if (ax.status !== 200 || !ax.data || ax.data.success === false) {
+                return res.status(404).json({ error: "Álbum no encontrado" });
+            }
+            const data = ax.data.data;
+            let link = null;
+            if (Array.isArray(data.images) && data.images.length > 0) {
+                const coverId = data.cover;
+                let pick = data.images[0];
+                if (coverId) {
+                    const found = data.images.find((im) => String(im.id) === String(coverId));
+                    if (found) {
+                        pick = found;
+                    }
+                }
+                link = pick.link || pick.mp4 || pick.gifv || null;
+            } else if (data.link) {
+                link = data.link;
+            }
+            if (!link || typeof link !== "string") {
+                return res.status(404).json({ error: "Sin imagen en el álbum" });
+            }
+            res.set("Cache-Control", "public, max-age=600");
+            return res.json({ directUrl: link });
+        } catch (e) {
+            console.error("imgur-album-cover:", e.message);
+            return res.status(500).json({ error: "imgur" });
+        }
+    });
 
     app.get("/api/auth/status", (req, res) => {
         const rawJwt = String(process.env.JWT_SECRET || "");

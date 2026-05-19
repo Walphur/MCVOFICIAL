@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=6">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -55,11 +55,17 @@
 </section>
 
 <section id="winner-showcase" class="winner-showcase" style="display:none;">
+    <div class="winner-showcase-head">
+        <div class="section-label centered-label">
+            <div class="yellow-line"></div>
+            <span>// Resultado</span>
+            <div class="yellow-line"></div>
+        </div>
+        <h2 id="t-winner-heading" data-i18n="tournament.winnerLabel">Campeón</h2>
+        <p id="t-winner-sub" class="winner-sub"></p>
+    </div>
     <div class="winner-showcase-inner">
         <div class="winner-showcase-text">
-            <span class="section-label"><span class="yellow-line"></span> // Resultado</span>
-            <h2 id="t-winner-heading" data-i18n="tournament.winnerLabel">Campeón</h2>
-            <p id="t-winner-sub" class="winner-sub"></p>
             <div id="t-winner-roster-card" class="winner-champions-card" style="display:none;">
                 <div class="winner-confetti" aria-hidden="true"></div>
                 <div class="winner-champions-head">
@@ -276,7 +282,14 @@
         return s;
     }
 
-    /** URL de embed para álbum/galería Imgur (/a/… o /gallery/…); el HTML del álbum no es una imagen. */
+    /** Hash de álbum/galería Imgur (misma lógica que el backend). */
+    function imgurAlbumHashFromUrl(raw) {
+        var s = String(raw == null ? '' : raw).trim();
+        var m = s.match(/imgur\.com\/(?:a|gallery)\/([a-z0-9]+)/i);
+        return m ? m[1] : '';
+    }
+
+    /** URL de embed solo si hace falta fallback (API no devolvió imagen directa). */
     function imgurAlbumEmbedSrc(raw) {
         var s = String(raw == null ? '' : raw).trim();
         if (!s) return '';
@@ -387,10 +400,10 @@
         }
         var hasRoster = Array.isArray(roster) && roster.length > 0;
         var posterSrc = normalizePosterUrlForClient(t.poster_url);
-        var imgurEmbed = imgurAlbumEmbedSrc(t.poster_url);
+        var imgurAlbumHash = imgurAlbumHashFromUrl(t.poster_url);
         var showWin =
             t.status === 'finished' &&
-            (t.winner_display_name || t.winner_team_name || posterSrc || imgurEmbed || hasRoster);
+            (t.winner_display_name || t.winner_team_name || posterSrc || imgurAlbumHash || hasRoster);
 
         var posterWrap = document.getElementById('t-winner-poster-wrap');
         var posterImg = document.getElementById('t-winner-poster');
@@ -399,7 +412,10 @@
         var posterErr = document.getElementById('t-winner-poster-err');
         var rosterCard = document.getElementById('t-winner-roster-card');
         function hideWinnerPoster() {
-            if (posterWrap) posterWrap.style.display = 'none';
+            if (posterWrap) {
+                posterWrap.style.display = 'none';
+                posterWrap.classList.remove('winner-poster-wrap--photo', 'winner-poster-wrap--iframe');
+            }
             if (posterImg) {
                 posterImg.style.display = 'none';
                 posterImg.removeAttribute('src');
@@ -437,19 +453,75 @@
                     rosterEl.innerHTML = '';
                 }
             }
-            if (imgurEmbed && posterWrap && posterIframe && posterIframeShell) {
+            if (imgurAlbumHash && posterWrap && posterImg && posterIframe && posterIframeShell) {
+                var embedFallback = imgurAlbumEmbedSrc(t.poster_url);
                 posterWrap.style.display = 'block';
-                posterIframeShell.style.display = 'block';
-                posterIframe.src = imgurEmbed;
-                if (posterImg) {
+                posterWrap.classList.add('winner-poster-wrap--photo');
+                posterWrap.classList.remove('winner-poster-wrap--iframe');
+                posterIframeShell.style.display = 'none';
+                posterIframe.removeAttribute('src');
+                posterImg.style.display = 'none';
+                posterImg.removeAttribute('src');
+                if (posterErr) {
+                    posterErr.hidden = true;
+                    posterErr.textContent = T('tournament.posterLoadErr');
+                }
+                posterImg.onload = function () {
+                    if (posterErr) posterErr.hidden = true;
+                };
+                posterImg.onerror = function () {
+                    if (posterErr) posterErr.hidden = false;
+                };
+                function applyImgurIframeFallback() {
+                    if (!embedFallback) return;
+                    posterWrap.classList.remove('winner-poster-wrap--photo');
+                    posterWrap.classList.add('winner-poster-wrap--iframe');
                     posterImg.style.display = 'none';
                     posterImg.removeAttribute('src');
                     posterImg.onload = null;
                     posterImg.onerror = null;
+                    posterIframeShell.style.display = 'block';
+                    posterIframe.src = embedFallback;
+                    if (posterErr) posterErr.hidden = true;
                 }
-                if (posterErr) posterErr.hidden = true;
+                fetch(
+                    API +
+                        '/api/public/imgur-album-cover?url=' +
+                        encodeURIComponent(String(t.poster_url || '').trim())
+                )
+                    .then(function (r) {
+                        return r.json().then(function (d) {
+                            return { ok: r.ok, d: d };
+                        });
+                    })
+                    .then(function (x) {
+                        if (!posterWrap || posterWrap.style.display === 'none') return;
+                        if (x.ok && x.d && x.d.directUrl) {
+                            posterWrap.classList.add('winner-poster-wrap--photo');
+                            posterWrap.classList.remove('winner-poster-wrap--iframe');
+                            posterIframeShell.style.display = 'none';
+                            posterIframe.removeAttribute('src');
+                            posterImg.style.display = 'block';
+                            posterImg.onload = function () {
+                                if (posterErr) posterErr.hidden = true;
+                            };
+                            posterImg.onerror = function () {
+                                if (posterErr) posterErr.hidden = false;
+                            };
+                            posterImg.src =
+                                normalizePosterUrlForClient(x.d.directUrl) || x.d.directUrl;
+                            return;
+                        }
+                        applyImgurIframeFallback();
+                    })
+                    .catch(function () {
+                        if (!posterWrap || posterWrap.style.display === 'none') return;
+                        applyImgurIframeFallback();
+                    });
             } else if (posterSrc && posterWrap && posterImg) {
                 posterWrap.style.display = 'block';
+                posterWrap.classList.add('winner-poster-wrap--photo');
+                posterWrap.classList.remove('winner-poster-wrap--iframe');
                 if (posterIframeShell) posterIframeShell.style.display = 'none';
                 if (posterIframe) posterIframe.removeAttribute('src');
                 posterImg.style.display = 'block';
