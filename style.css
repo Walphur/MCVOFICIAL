@@ -1510,6 +1510,15 @@ body.tournament-page {
 
 .winner-poster-wrap img { width: 100%; display: block; vertical-align: middle; }
 
+.winner-poster-embed {
+    width: 100%;
+    min-height: 360px;
+    max-height: 560px;
+    border: 0;
+    display: block;
+    background: #0a0a0a;
+}
+
 .winner-poster-err {
     margin: 12px 0 0;
     padding: 0 12px;
@@ -1614,6 +1623,14 @@ body.tournament-page {
     object-fit: cover;
     display: block;
     min-height: 180px;
+}
+.events-featured-poster-embed {
+    width: 100%;
+    min-height: 200px;
+    max-height: 320px;
+    border: 0;
+    display: block;
+    background: #111;
 }
 .events-featured-inner {
     display: flex;

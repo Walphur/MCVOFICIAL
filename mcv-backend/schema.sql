@@ -100,6 +100,9 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS ended_at TIMESTAMPTZ;
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS marquee_text TEXT;
 
 -- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS winner_roster_snapshot JSONB;
+
+-- split
 UPDATE tournaments
 SET
     status = 'finished',

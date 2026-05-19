@@ -117,7 +117,7 @@
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
                         <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
-                        <p class="admin-form-hint" style="margin:0 0 10px;">Para que la imagen se vea en la web, usá el <strong>enlace directo al archivo</strong> (termina en .jpg, .png, etc.). En Imgur: abrí la imagen → clic derecho → «copiar dirección de imagen»; el link del álbum (/a/…) no sirve como imagen embebida.</p>
+                        <p class="admin-form-hint" style="margin:0 0 10px;">Los enlaces <strong>imgur.com/a/…</strong> (álbum) se muestran embebidos en la web. Para una sola imagen como archivo, usá «copiar enlace de la imagen» (termina en .jpg / .png).</p>
                         <label>O subir archivo de imagen<input name="poster" type="file" accept="image/*"></label>
                         <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
                         <button type="submit" class="btn-primary-small">Finalizar torneo</button>
@@ -137,12 +137,12 @@
                 <hr class="admin-sep">
                 <form id="form-poster-only" class="admin-stack-form">
                     <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
-                    <p class="admin-form-hint" style="margin:0 0 10px;">Enlace <strong>directo a la imagen</strong>; el álbum Imgur (/a/…) no se muestra bien en la web.</p>
+                    <p class="admin-form-hint" style="margin:0 0 10px;"><strong>Álbum Imgur (/a/…)</strong> se muestra embebido; <strong>imagen directa</strong> (.jpg, .png) va en &lt;img&gt;.</p>
                     <label>O subir archivo (opcional)<input name="poster" type="file" accept="image/*"></label>
                     <button type="submit" class="btn-primary-small">Guardar póster</button>
                 </form>
                 <hr class="admin-sep">
-                <p class="admin-form-hint">Roster del equipo ganador — registro ID <code id="edit-winner-reg-display">—</code></p>
+                <p class="admin-form-hint">Roster visible en la web: se guarda una <strong>copia en el torneo</strong> (persiste aunque borres inscripciones). Registro ID <code id="edit-winner-reg-display">—</code> — si sigue existiendo, también se actualiza ese registro.</p>
                 <textarea id="edit-winner-roster-json" rows="10" class="admin-json-textarea" spellcheck="false"></textarea>
                 <p class="admin-form-hint">Array JSON de 1 a 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code>. El registro público sigue exigiendo 5.</p>
                 <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
@@ -874,12 +874,11 @@
     });
 
     document.getElementById('btn-save-winner-roster').addEventListener('click', function () {
-        var ta = document.getElementById('edit-winner-roster-json');
-        var wid = document.getElementById('edit-winner-reg-display').textContent.trim();
-        if (!wid || wid === '—') {
-            banner('No hay registro ganador (winner_registration_id).', true);
+        if (!state.slug) {
+            banner('Elegí un torneo en el selector.', true);
             return;
         }
+        var ta = document.getElementById('edit-winner-roster-json');
         var arr;
         try {
             arr = JSON.parse(ta.value || '[]');
@@ -888,7 +887,7 @@
             return;
         }
         banner('Guardando roster…', false);
-        fetch(API + '/api/admin/registrations/' + encodeURIComponent(wid), {
+        fetch(API + '/api/admin/tournaments/' + encodeURIComponent(state.slug) + '/winner-roster', {
             method: 'PATCH',
             headers: authHeaders(),
             body: JSON.stringify({ roster: arr })
@@ -899,11 +898,26 @@
                     window.location.href = 'login.html?expired=1';
                     return Promise.reject();
                 }
-                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                return r.json().then(function (d) { return { ok: r.ok, d: d, status: r.status }; });
             })
             .then(function (x) {
-                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'Error');
-                banner('Roster actualizado.', false);
+                if (!x.ok) {
+                    throw new Error((x.d && x.d.error) ? x.d.error : ('Error HTTP ' + x.status));
+                }
+                var wid = document.getElementById('edit-winner-reg-display').textContent.trim();
+                if (wid && wid !== '—' && /^\d+$/.test(wid)) {
+                    return fetch(API + '/api/admin/registrations/' + encodeURIComponent(wid), {
+                        method: 'PATCH',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ roster: arr })
+                    }).then(function (r2) {
+                        return { rosterOk: true, regSynced: r2.ok };
+                    });
+                }
+                return { rosterOk: true, regSynced: false };
+            })
+            .then(function () {
+                banner('Roster guardado (copia en el torneo para la web).', false);
                 loadAll();
             })
             .catch(function (e) {

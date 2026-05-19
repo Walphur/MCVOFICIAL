@@ -64,6 +64,7 @@
         </div>
         <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
             <img id="t-winner-poster" src="" alt="Póster del torneo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            <iframe id="t-winner-poster-embed" class="winner-poster-embed" title="Póster del torneo (Imgur)" style="display:none;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
             <p id="t-winner-poster-err" class="winner-poster-err" hidden data-i18n="tournament.posterLoadErr">No se pudo cargar la imagen. Usá un enlace directo al archivo (.jpg, .png, .webp).</p>
         </div>
     </div>
@@ -266,6 +267,15 @@
         return s;
     }
 
+    /** URL de embed para álbum/galería Imgur (/a/… o /gallery/…); el HTML del álbum no es una imagen. */
+    function imgurAlbumEmbedSrc(raw) {
+        var s = String(raw == null ? '' : raw).trim();
+        if (!s) return '';
+        var m = s.match(/imgur\.com\/(?:a|gallery)\/([a-z0-9]+)/i);
+        if (!m) return '';
+        return 'https://imgur.com/a/' + m[1] + '/embed?pub=true';
+    }
+
     function twitchFrame(ch) {
         var iframe = document.getElementById('twitch-embed');
         if (!iframe) return;
@@ -364,9 +374,30 @@
         }
         var hasRoster = Array.isArray(roster) && roster.length > 0;
         var posterSrc = normalizePosterUrlForClient(t.poster_url);
+        var imgurEmbed = imgurAlbumEmbedSrc(t.poster_url);
         var showWin =
             t.status === 'finished' &&
-            (t.winner_display_name || t.winner_team_name || posterSrc || hasRoster);
+            (t.winner_display_name || t.winner_team_name || posterSrc || imgurEmbed || hasRoster);
+
+        var posterWrap = document.getElementById('t-winner-poster-wrap');
+        var posterImg = document.getElementById('t-winner-poster');
+        var posterIframe = document.getElementById('t-winner-poster-embed');
+        var posterErr = document.getElementById('t-winner-poster-err');
+        function hideWinnerPoster() {
+            if (posterWrap) posterWrap.style.display = 'none';
+            if (posterImg) {
+                posterImg.style.display = 'none';
+                posterImg.removeAttribute('src');
+                posterImg.onload = null;
+                posterImg.onerror = null;
+            }
+            if (posterIframe) {
+                posterIframe.style.display = 'none';
+                posterIframe.removeAttribute('src');
+            }
+            if (posterErr) posterErr.hidden = true;
+        }
+
         if (showWin) {
             winSec.style.display = 'block';
             setText(
@@ -387,11 +418,24 @@
                 rosterEl.style.display = 'none';
                 rosterEl.innerHTML = '';
             }
-            var posterWrap = document.getElementById('t-winner-poster-wrap');
-            var posterImg = document.getElementById('t-winner-poster');
-            var posterErr = document.getElementById('t-winner-poster-err');
-            if (posterSrc && posterWrap && posterImg) {
+            if (imgurEmbed && posterWrap && posterIframe) {
                 posterWrap.style.display = 'block';
+                posterIframe.style.display = 'block';
+                posterIframe.src = imgurEmbed;
+                if (posterImg) {
+                    posterImg.style.display = 'none';
+                    posterImg.removeAttribute('src');
+                    posterImg.onload = null;
+                    posterImg.onerror = null;
+                }
+                if (posterErr) posterErr.hidden = true;
+            } else if (posterSrc && posterWrap && posterImg) {
+                posterWrap.style.display = 'block';
+                if (posterIframe) {
+                    posterIframe.style.display = 'none';
+                    posterIframe.removeAttribute('src');
+                }
+                posterImg.style.display = 'block';
                 if (posterErr) {
                     posterErr.hidden = true;
                     posterErr.textContent = T('tournament.posterLoadErr');
@@ -404,13 +448,7 @@
                 };
                 posterImg.src = posterSrc;
             } else {
-                if (posterWrap) posterWrap.style.display = 'none';
-                if (posterImg) {
-                    posterImg.removeAttribute('src');
-                    posterImg.onload = null;
-                    posterImg.onerror = null;
-                }
-                if (posterErr) posterErr.hidden = true;
+                hideWinnerPoster();
             }
         } else {
             winSec.style.display = 'none';
@@ -418,6 +456,7 @@
                 rosterEl.style.display = 'none';
                 rosterEl.innerHTML = '';
             }
+            hideWinnerPoster();
         }
 
         lucide.createIcons();

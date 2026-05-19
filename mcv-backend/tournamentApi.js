@@ -356,7 +356,10 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
             WHERE r.tournament_id = t.id AND r.status = 'declined') AS declined_count,
           (SELECT team_name FROM tournament_registrations w WHERE w.id = t.winner_registration_id) AS winner_team_name,
           COALESCE(NULLIF(TRIM(t.winner_override_name), ''), (SELECT team_name FROM tournament_registrations w2 WHERE w2.id = t.winner_registration_id)) AS winner_display_name,
-          (SELECT r.roster FROM tournament_registrations r WHERE r.id = t.winner_registration_id) AS winner_roster
+          COALESCE(
+            t.winner_roster_snapshot,
+            (SELECT r.roster FROM tournament_registrations r WHERE r.id = t.winner_registration_id)
+          ) AS winner_roster
          FROM tournaments t WHERE t.slug = $1`,
                 [slug]
             );
@@ -987,6 +990,50 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         }
     );
 
+    app.patch("/api/admin/tournaments/:slug/winner-roster", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const { slug } = req.params;
+        const rosterBody = req.body?.roster;
+        if (!Array.isArray(rosterBody) || rosterBody.length < 1 || rosterBody.length > 5) {
+            return res.status(400).json({ error: "roster debe ser un array de 1 a 5 jugadores" });
+        }
+        const roster = [];
+        const seenSteam = new Set();
+        for (let i = 0; i < rosterBody.length; i++) {
+            const p = rosterBody[i] || {};
+            const name = String(p.name || "").trim();
+            const steam = String(p.steamId64 || "").replace(/\D/g, "");
+            const discord = String(p.discord || "").trim();
+            if (!name || steam.length !== 17 || !discord) {
+                return res.status(400).json({
+                    error: `Jugador ${i + 1}: nombre, SteamID64 (17 dígitos) y Discord requeridos`
+                });
+            }
+            if (seenSteam.has(steam)) {
+                return res.status(400).json({ error: "SteamID64 duplicado en el roster" });
+            }
+            seenSteam.add(steam);
+            roster.push({ name, steamId64: steam, discord });
+        }
+        const rosterJson = JSON.stringify(roster);
+        try {
+            const r = await pool.query(
+                `UPDATE tournaments SET winner_roster_snapshot = $1::jsonb WHERE slug = $2 RETURNING *`,
+                [rosterJson, slug]
+            );
+            if (!r.rows.length) {
+                return res.status(404).json({ error: "Torneo no encontrado" });
+            }
+            return res.json({ tournament: r.rows[0], winner_roster: roster });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).json({ error: "winner-roster" });
+        }
+    });
+
     app.post(
         "/api/admin/tournaments/:slug/finish",
         authAdmin,
@@ -1051,6 +1098,16 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                 }
                 const nextPoster = newPoster || row.poster_url;
                 const clearRegs = String(req.body?.clearData || "") === "1";
+                let winnerRosterSnap = null;
+                if (nextWin != null) {
+                    const snapQ = await client.query(
+                        `SELECT roster FROM tournament_registrations WHERE id = $1 AND tournament_id = $2`,
+                        [nextWin, tid]
+                    );
+                    if (snapQ.rows.length && snapQ.rows[0].roster != null) {
+                        winnerRosterSnap = snapQ.rows[0].roster;
+                    }
+                }
                 await client.query(
                     `UPDATE tournaments SET
             status = 'finished',
@@ -1061,9 +1118,13 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
               NULLIF(TRIM(winner_override_name), ''),
               (SELECT tr.team_name FROM tournament_registrations tr WHERE tr.id = $2)
             ),
-            poster_url = $4
+            poster_url = $4,
+            winner_roster_snapshot = CASE
+              WHEN $5::jsonb IS NOT NULL THEN $5::jsonb
+              ELSE winner_roster_snapshot
+            END
            WHERE id = $1`,
-                    [tid, nextWin, nextOverride, nextPoster]
+                    [tid, nextWin, nextOverride, nextPoster, winnerRosterSnap]
                 );
                 if (clearRegs) {
                     await client.query("DELETE FROM tournament_matches WHERE tournament_id = $1", [tid]);

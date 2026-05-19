@@ -51,6 +51,7 @@
     <div class="events-featured-card">
         <div id="events-featured-poster-wrap" class="events-featured-poster" hidden>
             <img id="events-featured-poster" src="" alt="">
+            <iframe id="events-featured-poster-embed" class="events-featured-poster-embed" title="Póster" hidden loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         </div>
         <div class="events-featured-inner">
             <div class="events-featured-copy">
@@ -108,6 +109,12 @@
     function esc(s) {
         if (s == null) return '';
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    }
+
+    function imgurAlbumEmbedFromPosterUrl(u) {
+        var s = String(u || '').trim();
+        var m = s.match(/imgur\.com\/(?:a|gallery)\/([a-z0-9]+)/i);
+        return m ? ('https://imgur.com/a/' + m[1] + '/embed?pub=true') : '';
     }
 
     function card(t, isPast) {
@@ -183,12 +190,30 @@
                 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug || '');
             var pw = document.getElementById('events-featured-poster-wrap');
             var pi = document.getElementById('events-featured-poster');
+            var pEmb = document.getElementById('events-featured-poster-embed');
             if (d.tournament.poster_url && pw && pi) {
-                pi.src = d.tournament.poster_url;
+                var emb = imgurAlbumEmbedFromPosterUrl(d.tournament.poster_url);
+                if (emb && pEmb) {
+                    pi.removeAttribute('src');
+                    pi.hidden = true;
+                    pEmb.hidden = false;
+                    pEmb.src = emb;
+                } else {
+                    if (pEmb) {
+                        pEmb.hidden = true;
+                        pEmb.removeAttribute('src');
+                    }
+                    pi.hidden = false;
+                    pi.src = d.tournament.poster_url;
+                }
                 pw.hidden = false;
             } else if (pw) {
                 pw.hidden = true;
                 if (pi) pi.removeAttribute('src');
+                if (pEmb) {
+                    pEmb.removeAttribute('src');
+                    pEmb.hidden = true;
+                }
             }
             var stTeams = document.getElementById('stat-teams');
             if (
