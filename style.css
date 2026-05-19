@@ -321,6 +321,22 @@ textarea { resize: vertical; min-height: 120px; }
 .btn-outline-red:hover { background: var(--red); color: #fff;}
 
 .video-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;}
+.home-media-grid {
+    grid-template-columns: 1.15fr 1fr 1fr;
+    align-items: stretch;
+}
+.home-media-skeleton {
+    grid-column: 1 / -1;
+    min-height: 220px;
+    border-radius: 10px;
+}
+.home-media-grid .video-card--yt .video-thumb img {
+    object-fit: cover;
+    min-height: 200px;
+}
+@media (max-width: 900px) {
+    .home-media-grid { grid-template-columns: 1fr; }
+}
 .video-card { text-decoration: none; display: block; background: var(--input-bg); border: 1px solid var(--border); transition: 0.3s;}
 .video-card:hover { border-color: var(--primary); transform: translateY(-5px);}
 .video-thumb { position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; background: #000; border-bottom: 1px solid var(--border);}

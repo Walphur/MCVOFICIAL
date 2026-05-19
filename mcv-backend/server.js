@@ -19,6 +19,7 @@ const {
 const { registerTeamRosterApi } = require("./teamRoster");
 const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
+const { registerTiktokFeedApi } = require("./tiktokFeed");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -149,6 +150,7 @@ registerTeamRosterApi(app, {
 registerTicketsApi(app, { getPool });
 
 registerYoutubeFeedApi(app);
+registerTiktokFeedApi(app);
 
 const cache = new Map();
 const CACHE_TIME = 1000 * 60 * 10;

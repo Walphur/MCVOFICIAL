@@ -132,32 +132,10 @@
     </div>
     <div class="section-heading-row">
         <h2><span data-i18n="home.mediaTitle">MCV </span><span data-i18n="home.mediaTitleSpan">Media.</span></h2>
-        <a class="btn-outline-red" href="https://www.youtube.com/@McompanyV/videos" target="_blank"><i data-lucide="youtube"></i> <span data-i18n="home.mediaYtBtn">YouTube</span></a>
     </div>
 
-    <div class="video-grid home-video-grid" id="home-media-grid">
-        <a href="https://kick.com/mcompanyv" target="_blank" class="video-card">
-            <div class="video-thumb logo-thumb">
-                <img src="logo.png" alt="MCV logo">
-                <span class="video-duration live-badge">LIVE</span>
-                <div class="play-btn"><i data-lucide="radio"></i></div>
-            </div>
-            <div class="video-info">
-                <h4 data-i18n="home.video2Title">Kick oficial de MCV</h4>
-                <span data-i18n="home.video2Sub">Streams, scrims y wipes en directo</span>
-            </div>
-        </a>
-        <a href="https://www.tiktok.com/@mcv_rust" target="_blank" class="video-card">
-            <div class="video-thumb logo-thumb alt-thumb">
-                <img src="logo.png" alt="MCV logo">
-                <span class="video-duration">CLIPS</span>
-                <div class="play-btn"><i data-lucide="video"></i></div>
-            </div>
-            <div class="video-info">
-                <h4 data-i18n="home.video3Title">Jugadas rápidas y clips virales</h4>
-                <span data-i18n="home.video3Sub">TikTok oficial del clan</span>
-            </div>
-        </a>
+    <div class="video-grid home-video-grid home-media-grid" id="home-media-grid">
+        <div class="events-skeleton home-media-skeleton" aria-hidden="true"></div>
     </div>
 </section>
 
@@ -239,7 +217,7 @@
     </div>
 </footer>
 
-<script src="mcv-i18n.js?v=23"></script>
+<script src="mcv-i18n.js?v=24"></script>
 <script>
     lucide.createIcons();
 
@@ -291,39 +269,6 @@
                 return null;
             });
 
-    (function loadHomeYoutube() {
-        var grid = document.getElementById("home-media-grid");
-        if (!grid || !API) return;
-        fetch(API + "/api/public/youtube-latest?limit=3&handle=McompanyV")
-            .then(function (r) {
-                return r.json();
-            })
-            .then(function (d) {
-                var vids = (d && d.videos) || [];
-                if (!vids.length) return;
-                var html = "";
-                for (var i = 0; i < vids.length; i++) {
-                    var v = vids[i];
-                    html +=
-                        '<a href="' +
-                        String(v.url).replace(/"/g, "&quot;") +
-                        '" target="_blank" rel="noopener noreferrer" class="video-card">' +
-                        '<div class="video-thumb"><img src="' +
-                        String(v.thumbnail).replace(/"/g, "&quot;") +
-                        '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
-                        '<span class="video-duration">YT</span><div class="play-btn"><i data-lucide="play"></i></div></div>' +
-                        '<div class="video-info"><h4>' +
-                        String(v.title)
-                            .replace(/&/g, "&amp;")
-                            .replace(/</g, "&lt;") +
-                        '</h4><span>YouTube · @McompanyV</span></div></a>';
-                }
-                grid.insertAdjacentHTML("afterbegin", html);
-                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
-            })
-            .catch(function () {});
-    })();
-
     Promise.all([discordFetch, statsFetch || Promise.resolve(null)]).then(function (pair) {
         var data = pair[0];
         var stats = pair[1];
@@ -352,5 +297,6 @@
         }
     });
 </script>
+<script src="mcv-home-media.js?v=1"></script>
 </body>
 </html>
