@@ -210,3 +210,20 @@ CREATE INDEX IF NOT EXISTS idx_team_roster_status ON team_roster_submissions (st
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_team_roster_created ON team_roster_submissions (created_at DESC);
+
+-- split
+CREATE TABLE IF NOT EXISTS support_tickets (
+    id SERIAL PRIMARY KEY,
+    ticket_type VARCHAR(32) NOT NULL
+        CHECK (ticket_type IN ('recruit', 'tournament', 'report', 'other')),
+    discord_user VARCHAR(120) NOT NULL,
+    description TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'accepted', 'declined')),
+    admin_notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets (status, created_at DESC);

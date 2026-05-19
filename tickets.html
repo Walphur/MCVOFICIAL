@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=21">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -40,13 +40,13 @@
     <div class="form-container">
         <div class="tickets-intro">
             <h3 data-i18n="tickets.introH">Cómo funciona</h3>
-            <p data-i18n="tickets.introP">Completá el formulario y al enviar te llevamos a Discord para abrir un ticket oficial con el staff (reclutamiento, soporte de torneo o reportes).</p>
+            <p data-i18n="tickets.introP">Completá el formulario: tu solicitud queda registrada en el panel del staff. También podés abrir un ticket en Discord para seguimiento en vivo.</p>
         </div>
 
-        <form action="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">
+        <form id="tickets-form">
             <div class="input-group">
                 <label><i data-lucide="tag"></i> <span data-i18n="tickets.typeLabel">Tipo de ticket</span></label>
-                <select required>
+                <select name="ticketType" required>
                     <option value="" data-i18n="tickets.selectPlaceholder">Elegí una opción…</option>
                     <option value="recruit" data-i18n="tickets.optRecruit">Reclutamiento (unirte a MCV)</option>
                     <option value="tournament" data-i18n="tickets.optTournament">Soporte de torneo</option>
@@ -57,20 +57,64 @@
 
             <div class="input-group">
                 <label><i data-lucide="user"></i> <span data-i18n="tickets.discordLabel">Usuario de Discord</span></label>
-                <input type="text" data-i18n-placeholder="tickets.discordPh" placeholder="ej. usuario o usuario#0" required autocomplete="username">
+                <input name="discordUser" type="text" data-i18n-placeholder="tickets.discordPh" placeholder="ej. usuario o usuario#0" required autocomplete="username">
             </div>
 
             <div class="input-group">
                 <label><i data-lucide="message-square"></i> <span data-i18n="tickets.descLabel">Descripción breve</span></label>
-                <textarea data-i18n-placeholder="tickets.descPh" placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
+                <textarea name="description" data-i18n-placeholder="tickets.descPh" placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
             </div>
 
-            <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> <span data-i18n="tickets.submit">Ir a Discord</span></button>
+            <p id="tickets-form-msg" class="tickets-form-msg" hidden></p>
+            <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> <span data-i18n="tickets.submit">Enviar solicitud</span></button>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-secondary w-100" style="margin-top:12px;display:inline-flex;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none;"><i data-lucide="message-square"></i> <span data-i18n="tickets.submitDiscord">Abrir Discord</span></a>
         </form>
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=2"></script>
-<script>lucide.createIcons();</script>
+<script src="mcv-i18n.js?v=21"></script>
+<script>
+(function () {
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var T = typeof mcvT === "function" ? mcvT : function (k) { return k; };
+    var form = document.getElementById("tickets-form");
+    var msg = document.getElementById("tickets-form-msg");
+    lucide.createIcons();
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        msg.hidden = true;
+        if (!API) {
+            msg.textContent = T("tickets.noApi");
+            msg.className = "tickets-form-msg err";
+            msg.hidden = false;
+            return;
+        }
+        var fd = new FormData(form);
+        var body = {
+            ticketType: fd.get("ticketType"),
+            discordUser: fd.get("discordUser"),
+            description: fd.get("description")
+        };
+        fetch(API + "/api/tickets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : T("tickets.error"));
+                msg.textContent = T("tickets.success");
+                msg.className = "tickets-form-msg ok";
+                msg.hidden = false;
+                form.reset();
+            })
+            .catch(function (err) {
+                msg.textContent = (err && err.message) ? err.message : T("tickets.error");
+                msg.className = "tickets-form-msg err";
+                msg.hidden = false;
+            });
+    });
+})();
+</script>
 </body>
 </html>

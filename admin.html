@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=21">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -46,16 +46,22 @@
             <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true"><span data-i18n="admin.tabTeams">👑 Equipos</span></button>
             <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">⚔️ Bracket</span></button>
             <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><span data-i18n="admin.tabTeamWeb">🌐 Perfiles equipo</span></button>
+            <button type="button" class="tab" role="tab" data-tab="tickets" aria-selected="false"><span data-i18n="admin.tabTickets">🎫 Tickets</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
             <p class="admin-tournaments-intro" data-i18n-html="admin.introTournaments"></p>
-            <ol class="admin-tournament-flow" data-i18n-aria-label="admin.tournamentFlowAria">
-                <li data-i18n="admin.tournamentFlow1">Elegí el torneo en el selector del encabezado.</li>
-                <li data-i18n="admin.tournamentFlow2">En la columna izquierda creá uno nuevo o editá título, fechas, estado y visibilidad.</li>
-                <li data-i18n="admin.tournamentFlow3">En la derecha finalizá con campeón y póster cuando el evento haya terminado.</li>
-                <li data-i18n="admin.tournamentFlow4">Abajo ajustá slots, póster y roster JSON solo para cómo se ve en la web pública.</li>
-            </ol>
+            <details class="admin-collapse admin-collapse-guide">
+                <summary data-i18n="admin.tournamentFlowToggle">Guía rápida (4 pasos)</summary>
+                <ol class="admin-tournament-flow" data-i18n-aria-label="admin.tournamentFlowAria">
+                    <li data-i18n="admin.tournamentFlow1">Elegí el torneo en el selector del encabezado.</li>
+                    <li data-i18n="admin.tournamentFlow2">Columna izquierda: creá o editá título, fechas y estado.</li>
+                    <li data-i18n="admin.tournamentFlow3">Columna derecha: finalizá con campeón y póster.</li>
+                    <li data-i18n="admin.tournamentFlow4">Sección «Vista en la web»: slots, póster y roster JSON.</li>
+                </ol>
+            </details>
+            <details class="admin-collapse" open>
+                <summary data-i18n="admin.collapseManage">Gestión del torneo</summary>
             <div class="admin-tournament-grid">
                 <div class="data-area admin-tournament-left">
                     <p class="admin-zone-eyebrow" data-i18n="admin.tournamentZoneEditor">Crear o editar</p>
@@ -127,11 +133,17 @@
                         <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
                         <p class="admin-form-hint" data-i18n-html="admin.formFinishImgurNote">Los enlaces <strong>imgur.com/a/…</strong> (álbum) se muestran embebidos. Para una sola imagen preferí enlace directo <strong>.jpg</strong> o <strong>.png</strong>.</p>
                         <label>O subir archivo de imagen<input name="poster" type="file" accept="image/*"></label>
-                        <label class="admin-checkbox-row admin-finish-clear-row"><input type="checkbox" name="clearData" value="1" checked> <span data-i18n="admin.formFinishClearLabel">Al finalizar, borrar inscripciones y bracket (en la web quedan campeón + póster).</span></label>
+                        <div class="admin-check-line">
+                            <input type="checkbox" name="clearData" value="1" checked id="admin-finish-clear">
+                            <label for="admin-finish-clear" data-i18n="admin.formFinishClearLabel">Al finalizar, borrar inscripciones y bracket (en la web quedan campeón + póster).</label>
+                        </div>
                         <button type="submit" class="btn-primary-small" data-i18n="admin.formFinishSubmit">Finalizar torneo</button>
                     </form>
                 </div>
             </div>
+            </details>
+            <details class="admin-collapse">
+                <summary data-i18n="admin.collapseWeb">Vista en la web</summary>
             <div class="data-area admin-public-edit">
                 <h3 class="admin-form-title" data-i18n="admin.publicWebTitle">Vista en la web</h3>
                 <p class="admin-form-hint admin-readable" data-i18n-html="admin.publicWebIntro"></p>
@@ -165,6 +177,7 @@
                     <button type="button" class="btn-primary-small" id="btn-save-winner-roster" data-i18n="admin.btnSaveWinnerRoster">Guardar roster</button>
                 </div>
             </div>
+            </details>
         </div>
 
         <div id="teams-panel">
@@ -185,11 +198,9 @@
                             </select>
                         </label>
                     </div>
-                    <div class="admin-manual-checkbox-row">
-                        <label class="admin-checkbox-row">
-                            <input type="checkbox" name="skipBans" value="1">
-                            <span data-i18n="admin.skipBansLabel">Omitir chequeo VAC/Game ban (Steam API)</span>
-                        </label>
+                    <div class="admin-check-line">
+                        <input type="checkbox" name="skipBans" value="1" id="admin-skip-bans">
+                        <label for="admin-skip-bans" data-i18n="admin.skipBansLabel">Omitir chequeo VAC/Game ban (Steam API)</label>
                     </div>
                     <p class="admin-form-hint admin-readable" data-i18n="admin.playersHint">Jugadores (los 5 obligatorios)</p>
                     <div class="admin-players-scroll">
@@ -254,6 +265,20 @@
                 <button type="button" class="btn-outline" id="btn-wipe-list-clear">Vaciar lista wipe</button>
             </div>
         </div>
+
+        <div id="tickets-panel" class="admin-panel-anchor" style="display:none;">
+            <div class="data-area">
+                <h3 class="admin-form-title" data-i18n="admin.ticketsTitle">Tickets de jugadores</h3>
+                <p class="admin-form-hint admin-readable" data-i18n="admin.ticketsHint">Solicitudes desde la web (reclutamiento, soporte, reportes). Aceptá o rechazá desde acá.</p>
+                <div class="filters" id="ticket-filters">
+                    <button type="button" class="filter active" data-ticket-filter="all"><span data-i18n="admin.ticketFilterAll">Todos</span> <span id="tc-all">0</span></button>
+                    <button type="button" class="filter" data-ticket-filter="pending"><span data-i18n="admin.ticketFilterPending">Pendientes</span> <span id="tc-pending">0</span></button>
+                    <button type="button" class="filter" data-ticket-filter="accepted"><span data-i18n="admin.ticketFilterAccepted">Aceptados</span> <span id="tc-accepted">0</span></button>
+                    <button type="button" class="filter" data-ticket-filter="declined"><span data-i18n="admin.ticketFilterDeclined">Rechazados</span> <span id="tc-declined">0</span></button>
+                </div>
+                <div id="tickets-admin-list"><p class="empty-hint" data-i18n="admin.emptyLoading">Cargando…</p></div>
+            </div>
+        </div>
     </main>
 
     <dialog id="team-roster-edit-dlg" class="admin-dialog">
@@ -287,7 +312,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=20"></script>
+<script src="mcv-i18n.js?v=21"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1251,9 +1276,121 @@
             }
             var tp = document.getElementById('tournaments-panel');
             if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
+            var tkp = document.getElementById('tickets-panel');
+            if (tkp) tkp.style.display = state.tab === 'tickets' ? 'block' : 'none';
+            var dashBtns = document.querySelector('.dashboard-buttons');
+            if (dashBtns) dashBtns.style.display = state.tab === 'tickets' ? 'none' : '';
+            var slugLabel = document.getElementById('slug-label');
+            if (slugLabel) slugLabel.style.display = state.tab === 'tournaments' ? '' : 'none';
             if (state.tab === 'bracket') loadBracketView();
+            if (state.tab === 'tickets') loadTicketsAdmin();
         });
     });
+
+    var ticketFilter = 'all';
+    function ticketTypeLabel(type) {
+        var map = {
+            recruit: 'tickets.optRecruit',
+            tournament: 'tickets.optTournament',
+            report: 'tickets.optReport',
+            other: 'tickets.optOther'
+        };
+        return T(map[type] || 'tickets.optOther') || type;
+    }
+    function loadTicketsAdmin() {
+        var box = document.getElementById('tickets-admin-list');
+        if (!box) return;
+        box.innerHTML = '<p class="empty-hint">' + esc(T('admin.emptyLoading')) + '</p>';
+        var q = ticketFilter === 'all' ? '' : '?status=' + encodeURIComponent(ticketFilter);
+        fetch(API + '/api/admin/tickets' + q, { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x || !x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                var rows = x.d.tickets || [];
+                var counts = { all: rows.length, pending: 0, accepted: 0, declined: 0 };
+                rows.forEach(function (t) {
+                    if (counts[t.status] != null) counts[t.status]++;
+                });
+                ['all', 'pending', 'accepted', 'declined'].forEach(function (k) {
+                    var el = document.getElementById('tc-' + (k === 'all' ? 'all' : k));
+                    if (el) el.textContent = String(k === 'all' ? counts.all : counts[k] || 0);
+                });
+                var filtered = ticketFilter === 'all' ? rows : rows.filter(function (t) { return t.status === ticketFilter; });
+                if (!filtered.length) {
+                    box.innerHTML = '<p class="empty-hint">' + esc(T('admin.ticketsEmpty')) + '</p>';
+                    return;
+                }
+                var html = '<table class="admin-table"><thead><tr>';
+                html += '<th>ID</th><th>' + esc(T('admin.ticketColType')) + '</th><th>Discord</th><th>' + esc(T('admin.ticketColDesc')) + '</th><th>' + esc(T('admin.teamWebColStatus')) + '</th><th>' + esc(T('admin.teamWebColDate')) + '</th><th>' + esc(T('admin.teamWebColActions')) + '</th></tr></thead><tbody>';
+                filtered.forEach(function (t) {
+                    var desc = String(t.description || '');
+                    if (desc.length > 120) desc = desc.slice(0, 117) + '…';
+                    html += '<tr><td>' + esc(t.id) + '</td><td>' + esc(ticketTypeLabel(t.ticket_type)) + '</td><td>' + esc(t.discord_user) + '</td><td>' + esc(desc) + '</td><td><span class="pill pill-' + esc(t.status) + '">' + esc(t.status) + '</span></td><td>' + esc(new Date(t.created_at).toLocaleString()) + '</td><td class="row-actions">';
+                    if (t.status === 'pending') {
+                        html += '<button type="button" class="btn-tiny" data-ticket-accept="' + esc(t.id) + '">' + esc(T('admin.ticketAccept')) + '</button> ';
+                        html += '<button type="button" class="btn-tiny danger" data-ticket-decline="' + esc(t.id) + '">' + esc(T('admin.ticketDecline')) + '</button>';
+                    } else {
+                        html += '<button type="button" class="btn-tiny" data-ticket-pending="' + esc(t.id) + '">' + esc(T('admin.ticketReopen')) + '</button>';
+                    }
+                    html += '</td></tr>';
+                });
+                html += '</tbody></table>';
+                box.innerHTML = html;
+                box.querySelectorAll('[data-ticket-accept]').forEach(function (btn) {
+                    btn.addEventListener('click', function () { patchTicket(btn.getAttribute('data-ticket-accept'), 'accepted'); });
+                });
+                box.querySelectorAll('[data-ticket-decline]').forEach(function (btn) {
+                    btn.addEventListener('click', function () { patchTicket(btn.getAttribute('data-ticket-decline'), 'declined'); });
+                });
+                box.querySelectorAll('[data-ticket-pending]').forEach(function (btn) {
+                    btn.addEventListener('click', function () { patchTicket(btn.getAttribute('data-ticket-pending'), 'pending'); });
+                });
+            })
+            .catch(function (e) {
+                if (e) box.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : T('admin.ticketsLoadError')) + '</p>';
+            });
+    }
+    function patchTicket(id, status) {
+        fetch(API + '/api/admin/tickets/' + encodeURIComponent(id), {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ status: status })
+        })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                banner(T('admin.ticketUpdated'), false);
+                loadTicketsAdmin();
+            })
+            .catch(function (e) {
+                if (e) banner((e && e.message) ? e.message : 'Error', true);
+            });
+    }
+    var ticketFilters = document.getElementById('ticket-filters');
+    if (ticketFilters) {
+        ticketFilters.querySelectorAll('[data-ticket-filter]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                ticketFilters.querySelectorAll('.filter').forEach(function (b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                ticketFilter = btn.getAttribute('data-ticket-filter') || 'all';
+                loadTicketsAdmin();
+            });
+        });
+    }
 
     document.getElementById('form-admin-add-team').addEventListener('submit', function (e) {
         e.preventDefault();
