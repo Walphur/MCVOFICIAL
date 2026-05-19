@@ -274,22 +274,95 @@ function registerTeamRosterApi(app, { getPool, steamApiKey }) {
         if (!Number.isFinite(id) || id < 1) {
             return res.status(400).json({ error: "ID inválido" });
         }
-        const st = String(req.body?.status ?? "").trim().toLowerCase();
-        if (st !== "approved" && st !== "rejected" && st !== "pending") {
-            return res.status(400).json({ error: "status debe ser pending, approved o rejected" });
-        }
+        const body = req.body || {};
         try {
-            const r = await pool.query(
-                `UPDATE team_roster_submissions
-         SET status = $1, updated_at = NOW()
-         WHERE id = $2
-         RETURNING *`,
-                [st, id]
-            );
-            if (!r.rows.length) {
+            const curR = await pool.query(`SELECT * FROM team_roster_submissions WHERE id = $1`, [id]);
+            if (!curR.rows.length) {
                 return res.status(404).json({ error: "No encontrado" });
             }
-            return res.json({ ok: true, submission: r.rows[0] });
+
+            const updates = [];
+            const vals = [];
+            let p = 1;
+
+            if (body.display_name !== undefined) {
+                const v = String(body.display_name ?? "").trim();
+                if (!v || v.length > 120) {
+                    return res.status(400).json({ error: "display_name inválido (1–120 caracteres)" });
+                }
+                updates.push(`display_name = $${p++}`);
+                vals.push(v);
+            }
+            if (body.role_label !== undefined) {
+                let v = String(body.role_label ?? "").trim();
+                if (v.length > 120) {
+                    v = v.slice(0, 120);
+                }
+                updates.push(`role_label = $${p++}`);
+                vals.push(v || null);
+            }
+            if (body.steam_id64 !== undefined) {
+                const raw = body.steam_id64;
+                let sid = null;
+                if (raw != null && String(raw).trim() !== "") {
+                    sid = await resolveSteamId64FromInput(String(raw), steamApiKey);
+                    if (!sid) {
+                        return res.status(400).json({ error: "SteamID64 o perfil Steam no reconocido" });
+                    }
+                }
+                updates.push(`steam_id64 = $${p++}`);
+                vals.push(sid);
+            }
+
+            const urlPairs = [
+                ["twitch_url", "twitch_url"],
+                ["kick_url", "kick_url"],
+                ["x_url", "x_url"],
+                ["instagram_url", "instagram_url"],
+                ["youtube_url", "youtube_url"],
+                ["tiktok_url", "tiktok_url"]
+            ];
+            for (const [key, col] of urlPairs) {
+                if (body[key] !== undefined) {
+                    updates.push(`${col} = $${p++}`);
+                    vals.push(normalizeOptionalUrl(body[key]));
+                }
+            }
+
+            if (body.status !== undefined) {
+                const st = String(body.status).trim().toLowerCase();
+                if (st !== "approved" && st !== "rejected" && st !== "pending") {
+                    return res.status(400).json({ error: "status debe ser pending, approved o rejected" });
+                }
+                updates.push(`status = $${p++}`);
+                vals.push(st);
+            }
+
+            if (!updates.length) {
+                return res.status(400).json({ error: "Nada para actualizar" });
+            }
+
+            vals.push(id);
+            await pool.query(
+                `UPDATE team_roster_submissions SET ${updates.join(", ")}, updated_at = NOW() WHERE id = $${p}`,
+                vals
+            );
+
+            const r2 = await pool.query(`SELECT * FROM team_roster_submissions WHERE id = $1`, [id]);
+            const row = r2.rows[0];
+
+            if (steamApiKey && row.steam_id64) {
+                const sp = await fetchSteamProfile(steamApiKey, row.steam_id64);
+                if (sp) {
+                    await pool.query(
+                        `UPDATE team_roster_submissions SET persona_name = $1, avatar_url = $2 WHERE id = $3`,
+                        [sp.persona, sp.avatar || null, id]
+                    );
+                }
+            }
+
+            const r3 = await pool.query(`SELECT * FROM team_roster_submissions WHERE id = $1`, [id]);
+            return res.json({ ok: true, submission: r3.rows[0] });
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "team-roster-admin-patch" });

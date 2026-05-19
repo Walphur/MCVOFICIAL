@@ -1176,6 +1176,55 @@ body.tournament-page {
 }
 .admin-table th { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .row-actions { white-space: nowrap; }
+.admin-steam-cell {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+}
+.admin-soc-ico {
+    vertical-align: middle;
+    margin-right: 6px;
+    opacity: 0.88;
+    display: inline-block;
+}
+.admin-dialog {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0;
+    max-width: min(520px, 96vw);
+    background: #0c0c0c;
+    color: var(--foreground);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+.admin-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.62);
+}
+.admin-dialog-box {
+    padding: 20px 22px 22px;
+}
+.admin-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+#team-roster-edit-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+#team-roster-edit-fields input,
+#team-roster-edit-fields select {
+    padding: 9px 11px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #050505;
+    color: var(--foreground);
+    font-size: 0.92rem;
+}
 
 .pill {
     font-family: "IBM Plex Sans", sans-serif;
@@ -1968,7 +2017,7 @@ body.tournament-page {
     color: #f87171;
 }
 
-/* --- Equipo (equipo.html) — perfiles públicos + formulario --- */
+/* --- Equipo — perfiles públicos + formulario --- */
 .equipo-page .equipo-hero {
     padding: 48px 20px 28px;
     text-align: center;
@@ -2087,6 +2136,15 @@ body.tournament-page {
     width: 18px;
     height: 18px;
 }
+.equipo-soc-icon {
+    width: 20px;
+    height: 20px;
+    display: block;
+    object-fit: contain;
+}
+.equipo-soc:hover .equipo-soc-icon {
+    filter: brightness(1.12);
+}
 .equipo-soc-kick {
     font-family: "JetBrains Mono", monospace;
     font-size: 0.75rem;
@@ -2173,6 +2231,21 @@ body.tournament-page {
     background: rgba(248, 113, 113, 0.1);
     color: #fca5a5;
     border: 1px solid rgba(248, 113, 113, 0.25);
+}
+.equipo-form-gate {
+    max-width: 720px;
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(8, 8, 8, 0.65);
+    overflow: hidden;
+}
+.equipo-form-gate-title {
+    margin-top: 0;
+}
+.equipo-form-gate-body {
+    padding: 18px 18px 22px;
+    border-top: 1px solid var(--border);
 }
 .equipo-form-disclosure {
     max-width: 720px;

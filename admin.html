@@ -146,17 +146,6 @@
                 <textarea id="edit-winner-roster-json" rows="10" class="admin-json-textarea" spellcheck="false"></textarea>
                 <p class="admin-form-hint">Array JSON de 1 a 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code>. El registro público sigue exigiendo 5.</p>
                 <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
-                <hr class="admin-sep">
-                <p class="admin-form-hint">Lista wipe (roster interno para Discord /mcv-wipe e importaciones): el bot registra con <code>/mcv-wipe</code> en Discord. Servidor privado del clan: invitá el mismo bot MCV y poné <code>DISCORD_WIPE_GUILD_ID</code> con el ID de ese servidor en Render. Opcional: canal con <code>!mcvsteam 76561198…</code> (<code>DISCORD_WIPE_REGISTER_CHANNEL_ID</code>).</p>
-                <label class="admin-form-hint" style="display:block;margin-bottom:6px;">Importar SteamID64 (pegá lista, CSV o texto con links; se detectan todos los de 17 dígitos, máx. 250).</label>
-                <textarea id="wipe-import-text" rows="6" class="admin-json-textarea" spellcheck="false" placeholder="76561198140263334&#10;https://steamcommunity.com/profiles/76561198…"></textarea>
-                <label style="margin-top:10px;display:block;">Etiqueta opcional (columna Discord en la web)<input type="text" id="wipe-import-label" style="width:100%;max-width:420px;margin-top:6px;padding:8px;border-radius:6px;border:1px solid var(--border);background:#050505;color:var(--foreground);" placeholder="Ej. Lista manual wipe"></label>
-                <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-                    <button type="button" class="btn-primary-small" id="btn-wipe-import-merge">Importar / fusionar</button>
-                    <button type="button" class="btn-outline" id="btn-wipe-import-replace">Reemplazar solo importaciones auto</button>
-                </div>
-                <p class="admin-form-hint" style="margin-top:10px;">Fusionar: suma o actualiza sin borrar quien ya entró con <code>/mcv-wipe</code>. Reemplazar auto: borra todas las filas <code>wipehx:</code> y <code>paste:</code> y vuelve a cargar solo lo pegado arriba.</p>
-                <button type="button" class="btn-outline" id="btn-wipe-list-clear">Vaciar lista wipe</button>
             </div>
         </div>
 
@@ -224,16 +213,58 @@
 
         <div id="team-web-panel" class="admin-panel-anchor" style="display:none;">
             <div class="data-area">
-                <h3 class="admin-form-title" data-i18n="admin.teamWebTitle">Solicitudes equipo (equipo.html)</h3>
-                <p class="admin-form-hint" data-i18n="admin.teamWebHint">Los envíos desde la web quedan en pendiente hasta que apruebes o rechaces.</p>
+                <h3 class="admin-form-title" data-i18n="admin.teamWebTitle">Solicitudes de perfil (Equipo)</h3>
+                <p class="admin-form-hint" data-i18n="admin.teamWebHint">Gestioná las fichas del clan: aprobar, rechazar o editar links cuando alguien te pase una red nueva.</p>
                 <div id="team-web-list"><p class="empty-hint" data-i18n="admin.emptyLoading">Cargando…</p></div>
+            </div>
+            <div class="data-area" style="margin-top:18px;">
+                <h3 class="admin-form-title" data-i18n="admin.teamWipeTitle">Lista wipe (Discord)</h3>
+                <p class="admin-form-hint" data-i18n-html="admin.teamWipeIntro"></p>
+                <label class="admin-form-hint" style="display:block;margin-bottom:6px;"><span data-i18n="admin.teamWipeImportLabel">Importar SteamID64 (pegá lista, CSV o texto con links; se detectan todos los de 17 dígitos, máx. 250).</span></label>
+                <textarea id="wipe-import-text" rows="6" class="admin-json-textarea" spellcheck="false" placeholder="76561198140263334&#10;https://steamcommunity.com/profiles/76561198…"></textarea>
+                <label style="margin-top:10px;display:block;"><span data-i18n="admin.teamWipeOptionalTag">Etiqueta opcional (columna Discord)</span><input type="text" id="wipe-import-label" style="width:100%;max-width:420px;margin-top:6px;padding:8px;border-radius:6px;border:1px solid var(--border);background:#050505;color:var(--foreground);" placeholder="Ej. Lista manual wipe"></label>
+                <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                    <button type="button" class="btn-primary-small" id="btn-wipe-import-merge">Importar / fusionar</button>
+                    <button type="button" class="btn-outline" id="btn-wipe-import-replace">Reemplazar solo importaciones auto</button>
+                </div>
+                <p class="admin-form-hint" style="margin-top:10px;" data-i18n-html="admin.teamWipeImportHint"></p>
+                <button type="button" class="btn-outline" id="btn-wipe-list-clear">Vaciar lista wipe</button>
             </div>
         </div>
     </main>
 
+    <dialog id="team-roster-edit-dlg" class="admin-dialog">
+        <div class="admin-dialog-box">
+            <h3 class="admin-form-title" data-i18n="admin.teamWebEditTitle">Editar ficha</h3>
+            <div class="admin-stack-form" id="team-roster-edit-fields">
+                <input type="hidden" id="tr-edit-id">
+                <label><span data-i18n="admin.teamWebEditName">Nombre *</span><input id="tr-edit-display" required maxlength="120"></label>
+                <label><span data-i18n="admin.teamWebEditRole">Rol</span><input id="tr-edit-role" maxlength="120"></label>
+                <label><span data-i18n="admin.teamWebEditSteam">SteamID64 o URL</span><input id="tr-edit-steam" type="text"></label>
+                <label>Twitch<input id="tr-edit-twitch" type="url" inputmode="url"></label>
+                <label>Kick<input id="tr-edit-kick" type="url" inputmode="url"></label>
+                <label><span data-i18n="admin.teamWebEditX">X / Twitter</span><input id="tr-edit-x" type="url" inputmode="url"></label>
+                <label>Instagram<input id="tr-edit-ig" type="url" inputmode="url"></label>
+                <label>YouTube<input id="tr-edit-yt" type="url" inputmode="url"></label>
+                <label>TikTok<input id="tr-edit-tt" type="url" inputmode="url"></label>
+                <label><span data-i18n="admin.teamWebEditStatus">Estado</span>
+                    <select id="tr-edit-status">
+                        <option value="pending">pending</option>
+                        <option value="approved">approved</option>
+                        <option value="rejected">rejected</option>
+                    </select>
+                </label>
+            </div>
+            <div class="admin-dialog-actions">
+                <button type="button" class="btn-outline" id="team-roster-edit-cancel" data-i18n="admin.teamWebEditCancel">Cancelar</button>
+                <button type="button" class="btn-primary-small" id="team-roster-edit-save" data-i18n="admin.teamWebEditSave">Guardar</button>
+            </div>
+        </div>
+    </dialog>
+
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=8"></script>
+<script src="mcv-i18n.js?v=12"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -881,7 +912,7 @@
     var btnWipeClear = document.getElementById('btn-wipe-list-clear');
     if (btnWipeClear) {
         btnWipeClear.addEventListener('click', function () {
-            if (!window.confirm('¿Borrar todos los jugadores de la lista wipe en la web?')) {
+            if (!window.confirm('¿Borrar todos los jugadores de la lista wipe?')) {
                 return;
             }
             banner('Borrando lista wipe…', false);
@@ -987,6 +1018,11 @@
                     box.innerHTML = '<p class="empty-hint">' + esc(T('admin.teamWebEmpty')) + '</p>';
                     return;
                 }
+                var byId = {};
+                rows.forEach(function (s) {
+                    byId[s.id] = s;
+                });
+                var steamIco = 'https://cdn.simpleicons.org/steam/b3b3b3';
                 var html = '<table class="admin-table"><thead><tr>';
                 html += '<th>' + esc(T('admin.teamWebColId')) + '</th>';
                 html += '<th>' + esc(T('admin.teamWebColName')) + '</th>';
@@ -997,10 +1033,15 @@
                 rows.forEach(function (s) {
                     html += '<tr><td>' + esc(s.id) + '</td>';
                     html += '<td>' + esc(s.display_name) + (s.role_label ? ' <small>(' + esc(s.role_label) + ')</small>' : '') + '</td>';
-                    html += '<td>' + esc(s.steam_id64 || '—') + '</td>';
+                    html += '<td class="admin-steam-cell">';
+                    if (s.steam_id64) {
+                        html += '<img class="admin-soc-ico" src="' + steamIco + '" width="16" height="16" alt="" loading="lazy"> ';
+                    }
+                    html += esc(s.steam_id64 || '—') + '</td>';
                     html += '<td><span class="pill">' + esc(s.status) + '</span></td>';
                     html += '<td>' + esc(String(s.created_at).slice(0, 16)) + '</td>';
                     html += '<td class="row-actions">';
+                    html += '<button type="button" class="btn-tiny" data-team-act="edit" data-team-id="' + esc(s.id) + '">' + esc(T('admin.teamWebEdit')) + '</button> ';
                     if (s.status !== 'approved') {
                         html += '<button type="button" class="btn-tiny" data-team-act="approve" data-team-id="' + esc(s.id) + '">' + esc(T('admin.teamWebApprove')) + '</button> ';
                     }
@@ -1016,6 +1057,31 @@
                     btn.addEventListener('click', function () {
                         var id = Number(btn.getAttribute('data-team-id'));
                         var act = btn.getAttribute('data-team-act');
+                        if (act === 'edit') {
+                            var s = byId[id];
+                            if (!s) return;
+                            document.getElementById('tr-edit-id').value = String(s.id);
+                            document.getElementById('tr-edit-display').value = s.display_name || '';
+                            document.getElementById('tr-edit-role').value = s.role_label || '';
+                            document.getElementById('tr-edit-steam').value = s.steam_id64 || '';
+                            document.getElementById('tr-edit-twitch').value = s.twitch_url || '';
+                            document.getElementById('tr-edit-kick').value = s.kick_url || '';
+                            document.getElementById('tr-edit-x').value = s.x_url || '';
+                            document.getElementById('tr-edit-ig').value = s.instagram_url || '';
+                            document.getElementById('tr-edit-yt').value = s.youtube_url || '';
+                            document.getElementById('tr-edit-tt').value = s.tiktok_url || '';
+                            document.getElementById('tr-edit-status').value = s.status || 'pending';
+                            var dlg = document.getElementById('team-roster-edit-dlg');
+                            if (dlg && dlg.showModal) {
+                                try {
+                                    if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
+                                        window.mcvI18n.apply();
+                                    }
+                                } catch (eI) {}
+                                dlg.showModal();
+                            }
+                            return;
+                        }
                         if (act === 'delete') {
                             if (!window.confirm('¿Borrar esta fila de la base?')) return;
                             banner('Borrando…', false);
@@ -1071,6 +1137,60 @@
                 box.innerHTML = '<p class="empty-hint" style="color:#f87171;">' + esc(T('admin.teamWebLoadErr')) + '</p>';
             });
     }
+
+    (function wireTeamRosterEditDlg() {
+        var dlg = document.getElementById('team-roster-edit-dlg');
+        var btnCancel = document.getElementById('team-roster-edit-cancel');
+        var btnSave = document.getElementById('team-roster-edit-save');
+        if (!dlg || !btnCancel || !btnSave) return;
+        btnCancel.addEventListener('click', function () {
+            dlg.close();
+        });
+        btnSave.addEventListener('click', function () {
+            var id = Number(document.getElementById('tr-edit-id').value);
+            if (!Number.isFinite(id) || id < 1) return;
+            var display = String(document.getElementById('tr-edit-display').value || '').trim();
+            if (!display) {
+                banner('El nombre es obligatorio.', true);
+                return;
+            }
+            var body = {
+                display_name: display,
+                role_label: String(document.getElementById('tr-edit-role').value || '').trim(),
+                steam_id64: String(document.getElementById('tr-edit-steam').value || '').trim(),
+                twitch_url: String(document.getElementById('tr-edit-twitch').value || '').trim(),
+                kick_url: String(document.getElementById('tr-edit-kick').value || '').trim(),
+                x_url: String(document.getElementById('tr-edit-x').value || '').trim(),
+                instagram_url: String(document.getElementById('tr-edit-ig').value || '').trim(),
+                youtube_url: String(document.getElementById('tr-edit-yt').value || '').trim(),
+                tiktok_url: String(document.getElementById('tr-edit-tt').value || '').trim(),
+                status: String(document.getElementById('tr-edit-status').value || 'pending').trim()
+            };
+            banner('Guardando ficha…', false);
+            fetch(API + '/api/admin/team-roster/submissions/' + id, {
+                method: 'PATCH',
+                headers: authHeaders(),
+                body: JSON.stringify(body)
+            })
+                .then(function (r) {
+                    if (r.status === 401) {
+                        clearAdminSession();
+                        window.location.href = 'login.html?expired=1';
+                        return Promise.reject();
+                    }
+                    return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                })
+                .then(function (x2) {
+                    if (!x2.ok) throw new Error((x2.d && x2.d.error) ? x2.d.error : 'err');
+                    banner(T('admin.teamWebSaved'), false);
+                    dlg.close();
+                    loadTeamWebRoster();
+                })
+                .catch(function (e) {
+                    banner((e && e.message) ? e.message : 'Error', true);
+                });
+        });
+    })();
 
     document.querySelectorAll('.tab').forEach(function (t) {
         t.addEventListener('click', function () {
