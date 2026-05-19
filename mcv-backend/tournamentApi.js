@@ -223,6 +223,16 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                 }
             }
 
+            let teamRosterApproved = null;
+            try {
+                const tr = await pool.query(
+                    `SELECT COUNT(*)::int AS c FROM team_roster_submissions WHERE status = 'approved'`
+                );
+                teamRosterApproved = tr.rows[0].c;
+            } catch (_) {
+                /* team_roster_submissions no existe en BD vieja */
+            }
+
             const tournamentsFinished = finishedQ.rows[0].c;
             const tournamentsOnSite = listedQ.rows[0].c;
             return res.json({
@@ -231,7 +241,9 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
                 teamsRegistered: teams.rows[0].c,
                 /** @deprecated misma semántica que tournamentsOnSite */
                 eventsHosted: tournamentsOnSite,
-                wipePlayersConfirmed
+                wipePlayersConfirmed,
+                /** Perfiles aprobados en /equipo/ (público) */
+                teamRosterApproved
             });
         } catch (e) {
             console.error(e);

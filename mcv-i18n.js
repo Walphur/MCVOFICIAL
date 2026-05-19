@@ -46,9 +46,9 @@
             "home.statHosted": "// Torneos hosteados",
             "home.statDiscord": "// Miembros Discord",
             "home.statOnline": "// Online ahora",
-            "home.statWipes": "// Jugadores al wipe",
+            "home.statWipes": "// Roster Equipo",
             "home.statWipesHint":
-                "Si no definís MCV_HOME_WIPE_PLAYERS, el número puede salir de la lista automática (/mcv-wipe en Discord). También podés fijar el valor a mano en el servidor.",
+                "Cantidad de perfiles aprobados que se muestran en la página Equipo. Si el API no expone el dato, se usa el contador legacy de lista wipe (Discord).",
             "home.strip1": "Red MCV",
             "team.heroTag": "// MCV · Lineup",
             "team.heroTitle": "Nuestro",
@@ -341,9 +341,9 @@
             "home.statHosted": "// Hosted tournaments",
             "home.statDiscord": "// Discord members",
             "home.statOnline": "// Online now",
-            "home.statWipes": "// Wipe roster",
+            "home.statWipes": "// Team roster",
             "home.statWipesHint":
-                "Players confirmed for the wipe: use MCV_HOME_WIPE_PLAYERS, or the count from Discord /mcv-wipe registrations when that env is empty.",
+                "Count of approved profiles shown on the Team page. If the API omits it, the legacy Discord wipe-list counter is used instead.",
             "home.strip1": "MCV network",
             "team.heroTag": "// MCV · Lineup",
             "team.heroTitle": "Our",
