@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -60,11 +60,20 @@
             <span class="section-label"><span class="yellow-line"></span> // Resultado</span>
             <h2 id="t-winner-heading" data-i18n="tournament.winnerLabel">Campeón</h2>
             <p id="t-winner-sub" class="winner-sub"></p>
-            <ul id="t-winner-roster" class="winner-roster" style="display:none;" aria-label="Roster campeón"></ul>
+            <div id="t-winner-roster-card" class="winner-champions-card" style="display:none;">
+                <div class="winner-confetti" aria-hidden="true"></div>
+                <div class="winner-champions-head">
+                    <i data-lucide="trophy" class="winner-champions-trophy" aria-hidden="true"></i>
+                    <span class="winner-champions-badge" data-i18n="tournament.championsBadge">Campeones</span>
+                </div>
+                <ul id="t-winner-roster" class="winner-roster winner-roster--champions" style="display:none;" aria-label="Roster campeón"></ul>
+            </div>
         </div>
         <div id="t-winner-poster-wrap" class="winner-poster-wrap" style="display:none;">
             <img id="t-winner-poster" src="" alt="Póster del torneo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-            <iframe id="t-winner-poster-embed" class="winner-poster-embed" title="Póster del torneo (Imgur)" style="display:none;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+            <div id="t-winner-poster-iframe-shell" class="winner-poster-iframe-shell" style="display:none;">
+                <iframe id="t-winner-poster-embed" class="winner-poster-embed" title="Póster del torneo (Imgur)" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+            </div>
             <p id="t-winner-poster-err" class="winner-poster-err" hidden data-i18n="tournament.posterLoadErr">No se pudo cargar la imagen. Usá un enlace directo al archivo (.jpg, .png, .webp).</p>
         </div>
     </div>
@@ -207,7 +216,7 @@
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=4"></script>
+<script src="mcv-i18n.js?v=5"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -290,7 +299,11 @@
         tournament = t;
         document.title = 'MCV — ' + (t.title || T('tournament.defaultTitle'));
         setText('t-hero-title', t.title || T('tournament.defaultTitle'));
-        setText('t-hero-desc', t.description || '');
+        var heroDesc = t.description == null ? '' : String(t.description);
+        if (heroDesc.indexOf('30 equipos') !== -1) {
+            heroDesc = heroDesc.replace(/30 equipos/g, '32 equipos');
+        }
+        setText('t-hero-desc', heroDesc);
         setText('t-marquee', t.marquee_text || ('MCV — ' + (t.title || 'TORNEO') + ' —'));
         setText('t-stat-prize', t.prize_pool_text || '—');
         setText('t-stat-prize-sub', t.prize_sub_text || '');
@@ -381,8 +394,10 @@
 
         var posterWrap = document.getElementById('t-winner-poster-wrap');
         var posterImg = document.getElementById('t-winner-poster');
+        var posterIframeShell = document.getElementById('t-winner-poster-iframe-shell');
         var posterIframe = document.getElementById('t-winner-poster-embed');
         var posterErr = document.getElementById('t-winner-poster-err');
+        var rosterCard = document.getElementById('t-winner-roster-card');
         function hideWinnerPoster() {
             if (posterWrap) posterWrap.style.display = 'none';
             if (posterImg) {
@@ -391,8 +406,8 @@
                 posterImg.onload = null;
                 posterImg.onerror = null;
             }
+            if (posterIframeShell) posterIframeShell.style.display = 'none';
             if (posterIframe) {
-                posterIframe.style.display = 'none';
                 posterIframe.removeAttribute('src');
             }
             if (posterErr) posterErr.hidden = true;
@@ -406,6 +421,7 @@
             );
             setText('t-winner-sub', t.ended_at ? T('tournament.winnerClosedPrefix') + fmtDate(t.ended_at) : '');
             if (hasRoster && rosterEl) {
+                if (rosterCard) rosterCard.style.display = 'block';
                 rosterEl.style.display = 'flex';
                 rosterEl.innerHTML = roster
                     .map(function (p) {
@@ -414,13 +430,16 @@
                         return '<li><span class="winner-roster-name">' + n + '</span><span class="winner-roster-disc">' + d + '</span></li>';
                     })
                     .join('');
-            } else if (rosterEl) {
-                rosterEl.style.display = 'none';
-                rosterEl.innerHTML = '';
+            } else {
+                if (rosterCard) rosterCard.style.display = 'none';
+                if (rosterEl) {
+                    rosterEl.style.display = 'none';
+                    rosterEl.innerHTML = '';
+                }
             }
-            if (imgurEmbed && posterWrap && posterIframe) {
+            if (imgurEmbed && posterWrap && posterIframe && posterIframeShell) {
                 posterWrap.style.display = 'block';
-                posterIframe.style.display = 'block';
+                posterIframeShell.style.display = 'block';
                 posterIframe.src = imgurEmbed;
                 if (posterImg) {
                     posterImg.style.display = 'none';
@@ -431,10 +450,8 @@
                 if (posterErr) posterErr.hidden = true;
             } else if (posterSrc && posterWrap && posterImg) {
                 posterWrap.style.display = 'block';
-                if (posterIframe) {
-                    posterIframe.style.display = 'none';
-                    posterIframe.removeAttribute('src');
-                }
+                if (posterIframeShell) posterIframeShell.style.display = 'none';
+                if (posterIframe) posterIframe.removeAttribute('src');
                 posterImg.style.display = 'block';
                 if (posterErr) {
                     posterErr.hidden = true;
@@ -452,6 +469,8 @@
             }
         } else {
             winSec.style.display = 'none';
+            var rosterCard2 = document.getElementById('t-winner-roster-card');
+            if (rosterCard2) rosterCard2.style.display = 'none';
             if (rosterEl) {
                 rosterEl.style.display = 'none';
                 rosterEl.innerHTML = '';

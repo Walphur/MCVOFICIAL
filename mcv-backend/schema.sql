@@ -58,9 +58,9 @@ INSERT INTO tournaments (slug, title, description, format_label, max_teams, star
 VALUES (
         'last-squad-standing',
         'Last Squad Standing',
-        '30 equipos · 5v5 · Rust competitivo',
+        '32 equipos · 5v5 · Rust competitivo',
         '5v5',
-        30,
+        32,
         '2026-05-16T18:00:00+02',
         'open'
     )
@@ -163,6 +163,11 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS display_slots_max INT;
 -- split
 UPDATE tournaments
 SET display_slots_num = 32, display_slots_max = 32
+WHERE slug = 'last-squad-standing';
+
+-- split
+UPDATE tournaments
+SET description = '32 equipos · 5v5 · Rust competitivo', max_teams = 32
 WHERE slug = 'last-squad-standing';
 
 -- split
