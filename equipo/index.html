@@ -33,11 +33,11 @@
 <section class="equipo-hero">
     <div class="section-label centered-label">
         <div class="yellow-line"></div>
-        <span data-i18n="team.heroTag">// MCV · Faces</span>
+        <span data-i18n="team.heroTag">// MCV · Roster público</span>
         <div class="yellow-line"></div>
     </div>
     <h1 class="equipo-hero-title"><span data-i18n="team.heroTitle">Nuestro</span> <span class="equipo-hero-accent" data-i18n="team.heroTitleSpan">equipo.</span></h1>
-    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Somos MCV: Rust, torneos y comunidad. Acá ves a quienes representan al clan en redes y Steam.</p>
+    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Roster público de miembros: nombre visible, función en el clan y enlaces a Steam y redes autorizados. Los perfiles se publican tras revisión del staff.</p>
 </section>
 
 <main class="equipo-main">
@@ -51,7 +51,7 @@
                 <span class="equipo-form-summary-inner"><i data-lucide="plus-circle"></i> <span data-i18n="team.formToggle">Cargar / actualizar mi ficha</span></span>
             </summary>
             <div class="equipo-form-gate-body">
-                <h2 class="equipo-section-title equipo-form-gate-title" data-i18n="team.sectionForm">Tu ficha MCV</h2>
+                <h2 class="equipo-section-title equipo-form-gate-title" data-i18n="team.sectionForm">Solicitud de perfil</h2>
                 <p class="equipo-form-intro" data-i18n-html="team.formIntroWipe"></p>
                 <form id="equipo-form" class="equipo-form">
                     <div class="equipo-form-grid">
@@ -110,7 +110,7 @@
     </div>
 </footer>
 
-<script src="../mcv-i18n.js?v=12"></script>
+<script src="../mcv-i18n.js?v=13"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -130,11 +130,12 @@
             .replace(/"/g, "&quot;");
     }
 
+    /* Mismo tono que el indicador «Streams» (--red / live-dot) */
     var SI = "https://cdn.simpleicons.org";
+    var SOC_ICON_HEX = "EF4444";
 
-    function socBrand(href, slug, label, iconColor) {
+    function socBrand(href, slug, label) {
         if (!href) return "";
-        var c = iconColor || "b3b3b3";
         return (
             '<a class="equipo-soc" href="' +
             esc(href) +
@@ -143,7 +144,7 @@
             '" aria-label="' +
             esc(label) +
             '"><img class="equipo-soc-icon" src="' +
-            esc(SI + "/" + slug + "/" + c) +
+            esc(SI + "/" + slug + "/" + SOC_ICON_HEX) +
             '" alt="" width="20" height="20" loading="lazy"></a>'
         );
     }
@@ -158,13 +159,13 @@
             ? '<img class="equipo-card-avatar" src="' + av + '" alt="" width="80" height="80" loading="lazy">'
             : '<div class="equipo-card-avatar equipo-card-avatar-fallback"><i data-lucide="user"></i></div>';
         var soc =
-            socBrand(m.twitch_url, "twitch", "Twitch", "9146FF") +
-            socBrand(m.kick_url, "kick", "Kick", "53FC20") +
+            socBrand(m.twitch_url, "twitch", "Twitch") +
+            socBrand(m.kick_url, "kick", "Kick") +
             socBrand(m.x_url, "x", "X / Twitter") +
-            socBrand(m.instagram_url, "instagram", "Instagram", "E4405F") +
-            socBrand(m.youtube_url, "youtube", "YouTube", "FF0000") +
-            socBrand(m.tiktok_url, "tiktok", "TikTok", "ffffff");
-        var steamA = steamHref ? socBrand(steamHref, "steam", "Steam", "ffffff") : "";
+            socBrand(m.instagram_url, "instagram", "Instagram") +
+            socBrand(m.youtube_url, "youtube", "YouTube") +
+            socBrand(m.tiktok_url, "tiktok", "TikTok");
+        var steamA = steamHref ? socBrand(steamHref, "steam", "Steam") : "";
         return (
             '<article class="equipo-card">' +
             '<div class="equipo-card-media">' +
