@@ -1724,27 +1724,28 @@ body.tournament-page {
 }
 
 .winner-recap-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(200px, 280px);
+    align-items: stretch;
     justify-content: center;
-    gap: 20px 24px;
+    gap: 16px 20px;
 }
 
 @media (max-width: 640px) {
     .winner-recap-grid {
-        flex-direction: column;
-        align-items: stretch;
+        grid-template-columns: 1fr;
+        max-width: 360px;
+        margin: 0 auto;
     }
 }
 
 .winner-showcase-text {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
     min-width: 0;
-    flex: 0 1 300px;
+    height: 100%;
 }
 
 .winner-sub { color: var(--muted); font-family: "JetBrains Mono", monospace; }
@@ -1753,7 +1754,10 @@ body.tournament-page {
     position: relative;
     margin-top: 0;
     width: 100%;
-    max-width: 300px;
+    max-width: none;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     padding: 0;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1850,6 +1854,7 @@ body.tournament-page {
 
 .winner-roster--champions {
     padding-top: 4px;
+    flex: 1;
 }
 
 .winner-roster li {
@@ -1882,26 +1887,30 @@ body.tournament-page {
 .winner-poster-wrap--recap {
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
-    width: min(200px, 42vw);
-    max-width: 200px;
-    align-self: center;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
 }
 
 .winner-poster-wrap--photo {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
+    flex: 1;
     min-height: 0;
-    max-height: none;
+    height: 100%;
     aspect-ratio: auto;
-    height: auto;
 }
 
 .winner-poster-wrap--photo img {
     width: 100%;
-    height: auto;
-    max-height: min(320px, 52vh);
-    object-fit: contain;
+    height: 100%;
+    min-height: 100%;
+    max-height: none;
+    object-fit: cover;
     object-position: center top;
     display: block;
     background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(45, 38, 22, 0.55) 0%, #050505 72%);
@@ -1910,8 +1919,11 @@ body.tournament-page {
 .winner-poster-iframe-shell {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4;
-    max-height: min(320px, 52vh);
+    flex: 1;
+    min-height: 200px;
+    height: 100%;
+    aspect-ratio: auto;
+    max-height: none;
     background: #030303;
     overflow: hidden;
     border-radius: 12px;
@@ -2017,7 +2029,7 @@ body.tournament-page {
 
 /* Events — destacado */
 .events-featured {
-    max-width: min(720px, 94vw);
+    max-width: min(820px, 94vw);
     margin: 8px auto 4px;
     padding: 0 16px 12px;
 }
@@ -2033,30 +2045,32 @@ body.tournament-page {
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 .events-featured-poster {
-    flex: 0 0 clamp(120px, 28vw, 168px);
-    width: clamp(120px, 28vw, 168px);
+    flex: 0 0 min(200px, 36vw);
+    width: min(200px, 36vw);
+    max-width: 240px;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     background: #080808;
     min-height: 0;
-    padding: 10px 8px;
+    padding: 0;
+    overflow: hidden;
     box-sizing: border-box;
 }
 .events-featured-poster img {
     width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    object-position: center center;
+    height: 100%;
+    min-height: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center top;
     display: block;
-    background: transparent;
+    background: #080808;
 }
 .events-featured-poster-embed {
     width: 100%;
-    height: auto;
-    min-height: 0;
-    max-height: 200px;
+    height: 100%;
+    min-height: 180px;
     border: 0;
     display: block;
     background: #111;
@@ -2065,21 +2079,32 @@ body.tournament-page {
     flex: 1;
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 12px;
-    padding: 16px 18px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 18px;
+    padding: 18px 20px;
     border-left: 1px solid var(--border);
 }
 .events-featured-copy {
-    min-width: 0;
-    width: 100%;
+    flex: 1;
+    min-width: min(200px, 100%);
 }
-.events-featured-inner .btn-primary {
-    align-self: flex-start;
-    max-width: 100%;
-    margin-top: 2px;
+.events-featured-inner a.btn-primary {
+    flex-shrink: 0;
+    text-decoration: none !important;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 11px 24px;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    border-radius: 8px;
+    margin: 0;
+    white-space: nowrap;
+}
+.events-featured-inner a.btn-primary:hover {
+    text-decoration: none !important;
 }
 @media (max-width: 560px) {
     .events-featured-card {
@@ -2087,16 +2112,22 @@ body.tournament-page {
     }
     .events-featured-poster {
         width: 100%;
+        max-width: none;
         flex: none;
-        max-height: 200px;
+        min-height: 200px;
+        max-height: 280px;
         border-bottom: 1px solid var(--border);
     }
-    .events-featured-poster img {
-        max-height: 180px;
-    }
     .events-featured-inner {
+        flex-direction: column;
+        align-items: flex-start;
         border-left: 0;
         padding: 16px;
+    }
+    .events-featured-inner a.btn-primary {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
     }
 }
 .events-featured-label {
