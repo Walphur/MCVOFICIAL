@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../logo.png">
     <link rel="alternate icon" href="../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../style.css?v=14">
+    <link rel="stylesheet" href="../style.css?v=15">
     <script src="../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -33,11 +33,11 @@
 <section class="equipo-hero">
     <div class="section-label centered-label">
         <div class="yellow-line"></div>
-        <span data-i18n="team.heroTag">// MCV · Roster público</span>
+        <span data-i18n="team.heroTag">// MCV · Lineup</span>
         <div class="yellow-line"></div>
     </div>
     <h1 class="equipo-hero-title"><span data-i18n="team.heroTitle">Nuestro</span> <span class="equipo-hero-accent" data-i18n="team.heroTitleSpan">equipo.</span></h1>
-    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Roster oficial del clan: miembros publicados con su función y enlaces autorizados a Steam y redes sociales. Cada perfil es validado por el staff antes de figurar aquí.</p>
+    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Tag MCV, roster cerrado: la cara del clan en Rust, torneo y stream.</p>
 </section>
 
 <main class="equipo-main">
@@ -53,7 +53,7 @@
     </div>
 </footer>
 
-<script src="../mcv-i18n.js?v=14"></script>
+<script src="../mcv-i18n.js?v=15"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -106,21 +106,29 @@
             socBrand(m.youtube_url, "youtube", "YouTube") +
             socBrand(m.tiktok_url, "tiktok", "TikTok");
         var steamA = steamHref ? socBrand(steamHref, "steam", "Steam") : "";
+        var socRow = soc
+            ? '<div class="equipo-card-soc-row">' + soc + "</div>"
+            : "";
+        var roleHtml = role ? '<p class="equipo-card-role">' + role + "</p>" : "";
+        var steamSlot = steamA
+            ? '<div class="equipo-card-steam-slot">' + steamA + "</div>"
+            : "";
         return (
             '<article class="equipo-card">' +
+            '<div class="equipo-card-top">' +
             '<div class="equipo-card-media">' +
             img +
             "</div>" +
-            '<div class="equipo-card-body">' +
+            '<div class="equipo-card-id">' +
             "<h3>" +
             name +
             "</h3>" +
-            (role ? '<p class="equipo-card-role">' + role + "</p>" : "") +
-            '<div class="equipo-card-soc">' +
-            steamA +
-            soc +
+            roleHtml +
             "</div>" +
-            "</div></article>"
+            steamSlot +
+            "</div>" +
+            socRow +
+            "</article>"
         );
     }
 
