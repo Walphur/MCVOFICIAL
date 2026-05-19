@@ -53,7 +53,8 @@
             "team.heroTag": "// MCV · Lineup",
             "team.heroTitle": "Nuestro",
             "team.heroTitleSpan": "equipo.",
-            "team.heroLead": "Tag MCV, roster cerrado: la cara del clan en Rust, torneo y stream.",
+            "team.heroLead":
+                "El núcleo de MCV Clan. Aquí encontrarás a los miembros del roster principal, dedicados a competir al más alto nivel en la escena de Rust y a conectar con la comunidad a través de sus streams diarios. Apoya a nuestros creadores haciendo clic en sus redes oficiales abajo.",
             "team.sectionRoster": "En la web",
             "team.rosterEmpty": "No hay perfiles publicados en este momento.",
             "team.sectionForm": "Solicitud de perfil",
@@ -350,7 +351,8 @@
             "team.heroTag": "// MCV · Lineup",
             "team.heroTitle": "Our",
             "team.heroTitleSpan": "team.",
-            "team.heroLead": "MCV tag, locked roster — the faces of the clan in Rust, tournaments and on stream.",
+            "team.heroLead":
+                "The core of MCV Clan. Here you'll find the members of our main roster—dedicated to competing at the highest level in the Rust scene and connecting with the community through their daily streams. Support our creators by clicking their official links below.",
             "team.sectionRoster": "On the site",
             "team.rosterEmpty": "No published profiles at this time.",
             "team.sectionForm": "Profile request",
