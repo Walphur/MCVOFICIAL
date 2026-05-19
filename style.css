@@ -2053,9 +2053,24 @@ body.tournament-page {
     color: var(--foreground);
 }
 .equipo-roster-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
     gap: 18px;
+}
+.equipo-roster-grid .equipo-card {
+    flex: 0 1 320px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.equipo-main--form-only {
+    padding-bottom: 64px;
+}
+.equipo-form-section--standalone {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 .equipo-card {
     display: flex;

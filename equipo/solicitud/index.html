@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!--
+  URL confidencial: no está en el menú del sitio. Compartila solo por DM/canales privados del staff.
+  Pública solo por oscuridad de la ruta; quien tenga el enlace puede enviar el formulario (igual que antes).
+-->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>MCV — Solicitud de perfil</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="../../logo.png">
+    <link rel="alternate icon" href="../../favicon.ico" type="image/png">
+    <link rel="stylesheet" href="../../style.css?v=14">
+    <script src="../../mcv-purge-legacy-api.js?v=2"></script>
+    <script src="../../mcv-api-base.js?v=2"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+</head>
+<body class="grain equipo-page" data-mcv-page="teamForm">
+
+<nav class="navbar">
+    <a href="../../index.html" class="logo-link">
+        <img src="../../logo.png" alt="MCV Logo" class="navbar-logo">
+        <div class="logo-text">MCV <span>OFICIAL</span></div>
+    </a>
+    <ul class="nav-links">
+        <li><a href="../../index.html"><span data-i18n="nav.clan">Clan</span></a></li>
+        <li><a href="../../events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
+        <li><a href="../"><span data-i18n="nav.team">Equipo</span></a></li>
+        <li><a href="../../bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
+        <li><a href="../../tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
+        <li><a href="../../live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
+    </ul>
+</nav>
+
+<section class="equipo-hero">
+    <div class="section-label centered-label">
+        <div class="yellow-line"></div>
+        <span data-i18n="team.privateFormTag">// Acceso staff</span>
+        <div class="yellow-line"></div>
+    </div>
+    <h1 class="equipo-hero-title"><span data-i18n="team.privateFormTitle">Solicitud de</span> <span class="equipo-hero-accent" data-i18n="team.privateFormTitleSpan">perfil.</span></h1>
+    <p class="equipo-hero-lead" data-i18n-html="team.privateFormLead">Este enlace no figura en el menú público. Usalo solo si el staff te lo compartió.</p>
+</section>
+
+<main class="equipo-main equipo-main--form-only">
+    <section class="equipo-form-section equipo-form-section--standalone">
+        <h2 class="equipo-section-title equipo-form-gate-title" style="margin-top:0" data-i18n="team.sectionForm">Solicitud de perfil</h2>
+        <p class="equipo-form-intro" data-i18n-html="team.formIntroWipe"></p>
+        <form id="equipo-form" class="equipo-form">
+            <div class="equipo-form-grid">
+                <label class="equipo-field span-2">
+                    <span data-i18n="team.fieldDisplayName">Nombre público *</span>
+                    <input name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Nombre como figurará en la web">
+                </label>
+                <label class="equipo-field span-2">
+                    <span data-i18n="team.fieldRole">Función o etiqueta breve (opcional)</span>
+                    <input name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej.: Content creator, Staff">
+                </label>
+                <label class="equipo-field span-2">
+                    <span data-i18n="team.fieldSteam">SteamID64 o URL de perfil (opcional si indica redes)</span>
+                    <input name="steam_id64" inputmode="text" data-i18n-placeholder="team.phSteam" placeholder="76561198… o link de perfil Steam">
+                </label>
+                <label class="equipo-field">
+                    <span>Twitch</span>
+                    <input name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
+                </label>
+                <label class="equipo-field">
+                    <span>Kick</span>
+                    <input name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
+                </label>
+                <label class="equipo-field">
+                    <span data-i18n="team.fieldX">X / Twitter</span>
+                    <input name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
+                </label>
+                <label class="equipo-field">
+                    <span>Instagram</span>
+                    <input name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
+                </label>
+                <label class="equipo-field">
+                    <span>YouTube</span>
+                    <input name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
+                </label>
+                <label class="equipo-field">
+                    <span>TikTok</span>
+                    <input name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
+                </label>
+            </div>
+            <p class="equipo-form-hint" data-i18n-html="team.formHintWipe"></p>
+            <p id="equipo-form-msg" class="equipo-form-msg" hidden></p>
+            <button type="submit" class="btn-primary pulse-rust" id="equipo-form-submit">
+                <i data-lucide="send"></i> <span data-i18n="team.formSubmit">Enviar solicitud</span>
+            </button>
+        </form>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="footer-bottom">
+        <span data-i18n="footer.copy">© 2026 MCV Clan.</span>
+        <a href="../" data-i18n="team.backToRoster">← Equipo</a>
+    </div>
+</footer>
+
+<script src="../../mcv-i18n.js?v=14"></script>
+<script>
+(function () {
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var T = typeof mcvT === "function" ? mcvT : function (k) { return k; };
+    var form = document.getElementById("equipo-form");
+    var formMsg = document.getElementById("equipo-form-msg");
+    var submitBtn = document.getElementById("equipo-form-submit");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        formMsg.hidden = true;
+        if (!API) {
+            formMsg.textContent = T("team.noApi");
+            formMsg.className = "equipo-form-msg equipo-form-msg-err";
+            formMsg.hidden = false;
+            return;
+        }
+        var fd = new FormData(form);
+        var body = {
+            display_name: fd.get("display_name"),
+            role_label: fd.get("role_label"),
+            steam_id64: fd.get("steam_id64"),
+            twitch_url: fd.get("twitch_url"),
+            kick_url: fd.get("kick_url"),
+            x_url: fd.get("x_url"),
+            instagram_url: fd.get("instagram_url"),
+            youtube_url: fd.get("youtube_url"),
+            tiktok_url: fd.get("tiktok_url")
+        };
+        submitBtn.disabled = true;
+        fetch(API + "/api/team-roster/submit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        })
+            .then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+            .then(function (x) {
+                submitBtn.disabled = false;
+                if (!x.ok) {
+                    formMsg.textContent = (x.d && x.d.error) ? x.d.error : T("team.formError");
+                    formMsg.className = "equipo-form-msg equipo-form-msg-err";
+                    formMsg.hidden = false;
+                    return;
+                }
+                formMsg.textContent = T("team.formSuccess");
+                formMsg.className = "equipo-form-msg equipo-form-msg-ok";
+                formMsg.hidden = false;
+                form.reset();
+            })
+            .catch(function () {
+                submitBtn.disabled = false;
+                formMsg.textContent = T("team.formNetwork");
+                formMsg.className = "equipo-form-msg equipo-form-msg-err";
+                formMsg.hidden = false;
+            });
+    });
+
+    lucide.createIcons();
+})();
+</script>
+</body>
+</html>

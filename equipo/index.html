@@ -8,7 +8,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../logo.png">
     <link rel="alternate icon" href="../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../style.css?v=12">
+    <link rel="stylesheet" href="../style.css?v=14">
     <script src="../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
@@ -37,70 +37,13 @@
         <div class="yellow-line"></div>
     </div>
     <h1 class="equipo-hero-title"><span data-i18n="team.heroTitle">Nuestro</span> <span class="equipo-hero-accent" data-i18n="team.heroTitleSpan">equipo.</span></h1>
-    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Roster público de miembros: nombre visible, función en el clan y enlaces a Steam y redes autorizados. Los perfiles se publican tras revisión del staff.</p>
+    <p class="equipo-hero-lead" data-i18n-html="team.heroLead">Roster oficial del clan: miembros publicados con su función y enlaces autorizados a Steam y redes sociales. Cada perfil es validado por el staff antes de figurar aquí.</p>
 </section>
 
 <main class="equipo-main">
     <p id="equipo-roster-empty" class="equipo-empty" hidden data-i18n="team.rosterEmpty">Todavía no hay perfiles publicados.</p>
     <p id="equipo-roster-error" class="equipo-error" hidden></p>
     <div id="equipo-roster-grid" class="equipo-roster-grid"></div>
-
-    <section class="equipo-form-section">
-        <details class="equipo-form-gate" id="equipo-form-anchor">
-            <summary class="equipo-form-summary">
-                <span class="equipo-form-summary-inner"><i data-lucide="plus-circle"></i> <span data-i18n="team.formToggle">Cargar / actualizar mi ficha</span></span>
-            </summary>
-            <div class="equipo-form-gate-body">
-                <h2 class="equipo-section-title equipo-form-gate-title" data-i18n="team.sectionForm">Solicitud de perfil</h2>
-                <p class="equipo-form-intro" data-i18n-html="team.formIntroWipe"></p>
-                <form id="equipo-form" class="equipo-form">
-                    <div class="equipo-form-grid">
-                        <label class="equipo-field span-2">
-                            <span data-i18n="team.fieldDisplayName">Nombre en la página *</span>
-                            <input name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Cómo querés aparecer">
-                        </label>
-                        <label class="equipo-field span-2">
-                            <span data-i18n="team.fieldRole">Rol o descripción corta (opcional)</span>
-                            <input name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej. Content creator, Staff">
-                        </label>
-                        <label class="equipo-field span-2">
-                            <span data-i18n="team.fieldSteam">Steam (opcional si pegás redes)</span>
-                            <input name="steam_id64" inputmode="text" data-i18n-placeholder="team.phSteam" placeholder="76561198… o link de perfil Steam">
-                        </label>
-                        <label class="equipo-field">
-                            <span>Twitch</span>
-                            <input name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
-                        </label>
-                        <label class="equipo-field">
-                            <span>Kick</span>
-                            <input name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
-                        </label>
-                        <label class="equipo-field">
-                            <span data-i18n="team.fieldX">X / Twitter</span>
-                            <input name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
-                        </label>
-                        <label class="equipo-field">
-                            <span>Instagram</span>
-                            <input name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
-                        </label>
-                        <label class="equipo-field">
-                            <span>YouTube</span>
-                            <input name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
-                        </label>
-                        <label class="equipo-field">
-                            <span>TikTok</span>
-                            <input name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
-                        </label>
-                    </div>
-                    <p class="equipo-form-hint" data-i18n-html="team.formHintWipe"></p>
-                    <p id="equipo-form-msg" class="equipo-form-msg" hidden></p>
-                    <button type="submit" class="btn-primary pulse-rust" id="equipo-form-submit">
-                        <i data-lucide="send"></i> <span data-i18n="team.formSubmit">Enviar solicitud</span>
-                    </button>
-                </form>
-            </div>
-        </details>
-    </section>
 </main>
 
 <footer class="footer">
@@ -110,7 +53,7 @@
     </div>
 </footer>
 
-<script src="../mcv-i18n.js?v=13"></script>
+<script src="../mcv-i18n.js?v=14"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -118,9 +61,6 @@
     var grid = document.getElementById("equipo-roster-grid");
     var empty = document.getElementById("equipo-roster-empty");
     var errEl = document.getElementById("equipo-roster-error");
-    var form = document.getElementById("equipo-form");
-    var formMsg = document.getElementById("equipo-form-msg");
-    var submitBtn = document.getElementById("equipo-form-submit");
 
     function esc(s) {
         if (s == null) return "";
@@ -213,72 +153,6 @@
                 lucide.createIcons();
             });
     }
-
-    var formGate = document.getElementById("equipo-form-anchor");
-    if (formGate) {
-        formGate.addEventListener("toggle", function () {
-            if (formGate.open) {
-                lucide.createIcons();
-            }
-        });
-        if (location.hash === "#equipo-form-anchor" || location.hash === "#equipo-form") {
-            formGate.open = true;
-            lucide.createIcons();
-        }
-    }
-
-    form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        formMsg.hidden = true;
-        if (!API) {
-            formMsg.textContent = T("team.noApi");
-            formMsg.className = "equipo-form-msg equipo-form-msg-err";
-            formMsg.hidden = false;
-            return;
-        }
-        var fd = new FormData(form);
-        var body = {
-            display_name: fd.get("display_name"),
-            role_label: fd.get("role_label"),
-            steam_id64: fd.get("steam_id64"),
-            twitch_url: fd.get("twitch_url"),
-            kick_url: fd.get("kick_url"),
-            x_url: fd.get("x_url"),
-            instagram_url: fd.get("instagram_url"),
-            youtube_url: fd.get("youtube_url"),
-            tiktok_url: fd.get("tiktok_url")
-        };
-        submitBtn.disabled = true;
-        fetch(API + "/api/team-roster/submit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        })
-            .then(function (r) {
-                return r.json().then(function (d) {
-                    return { ok: r.ok, d: d };
-                });
-            })
-            .then(function (x) {
-                submitBtn.disabled = false;
-                if (!x.ok) {
-                    formMsg.textContent = (x.d && x.d.error) ? x.d.error : T("team.formError");
-                    formMsg.className = "equipo-form-msg equipo-form-msg-err";
-                    formMsg.hidden = false;
-                    return;
-                }
-                formMsg.textContent = T("team.formSuccess");
-                formMsg.className = "equipo-form-msg equipo-form-msg-ok";
-                formMsg.hidden = false;
-                form.reset();
-            })
-            .catch(function () {
-                submitBtn.disabled = false;
-                formMsg.textContent = T("team.formNetwork");
-                formMsg.className = "equipo-form-msg equipo-form-msg-err";
-                formMsg.hidden = false;
-            });
-    });
 
     lucide.createIcons();
     loadRoster();
