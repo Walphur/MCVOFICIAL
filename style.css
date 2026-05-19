@@ -1707,9 +1707,9 @@ body.tournament-page {
 }
 
 .winner-showcase-inner {
-    max-width: 1120px;
+    max-width: min(680px, 94vw);
     margin: 0 auto;
-    padding: 12px 20px 48px;
+    padding: 12px 16px 40px;
 }
 
 .winner-recap-frame {
@@ -1720,28 +1720,31 @@ body.tournament-page {
         0 0 0 1px rgba(0, 0, 0, 0.55),
         0 22px 60px rgba(0, 0, 0, 0.48),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    padding: 22px;
+    padding: 18px 20px;
 }
 
 .winner-recap-grid {
-    display: grid;
-    grid-template-columns: 1fr minmax(220px, 380px);
-    gap: 24px;
-    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px 24px;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 640px) {
     .winner-recap-grid {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 
 .winner-showcase-text {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
     min-width: 0;
+    flex: 0 1 300px;
 }
 
 .winner-sub { color: var(--muted); font-family: "JetBrains Mono", monospace; }
@@ -1750,7 +1753,7 @@ body.tournament-page {
     position: relative;
     margin-top: 0;
     width: 100%;
-    max-width: 100%;
+    max-width: 300px;
     padding: 0;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1832,11 +1835,11 @@ body.tournament-page {
 .winner-roster {
     list-style: none;
     margin: 0;
-    padding: 0 14px 14px;
+    padding: 0 14px 16px;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 12px;
     max-width: 100%;
     box-sizing: border-box;
     font-family: "IBM Plex Sans", sans-serif;
@@ -1852,8 +1855,8 @@ body.tournament-page {
 .winner-roster li {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 10px 12px;
+    gap: 4px;
+    padding: 12px 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.5);
@@ -1873,27 +1876,33 @@ body.tournament-page {
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
     background: #050505;
     min-width: 0;
+    flex: 0 0 auto;
 }
 
 .winner-poster-wrap--recap {
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+    width: min(200px, 42vw);
+    max-width: 200px;
+    align-self: center;
 }
 
 .winner-poster-wrap--photo {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 260px;
-    max-height: min(560px, 72vh);
-    aspect-ratio: 3 / 4;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: auto;
+    height: auto;
 }
 
 .winner-poster-wrap--photo img {
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: min(320px, 52vh);
     object-fit: contain;
-    object-position: center;
+    object-position: center top;
     display: block;
     background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(45, 38, 22, 0.55) 0%, #050505 72%);
 }
@@ -1902,7 +1911,7 @@ body.tournament-page {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    max-height: min(520px, 70vh);
+    max-height: min(320px, 52vh);
     background: #030303;
     overflow: hidden;
     border-radius: 12px;
@@ -2008,15 +2017,15 @@ body.tournament-page {
 
 /* Events — destacado */
 .events-featured {
-    max-width: 1080px;
+    max-width: min(720px, 94vw);
     margin: 8px auto 4px;
     padding: 0 16px 12px;
 }
 .events-featured[hidden] { display: none !important; }
 .events-featured-card {
-    display: grid;
-    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
-    gap: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
     border-radius: 14px;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -2024,62 +2033,70 @@ body.tournament-page {
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 .events-featured-poster {
-    position: relative;
-    min-height: 160px;
+    flex: 0 0 clamp(120px, 28vw, 168px);
+    width: clamp(120px, 28vw, 168px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: #080808;
+    min-height: 0;
+    padding: 10px 8px;
+    box-sizing: border-box;
 }
 .events-featured-poster img {
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 200px;
     object-fit: contain;
-    object-position: center top;
+    object-position: center center;
     display: block;
-    min-height: 180px;
-    max-height: 320px;
-    background: #080808;
+    background: transparent;
 }
 .events-featured-poster-embed {
     width: 100%;
-    min-height: 200px;
-    max-height: 320px;
+    height: auto;
+    min-height: 0;
+    max-height: 200px;
     border: 0;
     display: block;
     background: #111;
 }
 .events-featured-inner {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    padding: 22px 24px;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 18px;
     border-left: 1px solid var(--border);
+}
+.events-featured-copy {
+    min-width: 0;
+    width: 100%;
 }
 .events-featured-inner .btn-primary {
     align-self: flex-start;
     max-width: 100%;
+    margin-top: 2px;
 }
-@media (min-width: 880px) {
-    .events-featured-inner {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .events-featured-inner .btn-primary {
-        flex-shrink: 0;
-    }
-}
-@media (max-width: 720px) {
+@media (max-width: 560px) {
     .events-featured-card {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+    .events-featured-poster {
+        width: 100%;
+        flex: none;
+        max-height: 200px;
+        border-bottom: 1px solid var(--border);
+    }
+    .events-featured-poster img {
+        max-height: 180px;
     }
     .events-featured-inner {
         border-left: 0;
-        border-top: 1px solid var(--border);
-    }
-    .events-featured-poster img {
-        min-height: 200px;
-        max-height: 260px;
+        padding: 16px;
     }
 }
 .events-featured-label {
