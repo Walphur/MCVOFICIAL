@@ -281,7 +281,15 @@
             "login.errLoginFailed": "Login fallido",
             "login.errNoConnectRetry":
                 "Sin conexión al servidor tras varios intentos. Si /api/health en el navegador da \"Not Found\", no hay Web Service en esa URL de Render: desplegá el backend y usá ?api= con la URL que te muestre el dashboard. Si el servicio existe, puede ser cold start (esperá y recargá).",
-            "admin.introTournaments": "Acá creás torneos nuevos o los finalizás con póster. Los equipos se cargan en la pestaña <strong>Equipos</strong> (registro web o alta manual).",
+            "admin.introTournaments":
+                "Desde esta pestaña gestionás <strong>torneos</strong>: alta, edición y cierre. Los <strong>equipos</strong> (inscripciones web o alta manual) están en su propia pestaña.",
+            "admin.tournamentFlowAria": "Pasos sugeridos",
+            "admin.tournamentFlow1": "Elegí el torneo en el selector del encabezado.",
+            "admin.tournamentFlow2": "En la columna izquierda creá uno nuevo o editá título, fechas, estado y visibilidad.",
+            "admin.tournamentFlow3": "En la derecha finalizá con campeón y póster cuando el evento haya terminado.",
+            "admin.tournamentFlow4": "Más abajo ajustá slots, póster y roster JSON solo para la vista pública del torneo.",
+            "admin.tournamentZoneEditor": "Crear o editar",
+            "admin.tournamentZoneFinish": "Cierre del torneo",
             "admin.formCreateTitle": "Crear torneo",
             "admin.formCreateHint": "Queda en draft o abierto (ambos aparecen en la web en Próximos). El slug se puede dejar vacío (se genera solo).",
             "admin.formEditTitle": "Editar torneo seleccionado",
@@ -291,8 +299,32 @@
             "admin.btnShowCreate": "＋ Crear otro torneo",
             "admin.btnDeleteTournament": "Eliminar este torneo…",
             "admin.formFinishTitle": "Finalizar + póster",
-            "admin.formFinishHint": "Cierra el torneo seleccionado arriba. Podés pegar un enlace <strong>https</strong> a la imagen del póster (recomendado: no se pierde al reiniciar el servidor) o subir archivo (máx. 15 MB). Con la casilla marcada se borran inscripciones y bracket; campeón y póster quedan en la web. Para Imgur usá el enlace directo a la imagen (clic derecho en la foto → copiar dirección de imagen), no el del álbum (/a/…).",
-            "admin.formFinishHint2": "Para abrir/cerrar o dejar en borrador sin usar «Finalizar», usá el panel <strong>Editar torneo</strong> (campo Estado).",
+            "admin.formFinishHint":
+                "Cierra el torneo actual: indicá campeón (ID de registro aceptado y/o nombre manual), póster por <strong>URL https</strong> o archivo (máx. 15 MB). Si la casilla queda marcada, en el servidor se borran inscripciones y bracket; en la web siguen visibles campeón y póster.",
+            "admin.formFinishImgurNote":
+                "Los enlaces <strong>imgur.com/a/…</strong> (álbum) se muestran embebidos. Para una sola imagen preferí enlace directo <strong>.jpg</strong> o <strong>.png</strong>.",
+            "admin.formFinishClearLabel": "Al finalizar, borrar inscripciones y bracket (en la web quedan campeón + póster).",
+            "admin.formFinishSubmit": "Finalizar torneo",
+            "admin.publicWebTitle": "Vista en la web",
+            "admin.publicWebIntro":
+                "Solo afecta la <strong>página pública del torneo</strong> (textos, slots, imagen y roster del campeón). El selector del encabezado define <em>cuál</em> torneo estás editando.",
+            "admin.webHeadingSlots": "Slots y textos",
+            "admin.webHintSlots":
+                "Equipos mostrados en la tarjeta del hub y nombre del campeón si querés un texto distinto al del registro.",
+            "admin.webHeadingPoster": "Póster",
+            "admin.webHintPoster":
+                "<strong>Álbum Imgur (/a/…)</strong> se muestra embebido; <strong>imagen directa</strong> (.jpg / .png) se usa como &lt;img&gt;.",
+            "admin.webHeadingRoster": "Roster del campeón (JSON)",
+            "admin.webHintRoster":
+                "Se guarda una <strong>copia en el torneo</strong> para la web (sigue aunque borres inscripciones). Si el registro ganador sigue existiendo, también se actualiza.",
+            "admin.webRegLinkedLabel": "Registro vinculado:",
+            "admin.webRosterFormatHint":
+                "Array JSON de 1 a 5 objetos con <code>name</code>, <code>steamId64</code> (17 dígitos) y <code>discord</code>. El alta pública sigue exigiendo 5 jugadores.",
+            "admin.btnSaveDisplay": "Guardar texto / slots",
+            "admin.btnSavePosterOnly": "Guardar póster",
+            "admin.btnSaveWinnerRoster": "Guardar roster",
+            "admin.skipBansLabel": "Omitir chequeo VAC/Game ban (Steam API)",
+            "admin.btnSaveManualTeam": "Guardar equipo",
             "admin.manualTitle": "Agregar equipo (manual)",
             "admin.manualHint": "Si no se inscribieron solos, cargalos acá. Mismos datos que el formulario público: 5 jugadores con Steam64 (17 dígitos) y Discord.",
             "admin.playersHint": "Jugadores (los 5 obligatorios)",
@@ -580,7 +612,15 @@
             "login.errLoginFailed": "Login failed",
             "login.errNoConnectRetry":
                 "No server connection after several attempts. If /api/health in the browser shows Not Found, there is no Web Service at that Render URL: deploy the backend and use ?api= with the URL from your dashboard. If the service exists, it may be a cold start (wait and reload).",
-            "admin.introTournaments": "Create new tournaments or finish them with a poster here. Teams are managed under the <strong>Teams</strong> tab (web signup or manual entry).",
+            "admin.introTournaments":
+                "Use this tab for <strong>tournaments</strong>: create, edit and close them. <strong>Teams</strong> (web signups or manual entry) live in their own tab.",
+            "admin.tournamentFlowAria": "Suggested steps",
+            "admin.tournamentFlow1": "Pick the tournament in the header dropdown.",
+            "admin.tournamentFlow2": "In the left column create a new one or edit title, dates, status and visibility.",
+            "admin.tournamentFlow3": "On the right, finish with champion and poster when the event is over.",
+            "admin.tournamentFlow4": "Below, adjust slots, poster and champion roster JSON for the public tournament page only.",
+            "admin.tournamentZoneEditor": "Create or edit",
+            "admin.tournamentZoneFinish": "Close tournament",
             "admin.formCreateTitle": "Create tournament",
             "admin.formCreateHint": "Starts as draft or open (both show on the site under Upcoming). Slug can be empty (auto-generated).",
             "admin.formEditTitle": "Edit selected tournament",
@@ -590,8 +630,31 @@
             "admin.btnShowCreate": "＋ Create another tournament",
             "admin.btnDeleteTournament": "Delete this tournament…",
             "admin.formFinishTitle": "Finish + poster",
-            "admin.formFinishHint": "Closes the tournament selected above. Paste an <strong>https</strong> link to the poster image (recommended: survives server restarts) or upload a file (max 15 MB). If checked, signups and bracket are cleared; champion name and poster stay on the public page. For Imgur use the direct image link (right‑click image → copy image address), not the album URL (/a/…).",
-            "admin.formFinishHint2": "To open/close or keep a draft without using “Finish”, use the <strong>Edit tournament</strong> panel (Status field).",
+            "admin.formFinishHint":
+                "Closes the current tournament: set champion (accepted registration ID and/or manual name), poster via <strong>https URL</strong> or file (max 15 MB). If the box stays checked, signups and bracket are removed on the server; champion and poster remain on the site.",
+            "admin.formFinishImgurNote":
+                "<strong>imgur.com/a/…</strong> album links embed on the site. For a single image prefer a direct <strong>.jpg</strong> or <strong>.png</strong> link.",
+            "admin.formFinishClearLabel": "On finish, delete signups and bracket (champion + poster stay on the site).",
+            "admin.formFinishSubmit": "Finish tournament",
+            "admin.publicWebTitle": "Public page",
+            "admin.publicWebIntro":
+                "These fields only change the <strong>public tournament page</strong> (copy, slots, image and champion roster). The header dropdown selects <em>which</em> tournament you edit.",
+            "admin.webHeadingSlots": "Slots & copy",
+            "admin.webHintSlots": "Teams shown on the hub card and champion display name if you want text different from the registration.",
+            "admin.webHeadingPoster": "Poster",
+            "admin.webHintPoster":
+                "<strong>Imgur album (/a/…)</strong> embeds; a <strong>direct image</strong> (.jpg / .png) is rendered as an &lt;img&gt;.",
+            "admin.webHeadingRoster": "Champion roster (JSON)",
+            "admin.webHintRoster":
+                "A <strong>copy is stored on the tournament</strong> for the site (it survives if you wipe signups). If the winning registration still exists, it is updated too.",
+            "admin.webRegLinkedLabel": "Linked registration:",
+            "admin.webRosterFormatHint":
+                "JSON array of 1–5 objects with <code>name</code>, <code>steamId64</code> (17 digits) and <code>discord</code>. Public signup still requires 5 players.",
+            "admin.btnSaveDisplay": "Save copy / slots",
+            "admin.btnSavePosterOnly": "Save poster",
+            "admin.btnSaveWinnerRoster": "Save roster",
+            "admin.skipBansLabel": "Skip VAC/game ban check (Steam API)",
+            "admin.btnSaveManualTeam": "Save team",
             "admin.manualTitle": "Add team (manual)",
             "admin.manualHint": "If they did not self-register, add them here. Same fields as the public form: 5 players with 17-digit Steam64 and Discord.",
             "admin.playersHint": "Players (all 5 required)",

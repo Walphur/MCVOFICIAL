@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -50,8 +50,15 @@
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
             <p class="admin-tournaments-intro" data-i18n-html="admin.introTournaments"></p>
+            <ol class="admin-tournament-flow" data-i18n-aria-label="admin.tournamentFlowAria">
+                <li data-i18n="admin.tournamentFlow1">Elegí el torneo en el selector del encabezado.</li>
+                <li data-i18n="admin.tournamentFlow2">En la columna izquierda creá uno nuevo o editá título, fechas, estado y visibilidad.</li>
+                <li data-i18n="admin.tournamentFlow3">En la derecha finalizá con campeón y póster cuando el evento haya terminado.</li>
+                <li data-i18n="admin.tournamentFlow4">Abajo ajustá slots, póster y roster JSON solo para cómo se ve en la web pública.</li>
+            </ol>
             <div class="admin-tournament-grid">
                 <div class="data-area admin-tournament-left">
+                    <p class="admin-zone-eyebrow" data-i18n="admin.tournamentZoneEditor">Crear o editar</p>
                     <div id="admin-pane-create" class="admin-pane-create">
                         <h3 class="admin-form-title" data-i18n="admin.formCreateTitle">Crear torneo</h3>
                         <p class="admin-form-hint" data-i18n="admin.formCreateHint">Queda en draft o abierto. El slug se puede dejar vacío (se genera solo).</p>
@@ -110,42 +117,53 @@
                         <button type="button" class="btn-outline danger-text admin-btn-spaced" id="btn-delete-tournament" data-i18n="admin.btnDeleteTournament">Eliminar este torneo…</button>
                     </div>
                 </div>
-                <div class="data-area">
+                <div class="data-area admin-tournament-finish">
+                    <p class="admin-zone-eyebrow" data-i18n="admin.tournamentZoneFinish">Cierre del torneo</p>
                     <h3 class="admin-form-title" data-i18n="admin.formFinishTitle">Finalizar + póster</h3>
                     <p class="admin-form-hint" data-i18n-html="admin.formFinishHint">Cierra el torneo seleccionado arriba. Podés pegar un enlace https a la imagen del póster (recomendado: no se pierde al reiniciar el servidor) o subir archivo (máx. 15 MB). Con la casilla marcada se borran inscripciones y bracket; campeón y póster quedan en la web.</p>
-                    <form id="form-finish-tournament" class="admin-stack-form">
+                    <form id="form-finish-tournament" class="admin-stack-form admin-stack-form--compact">
                         <label>ID registro ganador (aceptado)<input name="winnerRegistrationId" type="number" min="1" placeholder="opcional — si no tenés ID, dejalo vacío y usá solo el nombre"></label>
                         <label>Nombre campeón (manual, opcional)<input name="winnerOverrideName" placeholder="Si no hay ID o querés override"></label>
                         <label>URL del póster (https://…)<input name="posterUrl" id="finish-poster-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
-                        <p class="admin-form-hint" style="margin:0 0 10px;">Los enlaces <strong>imgur.com/a/…</strong> (álbum) se muestran embebidos en la web. Para una sola imagen como archivo, usá «copiar enlace de la imagen» (termina en .jpg / .png).</p>
+                        <p class="admin-form-hint" data-i18n-html="admin.formFinishImgurNote">Los enlaces <strong>imgur.com/a/…</strong> (álbum) se muestran embebidos. Para una sola imagen preferí enlace directo <strong>.jpg</strong> o <strong>.png</strong>.</p>
                         <label>O subir archivo de imagen<input name="poster" type="file" accept="image/*"></label>
-                        <label class="admin-checkbox-row"><input type="checkbox" name="clearData" value="1" checked> Al finalizar, borrar todas las inscripciones y el bracket (en la web quedan campeón + póster).</label>
-                        <button type="submit" class="btn-primary-small">Finalizar torneo</button>
+                        <label class="admin-checkbox-row admin-finish-clear-row"><input type="checkbox" name="clearData" value="1" checked> <span data-i18n="admin.formFinishClearLabel">Al finalizar, borrar inscripciones y bracket (en la web quedan campeón + póster).</span></label>
+                        <button type="submit" class="btn-primary-small" data-i18n="admin.formFinishSubmit">Finalizar torneo</button>
                     </form>
-                    <p class="admin-form-hint" style="margin-top:12px;" data-i18n="admin.formFinishHint2">Cambiar estado sin finalizar: usá PATCH desde consola o añadimos toggles después.</p>
                 </div>
             </div>
             <div class="data-area admin-public-edit">
-                <h3 class="admin-form-title">Edición web (torneo del selector superior)</h3>
-                <p class="admin-form-hint">Para torneos <strong>finalizados</strong>: póster por <strong>URL</strong> (recomendado) o archivo, slots mostrados y JSON del roster ganador.</p>
-                <div class="admin-manual-row">
-                    <label>Slots mostrados (núm.)<input type="number" id="edit-slots-num" min="0" placeholder="ej. 32"></label>
-                    <label>Slots mostrados (máx.)<input type="number" id="edit-slots-max" min="1" placeholder="ej. 32"></label>
-                    <label>Nombre campeón (override)<input id="edit-winner-override" placeholder="Opcional"></label>
+                <h3 class="admin-form-title" data-i18n="admin.publicWebTitle">Vista en la web</h3>
+                <p class="admin-form-hint admin-readable" data-i18n-html="admin.publicWebIntro"></p>
+                <div class="admin-web-split">
+                    <div class="admin-web-col">
+                        <h4 class="admin-subcard-title" data-i18n="admin.webHeadingSlots">Slots y textos</h4>
+                        <p class="admin-form-hint" data-i18n="admin.webHintSlots">Equipos mostrados en la tarjeta y nombre del campeón (si querés forzar un texto distinto al registro).</p>
+                        <div class="admin-manual-row">
+                            <label>Slots mostrados (núm.)<input type="number" id="edit-slots-num" min="0" placeholder="ej. 32"></label>
+                            <label>Slots mostrados (máx.)<input type="number" id="edit-slots-max" min="1" placeholder="ej. 32"></label>
+                            <label>Nombre campeón (override)<input id="edit-winner-override" placeholder="Opcional"></label>
+                        </div>
+                        <button type="button" class="btn-primary-small" id="btn-save-tournament-display" data-i18n="admin.btnSaveDisplay">Guardar texto / slots</button>
+                    </div>
+                    <div class="admin-web-col">
+                        <h4 class="admin-subcard-title" data-i18n="admin.webHeadingPoster">Póster</h4>
+                        <p class="admin-form-hint" data-i18n-html="admin.webHintPoster"></p>
+                        <form id="form-poster-only" class="admin-stack-form admin-stack-form--compact">
+                            <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
+                            <label>O subir archivo (opcional)<input name="poster" type="file" accept="image/*"></label>
+                            <button type="submit" class="btn-primary-small" data-i18n="admin.btnSavePosterOnly">Guardar póster</button>
+                        </form>
+                    </div>
                 </div>
-                <button type="button" class="btn-primary-small" id="btn-save-tournament-display">Guardar texto / slots</button>
-                <hr class="admin-sep">
-                <form id="form-poster-only" class="admin-stack-form">
-                    <label>URL del póster (https://…)<input name="posterUrl" id="poster-only-url" type="text" inputmode="url" autocomplete="off" placeholder="https://i.imgur.com/xxxxx.jpg"></label>
-                    <p class="admin-form-hint" style="margin:0 0 10px;"><strong>Álbum Imgur (/a/…)</strong> se muestra embebido; <strong>imagen directa</strong> (.jpg, .png) va en &lt;img&gt;.</p>
-                    <label>O subir archivo (opcional)<input name="poster" type="file" accept="image/*"></label>
-                    <button type="submit" class="btn-primary-small">Guardar póster</button>
-                </form>
-                <hr class="admin-sep">
-                <p class="admin-form-hint">Roster visible en la web: se guarda una <strong>copia en el torneo</strong> (persiste aunque borres inscripciones). Registro ID <code id="edit-winner-reg-display">—</code> — si sigue existiendo, también se actualiza ese registro.</p>
-                <textarea id="edit-winner-roster-json" rows="10" class="admin-json-textarea" spellcheck="false"></textarea>
-                <p class="admin-form-hint">Array JSON de 1 a 5 objetos: <code>name</code>, <code>steamId64</code> (17 dígitos), <code>discord</code>. El registro público sigue exigiendo 5.</p>
-                <button type="button" class="btn-primary-small" id="btn-save-winner-roster">Guardar roster</button>
+                <div class="admin-web-roster-block">
+                    <h4 class="admin-subcard-title" data-i18n="admin.webHeadingRoster">Roster del campeón (JSON)</h4>
+                    <p class="admin-form-hint admin-readable" data-i18n-html="admin.webHintRoster"></p>
+                    <p class="admin-form-hint"><span data-i18n="admin.webRegLinkedLabel">Registro vinculado</span> <code id="edit-winner-reg-display">—</code></p>
+                    <textarea id="edit-winner-roster-json" rows="9" class="admin-json-textarea" spellcheck="false"></textarea>
+                    <p class="admin-form-hint" data-i18n-html="admin.webRosterFormatHint"></p>
+                    <button type="button" class="btn-primary-small" id="btn-save-winner-roster" data-i18n="admin.btnSaveWinnerRoster">Guardar roster</button>
+                </div>
             </div>
         </div>
 
@@ -166,7 +184,12 @@
                                 <option value="pending">Pendiente (revisar después)</option>
                             </select>
                         </label>
-                        <label class="admin-checkbox-row admin-checkbox-inline"><input type="checkbox" name="skipBans" value="1"> Omitir chequeo VAC/Game ban (Steam API)</label>
+                    </div>
+                    <div class="admin-manual-checkbox-row">
+                        <label class="admin-checkbox-row">
+                            <input type="checkbox" name="skipBans" value="1">
+                            <span data-i18n="admin.skipBansLabel">Omitir chequeo VAC/Game ban (Steam API)</span>
+                        </label>
                     </div>
                     <p class="admin-form-hint admin-readable" data-i18n="admin.playersHint">Jugadores (los 5 obligatorios)</p>
                     <div class="admin-players-scroll">
@@ -182,7 +205,7 @@
                         <span>5</span><input name="p5_name" required><input name="p5_steam" required><input name="p5_discord" required>
                     </div>
                     </div>
-                    <button type="submit" class="btn-primary-small">Guardar equipo</button>
+                    <button type="submit" class="btn-primary-small" data-i18n="admin.btnSaveManualTeam">Guardar equipo</button>
                 </form>
             </div>
 
@@ -264,7 +287,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=12"></script>
+<script src="mcv-i18n.js?v=20"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
