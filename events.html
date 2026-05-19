@@ -9,10 +9,15 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
+    <meta name="description" content="Torneos Rust de MCV: calendario, inscripciones, campeones e historial.">
+    <meta property="og:title" content="MCV — Torneos">
+    <meta property="og:description" content="Calendario competitivo, inscripciones web y hall of fame del clan.">
+    <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-nav.js?v=1" defer></script>
 </head>
 <body class="grain events-page" data-mcv-page="events">
 
@@ -63,6 +68,18 @@
     </div>
 </section>
 
+<section class="events-hof" id="events-hof" hidden>
+    <div class="events-hof-head">
+        <div class="section-label">
+            <div class="yellow-line"></div>
+            <span data-i18n="events.hofTag">// Hall of fame</span>
+        </div>
+        <h2><span data-i18n="events.hofTitle">Campeones </span><span data-i18n="events.hofTitleSpan">MCV.</span></h2>
+        <p class="events-hof-sub" data-i18n="events.hofSub">Torneos finalizados y ganadores registrados.</p>
+    </div>
+    <div id="events-hof-grid" class="events-hof-grid"></div>
+</section>
+
 <main class="events-main">
     <div class="events-columns">
         <section class="events-column">
@@ -82,7 +99,7 @@
     </div>
 </main>
 
-<script src="mcv-i18n.js?v=22"></script>
+<script src="mcv-i18n.js?v=23"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -206,6 +223,30 @@
         el.innerHTML = '<p class="events-empty">' + esc(msg) + '</p>';
     }
 
+    function hofCard(t) {
+        var winner = t.winner_display_name || t.winner_team_name || '—';
+        var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
+        return (
+            '<article class="events-hof-card">' +
+            '<span class="events-hof-trophy" aria-hidden="true">🏆</span>' +
+            '<h3>' +
+            esc(winner) +
+            '</h3>' +
+            '<p class="events-hof-event">' +
+            esc(t.title || '') +
+            '</p>' +
+            '<p class="events-hof-meta">' +
+            esc(t.format_label || '') +
+            (t.match_day_display ? ' · ' + esc(t.match_day_display) : '') +
+            '</p>' +
+            '<a class="events-card-link" href="' +
+            esc(slugQ) +
+            '">' +
+            esc(T('events.cardDetail')) +
+            '</a></article>'
+        );
+    }
+
     Promise.all([
         fetch(API + '/api/tournaments/stats')
             .then(function (r) {
@@ -274,6 +315,17 @@
             } else {
                 past.innerHTML = finished.map(function (t) { return card(t, true); }).join('');
                 hydrateImgurAlbumPosters(past);
+            }
+            var hofSec = document.getElementById('events-hof');
+            var hofGrid = document.getElementById('events-hof-grid');
+            if (hofSec && hofGrid && finished.length) {
+                hofSec.hidden = false;
+                hofGrid.innerHTML = finished
+                    .slice(0, 8)
+                    .map(function (t) {
+                        return hofCard(t);
+                    })
+                    .join('');
             }
             lucide.createIcons();
         })

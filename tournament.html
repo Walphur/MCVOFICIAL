@@ -9,10 +9,15 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-nav.js?v=1" defer></script>
+    <meta name="description" content="Torneo Rust MCV: reglas, premios e inscripción de equipo.">
+    <meta property="og:title" content="MCV — Torneo">
+    <meta property="og:description" content="Inscripción web, calendario y reglas del evento.">
+    <meta property="og:image" content="banner.png">
 </head>
 <body class="grain tournament-page" data-mcv-page="tournament">
 
@@ -49,7 +54,9 @@
             <a href="#register" class="btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> <span data-i18n="tournament.btnRegister">Registrar team</span></a>
             <a href="#rules" class="btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> <span data-i18n="tournament.btnRules">Ver reglas</span></a>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
+            <button type="button" class="btn-secondary" id="t-btn-copy"><i data-lucide="link"></i> <span data-i18n="tournament.btnCopy">Copiar enlace</span></button>
         </div>
+        <p id="t-countdown" class="t-countdown" hidden></p>
         <p id="t-hero-status" class="t-hero-status" style="display:none;"></p>
     </div>
 </section>
@@ -232,7 +239,7 @@
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=22"></script>
+<script src="mcv-i18n.js?v=23"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -240,6 +247,7 @@
     var tpl = typeof mcvTpl === 'function' ? mcvTpl : function (k, v) { return T(k); };
     var resolvedSlug = null;
     var tournament = null;
+    var countdownTimer = null;
 
     function setText(id, txt) {
         var el = document.getElementById(id);
@@ -272,6 +280,62 @@
             if (!Number.isNaN(ms) && Date.now() > ms) return false;
         }
         return true;
+    }
+
+    function formatCountdown(ms) {
+        if (ms <= 0) return '';
+        var s = Math.floor(ms / 1000);
+        var d = Math.floor(s / 86400);
+        s -= d * 86400;
+        var h = Math.floor(s / 3600);
+        s -= h * 3600;
+        var m = Math.floor(s / 60);
+        s -= m * 60;
+        var parts = [];
+        if (d) parts.push(d + 'd');
+        parts.push(String(h).padStart(2, '0') + 'h');
+        parts.push(String(m).padStart(2, '0') + 'm');
+        parts.push(String(s).padStart(2, '0') + 's');
+        return parts.join(' ');
+    }
+
+    function bindCountdown(t) {
+        var el = document.getElementById('t-countdown');
+        if (!el) return;
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
+        var targetIso = isRegistrationOpen(t)
+            ? t.registration_closes_at
+            : t.status === 'open' || t.status === 'closed'
+              ? t.starts_at
+              : null;
+        if (!targetIso) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        var targetMs = new Date(targetIso).getTime();
+        if (Number.isNaN(targetMs)) {
+            el.hidden = true;
+            return;
+        }
+        function tick() {
+            var left = targetMs - Date.now();
+            if (left <= 0) {
+                el.hidden = true;
+                if (countdownTimer) clearInterval(countdownTimer);
+                return;
+            }
+            el.hidden = false;
+            var label = isRegistrationOpen(t)
+                ? T('tournament.countdownClose')
+                : T('tournament.countdownStart');
+            el.textContent = label + ' ' + formatCountdown(left);
+        }
+        tick();
+        countdownTimer = setInterval(tick, 1000);
     }
 
     /** Alineado con el backend: /uploads/… del API, //host, host sin esquema; rechaza data:/javascript: */
@@ -576,6 +640,7 @@
             hideWinnerPoster();
         }
 
+        bindCountdown(t);
         lucide.createIcons();
     }
 
@@ -703,6 +768,34 @@
                 lucide.createIcons();
             });
     });
+
+    var copyBtn = document.getElementById('t-btn-copy');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+            var url = location.href;
+            function ok() {
+                alert(T('tournament.copyOk'));
+            }
+            function fail() {
+                alert(T('tournament.copyFail'));
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(ok).catch(fail);
+            } else {
+                try {
+                    var ta = document.createElement('textarea');
+                    ta.value = url;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    ok();
+                } catch (e) {
+                    fail();
+                }
+            }
+        });
+    }
 
     lucide.createIcons();
 })();

@@ -65,6 +65,41 @@ function registerTicketsApi(app, { getPool }) {
         }
     });
 
+    /** Estado público por ID (sin descripción). */
+    app.get("/api/tickets/:id/status", async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        const id = Number.parseInt(String(req.params.id || ""), 10);
+        if (!Number.isFinite(id) || id < 1) {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+        try {
+            const r = await pool.query(
+                `SELECT id, ticket_type, status, created_at, updated_at
+                 FROM support_tickets WHERE id = $1`,
+                [id]
+            );
+            if (r.rows.length === 0) {
+                return res.status(404).json({ error: "Ticket no encontrado" });
+            }
+            const row = r.rows[0];
+            return res.json({
+                ticket: {
+                    id: row.id,
+                    ticketType: row.ticket_type,
+                    status: row.status,
+                    createdAt: row.created_at,
+                    updatedAt: row.updated_at
+                }
+            });
+        } catch (e) {
+            console.error("GET /api/tickets/:id/status:", e.message);
+            return res.status(500).json({ error: "No se pudo consultar el ticket" });
+        }
+    });
+
     app.get("/api/admin/tickets", authAdmin, async (req, res) => {
         const pool = getPool();
         if (!pool) {

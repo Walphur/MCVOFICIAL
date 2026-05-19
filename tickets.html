@@ -8,10 +8,14 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=21">
+    <link rel="stylesheet" href="style.css?v=26">
+    <meta name="description" content="Tickets de soporte y reclutamiento MCV.">
+    <meta property="og:title" content="MCV — Tickets">
+    <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-nav.js?v=1" defer></script>
 </head>
 <body class="grain tickets-page" data-mcv-page="tickets">
 
@@ -69,16 +73,29 @@
             <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> <span data-i18n="tickets.submit">Enviar solicitud</span></button>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-secondary w-100" style="margin-top:12px;display:inline-flex;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none;"><i data-lucide="message-square"></i> <span data-i18n="tickets.submitDiscord">Abrir Discord</span></a>
         </form>
+
+        <div class="tickets-lookup">
+            <h3 data-i18n="tickets.lookupTitle">Consultar estado</h3>
+            <p class="tickets-lookup-hint" data-i18n="tickets.lookupHint">Ingresá el número que te dimos al enviar el ticket.</p>
+            <form id="tickets-lookup-form" class="tickets-lookup-form">
+                <input name="ticketId" type="number" min="1" step="1" required placeholder="#123" inputmode="numeric">
+                <button type="submit" class="btn-secondary"><i data-lucide="search"></i> <span data-i18n="tickets.lookupBtn">Consultar</span></button>
+            </form>
+            <p id="tickets-lookup-msg" class="tickets-form-msg" hidden></p>
+        </div>
     </div>
 </section>
 
-<script src="mcv-i18n.js?v=21"></script>
+<script src="mcv-i18n.js?v=23"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
     var T = typeof mcvT === "function" ? mcvT : function (k) { return k; };
+    var tpl = typeof mcvTpl === "function" ? mcvTpl : function (k, v) { return T(k); };
     var form = document.getElementById("tickets-form");
     var msg = document.getElementById("tickets-form-msg");
+    var lookupForm = document.getElementById("tickets-lookup-form");
+    var lookupMsg = document.getElementById("tickets-lookup-msg");
     lucide.createIcons();
     form.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -103,7 +120,10 @@
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : T("tickets.error"));
-                msg.textContent = T("tickets.success");
+                var tid = x.d && x.d.ticket && x.d.ticket.id != null ? String(x.d.ticket.id) : "";
+                msg.textContent = tid
+                    ? tpl("tickets.successWithId", { id: tid })
+                    : T("tickets.success");
                 msg.className = "tickets-form-msg ok";
                 msg.hidden = false;
                 form.reset();
@@ -114,6 +134,44 @@
                 msg.hidden = false;
             });
     });
+
+    if (lookupForm) {
+        lookupForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            lookupMsg.hidden = true;
+            if (!API) {
+                lookupMsg.textContent = T("tickets.noApi");
+                lookupMsg.className = "tickets-form-msg err";
+                lookupMsg.hidden = false;
+                return;
+            }
+            var id = String(new FormData(lookupForm).get("ticketId") || "").trim();
+            fetch(API + "/api/tickets/" + encodeURIComponent(id) + "/status")
+                .then(function (r) {
+                    return r.json().then(function (d) {
+                        return { ok: r.ok, d: d };
+                    });
+                })
+                .then(function (x) {
+                    if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : T("tickets.lookupFail"));
+                    var raw = (x.d.ticket && x.d.ticket.status) || "pending";
+                    var stKey =
+                        raw === "accepted"
+                            ? "tickets.statusAccepted"
+                            : raw === "declined"
+                              ? "tickets.statusDeclined"
+                              : "tickets.statusPending";
+                    lookupMsg.textContent = tpl("tickets.lookupResult", { id: id, status: T(stKey) });
+                    lookupMsg.className = "tickets-form-msg ok";
+                    lookupMsg.hidden = false;
+                })
+                .catch(function (err) {
+                    lookupMsg.textContent = (err && err.message) ? err.message : T("tickets.lookupFail");
+                    lookupMsg.className = "tickets-form-msg err";
+                    lookupMsg.hidden = false;
+                });
+        });
+    }
 })();
 </script>
 </body>

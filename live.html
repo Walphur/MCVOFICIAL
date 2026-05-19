@@ -8,10 +8,14 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=26">
+    <meta name="description" content="Streams en vivo de MCV: Kick y Twitch oficiales del clan Rust.">
+    <meta property="og:title" content="MCV — Streams en vivo">
+    <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-nav.js?v=1" defer></script>
 </head>
 <body class="grain live-page" data-mcv-page="live">
 
@@ -45,6 +49,7 @@
             </div>
             <div class="live-stream-meta kick">
                 <h3><i data-lucide="radio"></i> <span data-i18n="live.kickTitle">Kick — principal</span></h3>
+                <span id="kick-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
             </div>
         </article>
 
@@ -52,14 +57,16 @@
             <div class="stream-frame-wrap" id="twitch-mount"></div>
             <div class="live-stream-meta twitch">
                 <h3><i data-lucide="twitch"></i> <span data-i18n="live.twitchTitle">Twitch — clan oficial</span></h3>
+                <span id="twitch-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
             </div>
         </article>
     </div>
 </main>
 
-<script src="mcv-i18n.js?v=2"></script>
+<script src="mcv-i18n.js?v=23"></script>
 <script>
 (function () {
+    var T = typeof mcvT === "function" ? mcvT : function (k) { return k; };
     lucide.createIcons();
     var ch = "mcvteam";
     var parents = ["mcvoficial.com", "www.mcvoficial.com", "127.0.0.1", "localhost"];
@@ -71,6 +78,34 @@
     if (el) {
         el.innerHTML = '<iframe src="' + src + '" title="Twitch MCV" allowfullscreen></iframe>';
     }
+
+    function setBadge(id, live) {
+        var b = document.getElementById(id);
+        if (!b) return;
+        b.textContent = live ? T("live.statusLive") : T("live.statusOffline");
+        b.classList.toggle("is-live", !!live);
+        b.classList.toggle("is-offline", !live);
+    }
+
+    fetch("https://decapi.me/twitch/status/" + encodeURIComponent(ch))
+        .then(function (r) { return r.text(); })
+        .then(function (txt) {
+            var s = String(txt || "").toLowerCase();
+            setBadge("twitch-live-badge", s.indexOf("live") !== -1 || s.indexOf("online") !== -1);
+        })
+        .catch(function () {
+            setBadge("twitch-live-badge", false);
+        });
+
+    fetch("https://decapi.me/kick/status/mcompanyv")
+        .then(function (r) { return r.text(); })
+        .then(function (txt) {
+            var s = String(txt || "").toLowerCase();
+            setBadge("kick-live-badge", s.indexOf("live") !== -1 || s.indexOf("online") !== -1);
+        })
+        .catch(function () {
+            setBadge("kick-live-badge", false);
+        });
 })();
 </script>
 </body>
