@@ -410,7 +410,7 @@ function attachWipeListMessageHook(client, { getPool, steamApiKey, channelId }) 
 
 /**
  * Mensajes del bot Hexaytron en DISCORD_WIPE_REGISTER_CHANNEL_ID: si hay SteamID64 en el embed/texto,
- * se agrega al roster del wipe (equipo.html usa esa lista para validar el formulario de fichas).
+ * se agrega al roster del wipe (lista interna; las fichas públicas en equipo.html las aprueba el admin aparte).
  */
 async function upsertWipeFromHexaytronChannel(pool, { steamApiKey, steamId64, botTag }) {
     if (!pool || !/^\d{17}$/.test(String(steamId64 || ""))) {

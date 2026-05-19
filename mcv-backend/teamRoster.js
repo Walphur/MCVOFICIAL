@@ -117,11 +117,6 @@ async function resolveSteamId64FromInput(raw, steamApiKey) {
     return null;
 }
 
-/** Si no es "0", solo acepta envíos cuyo SteamID64 exista en wipe_list_members (lista del wipe). */
-function teamRosterRequireWipeRoster() {
-    return String(process.env.MCV_TEAM_ROSTER_REQUIRE_WIPE || "1").trim() !== "0";
-}
-
 async function fetchSteamProfile(steamApiKey, steamId64) {
     if (!steamApiKey || !steamId64) {
         return null;
@@ -193,32 +188,13 @@ function registerTeamRosterApi(app, { getPool, steamApiKey }) {
         const youtubeUrl = normalizeOptionalUrl(req.body?.youtube_url);
         const tiktokUrl = normalizeOptionalUrl(req.body?.tiktok_url);
 
-        const requireWipe = teamRosterRequireWipeRoster();
-        if (requireWipe) {
-            if (!steamId64) {
-                return res.status(400).json({
-                    error: "SteamID64 obligatorio: pegá los 17 dígitos o un link de perfil (…/profiles/765… o …/profile/765…). Con URL /id/tu_nick hace falta STEAM_API_KEY en el servidor."
-                });
-            }
-            const onWipe = await pool.query(
-                `SELECT 1 FROM wipe_list_members WHERE steam_id64 = $1 LIMIT 1`,
-                [steamId64]
-            );
-            if (!onWipe.rows.length) {
-                return res.status(403).json({
-                    error:
-                        "Ese Steam no figura en la lista del wipe en el servidor. Suele pasar si vaciaron «Lista wipe» en admin: volvé a usar /mcv-wipe en Discord con este mismo Steam, o pedí al staff que importen tu SteamID64. Verificá que sea el mismo perfil que vinculaste al bot."
-                });
-            }
-        } else {
-            const hasAnyLink = Boolean(
-                twitchUrl || kickUrl || xUrl || instagramUrl || youtubeUrl || tiktokUrl
-            );
-            if (!steamId64 && !hasAnyLink) {
-                return res.status(400).json({
-                    error: "Indicá al menos tu SteamID64 o un link de red social"
-                });
-            }
+        const hasAnyLink = Boolean(
+            twitchUrl || kickUrl || xUrl || instagramUrl || youtubeUrl || tiktokUrl
+        );
+        if (!steamId64 && !hasAnyLink) {
+            return res.status(400).json({
+                error: "Indicá al menos tu SteamID64 (o link de perfil Steam) o un link https de red social"
+            });
         }
 
         let personaName = null;
