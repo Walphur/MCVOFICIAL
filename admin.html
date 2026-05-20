@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=21">
+    <link rel="stylesheet" href="style.css?v=28">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -40,6 +40,14 @@
         </header>
 
         <p id="admin-banner" class="admin-banner"></p>
+
+        <section id="admin-site-status" class="admin-site-status" hidden>
+            <div class="admin-site-status-head">
+                <h2 class="admin-status-title" data-i18n="admin.statusTitle">Estado del sitio</h2>
+                <span id="admin-status-updated" class="admin-status-updated"></span>
+            </div>
+            <div id="admin-status-grid" class="admin-status-grid"></div>
+        </section>
 
         <div class="tabs admin-tabs" role="tablist" data-i18n-aria-label="admin.tabListLabel">
             <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">🏆 Torneos</span></button>
@@ -312,7 +320,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=21"></script>
+<script src="mcv-i18n.js?v=25"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -352,6 +360,102 @@
         var el = document.getElementById('admin-banner');
         el.textContent = msg || '';
         el.style.color = isErr ? 'var(--red)' : 'var(--muted)';
+    }
+
+    function loadSiteStatus() {
+        var sec = document.getElementById('admin-site-status');
+        var grid = document.getElementById('admin-status-grid');
+        var updated = document.getElementById('admin-status-updated');
+        if (!sec || !grid || !API) return;
+        Promise.all([
+            fetch(API + '/api/health').then(function (r) {
+                return r.json();
+            }),
+            fetch(API + '/api/admin/dashboard', { headers: authHeaders() }).then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+        ])
+            .then(function (pair) {
+                var health = pair[0] || {};
+                var dash = pair[1] && pair[1].ok ? pair[1].d : null;
+                sec.hidden = false;
+                if (updated) {
+                    updated.textContent = new Date().toLocaleTimeString();
+                }
+                var cards = [];
+                cards.push({
+                    label: T('admin.statusApi'),
+                    value: health.ok ? T('admin.statusOk') : T('admin.statusFail'),
+                    ok: !!health.ok
+                });
+                cards.push({
+                    label: T('admin.statusDb'),
+                    value: health.db ? T('admin.statusOk') : T('admin.statusFail'),
+                    ok: !!health.db
+                });
+                if (dash) {
+                    cards.push({
+                        label: T('admin.statusTickets'),
+                        value: String(dash.ticketsPending != null ? dash.ticketsPending : '—'),
+                        ok: (dash.ticketsPending || 0) === 0
+                    });
+                    cards.push({
+                        label: T('admin.statusRegs'),
+                        value: String(dash.registrationsPending != null ? dash.registrationsPending : '—'),
+                        ok: (dash.registrationsPending || 0) === 0
+                    });
+                    cards.push({
+                        label: T('admin.statusRoster'),
+                        value: String(dash.rosterPending != null ? dash.rosterPending : '—'),
+                        ok: (dash.rosterPending || 0) === 0
+                    });
+                    cards.push({
+                        label: T('admin.statusFinished'),
+                        value: String(dash.tournamentsFinished != null ? dash.tournamentsFinished : '—'),
+                        ok: true
+                    });
+                }
+                var openList = dash && dash.activeTournaments ? dash.activeTournaments : [];
+                var openHtml = openList.length
+                    ? '<ul class="admin-status-tournaments">' +
+                      openList
+                          .map(function (t) {
+                              return (
+                                  '<li><strong>' +
+                                  esc(t.title || t.slug) +
+                                  '</strong> <span class="admin-status-pill">' +
+                                  esc(t.status) +
+                                  '</span></li>'
+                              );
+                          })
+                          .join('') +
+                      '</ul>'
+                    : '<p class="admin-status-empty">' + esc(T('admin.statusNoOpen')) + '</p>';
+                grid.innerHTML =
+                    cards
+                        .map(function (c) {
+                            return (
+                                '<article class="admin-status-card' +
+                                (c.ok ? '' : ' admin-status-card--warn') +
+                                '"><span class="admin-status-label">' +
+                                esc(c.label) +
+                                '</span><strong class="admin-status-value">' +
+                                esc(c.value) +
+                                '</strong></article>'
+                            );
+                        })
+                        .join('') +
+                    '<div class="admin-status-wide"><span class="admin-status-label">' +
+                    esc(T('admin.statusOpenTournaments')) +
+                    '</span>' +
+                    openHtml +
+                    '</div>';
+            })
+            .catch(function () {
+                if (sec) sec.hidden = true;
+            });
     }
 
     function setCounts() {
@@ -1453,6 +1557,7 @@
     document.getElementById('refresh-btn').addEventListener('click', function () {
         refreshTournamentSelect().then(function () {
             loadAll();
+            loadSiteStatus();
             if (state.tab === 'bracket') loadBracketView();
         });
     });
@@ -1553,7 +1658,15 @@
         }
     } catch (e3) {}
 
-    refreshTournamentSelect().then(loadAll).catch(loadAll);
+    refreshTournamentSelect()
+        .then(function () {
+            loadAll();
+            loadSiteStatus();
+        })
+        .catch(function () {
+            loadAll();
+            loadSiteStatus();
+        });
 })();
 </script>
 </body>

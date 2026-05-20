@@ -322,6 +322,46 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         }
     });
 
+    app.get("/api/admin/dashboard", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const [ticketsQ, regsQ, rosterQ, openT, finishedQ] = await Promise.all([
+                pool.query(
+                    `SELECT COUNT(*)::int AS c FROM support_tickets WHERE status = 'pending'`
+                ),
+                pool.query(
+                    `SELECT COUNT(*)::int AS c FROM tournament_registrations WHERE status = 'pending'`
+                ),
+                pool
+                    .query(
+                        `SELECT COUNT(*)::int AS c FROM team_roster_submissions WHERE status = 'pending'`
+                    )
+                    .catch(function () {
+                        return { rows: [{ c: 0 }] };
+                    }),
+                pool.query(
+                    `SELECT slug, title, status FROM tournaments
+                     WHERE status IN ('open','draft','closed')
+                     ORDER BY (status = 'open') DESC, id DESC LIMIT 6`
+                ),
+                pool.query(`SELECT COUNT(*)::int AS c FROM tournaments WHERE status = 'finished'`)
+            ]);
+            return res.json({
+                ticketsPending: ticketsQ.rows[0].c,
+                registrationsPending: regsQ.rows[0].c,
+                rosterPending: rosterQ.rows[0].c,
+                tournamentsFinished: finishedQ.rows[0].c,
+                activeTournaments: openT.rows
+            });
+        } catch (e) {
+            console.error("admin/dashboard:", e.message);
+            return res.status(500).json({ error: "dashboard" });
+        }
+    });
+
     app.get("/api/tournaments/for-site", async (req, res) => {
         const pool = getPool();
         if (!pool) {

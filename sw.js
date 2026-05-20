@@ -1,0 +1,42 @@
+/* MCV — service worker mínimo (estáticos + offline básico) */
+const CACHE = "mcv-static-v1";
+const PRECACHE = ["./", "./index.html", "./style.css", "./logo.png", "./manifest.webmanifest"];
+
+self.addEventListener("install", function (event) {
+    event.waitUntil(
+        caches.open(CACHE).then(function (cache) {
+            return cache.addAll(PRECACHE).catch(function () {});
+        })
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener("activate", function (event) {
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("fetch", function (event) {
+    var req = event.request;
+    if (req.method !== "GET") return;
+    var url = new URL(req.url);
+    if (url.pathname.indexOf("/api/") !== -1) return;
+    if (url.origin !== self.location.origin) return;
+
+    event.respondWith(
+        caches.match(req).then(function (cached) {
+            if (cached) return cached;
+            return fetch(req)
+                .then(function (res) {
+                    if (!res || res.status !== 200 || res.type !== "basic") return res;
+                    var copy = res.clone();
+                    caches.open(CACHE).then(function (c) {
+                        c.put(req, copy);
+                    });
+                    return res;
+                })
+                .catch(function () {
+                    return caches.match("./index.html");
+                });
+        })
+    );
+});
