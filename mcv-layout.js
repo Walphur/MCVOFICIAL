@@ -1,5 +1,5 @@
 /**
- * Layout compartido: skip link, PWA, footer en páginas que no lo tienen.
+ * Shell MCV: skip link, navbar, footer, PWA, menú móvil.
  */
 (function () {
     var page = (document.body && document.body.getAttribute("data-mcv-page")) || "";
@@ -18,6 +18,21 @@
 
     var base = basePath();
 
+    var NAV_ITEMS = [
+        { id: "index", href: "index.html", i18n: "nav.clan" },
+        { id: "events", href: "events.html", i18n: "nav.torneos" },
+        { id: "team", href: "equipo/", i18n: "nav.team", also: ["teamForm"] },
+        { id: "bot", href: "bot.html", i18n: "nav.bot" },
+        { id: "tickets", href: "tickets.html", i18n: "nav.tickets" },
+        { id: "live", href: "live.html", i18n: "nav.streams", live: true }
+    ];
+
+    function isActive(item) {
+        if (item.id === page) return true;
+        if (item.also && item.also.indexOf(page) !== -1) return true;
+        return false;
+    }
+
     function ensureSkipLink() {
         if (document.getElementById("mcv-skip-link")) return;
         var a = document.createElement("a");
@@ -31,7 +46,9 @@
             document.querySelector("main") ||
             document.querySelector(".home-hero") ||
             document.querySelector(".page-section") ||
-            document.querySelector(".events-hero");
+            document.querySelector(".events-hero") ||
+            document.querySelector(".tournament-hero") ||
+            document.querySelector(".equipo-hero");
         if (main && !main.id) main.id = "mcv-main";
     }
 
@@ -41,6 +58,102 @@
         link.rel = "manifest";
         link.href = base + "manifest.webmanifest";
         document.head.appendChild(link);
+    }
+
+    function navbarHtml() {
+        var links = "";
+        for (var i = 0; i < NAV_ITEMS.length; i++) {
+            var item = NAV_ITEMS[i];
+            var cls = isActive(item) ? "active" : "";
+            if (item.live) cls = (cls ? cls + " " : "") + "live-link";
+            var inner = item.live
+                ? '<span class="live-dot pulse-red"></span><span data-i18n="' +
+                  item.i18n +
+                  '">Streams</span>'
+                : '<span data-i18n="' + item.i18n + '"></span>';
+            links +=
+                '<li><a href="' +
+                base +
+                item.href +
+                '" class="' +
+                cls +
+                '">' +
+                inner +
+                "</a></li>";
+        }
+        return (
+            '<a href="' +
+            base +
+            'index.html" class="logo-link">' +
+            '<img src="' +
+            base +
+            'logo.png" alt="MCV Logo" class="navbar-logo">' +
+            '<div class="logo-text">MCV <span>OFICIAL</span></div>' +
+            "</a>" +
+            '<ul class="nav-links" id="mcv-nav-panel">' +
+            links +
+            "</ul>"
+        );
+    }
+
+    function initMobileNav(nav) {
+        if (!nav || nav.querySelector(".nav-toggle")) return;
+        var links = nav.querySelector(".nav-links");
+        if (!links) return;
+
+        var backdrop = document.querySelector(".nav-backdrop");
+        if (!backdrop) {
+            backdrop = document.createElement("div");
+            backdrop.className = "nav-backdrop";
+            backdrop.hidden = true;
+            document.body.appendChild(backdrop);
+        }
+
+        function closeNav() {
+            nav.classList.remove("is-open");
+            btn.setAttribute("aria-expanded", "false");
+            document.body.classList.remove("nav-menu-open");
+            backdrop.hidden = true;
+        }
+
+        function openNav() {
+            nav.classList.add("is-open");
+            btn.setAttribute("aria-expanded", "true");
+            document.body.classList.add("nav-menu-open");
+            backdrop.hidden = false;
+        }
+
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "nav-toggle";
+        btn.setAttribute("aria-expanded", "false");
+        btn.setAttribute("aria-controls", "mcv-nav-panel");
+        btn.setAttribute("aria-label", "Abrir menú");
+        btn.innerHTML = '<span class="nav-toggle-icon" aria-hidden="true"></span>';
+        nav.insertBefore(btn, links);
+
+        btn.addEventListener("click", function () {
+            if (nav.classList.contains("is-open")) closeNav();
+            else openNav();
+        });
+        backdrop.addEventListener("click", closeNav);
+        links.querySelectorAll("a").forEach(function (a) {
+            a.addEventListener("click", closeNav);
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && nav.classList.contains("is-open")) closeNav();
+        });
+    }
+
+    function ensureNavbar() {
+        var nav =
+            document.querySelector("nav.navbar[data-mcv-shell-nav]") ||
+            document.querySelector("nav.navbar");
+        if (!nav) return;
+        nav.setAttribute("data-mcv-shell-nav", "");
+        nav.innerHTML = navbarHtml();
+        nav.setAttribute("data-mcv-nav-filled", "1");
+        initMobileNav(nav);
     }
 
     function footerFullHtml() {
@@ -112,19 +225,22 @@
 
     function registerServiceWorker() {
         if (!("serviceWorker" in navigator)) return;
-        var swUrl = base + "sw.js";
         window.addEventListener("load", function () {
-            navigator.serviceWorker.register(swUrl).catch(function () {});
+            navigator.serviceWorker.register(base + "sw.js").catch(function () {});
         });
     }
 
     function boot() {
         ensureSkipLink();
         ensureManifest();
+        ensureNavbar();
         ensureFooter();
         registerServiceWorker();
         if (typeof window.mcvI18n !== "undefined" && window.mcvI18n.apply) {
             window.mcvI18n.apply();
+        }
+        if (typeof lucide !== "undefined" && lucide.createIcons) {
+            lucide.createIcons();
         }
     }
 

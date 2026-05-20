@@ -13,30 +13,15 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../../logo.png">
     <link rel="alternate icon" href="../../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../../style.css?v=28">
+    <link rel="stylesheet" href="../../style.css?v=29">
     <script src="../../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="../../mcv-nav.js?v=1" defer></script>
-    <script src="../../mcv-layout.js?v=1" defer></script>
+    <script src="../../mcv-layout.js?v=3" defer></script>
 </head>
 <body class="grain equipo-page" data-mcv-page="teamForm">
 
-<nav class="navbar">
-    <a href="../../index.html" class="logo-link">
-        <img src="../../logo.png" alt="MCV Logo" class="navbar-logo">
-        <div class="logo-text">MCV <span>OFICIAL</span></div>
-    </a>
-    <ul class="nav-links">
-        <li><a href="../../index.html"><span data-i18n="nav.clan">Clan</span></a></li>
-        <li><a href="../../events.html"><span data-i18n="nav.torneos">Torneos</span></a></li>
-        <li><a href="../"><span data-i18n="nav.team">Equipo</span></a></li>
-        <li><a href="../../bot.html"><span data-i18n="nav.bot">Bot</span></a></li>
-        <li><a href="../../tickets.html"><span data-i18n="nav.tickets">Tickets</span></a></li>
-        <li><a href="../../live.html" class="live-link"><span class="live-dot pulse-red"></span><span data-i18n="nav.streams">Streams</span></a></li>
-    </ul>
-</nav>
-
+<nav class="navbar" data-mcv-shell-nav></nav>
 <section class="equipo-hero">
     <div class="section-label centered-label">
         <div class="yellow-line"></div>
@@ -106,7 +91,7 @@
     </div>
 </footer>
 
-<script src="../../mcv-i18n.js?v=25"></script>
+<script src="../../mcv-i18n.js?v=26"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");

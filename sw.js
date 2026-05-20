@@ -1,6 +1,13 @@
 /* MCV — service worker mínimo (estáticos + offline básico) */
-const CACHE = "mcv-static-v1";
-const PRECACHE = ["./", "./index.html", "./style.css", "./logo.png", "./manifest.webmanifest"];
+const CACHE = "mcv-static-v2";
+const PRECACHE = [
+    "./",
+    "./index.html",
+    "./style.css",
+    "./mcv-layout.js",
+    "./logo.png",
+    "./manifest.webmanifest"
+];
 
 self.addEventListener("install", function (event) {
     event.waitUntil(
