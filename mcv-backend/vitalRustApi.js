@@ -3,16 +3,25 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 
-/** serverId numérico interno de Vital (DevTools: ?serverId=1 en EU 10x). Completar el resto en VITAL_SERVERS_JSON. */
-const DEFAULT_SERVERS = [
-    { key: "au-10x", label: "AU 10x", serverId: "" },
-    { key: "eu-10x", label: "EU 10x", serverId: "1" },
-    { key: "us-10x", label: "US 10x", serverId: "" },
-    { key: "eu-mondays", label: "EU Mondays", serverId: "" },
-    { key: "eu-monthly", label: "EU Monthly", serverId: "" },
-    { key: "eu-medium", label: "EU Medium", serverId: "" },
-    { key: "us-monthly", label: "US Monthly", serverId: "" }
+/**
+ * serverId según orden en vitalrust.com/statistics (EU 10x = 1 confirmado en DevTools).
+ * MCV juega EU Monthly 2x y EU Medium 2x → ids 4 y 5 (verificar con ?serverId= al cambiar servidor).
+ */
+const MCV_PRIMARY_SERVERS = [
+    { key: "eu-monthly", label: "EU Monthly 2x", serverId: "4", mcvPrimary: true },
+    { key: "eu-medium", label: "EU Medium 2x", serverId: "5", mcvPrimary: true }
 ];
+
+const ALL_VITAL_SERVERS = [
+    { key: "au-10x", label: "AU 10x", serverId: "0" },
+    { key: "eu-10x", label: "EU 10x", serverId: "1" },
+    { key: "us-10x", label: "US 10x", serverId: "2" },
+    { key: "eu-mondays", label: "EU Mondays", serverId: "3" },
+    ...MCV_PRIMARY_SERVERS,
+    { key: "us-monthly", label: "US Monthly", serverId: "6" }
+];
+
+const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-monthly").trim();
 
 const cache = new Map();
 let lastUpstreamAt = 0;
@@ -59,17 +68,31 @@ function minIntervalMs() {
     return Math.max(500, Math.min(60000, Number.isFinite(ms) ? ms : 2500));
 }
 
+function parseMcvServerKeys() {
+    const raw = String(process.env.MCV_VITAL_SERVER_KEYS || "eu-monthly,eu-medium").trim();
+    return raw
+        .split(/[\s,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+function showAllVitalServers() {
+    return String(process.env.VITAL_SHOW_ALL_SERVERS || "").trim() === "1";
+}
+
 function parseServers() {
     const raw = String(process.env.VITAL_SERVERS_JSON || "").trim();
+    let list;
     if (raw) {
         try {
             const arr = JSON.parse(raw);
             if (Array.isArray(arr) && arr.length) {
-                return arr
+                list = arr
                     .map((s) => ({
                         key: String(s.key || s.id || "").trim(),
                         label: String(s.label || s.name || "").trim(),
-                        serverId: String(s.serverId || s.apiId || s.vitalId || "").trim()
+                        serverId: String(s.serverId || s.apiId || s.vitalId || "").trim(),
+                        mcvPrimary: Boolean(s.mcvPrimary)
                     }))
                     .filter((s) => s.key && s.label);
             }
@@ -77,7 +100,17 @@ function parseServers() {
             console.warn("VITAL_SERVERS_JSON inválido:", e.message);
         }
     }
-    return DEFAULT_SERVERS;
+    if (!list || !list.length) {
+        list = showAllVitalServers() ? [...ALL_VITAL_SERVERS] : [...MCV_PRIMARY_SERVERS];
+    }
+    if (!showAllVitalServers()) {
+        const mcvKeys = new Set(parseMcvServerKeys());
+        const primary = list.filter((s) => mcvKeys.has(s.key));
+        if (primary.length) {
+            list = primary;
+        }
+    }
+    return list;
 }
 
 function pathPrefix() {
@@ -501,6 +534,8 @@ function registerVitalRustApi(app, { getPool }) {
             enabled: vitalEnabled(),
             configured: Boolean(paths.players || paths.player || paths.overview),
             servers,
+            defaultServerKey: DEFAULT_SERVER_KEY,
+            mcvServerKeys: parseMcvServerKeys(),
             serversConfigured: configuredCount,
             paths: {
                 overview: Boolean(paths.overview),

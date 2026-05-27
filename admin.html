@@ -349,7 +349,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=27"></script>
+<script src="mcv-i18n.js?v=28"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1453,6 +1453,10 @@
                         var note = s.serverId ? '' : ' ⚠';
                         return '<option value="' + esc(s.key) + '">' + esc(s.label + note) + '</option>';
                     }).join('');
+                    var defKey = x.d.defaultServerKey || 'eu-monthly';
+                    if (defKey && sel.querySelector('option[value="' + defKey.replace(/"/g, '') + '"]')) {
+                        sel.value = defKey;
+                    }
                     sel.onchange = function () { loadVitalWipes().catch(function () {}); };
                     loadVitalWipes().catch(function () {});
                 }
