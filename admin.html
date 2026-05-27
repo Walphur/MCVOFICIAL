@@ -1540,6 +1540,9 @@
                         .replace('{found}', String((x.d.players || []).length))
                         .replace('{total}', String(x.d.rosterSize || 0))
                         .replace('{server}', String((x.d.server && x.d.server.label) || server));
+                    if (x.d.hint) {
+                        meta.textContent += ' — ' + x.d.hint;
+                    }
                 }
                 renderVitalOverview(x.d.overview, x.d.serverOverview);
                 renderVitalClanTable(x.d.players || []);
@@ -1547,7 +1550,11 @@
                 if (nf) {
                     nf.textContent = (x.d.notFound && x.d.notFound.length) ? x.d.notFound.join(', ') : T('admin.vitalAllFound');
                 }
-                banner(T('admin.vitalLoaded'), false);
+                if (x.d.hint && !(x.d.players || []).length) {
+                    banner(x.d.hint, true);
+                } else {
+                    banner(T('admin.vitalLoaded'), false);
+                }
             })
             .catch(function (e) {
                 renderVitalOverview(null, null);

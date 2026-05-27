@@ -441,10 +441,11 @@ function normalizeWipe(row) {
 }
 
 function parsePlayerIncludes() {
-    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "Combat,Raiding").trim();
+    /** Vital API: includes en minúsculas (combat, raiding). "Combat" devuelve data vacía o 400. */
+    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "combat,raiding").trim();
     return raw
         .split(/[,]+/)
-        .map((s) => s.trim())
+        .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
 }
 
@@ -477,7 +478,7 @@ async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds) {
             body.wipeId = wipeId;
         }
         const { data } = await fetchUpstreamPost(url, body);
-        const rows = extractPlayersList(data);
+        const rows = extractPlayersList(data?.data != null ? data : { data });
         for (const row of rows) {
             const p = normalizePlayer(row);
             if (p) {
@@ -760,6 +761,11 @@ function registerVitalRustApi(app, { getPool }) {
             const notFound = clanIds.filter((id) => !foundSet.has(id));
             matched.sort((a, b) => b.kills - a.kills || b.kdr - a.kdr);
 
+            const hint =
+                clanIds.length && !matched.length
+                    ? "Vital no devolvió filas para este wipe/servidor. Probá el wipe ★ actual, otro servidor (Monthly/Medium), o que el SteamID64 esté en lista wipe o perfiles aprobados."
+                    : null;
+
             return res.json({
                 server,
                 wipeId,
@@ -767,7 +773,8 @@ function registerVitalRustApi(app, { getPool }) {
                 players: matched,
                 notFound,
                 serverOverview,
-                overview: aggregateOverview(matched)
+                overview: aggregateOverview(matched),
+                hint
             });
         } catch (e) {
             console.error("vital clan:", e.message);
