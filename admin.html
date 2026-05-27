@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=7">
-    <meta name="mcv-admin-build" content="2026-05-27-vital-farm-split">
+    <link rel="stylesheet" href="style-admin.css?v=8">
+    <meta name="mcv-admin-build" content="2026-05-27-vital-extra">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -294,6 +294,22 @@
                     <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
                     <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
                 </div>
+                <details class="admin-collapse vital-extra-panel" id="vital-extra-panel">
+                    <summary data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</summary>
+                    <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Podés pegar varios separados por coma o por línea.</p>
+                    <div class="vital-extra-form">
+                        <label class="vital-extra-field">
+                            <span data-i18n="admin.vitalExtraSteam">SteamID64</span>
+                            <input type="text" id="vital-extra-steam" class="admin-input" placeholder="76561198…" autocomplete="off" spellcheck="false">
+                        </label>
+                        <label class="vital-extra-field">
+                            <span data-i18n="admin.vitalExtraLabel">Nota (opcional)</span>
+                            <input type="text" id="vital-extra-label" class="admin-input" placeholder="Ej. trial, recruit" maxlength="120">
+                        </label>
+                        <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
+                    </div>
+                    <ul id="vital-extra-list" class="vital-extra-list"></ul>
+                </details>
                 <p id="vital-roster-meta" class="admin-form-hint"></p>
                 <div id="vital-clan-players" class="vital-players-list"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
                 <details class="admin-collapse" style="margin-top:14px;">
@@ -349,7 +365,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=30"></script>
+<script src="mcv-i18n.js?v=31"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1425,7 +1441,14 @@
                 html += '<img class="vital-player-avatar" src="' + esc(p.avatar) + '" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">';
             }
             html += '<div class="vital-player-ident">';
-            html += '<h4 class="vital-player-name">' + esc(p.name || '—') + '</h4>';
+            html += '<h4 class="vital-player-name">' + esc(p.name || '—');
+            if (p.rosterSource === 'manual') {
+                html += ' <span class="vital-player-badge">' + esc(vitalLabel('admin.vitalExtraBadge', 'Extra')) + '</span>';
+            }
+            html += '</h4>';
+            if (p.rosterNote) {
+                html += '<span class="vital-player-note">' + esc(p.rosterNote) + '</span>';
+            }
             html += '<a class="vital-player-steam admin-steam-cell" href="' + esc(vitalUrl) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a>';
             html += '</div></header>';
             html += '<div class="vital-player-stats">';
@@ -1543,10 +1566,15 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : ((x.d && x.d.hint) ? x.d.hint : 'err'));
                 if (meta) {
-                    meta.textContent = T('admin.vitalRosterMeta')
+                    meta.textContent = vitalLabel('admin.vitalRosterMeta', '{found} de {total} con datos en {server}')
                         .replace('{found}', String((x.d.players || []).length))
                         .replace('{total}', String(x.d.rosterSize || 0))
                         .replace('{server}', String((x.d.server && x.d.server.label) || server));
+                    if (x.d.mcvCount != null || x.d.manualCount != null) {
+                        meta.textContent += ' · ' + vitalLabel('admin.vitalRosterBreakdown', 'MCV: {mcv} · Extra: {manual}')
+                            .replace('{mcv}', String(x.d.mcvCount != null ? x.d.mcvCount : '—'))
+                            .replace('{manual}', String(x.d.manualCount != null ? x.d.manualCount : '0'));
+                    }
                     if (x.d.hint) {
                         meta.textContent += ' — ' + x.d.hint;
                     }
@@ -1569,9 +1597,98 @@
             });
     }
 
+    function renderVitalExtraList(players) {
+        var list = document.getElementById('vital-extra-list');
+        if (!list) return;
+        players = players || [];
+        if (!players.length) {
+            list.innerHTML = '<li class="empty-hint">' + esc(vitalLabel('admin.vitalExtraEmpty', 'Sin extras guardados.')) + '</li>';
+            return;
+        }
+        list.innerHTML = players.map(function (p) {
+            var note = p.label ? ' — ' + esc(p.label) : '';
+            var mcv = p.alsoInMcv ? ' <span class="vital-extra-mcv">' + esc(vitalLabel('admin.vitalExtraAlsoMcv', 'también en MCV')) + '</span>' : '';
+            return '<li class="vital-extra-item"><code>' + esc(p.steamId64) + '</code>' + note + mcv +
+                '<button type="button" class="btn-outline vital-extra-del" data-steam="' + esc(p.steamId64) + '">' +
+                esc(vitalLabel('admin.vitalExtraRemove', 'Quitar')) + '</button></li>';
+        }).join('');
+        list.querySelectorAll('.vital-extra-del').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sid = btn.getAttribute('data-steam');
+                if (!sid || !confirm(vitalLabel('admin.vitalExtraConfirmDel', '¿Quitar este SteamID de la lista extra?'))) return;
+                fetch(API + '/api/admin/vital/extra-players/' + encodeURIComponent(sid), {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                        loadVitalExtraPlayers().catch(function () {});
+                        banner(vitalLabel('admin.vitalExtraRemoved', 'Extra eliminado.'), false);
+                    })
+                    .catch(function (e) {
+                        banner((e && e.message) ? e.message : 'Error', true);
+                    });
+            });
+        });
+    }
+
+    function loadVitalExtraPlayers() {
+        return fetch(API + '/api/admin/vital/extra-players', { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'extra');
+                renderVitalExtraList(x.d.players || []);
+            })
+            .catch(function () {
+                renderVitalExtraList([]);
+            });
+    }
+
+    function addVitalExtraPlayers() {
+        var steamIn = document.getElementById('vital-extra-steam');
+        var labelIn = document.getElementById('vital-extra-label');
+        if (!steamIn) return;
+        var raw = String(steamIn.value || '').trim();
+        if (!raw) {
+            banner(vitalLabel('admin.vitalExtraNeedSteam', 'Indicá al menos un SteamID64.'), true);
+            return;
+        }
+        fetch(API + '/api/admin/vital/extra-players', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({
+                steamIds: raw,
+                label: labelIn ? labelIn.value : ''
+            })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                steamIn.value = '';
+                if (labelIn) labelIn.value = '';
+                loadVitalExtraPlayers().catch(function () {});
+                banner(vitalLabel('admin.vitalExtraAdded', 'Agregado(s): ') + (x.d.count || 0), false);
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'Error', true);
+            });
+    }
+
     function initVitalPanel() {
         var btnRefresh = document.getElementById('btn-vital-refresh');
         var btnExport = document.getElementById('btn-vital-export');
+        var btnExtraAdd = document.getElementById('btn-vital-extra-add');
+        if (btnExtraAdd) {
+            btnExtraAdd.addEventListener('click', addVitalExtraPlayers);
+        }
         if (btnRefresh) {
             btnRefresh.addEventListener('click', function () {
                 if (!vitalConfigLoaded) {
@@ -1623,8 +1740,11 @@
             var vp = document.getElementById('vital-panel');
             if (vp) {
                 vp.style.display = state.tab === 'vital' ? 'block' : 'none';
-                if (state.tab === 'vital' && !vitalConfigLoaded) {
-                    loadVitalConfig().catch(function () {});
+                if (state.tab === 'vital') {
+                    loadVitalExtraPlayers().catch(function () {});
+                    if (!vitalConfigLoaded) {
+                        loadVitalConfig().catch(function () {});
+                    }
                 }
             }
             var dashBtns = document.querySelector('.dashboard-buttons');

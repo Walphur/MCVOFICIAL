@@ -574,25 +574,64 @@ function resolveServer(serverKey) {
     return { ...found, serverId, configured: true };
 }
 
+function parseSteamIdsInput(raw) {
+    const out = [];
+    const seen = new Set();
+    const parts = String(raw || "")
+        .split(/[\s,;]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    for (const part of parts) {
+        const id = normalizeSteamId64(part);
+        if (id && !seen.has(id)) {
+            seen.add(id);
+            out.push(id);
+        }
+    }
+    return out;
+}
+
+async function loadManualSteamIdsFromDb(pool) {
+    const rows = [];
+    if (!pool) {
+        return rows;
+    }
+    try {
+        const r = await pool.query(
+            `SELECT steam_id64, label, created_at FROM vital_extra_steam_ids ORDER BY created_at DESC`
+        );
+        return r.rows.map((row) => ({
+            steamId64: normalizeSteamId64(row.steam_id64),
+            label: String(row.label || "").trim(),
+            createdAt: row.created_at
+        })).filter((row) => row.steamId64);
+    } catch (e) {
+        console.warn("vital extra steam ids:", e.message);
+        return [];
+    }
+}
+
 async function loadClanSteamIds(getPool) {
-    const set = new Set();
-    const extra = String(process.env.VITAL_CLAN_EXTRA_STEAMS || "")
-        .split(/[\s,]+/)
-        .map((s) => s.replace(/\D/g, ""))
-        .filter((s) => /^7656119\d{10}$/.test(s));
-    extra.forEach((s) => set.add(s));
+    const manualSet = new Set();
+    const mcvSet = new Set();
+
+    const envExtra = parseSteamIdsInput(process.env.VITAL_CLAN_EXTRA_STEAMS || "");
+    envExtra.forEach((s) => manualSet.add(s));
+
+    const pool = getPool();
+    const dbManual = await loadManualSteamIdsFromDb(pool);
+    dbManual.forEach((row) => manualSet.add(row.steamId64));
 
     const useWipe = String(process.env.VITAL_API_USE_WIPE_LIST || "1").trim() !== "0";
     const useRoster = String(process.env.VITAL_API_USE_TEAM_ROSTER || "1").trim() !== "0";
-    const pool = getPool();
 
     if (pool && useWipe) {
         try {
             const r = await pool.query(`SELECT steam_id64 FROM wipe_list_members`);
             r.rows.forEach((row) => {
-                const id = String(row.steam_id64 || "").replace(/\D/g, "");
-                if (/^7656119\d{10}$/.test(id)) {
-                    set.add(id);
+                const id = normalizeSteamId64(row.steam_id64);
+                if (id) {
+                    mcvSet.add(id);
                 }
             });
         } catch (e) {
@@ -606,9 +645,9 @@ async function loadClanSteamIds(getPool) {
                 `SELECT steam_id64 FROM team_roster_submissions WHERE status = 'approved' AND steam_id64 IS NOT NULL`
             );
             r.rows.forEach((row) => {
-                const id = String(row.steam_id64 || "").replace(/\D/g, "");
-                if (/^7656119\d{10}$/.test(id)) {
-                    set.add(id);
+                const id = normalizeSteamId64(row.steam_id64);
+                if (id) {
+                    mcvSet.add(id);
                 }
             });
         } catch (e) {
@@ -616,7 +655,15 @@ async function loadClanSteamIds(getPool) {
         }
     }
 
-    return [...set];
+    const all = new Set([...mcvSet, ...manualSet]);
+    return {
+        ids: [...all],
+        mcvIds: [...mcvSet],
+        manualIds: [...manualSet].filter((id) => !mcvSet.has(id)),
+        manualOnlyCount: [...manualSet].filter((id) => !mcvSet.has(id)).length,
+        mcvCount: mcvSet.size,
+        manualLabels: Object.fromEntries(dbManual.map((r) => [r.steamId64, r.label]).filter(([id]) => id))
+    };
 }
 
 async function fetchPlayersPage(paths, vars) {
@@ -788,6 +835,83 @@ function registerVitalRustApi(app, { getPool }) {
         }
     });
 
+    app.get("/api/admin/vital/extra-players", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        try {
+            const players = await loadManualSteamIdsFromDb(pool);
+            const roster = await loadClanSteamIds(getPool);
+            const mcvSet = new Set(roster.mcvIds);
+            return res.json({
+                players: players.map((p) => ({
+                    ...p,
+                    alsoInMcv: mcvSet.has(p.steamId64)
+                }))
+            });
+        } catch (e) {
+            console.error("vital extra list:", e.message);
+            return res.status(500).json({ error: e.message || "Error al listar extras" });
+        }
+    });
+
+    app.post("/api/admin/vital/extra-players", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const label = String(body.label || body.note || "").trim().slice(0, 120);
+        const ids = [
+            ...parseSteamIdsInput(body.steamId64 || body.steam_id64 || ""),
+            ...parseSteamIdsInput(body.steamIds || body.steams || body.input || "")
+        ];
+        const unique = [...new Set(ids)];
+        if (!unique.length) {
+            return res.status(400).json({ error: "Indicá al menos un SteamID64 válido (17 dígitos)" });
+        }
+        try {
+            const added = [];
+            for (const steamId64 of unique) {
+                await pool.query(
+                    `INSERT INTO vital_extra_steam_ids (steam_id64, label)
+                     VALUES ($1, $2)
+                     ON CONFLICT (steam_id64) DO UPDATE SET label = COALESCE(NULLIF(EXCLUDED.label, ''), vital_extra_steam_ids.label)`,
+                    [steamId64, label || null]
+                );
+                added.push(steamId64);
+            }
+            return res.json({ ok: true, added, count: added.length });
+        } catch (e) {
+            console.error("vital extra add:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo guardar" });
+        }
+    });
+
+    app.delete("/api/admin/vital/extra-players/:steamId64", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) {
+            return res.status(400).json({ error: "SteamID64 inválido" });
+        }
+        try {
+            const r = await pool.query(`DELETE FROM vital_extra_steam_ids WHERE steam_id64 = $1 RETURNING steam_id64`, [
+                steamId64
+            ]);
+            if (!r.rowCount) {
+                return res.status(404).json({ error: "No estaba en la lista extra" });
+            }
+            return res.json({ ok: true, steamId64 });
+        } catch (e) {
+            console.error("vital extra delete:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo eliminar" });
+        }
+    });
+
     app.get("/api/admin/vital/clan", authAdmin, async (req, res) => {
         if (!vitalEnabled()) {
             return res.status(503).json({ error: "Vital API deshabilitada" });
@@ -805,15 +929,20 @@ function registerVitalRustApi(app, { getPool }) {
         }
         const paths = apiPaths();
         try {
-            const clanIds = await loadClanSteamIds(getPool);
+            const roster = await loadClanSteamIds(getPool);
+            const clanIds = roster.ids;
+            const mcvSet = new Set(roster.mcvIds);
+            const manualOnlySet = new Set(roster.manualIds);
             if (!clanIds.length) {
                 return res.json({
                     server,
                     wipeId,
                     rosterSize: 0,
+                    mcvCount: 0,
+                    manualCount: 0,
                     players: [],
                     notFound: [],
-                    message: "Sin SteamID64 en lista wipe ni perfiles aprobados."
+                    message: "Sin SteamID64 en lista wipe, perfiles aprobados ni extras manuales."
                 });
             }
             const refresh = String(req.query.refresh || "").trim() === "1";
@@ -828,17 +957,30 @@ function registerVitalRustApi(app, { getPool }) {
 
             const foundSet = new Set(matched.map((p) => p.steamId64));
             const notFound = clanIds.filter((id) => !foundSet.has(id));
+            for (const p of matched) {
+                if (manualOnlySet.has(p.steamId64)) {
+                    p.rosterSource = "manual";
+                    const note = roster.manualLabels[p.steamId64];
+                    if (note) {
+                        p.rosterNote = note;
+                    }
+                } else {
+                    p.rosterSource = "mcv";
+                }
+            }
             matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kdr - a.kdr);
 
             const hint =
                 clanIds.length && !matched.length
-                    ? "Vital no devolvió filas para este wipe/servidor. Probá el wipe ★ actual, otro servidor (Monthly/Medium), o que el SteamID64 esté en lista wipe o perfiles aprobados."
+                    ? "Vital no devolvió filas para este wipe/servidor. Probá el wipe ★ actual, otro servidor (Monthly/Medium), o agregá el SteamID64 en extras manuales."
                     : null;
 
             return res.json({
                 server,
                 wipeId,
                 rosterSize: clanIds.length,
+                mcvCount: roster.mcvCount,
+                manualCount: roster.manualOnlyCount,
                 players: matched,
                 notFound,
                 hint,

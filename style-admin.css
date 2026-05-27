@@ -431,6 +431,86 @@
 }
 .admin-table th { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
+.vital-extra-panel {
+    margin: 0 0 16px;
+}
+.vital-extra-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: flex-end;
+    margin: 10px 0 12px;
+}
+.vital-extra-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+.vital-extra-field .admin-input {
+    width: 100%;
+    padding: 10px;
+    background: #050505;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+}
+.vital-extra-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-extra-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #050505;
+    font-size: 0.85rem;
+}
+.vital-extra-item code {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--primary);
+}
+.vital-extra-mcv {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.vital-extra-del {
+    margin-left: auto;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+}
+.vital-player-badge {
+    display: inline-block;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    vertical-align: middle;
+}
+.vital-player-note {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
 .vital-controls {
     display: flex;
     flex-wrap: wrap;

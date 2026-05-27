@@ -212,6 +212,17 @@ CREATE INDEX IF NOT EXISTS idx_team_roster_status ON team_roster_submissions (st
 CREATE INDEX IF NOT EXISTS idx_team_roster_created ON team_roster_submissions (created_at DESC);
 
 -- split
+-- SteamID64 extra para stats Vital (jugadores en prueba / aún no en roster MCV)
+CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    label TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_vital_extra_created ON vital_extra_steam_ids (created_at DESC);
+
+-- split
 CREATE TABLE IF NOT EXISTS support_tickets (
     id SERIAL PRIMARY KEY,
     ticket_type VARCHAR(32) NOT NULL
