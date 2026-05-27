@@ -20,6 +20,7 @@ const { registerTeamRosterApi } = require("./teamRoster");
 const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
+const { registerVitalRustApi } = require("./vitalRustApi");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -148,6 +149,8 @@ registerTeamRosterApi(app, {
 });
 
 registerTicketsApi(app, { getPool });
+
+registerVitalRustApi(app, { getPool });
 
 registerYoutubeFeedApi(app);
 registerTiktokFeedApi(app);

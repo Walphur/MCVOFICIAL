@@ -417,6 +417,55 @@
     font-family: "IBM Plex Sans", sans-serif;
 }
 .admin-table th { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.vital-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: flex-end;
+    margin: 14px 0 18px;
+}
+.vital-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.vital-controls select {
+    min-width: 180px;
+    padding: 10px;
+    background: #050505;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 6px;
+}
+.vital-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.vital-stat-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    background: #050505;
+}
+.vital-stat-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+.vital-stat-value {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    color: var(--primary);
+    font-weight: 400;
+}
 .row-actions { white-space: nowrap; }
 .admin-steam-cell {
     font-family: "JetBrains Mono", monospace;

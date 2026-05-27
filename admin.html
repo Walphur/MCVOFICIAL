@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=1">
+    <link rel="stylesheet" href="style-admin.css?v=2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -56,6 +56,7 @@
             <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">⚔️ Bracket</span></button>
             <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><span data-i18n="admin.tabTeamWeb">🌐 Perfiles equipo</span></button>
             <button type="button" class="tab" role="tab" data-tab="tickets" aria-selected="false"><span data-i18n="admin.tabTickets">🎫 Tickets</span></button>
+            <button type="button" class="tab" role="tab" data-tab="vital" aria-selected="false"><span data-i18n="admin.tabVital">📊 Vital Rust</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
@@ -275,6 +276,34 @@
             </div>
         </div>
 
+        <div id="vital-panel" class="admin-panel-anchor" style="display:none;">
+            <div class="data-area">
+                <h3 class="admin-form-title" data-i18n="admin.vitalTitle">Estadísticas Vital Rust (clan)</h3>
+                <p class="admin-form-hint admin-readable" data-i18n-html="admin.vitalIntro"></p>
+                <p id="vital-config-banner" class="admin-form-hint" hidden></p>
+                <div class="vital-controls">
+                    <label><span data-i18n="admin.vitalServer">Servidor</span>
+                        <select id="vital-server-select"></select>
+                    </label>
+                    <label><span data-i18n="admin.vitalScope">Periodo</span>
+                        <select id="vital-scope-select">
+                            <option value="wipe" data-i18n="admin.vitalScopeWipe">Wipe actual</option>
+                            <option value="total" data-i18n="admin.vitalScopeTotal">Total</option>
+                        </select>
+                    </label>
+                    <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
+                    <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
+                </div>
+                <div id="vital-overview-grid" class="vital-overview-grid" hidden></div>
+                <p id="vital-roster-meta" class="admin-form-hint"></p>
+                <div id="vital-clan-table"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
+                <details class="admin-collapse" style="margin-top:14px;">
+                    <summary data-i18n="admin.vitalNotFoundToggle">Jugadores del roster sin datos en Vital</summary>
+                    <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
+                </details>
+            </div>
+        </div>
+
         <div id="tickets-panel" class="admin-panel-anchor" style="display:none;">
             <div class="data-area">
                 <h3 class="admin-form-title" data-i18n="admin.ticketsTitle">Tickets de jugadores</h3>
@@ -321,7 +350,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=26"></script>
+<script src="mcv-i18n.js?v=27"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1361,6 +1390,165 @@
         });
     })();
 
+    var vitalClanRows = [];
+    var vitalConfigLoaded = false;
+
+    function vitalStatCard(label, value) {
+        return '<div class="vital-stat-card"><span class="vital-stat-label">' + esc(label) + '</span><strong class="vital-stat-value">' + esc(String(value)) + '</strong></div>';
+    }
+
+    function renderVitalOverview(overview) {
+        var grid = document.getElementById('vital-overview-grid');
+        if (!grid) return;
+        if (!overview) {
+            grid.hidden = true;
+            grid.innerHTML = '';
+            return;
+        }
+        grid.hidden = false;
+        grid.innerHTML =
+            vitalStatCard('K/D', overview.kdr) +
+            vitalStatCard(T('admin.vitalKills'), overview.kills) +
+            vitalStatCard(T('admin.vitalKillsT30'), overview.killsT30) +
+            vitalStatCard(T('admin.vitalDeaths'), overview.deaths) +
+            vitalStatCard(T('admin.vitalRockets'), overview.rocketsFired) +
+            vitalStatCard(T('admin.vitalBulletsHit'), overview.bulletsHit) +
+            vitalStatCard(T('admin.vitalHeadshots'), overview.headshots);
+    }
+
+    function renderVitalClanTable(players) {
+        var box = document.getElementById('vital-clan-table');
+        if (!box) return;
+        vitalClanRows = players || [];
+        if (!vitalClanRows.length) {
+            box.innerHTML = '<p class="empty-hint">' + esc(T('admin.vitalNoPlayers')) + '</p>';
+            return;
+        }
+        var html = '<table class="admin-table"><thead><tr>';
+        html += '<th>' + esc(T('admin.vitalColName')) + '</th><th>Steam</th><th>K/D</th><th>' + esc(T('admin.vitalKills')) + '</th><th>' + esc(T('admin.vitalDeaths')) + '</th><th>' + esc(T('admin.vitalRockets')) + '</th><th>' + esc(T('admin.vitalBulletsHit')) + '</th></tr></thead><tbody>';
+        vitalClanRows.forEach(function (p) {
+            html += '<tr><td>' + esc(p.name || '—') + '</td><td class="admin-steam-cell"><a href="https://vitalrust.com/statistics/player-overview?userId=' + esc(p.steamId64) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a></td>';
+            html += '<td>' + esc(p.kdr) + '</td><td>' + esc(p.kills) + '</td><td>' + esc(p.deaths) + '</td><td>' + esc(p.rocketsFired) + '</td><td>' + esc(p.bulletsHit) + '</td></tr>';
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+    }
+
+    function loadVitalConfig() {
+        return fetch(API + '/api/admin/vital/config', { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'config');
+                var sel = document.getElementById('vital-server-select');
+                var banner = document.getElementById('vital-config-banner');
+                if (sel) {
+                    sel.innerHTML = (x.d.servers || []).map(function (s) {
+                        var note = s.serverId ? '' : ' ⚠';
+                        return '<option value="' + esc(s.key) + '">' + esc(s.label + note) + '</option>';
+                    }).join('');
+                }
+                if (banner) {
+                    var parts = [];
+                    if (!x.d.configured) {
+                        parts.push(T('admin.vitalNotConfigured'));
+                    } else if (x.d.serversConfigured < (x.d.servers || []).length) {
+                        parts.push(T('admin.vitalPartialServers').replace('{n}', String(x.d.serversConfigured)).replace('{t}', String((x.d.servers || []).length)));
+                    }
+                    if (x.d.disclaimer) {
+                        parts.push(x.d.disclaimer);
+                    }
+                    if (parts.length) {
+                        banner.textContent = parts.join(' · ');
+                        banner.hidden = false;
+                    } else {
+                        banner.hidden = true;
+                    }
+                }
+                vitalConfigLoaded = true;
+                return x.d;
+            });
+    }
+
+    function loadVitalClanStats() {
+        var sel = document.getElementById('vital-server-select');
+        var scopeSel = document.getElementById('vital-scope-select');
+        var box = document.getElementById('vital-clan-table');
+        var meta = document.getElementById('vital-roster-meta');
+        if (!sel || !scopeSel || !box) return;
+        var server = sel.value;
+        var scope = scopeSel.value || 'wipe';
+        box.innerHTML = '<p class="empty-hint">' + esc(T('admin.emptyLoading')) + '</p>';
+        banner(T('admin.vitalLoading'), false);
+        var q = '?server=' + encodeURIComponent(server) + '&scope=' + encodeURIComponent(scope);
+        fetch(API + '/api/admin/vital/clan' + q, { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : ((x.d && x.d.hint) ? x.d.hint : 'err'));
+                if (meta) {
+                    meta.textContent = T('admin.vitalRosterMeta')
+                        .replace('{found}', String((x.d.players || []).length))
+                        .replace('{total}', String(x.d.rosterSize || 0))
+                        .replace('{server}', String((x.d.server && x.d.server.label) || server));
+                }
+                renderVitalOverview(x.d.overview);
+                renderVitalClanTable(x.d.players || []);
+                var nf = document.getElementById('vital-not-found');
+                if (nf) {
+                    nf.textContent = (x.d.notFound && x.d.notFound.length) ? x.d.notFound.join(', ') : T('admin.vitalAllFound');
+                }
+                banner(T('admin.vitalLoaded'), false);
+            })
+            .catch(function (e) {
+                renderVitalOverview(null);
+                renderVitalClanTable([]);
+                box.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : T('admin.vitalLoadError')) + '</p>';
+                banner((e && e.message) ? e.message : T('admin.vitalLoadError'), true);
+            });
+    }
+
+    function initVitalPanel() {
+        var btnRefresh = document.getElementById('btn-vital-refresh');
+        var btnExport = document.getElementById('btn-vital-export');
+        if (btnRefresh) {
+            btnRefresh.addEventListener('click', function () {
+                if (!vitalConfigLoaded) {
+                    loadVitalConfig().then(loadVitalClanStats).catch(function () {});
+                } else {
+                    loadVitalClanStats();
+                }
+            });
+        }
+        if (btnExport) {
+            btnExport.addEventListener('click', function () {
+                if (!vitalClanRows.length) return;
+                var h = ['name', 'steamId64', 'kdr', 'kills', 'deaths', 'rocketsFired', 'bulletsHit', 'headshots'];
+                var rows = vitalClanRows.map(function (p) {
+                    return h.map(function (k) { return '"' + String(p[k] != null ? p[k] : '').replace(/"/g, '""') + '"'; }).join(',');
+                });
+                var blob = new Blob([[h.join(','), rows.join('\n')].join('\n')], { type: 'text/csv' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'mcv-vital-clan.csv';
+                a.click();
+            });
+        }
+    }
+    initVitalPanel();
+
     document.querySelectorAll('.tab').forEach(function (t) {
         t.addEventListener('click', function () {
             document.querySelectorAll('.tab').forEach(function (x) {
@@ -1383,8 +1571,15 @@
             if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
             var tkp = document.getElementById('tickets-panel');
             if (tkp) tkp.style.display = state.tab === 'tickets' ? 'block' : 'none';
+            var vp = document.getElementById('vital-panel');
+            if (vp) {
+                vp.style.display = state.tab === 'vital' ? 'block' : 'none';
+                if (state.tab === 'vital' && !vitalConfigLoaded) {
+                    loadVitalConfig().catch(function () {});
+                }
+            }
             var dashBtns = document.querySelector('.dashboard-buttons');
-            if (dashBtns) dashBtns.style.display = state.tab === 'tickets' ? 'none' : '';
+            if (dashBtns) dashBtns.style.display = (state.tab === 'tickets' || state.tab === 'vital') ? 'none' : '';
             var slugLabel = document.getElementById('slug-label');
             if (slugLabel) slugLabel.style.display = state.tab === 'tournaments' ? '' : 'none';
             if (state.tab === 'bracket') loadBracketView();
