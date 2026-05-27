@@ -1,5 +1,5 @@
 /* MCV — service worker mínimo (estáticos + offline básico) */
-const CACHE = "mcv-static-v3";
+const CACHE = "mcv-static-v4";
 const PRECACHE = [
     "./",
     "./index.html",
@@ -40,7 +40,7 @@ self.addEventListener("fetch", function (event) {
     if (url.origin !== self.location.origin) return;
   /* Admin/login siempre red: evita quedar sin pestaña Vital tras deploy */
     if (/^\/(admin|login)\.html$/i.test(url.pathname)) {
-        event.respondWith(fetch(req));
+        event.respondWith(fetch(new Request(req, { cache: "no-store" })));
         return;
     }
 

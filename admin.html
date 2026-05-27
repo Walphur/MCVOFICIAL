@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=3">
-    <meta name="mcv-admin-build" content="2026-05-27-vital">
+    <meta name="mcv-admin-build" content="2026-05-27-vital-steamid">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -1523,7 +1523,7 @@
         }
         box.innerHTML = '<p class="empty-hint">' + esc(T('admin.emptyLoading')) + '</p>';
         banner(T('admin.vitalLoading'), false);
-        var q = '?server=' + encodeURIComponent(server) + '&wipeId=' + encodeURIComponent(wipeId);
+        var q = '?server=' + encodeURIComponent(server) + '&wipeId=' + encodeURIComponent(wipeId) + '&refresh=1&_=' + Date.now();
         fetch(API + '/api/admin/vital/clan' + q, { headers: authHeaders() })
             .then(function (r) {
                 if (r.status === 401) {

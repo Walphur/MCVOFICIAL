@@ -219,11 +219,17 @@ async function fetchUpstream(url) {
     return { data, cached: false };
 }
 
-async function fetchUpstreamPost(url, body) {
+function postResponseHasRows(data) {
+    return extractPlayersList(data?.data != null ? data : { data }).length > 0;
+}
+
+async function fetchUpstreamPost(url, body, { skipCache = false } = {}) {
     const key = `POST ${url} ${JSON.stringify(body)}`;
-    const hit = cache.get(key);
-    if (hit && hit.expires > Date.now()) {
-        return { data: hit.data, cached: true };
+    if (!skipCache) {
+        const hit = cache.get(key);
+        if (hit && hit.expires > Date.now()) {
+            return { data: hit.data, cached: true };
+        }
     }
     await throttleUpstream();
     const { data, status } = await axios.post(url, body, {
@@ -240,13 +246,20 @@ async function fetchUpstreamPost(url, body) {
         err.body = typeof data === "string" ? data.slice(0, 200) : data;
         throw err;
     }
-    cache.set(key, { data, expires: Date.now() + cacheTtlMs() });
+    if (!skipCache && postResponseHasRows(data)) {
+        cache.set(key, { data, expires: Date.now() + cacheTtlMs() });
+    }
     return { data, cached: false };
 }
 
 function num(v) {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeSteamId64(raw) {
+    const d = String(raw == null ? "" : raw).replace(/\D/g, "");
+    return /^7656119\d{10}$/.test(d) ? d : null;
 }
 
 function pickSteamId(row) {
@@ -266,9 +279,9 @@ function pickSteamId(row) {
         row.id
     ];
     for (const c of candidates) {
-        const d = String(c || "").replace(/\D/g, "");
-        if (/^7656119\d{10}$/.test(d)) {
-            return d;
+        const id = normalizeSteamId64(c);
+        if (id) {
+            return id;
         }
     }
     return null;
@@ -462,23 +475,36 @@ async function fetchServerOverview(paths, vars) {
     return extractOverview(data);
 }
 
-async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds) {
+async function postPlayersOverview(url, serverId, wipeId, playerIds, includes, opts = {}) {
+    /** SteamID64 > MAX_SAFE_INTEGER: Number() corrompe IDs y Vital devuelve data: []. */
+    const body = {
+        serverId: Number(serverId),
+        playerIds: playerIds.map((s) => normalizeSteamId64(s)).filter(Boolean),
+        includes: includes.map((s) => String(s).toLowerCase())
+    };
+    if (wipeId && wipeId !== "null") {
+        body.wipeId = wipeId;
+    }
+    const { data } = await fetchUpstreamPost(url, body, opts);
+    return extractPlayersList(data?.data != null ? data : { data });
+}
+
+async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh = false } = {}) {
     const url = fillTemplate(paths.playersOverviewPost, {});
-    const includes = parsePlayerIncludes();
+    const preferred = parsePlayerIncludes();
     const chunkSize = 100;
     const matched = [];
+    const postOpts = refresh ? { skipCache: true } : {};
+
     for (let i = 0; i < steamIds.length; i += chunkSize) {
         const batch = steamIds.slice(i, i + chunkSize);
-        const body = {
-            serverId: Number(serverId),
-            playerIds: batch.map((s) => Number(s)),
-            includes
-        };
-        if (wipeId && wipeId !== "null") {
-            body.wipeId = wipeId;
+        let rows = await postPlayersOverview(url, serverId, wipeId, batch, preferred, postOpts);
+        if (!rows.length && !preferred.every((x) => x === "combat")) {
+            rows = await postPlayersOverview(url, serverId, wipeId, batch, ["combat", "raiding"], postOpts);
         }
-        const { data } = await fetchUpstreamPost(url, body);
-        const rows = extractPlayersList(data?.data != null ? data : { data });
+        if (!rows.length) {
+            rows = await postPlayersOverview(url, serverId, wipeId, batch, ["combat"], postOpts);
+        }
         for (const row of rows) {
             const p = normalizePlayer(row);
             if (p) {
@@ -486,6 +512,7 @@ async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds) {
             }
         }
     }
+
     const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
     return steamIds.map((id) => bySteam.get(id)).filter(Boolean);
 }
@@ -640,7 +667,7 @@ function registerVitalRustApi(app, { getPool }) {
             disclaimer:
                 "API no oficial (playerstatistics.vitalgamenetwork.com). Solo admins, con caché. Puede cambiar sin aviso.",
             setupHint:
-                "MCV: EU Monthly = serverId 16, EU Medium = 19. Stats del clan vía POST /players/overview con SteamID64 del roster."
+                "MCV: EU Monthly = serverId 16, EU Medium = 19. POST /players/overview: playerIds como string (no Number). Includes: combat,raiding."
         });
     });
 
@@ -755,7 +782,15 @@ function registerVitalRustApi(app, { getPool }) {
                     message: "Sin SteamID64 en lista wipe ni perfiles aprobados."
                 });
             }
-            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds);
+            const refresh = String(req.query.refresh || "").trim() === "1";
+            if (refresh) {
+                for (const k of [...cache.keys()]) {
+                    if (k.startsWith("POST ")) {
+                        cache.delete(k);
+                    }
+                }
+            }
+            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
 
             const foundSet = new Set(matched.map((p) => p.steamId64));
             const notFound = clanIds.filter((id) => !foundSet.has(id));
@@ -774,7 +809,8 @@ function registerVitalRustApi(app, { getPool }) {
                 notFound,
                 serverOverview,
                 overview: aggregateOverview(matched),
-                hint
+                hint,
+                vitalIncludes: parsePlayerIncludes()
             });
         } catch (e) {
             console.error("vital clan:", e.message);
