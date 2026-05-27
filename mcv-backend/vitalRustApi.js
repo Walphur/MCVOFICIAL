@@ -7,18 +7,19 @@ const jwt = require("jsonwebtoken");
  * serverId según orden en vitalrust.com/statistics (EU 10x = 1 confirmado en DevTools).
  * MCV juega EU Monthly 2x y EU Medium 2x → ids 4 y 5 (verificar con ?serverId= al cambiar servidor).
  */
+/** IDs oficiales: GET https://playerstatistics.vitalgamenetwork.com/servers */
 const MCV_PRIMARY_SERVERS = [
-    { key: "eu-monthly", label: "EU Monthly 2x", serverId: "4", mcvPrimary: true },
-    { key: "eu-medium", label: "EU Medium 2x", serverId: "5", mcvPrimary: true }
+    { key: "eu-monthly", label: "EU Monthly 2x", serverId: "16", mcvPrimary: true },
+    { key: "eu-medium", label: "EU Medium 2x", serverId: "19", mcvPrimary: true }
 ];
 
 const ALL_VITAL_SERVERS = [
-    { key: "au-10x", label: "AU 10x", serverId: "0" },
-    { key: "eu-10x", label: "EU 10x", serverId: "1" },
-    { key: "us-10x", label: "US 10x", serverId: "2" },
-    { key: "eu-mondays", label: "EU Mondays", serverId: "3" },
+    { key: "au-10x", label: "AU 10x", serverId: "1" },
+    { key: "eu-10x", label: "EU 10x", serverId: "2" },
+    { key: "us-10x", label: "US 10x", serverId: "3" },
+    { key: "eu-mondays", label: "EU Mondays", serverId: "4" },
     ...MCV_PRIMARY_SERVERS,
-    { key: "us-monthly", label: "US Monthly", serverId: "6" }
+    { key: "us-monthly", label: "US Monthly", serverId: "23" }
 ];
 
 const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-monthly").trim();
@@ -113,14 +114,6 @@ function parseServers() {
     return list;
 }
 
-function pathPrefix() {
-    const p = String(process.env.VITAL_API_PATH_PREFIX || "/api/statistics").trim();
-    if (!p) {
-        return "/api/statistics";
-    }
-    return p.startsWith("/") ? p : `/${p}`;
-}
-
 function parseExtraHeaders() {
     const out = {};
     const bearer = String(process.env.VITAL_API_BEARER || "").trim();
@@ -146,22 +139,29 @@ function parseExtraHeaders() {
 }
 
 function apiPaths() {
-    const prefix = pathPrefix();
-    const defOverview = `${prefix}/overview?serverId={serverId}&wipeId={wipeId}`;
-    const defPlayers =
-        `${prefix}?serverId={serverId}&wipeId={wipeId}&category=Player&sortBy=kills&sortAscending=false&page={page}&limit={limit}`;
-    const defWipes = `${prefix}/wipes?serverId={serverId}`;
-    const defPlayer = `${prefix}/player-overview?userId={steamId64}&serverId={serverId}&wipeId={wipeId}`;
     return {
-        overview: String(process.env.VITAL_API_OVERVIEW_PATH || defOverview).trim(),
-        players: String(process.env.VITAL_API_PLAYERS_PATH || defPlayers).trim(),
-        wipes: String(process.env.VITAL_API_WIPES_PATH || defWipes).trim(),
-        player: String(process.env.VITAL_API_PLAYER_PATH || "").trim() || defPlayer
+        overview:
+            String(process.env.VITAL_API_OVERVIEW_PATH || "").trim() ||
+            "/servers/{serverId}/aggregations/overview?wipeId={wipeId}",
+        overviewTotal:
+            String(process.env.VITAL_API_OVERVIEW_TOTAL_PATH || "").trim() ||
+            "/servers/total/aggregations/overview?serverId={serverId}",
+        players:
+            String(process.env.VITAL_API_PLAYERS_PATH || "").trim() ||
+            "/servers/{serverId}/players?wipeId={wipeId}&perPage={limit}&page={page}&sortBy=kills&sortAscending=false&includes=Combat&includes=Raiding",
+        wipes: String(process.env.VITAL_API_WIPES_PATH || "").trim() || "/servers/{serverId}/wipes",
+        wipesCurrent:
+            String(process.env.VITAL_API_WIPES_CURRENT_PATH || "").trim() ||
+            "/servers/{serverId}/wipes/current",
+        playersOverviewPost:
+            String(process.env.VITAL_API_PLAYERS_OVERVIEW_POST || "").trim() || "/players/overview"
     };
 }
 
 function baseUrl() {
-    return String(process.env.VITAL_API_BASE_URL || "https://vitalrust.com").trim().replace(/\/$/, "");
+    return String(process.env.VITAL_API_BASE_URL || "https://playerstatistics.vitalgamenetwork.com")
+        .trim()
+        .replace(/\/$/, "");
 }
 
 function fillTemplate(tpl, vars) {
@@ -186,24 +186,52 @@ async function throttleUpstream() {
     lastUpstreamAt = Date.now();
 }
 
+function upstreamHeaders() {
+    return {
+        Accept: "application/json, text/plain, */*",
+        "User-Agent":
+            "Mozilla/5.0 (compatible; MCV-VitalProxy/1.2; +https://mcvoficial.com; admin-only)",
+        Referer: "https://vitalrust.com/statistics",
+        Origin: "https://vitalrust.com",
+        ...parseExtraHeaders()
+    };
+}
+
 async function fetchUpstream(url) {
-    const key = url;
+    const key = `GET ${url}`;
     const hit = cache.get(key);
     if (hit && hit.expires > Date.now()) {
         return { data: hit.data, cached: true };
     }
     await throttleUpstream();
-    const headers = {
-        Accept: "application/json, text/plain, */*",
-        "User-Agent":
-            "Mozilla/5.0 (compatible; MCV-VitalProxy/1.1; +https://mcvoficial.com; admin-only)",
-        Referer: "https://vitalrust.com/statistics",
-        Origin: "https://vitalrust.com",
-        ...parseExtraHeaders()
-    };
     const { data, status } = await axios.get(url, {
         timeout: 25000,
-        headers,
+        headers: upstreamHeaders(),
+        validateStatus: () => true
+    });
+    if (status >= 400) {
+        const err = new Error(`Vital API respondió ${status}`);
+        err.status = status;
+        err.body = typeof data === "string" ? data.slice(0, 200) : data;
+        throw err;
+    }
+    cache.set(key, { data, expires: Date.now() + cacheTtlMs() });
+    return { data, cached: false };
+}
+
+async function fetchUpstreamPost(url, body) {
+    const key = `POST ${url} ${JSON.stringify(body)}`;
+    const hit = cache.get(key);
+    if (hit && hit.expires > Date.now()) {
+        return { data: hit.data, cached: true };
+    }
+    await throttleUpstream();
+    const { data, status } = await axios.post(url, body, {
+        timeout: 25000,
+        headers: {
+            ...upstreamHeaders(),
+            "Content-Type": "application/json"
+        },
         validateStatus: () => true
     });
     if (status >= 400) {
@@ -225,7 +253,9 @@ function pickSteamId(row) {
     if (!row || typeof row !== "object") {
         return null;
     }
+    const ctx = row.context || {};
     const candidates = [
+        ctx.userId,
         row.userId,
         row.user_id,
         row.steamId,
@@ -249,28 +279,29 @@ function normalizePlayer(row) {
     if (!steamId64) {
         return null;
     }
-    const kills = num(row.kills ?? row.Kills);
-    const deaths = num(row.deaths ?? row.Deaths);
-    const kdrRaw = row.kdr ?? row.kdratio ?? row.kd;
-    let kdr = num(kdrRaw);
-    if (!kdrRaw && deaths > 0) {
+    const combat = row.statistics?.combat || row.combat || row;
+    const raiding = row.statistics?.raiding || row.raiding || {};
+    const kills = num(combat.kills ?? row.kills);
+    const deaths = num(combat.deaths ?? row.deaths);
+    let kdr = num(combat.kdr ?? row.kdr);
+    if (!kdr && deaths > 0) {
         kdr = Math.round((kills / deaths) * 100) / 100;
-    } else if (!kdrRaw && kills > 0 && deaths === 0) {
+    } else if (!kdr && kills > 0 && deaths === 0) {
         kdr = kills;
     }
     return {
         steamId64,
-        name: String(row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
+        name: String(row.player?.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
         kills,
-        killsT30: num(row.killsT30 ?? row.kills_t30 ?? row.killsT3),
+        killsT30: num(combat.killsT3 ?? combat.killsT30 ?? row.killsT30 ?? row.kills_t30),
         deaths,
         kdr,
-        rocketsFired: num(row.rocketsFired ?? row.rockets_fired ?? row.rockets),
-        bulletsHit: num(row.bulletsHit ?? row.bullets_hit),
-        bulletsFired: num(row.bulletsFired ?? row.bullets_fired),
-        suicides: num(row.suicides),
-        wounds: num(row.wounds),
-        headshots: num(row.headshots)
+        rocketsFired: num(raiding.rockets ?? row.rocketsFired ?? row.rockets_fired ?? row.rockets),
+        bulletsHit: num(combat.hits ?? row.bulletsHit ?? row.bullets_hit),
+        bulletsFired: num(combat.shots ?? row.bulletsFired ?? row.bullets_fired),
+        suicides: num(combat.suicides ?? row.suicides),
+        wounds: num(combat.wounds ?? row.wounds),
+        headshots: num(combat.headshots ?? row.headshots)
     };
 }
 
@@ -303,22 +334,32 @@ function extractOverview(data) {
     if (!data || typeof data !== "object") {
         return null;
     }
-    const src = data.overview || data.serverOverview || data.stats || data.summary || data;
-    if (!src || typeof src !== "object" || Array.isArray(src)) {
+    const payload = data.data || data;
+    const combat = payload.combat || payload;
+    const raiding = payload.raiding || {};
+    if (!combat || typeof combat !== "object") {
         return null;
     }
+    const kills = num(combat.kills);
+    const deaths = num(combat.deaths);
+    let kdr = num(combat.kdr);
+    if (!kdr && deaths > 0) {
+        kdr = Math.round((kills / deaths) * 100) / 100;
+    } else if (!kdr && kills > 0) {
+        kdr = kills;
+    }
     return {
-        kdr: num(src.kdr),
-        kills: num(src.kills),
-        killsT30: num(src.killsT30 ?? src.kills_t30),
-        deaths: num(src.deaths),
-        rocketsFired: num(src.rocketsFired ?? src.rockets_fired),
-        bulletsHit: num(src.bulletsHit ?? src.bullets_hit),
-        suicides: num(src.suicides),
-        wounds: num(src.wounds),
-        headshots: num(src.headshots),
-        bulletsFired: num(src.bulletsFired ?? src.bullets_fired),
-        currentPlayers: num(src.currentPlayers ?? src.playersOnline ?? src.online)
+        kdr,
+        kills,
+        killsT30: num(combat.killsT3 ?? combat.killsT30),
+        deaths,
+        rocketsFired: num(raiding.rockets ?? combat.rocketsFired),
+        bulletsHit: num(combat.hits ?? combat.bulletsHit),
+        suicides: num(combat.suicides),
+        wounds: num(combat.wounds),
+        headshots: num(combat.headshots),
+        bulletsFired: num(combat.shots ?? combat.bulletsFired),
+        currentPlayers: num(payload.currentPlayers ?? payload.playersOnline ?? payload.online)
     };
 }
 
@@ -380,21 +421,72 @@ function normalizeWipe(row) {
     if (!id) {
         return null;
     }
-    const label =
-        String(
-            row.label ||
-                row.name ||
-                row.displayName ||
-                row.title ||
-                row.startedAt ||
-                row.startDate ||
-                id
-        ).trim() || id;
+    let label = String(row.label || row.name || row.displayName || row.title || "").trim();
+    if (!label && row.startTime) {
+        try {
+            const d = new Date(row.startTime);
+            label = `${d.toLocaleDateString("es-AR")} — ${d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
+        } catch {
+            label = String(row.startTime);
+        }
+    }
+    if (!label) {
+        label = id;
+    }
     return {
         id,
         label,
         current: Boolean(row.current || row.isCurrent || row.active || row.isActive)
     };
+}
+
+function parsePlayerIncludes() {
+    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "Combat,Raiding").trim();
+    return raw
+        .split(/[,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
+function overviewFetchUrl(paths, vars) {
+    if (vars.wipeId === "null") {
+        return fillTemplate(paths.overviewTotal, vars);
+    }
+    return fillTemplate(paths.overview, vars);
+}
+
+async function fetchServerOverview(paths, vars) {
+    const url = overviewFetchUrl(paths, vars);
+    const { data } = await fetchUpstream(url);
+    return extractOverview(data);
+}
+
+async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds) {
+    const url = fillTemplate(paths.playersOverviewPost, {});
+    const includes = parsePlayerIncludes();
+    const chunkSize = 100;
+    const matched = [];
+    for (let i = 0; i < steamIds.length; i += chunkSize) {
+        const batch = steamIds.slice(i, i + chunkSize);
+        const body = {
+            serverId: Number(serverId),
+            playerIds: batch.map((s) => Number(s)),
+            includes
+        };
+        if (wipeId && wipeId !== "null") {
+            body.wipeId = wipeId;
+        }
+        const { data } = await fetchUpstreamPost(url, body);
+        const rows = extractPlayersList(data);
+        for (const row of rows) {
+            const p = normalizePlayer(row);
+            if (p) {
+                matched.push(p);
+            }
+        }
+    }
+    const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
+    return steamIds.map((id) => bySteam.get(id)).filter(Boolean);
 }
 
 function resolveServer(serverKey) {
@@ -461,34 +553,32 @@ async function fetchPlayersPage(paths, vars) {
         return [];
     }
     const maxPages = Math.max(1, Math.min(20, Number(process.env.VITAL_API_MAX_PAGES || 5) || 5));
-    const limit = Math.max(25, Math.min(500, Number(process.env.VITAL_API_PAGE_SIZE || 100) || 100));
+    const limit = Math.max(25, Math.min(100, Number(process.env.VITAL_API_PAGE_SIZE || 100) || 100));
     const all = [];
-    for (let page = 1; page <= maxPages; page += 1) {
+    for (let page = 0; page < maxPages; page += 1) {
         const url = fillTemplate(paths.players, { ...vars, page, limit });
-        const { data } = await fetchUpstream(url);
-        const chunk = extractPlayersList(data).map(normalizePlayer).filter(Boolean);
-        all.push(...chunk);
-        if (chunk.length < limit) {
+        try {
+            const { data, status } = await axios.get(url, {
+                timeout: 25000,
+                headers: upstreamHeaders(),
+                validateStatus: () => true
+            });
+            if (status >= 500) {
+                break;
+            }
+            if (status >= 400) {
+                break;
+            }
+            const chunk = extractPlayersList(data).map(normalizePlayer).filter(Boolean);
+            all.push(...chunk);
+            if (chunk.length < limit) {
+                break;
+            }
+        } catch {
             break;
         }
     }
     return all;
-}
-
-async function fetchPlayerBySteam(paths, vars, steamId64) {
-    if (!paths.player) {
-        return null;
-    }
-    const url = fillTemplate(paths.player, { ...vars, steamId64 });
-    const { data } = await fetchUpstream(url);
-    const list = extractPlayersList(data);
-    if (list.length) {
-        return normalizePlayer(list[0]);
-    }
-    if (data && typeof data === "object") {
-        return normalizePlayer(data.player || data.profile || data);
-    }
-    return null;
 }
 
 function aggregateOverview(players) {
@@ -532,25 +622,24 @@ function registerVitalRustApi(app, { getPool }) {
         const configuredCount = servers.filter((s) => s.serverId).length;
         return res.json({
             enabled: vitalEnabled(),
-            configured: Boolean(paths.players || paths.player || paths.overview),
+            configured: Boolean(paths.playersOverviewPost && paths.overview),
             servers,
             defaultServerKey: DEFAULT_SERVER_KEY,
             mcvServerKeys: parseMcvServerKeys(),
             serversConfigured: configuredCount,
             paths: {
                 overview: Boolean(paths.overview),
-                players: Boolean(paths.players),
-                wipes: Boolean(paths.wipes),
-                player: Boolean(paths.player)
+                overviewTotal: Boolean(paths.overviewTotal),
+                playersPost: Boolean(paths.playersOverviewPost),
+                wipes: Boolean(paths.wipes)
             },
-            pathPrefix: pathPrefix(),
-            baseUrl: baseUrl(),
+            apiHost: baseUrl(),
             cacheTtlSec: cacheTtlMs() / 1000,
             minIntervalMs: minIntervalMs(),
             disclaimer:
-                "API no oficial de Vital Rust. Solo uso admin, con caché y límites. Podés cambiar o romperse sin aviso; no hagas scraping del frontend.",
+                "API no oficial (playerstatistics.vitalgamenetwork.com). Solo admins, con caché. Puede cambiar sin aviso.",
             setupHint:
-                "Por defecto usa /api/statistics (overview, wipes, statistics?serverId=&wipeId=). Si falla, copiá la URL completa del XHR en DevTools a VITAL_API_*_PATH en Render."
+                "MCV: EU Monthly = serverId 16, EU Medium = 19. Stats del clan vía POST /players/overview con SteamID64 del roster."
         });
     });
 
@@ -572,10 +661,20 @@ function registerVitalRustApi(app, { getPool }) {
         try {
             const url = fillTemplate(paths.wipes, buildVars(server.serverId, "null", 1, 1));
             const { data, cached } = await fetchUpstream(url);
-            const wipes = extractWipesList(data)
+            let wipes = extractWipesList(data)
                 .map(normalizeWipe)
-                .filter(Boolean)
-                .sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+                .filter(Boolean);
+            try {
+                const curUrl = fillTemplate(paths.wipesCurrent, buildVars(server.serverId, "null", 0, 1));
+                const { data: curData } = await fetchUpstream(curUrl);
+                const currentId = String(curData?.data?.id || "").trim();
+                if (currentId) {
+                    wipes = wipes.map((w) => ({ ...w, current: w.id === currentId }));
+                }
+            } catch (e) {
+                console.warn("vital wipes/current:", e.message);
+            }
+            wipes.sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
             return res.json({ server, wipes, cached });
         } catch (e) {
             console.error("vital wipes:", e.message);
@@ -605,40 +704,10 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel o scope=total)" });
         }
         const paths = apiPaths();
-        if (!paths.overview && !paths.players && !paths.player) {
-            return res.status(503).json({ error: "Configurá VITAL_API_*_PATH en el servidor (ver .env.example)" });
-        }
-        const vars = buildVars(server.serverId, wipeId, 1, 100);
+        const vars = buildVars(server.serverId, wipeId, 0, 100);
         try {
-            if (paths.overview) {
-                const url = fillTemplate(paths.overview, vars);
-                const { data, cached } = await fetchUpstream(url);
-                const overview = extractOverview(data);
-                return res.json({ server, wipeId, overview, cached, source: "overview" });
-            }
-            const clanIds = await loadClanSteamIds(getPool);
-            let players = [];
-            if (paths.players) {
-                const all = await fetchPlayersPage(paths, vars);
-                const idSet = new Set(clanIds);
-                players = idSet.size ? all.filter((p) => idSet.has(p.steamId64)) : all.slice(0, 100);
-            } else if (paths.player && clanIds.length) {
-                const concurrency = 4;
-                for (let i = 0; i < clanIds.length; i += concurrency) {
-                    const batch = clanIds.slice(i, i + concurrency);
-                    const rows = await Promise.all(
-                        batch.map((sid) => fetchPlayerBySteam(paths, vars, sid).catch(() => null))
-                    );
-                    players.push(...rows.filter(Boolean));
-                }
-            }
-            return res.json({
-                server,
-                wipeId,
-                overview: aggregateOverview(players),
-                clanSampleSize: players.length,
-                source: "clan-aggregate"
-            });
+            const overview = await fetchServerOverview(paths, vars);
+            return res.json({ server, wipeId, overview, source: "aggregations/overview" });
         } catch (e) {
             console.error("vital overview:", e.message);
             return res.status(e.status === 403 ? 403 : 502).json({
@@ -664,20 +733,13 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel)" });
         }
         const paths = apiPaths();
-        if (!paths.players && !paths.player) {
-            return res.status(503).json({ error: "Configurá VITAL_API_PLAYERS_PATH o VITAL_API_PLAYER_PATH" });
-        }
-        const vars = buildVars(server.serverId, wipeId, 1, 100);
+        const vars = buildVars(server.serverId, wipeId, 0, 100);
         try {
             let serverOverview = null;
-            if (paths.overview) {
-                try {
-                    const url = fillTemplate(paths.overview, vars);
-                    const { data } = await fetchUpstream(url);
-                    serverOverview = extractOverview(data);
-                } catch (e) {
-                    console.warn("vital clan overview:", e.message);
-                }
+            try {
+                serverOverview = await fetchServerOverview(paths, vars);
+            } catch (e) {
+                console.warn("vital clan overview:", e.message);
             }
 
             const clanIds = await loadClanSteamIds(getPool);
@@ -692,29 +754,7 @@ function registerVitalRustApi(app, { getPool }) {
                     message: "Sin SteamID64 en lista wipe ni perfiles aprobados."
                 });
             }
-            let matched = [];
-
-            if (paths.players) {
-                const all = await fetchPlayersPage(paths, vars);
-                const byId = new Map(all.map((p) => [p.steamId64, p]));
-                matched = clanIds.map((id) => byId.get(id)).filter(Boolean);
-                if (matched.length < clanIds.length && paths.player) {
-                    const missing = clanIds.filter((id) => !byId.has(id));
-                    for (const sid of missing.slice(0, 80)) {
-                        const row = await fetchPlayerBySteam(paths, vars, sid).catch(() => null);
-                        if (row) {
-                            matched.push(row);
-                        }
-                    }
-                }
-            } else {
-                for (const sid of clanIds.slice(0, 120)) {
-                    const row = await fetchPlayerBySteam(paths, vars, sid).catch(() => null);
-                    if (row) {
-                        matched.push(row);
-                    }
-                }
-            }
+            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds);
 
             const foundSet = new Set(matched.map((p) => p.steamId64));
             const notFound = clanIds.filter((id) => !foundSet.has(id));
