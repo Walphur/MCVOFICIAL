@@ -285,10 +285,9 @@
                     <label><span data-i18n="admin.vitalServer">Servidor</span>
                         <select id="vital-server-select"></select>
                     </label>
-                    <label><span data-i18n="admin.vitalScope">Periodo</span>
-                        <select id="vital-scope-select">
-                            <option value="wipe" data-i18n="admin.vitalScopeWipe">Wipe actual</option>
-                            <option value="total" data-i18n="admin.vitalScopeTotal">Total</option>
+                    <label><span data-i18n="admin.vitalWipe">Wipe</span>
+                        <select id="vital-wipe-select">
+                            <option value="null" data-i18n="admin.vitalScopeTotal">Total</option>
                         </select>
                     </label>
                     <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
@@ -1397,9 +1396,10 @@
         return '<div class="vital-stat-card"><span class="vital-stat-label">' + esc(label) + '</span><strong class="vital-stat-value">' + esc(String(value)) + '</strong></div>';
     }
 
-    function renderVitalOverview(overview) {
+    function renderVitalOverview(overview, serverOverview) {
         var grid = document.getElementById('vital-overview-grid');
         if (!grid) return;
+        overview = serverOverview || overview;
         if (!overview) {
             grid.hidden = true;
             grid.innerHTML = '';
@@ -1453,6 +1453,8 @@
                         var note = s.serverId ? '' : ' ⚠';
                         return '<option value="' + esc(s.key) + '">' + esc(s.label + note) + '</option>';
                     }).join('');
+                    sel.onchange = function () { loadVitalWipes().catch(function () {}); };
+                    loadVitalWipes().catch(function () {});
                 }
                 if (banner) {
                     var parts = [];
@@ -1476,17 +1478,47 @@
             });
     }
 
+    function loadVitalWipes() {
+        var sel = document.getElementById('vital-server-select');
+        var wipeSel = document.getElementById('vital-wipe-select');
+        if (!sel || !wipeSel) return Promise.resolve();
+        var server = sel.value;
+        return fetch(API + '/api/admin/vital/wipes?server=' + encodeURIComponent(server), { headers: authHeaders() })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'wipes');
+                var html = '<option value="null">' + esc(T('admin.vitalScopeTotal')) + '</option>';
+                (x.d.wipes || []).forEach(function (w) {
+                    html += '<option value="' + esc(w.id) + '">' + esc(w.label) + (w.current ? ' ★' : '') + '</option>';
+                });
+                wipeSel.innerHTML = html;
+                var current = (x.d.wipes || []).find(function (w) { return w.current; });
+                if (current) wipeSel.value = current.id;
+            });
+    }
+
     function loadVitalClanStats() {
         var sel = document.getElementById('vital-server-select');
-        var scopeSel = document.getElementById('vital-scope-select');
+        var wipeSel = document.getElementById('vital-wipe-select');
         var box = document.getElementById('vital-clan-table');
         var meta = document.getElementById('vital-roster-meta');
-        if (!sel || !scopeSel || !box) return;
+        if (!sel || !wipeSel || !box) return;
         var server = sel.value;
-        var scope = scopeSel.value || 'wipe';
+        var wipeId = wipeSel.value;
+        if (!wipeId) {
+            banner(T('admin.vitalPickWipe'), true);
+            return;
+        }
         box.innerHTML = '<p class="empty-hint">' + esc(T('admin.emptyLoading')) + '</p>';
         banner(T('admin.vitalLoading'), false);
-        var q = '?server=' + encodeURIComponent(server) + '&scope=' + encodeURIComponent(scope);
+        var q = '?server=' + encodeURIComponent(server) + '&wipeId=' + encodeURIComponent(wipeId);
         fetch(API + '/api/admin/vital/clan' + q, { headers: authHeaders() })
             .then(function (r) {
                 if (r.status === 401) {
@@ -1504,7 +1536,7 @@
                         .replace('{total}', String(x.d.rosterSize || 0))
                         .replace('{server}', String((x.d.server && x.d.server.label) || server));
                 }
-                renderVitalOverview(x.d.overview);
+                renderVitalOverview(x.d.overview, x.d.serverOverview);
                 renderVitalClanTable(x.d.players || []);
                 var nf = document.getElementById('vital-not-found');
                 if (nf) {
@@ -1513,7 +1545,7 @@
                 banner(T('admin.vitalLoaded'), false);
             })
             .catch(function (e) {
-                renderVitalOverview(null);
+                renderVitalOverview(null, null);
                 renderVitalClanTable([]);
                 box.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : T('admin.vitalLoadError')) + '</p>';
                 banner((e && e.message) ? e.message : T('admin.vitalLoadError'), true);

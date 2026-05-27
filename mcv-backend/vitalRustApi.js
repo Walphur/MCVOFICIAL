@@ -3,14 +3,15 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 
+/** serverId numérico interno de Vital (DevTools: ?serverId=1 en EU 10x). Completar el resto en VITAL_SERVERS_JSON. */
 const DEFAULT_SERVERS = [
-    { key: "au-10x", label: "AU 10x" },
-    { key: "eu-10x", label: "EU 10x" },
-    { key: "us-10x", label: "US 10x" },
-    { key: "eu-mondays", label: "EU Mondays" },
-    { key: "eu-monthly", label: "EU Monthly" },
-    { key: "eu-medium", label: "EU Medium" },
-    { key: "us-monthly", label: "US Monthly" }
+    { key: "au-10x", label: "AU 10x", serverId: "" },
+    { key: "eu-10x", label: "EU 10x", serverId: "1" },
+    { key: "us-10x", label: "US 10x", serverId: "" },
+    { key: "eu-mondays", label: "EU Mondays", serverId: "" },
+    { key: "eu-monthly", label: "EU Monthly", serverId: "" },
+    { key: "eu-medium", label: "EU Medium", serverId: "" },
+    { key: "us-monthly", label: "US Monthly", serverId: "" }
 ];
 
 const cache = new Map();
@@ -76,7 +77,15 @@ function parseServers() {
             console.warn("VITAL_SERVERS_JSON inválido:", e.message);
         }
     }
-    return DEFAULT_SERVERS.map((s) => ({ ...s, serverId: "" }));
+    return DEFAULT_SERVERS;
+}
+
+function pathPrefix() {
+    const p = String(process.env.VITAL_API_PATH_PREFIX || "/api/statistics").trim();
+    if (!p) {
+        return "/api/statistics";
+    }
+    return p.startsWith("/") ? p : `/${p}`;
 }
 
 function parseExtraHeaders() {
@@ -104,10 +113,17 @@ function parseExtraHeaders() {
 }
 
 function apiPaths() {
+    const prefix = pathPrefix();
+    const defOverview = `${prefix}/overview?serverId={serverId}&wipeId={wipeId}`;
+    const defPlayers =
+        `${prefix}?serverId={serverId}&wipeId={wipeId}&category=Player&sortBy=kills&sortAscending=false&page={page}&limit={limit}`;
+    const defWipes = `${prefix}/wipes?serverId={serverId}`;
+    const defPlayer = `${prefix}/player-overview?userId={steamId64}&serverId={serverId}&wipeId={wipeId}`;
     return {
-        overview: String(process.env.VITAL_API_OVERVIEW_PATH || "").trim(),
-        players: String(process.env.VITAL_API_PLAYERS_PATH || "").trim(),
-        player: String(process.env.VITAL_API_PLAYER_PATH || "").trim()
+        overview: String(process.env.VITAL_API_OVERVIEW_PATH || defOverview).trim(),
+        players: String(process.env.VITAL_API_PLAYERS_PATH || defPlayers).trim(),
+        wipes: String(process.env.VITAL_API_WIPES_PATH || defWipes).trim(),
+        player: String(process.env.VITAL_API_PLAYER_PATH || "").trim() || defPlayer
     };
 }
 
@@ -146,7 +162,10 @@ async function fetchUpstream(url) {
     await throttleUpstream();
     const headers = {
         Accept: "application/json, text/plain, */*",
-        "User-Agent": "MCV-VitalProxy/1.0 (+https://mcvoficial.com; admin-only)",
+        "User-Agent":
+            "Mozilla/5.0 (compatible; MCV-VitalProxy/1.1; +https://mcvoficial.com; admin-only)",
+        Referer: "https://vitalrust.com/statistics",
+        Origin: "https://vitalrust.com",
         ...parseExtraHeaders()
     };
     const { data, status } = await axios.get(url, {
@@ -273,6 +292,76 @@ function extractOverview(data) {
 function normalizeScope(raw) {
     const s = String(raw || "wipe").toLowerCase();
     return s === "total" ? "total" : "wipe";
+}
+
+/** Vital usa wipeId=null en query para estadísticas "Total". */
+function resolveWipeIdParam(req) {
+    const explicit = String(req.query.wipeId ?? "").trim();
+    if (explicit === "null" || explicit === "total" || explicit === "__total__") {
+        return "null";
+    }
+    if (explicit) {
+        return explicit;
+    }
+    if (normalizeScope(req.query.scope) === "total") {
+        return "null";
+    }
+    return "";
+}
+
+function buildVars(serverId, wipeId, page, limit) {
+    const wid = !wipeId || wipeId === "total" ? "null" : String(wipeId);
+    return {
+        serverId: String(serverId),
+        wipeId: wid,
+        scope: wid === "null" ? "total" : "wipe",
+        page: page || 1,
+        limit: limit || 100,
+        sort: "kills",
+        sortAscending: "false",
+        category: "Player"
+    };
+}
+
+function extractWipesList(data) {
+    if (!data) {
+        return [];
+    }
+    if (Array.isArray(data)) {
+        return data;
+    }
+    const paths = [data.wipes, data.data, data.results, data.items];
+    for (const p of paths) {
+        if (Array.isArray(p)) {
+            return p;
+        }
+    }
+    return [];
+}
+
+function normalizeWipe(row) {
+    if (!row || typeof row !== "object") {
+        return null;
+    }
+    const id = String(row.id || row.wipeId || row.uuid || "").trim();
+    if (!id) {
+        return null;
+    }
+    const label =
+        String(
+            row.label ||
+                row.name ||
+                row.displayName ||
+                row.title ||
+                row.startedAt ||
+                row.startDate ||
+                id
+        ).trim() || id;
+    return {
+        id,
+        label,
+        current: Boolean(row.current || row.isCurrent || row.active || row.isActive)
+    };
 }
 
 function resolveServer(serverKey) {
@@ -416,16 +505,50 @@ function registerVitalRustApi(app, { getPool }) {
             paths: {
                 overview: Boolean(paths.overview),
                 players: Boolean(paths.players),
+                wipes: Boolean(paths.wipes),
                 player: Boolean(paths.player)
             },
+            pathPrefix: pathPrefix(),
             baseUrl: baseUrl(),
             cacheTtlSec: cacheTtlMs() / 1000,
             minIntervalMs: minIntervalMs(),
             disclaimer:
                 "API no oficial de Vital Rust. Solo uso admin, con caché y límites. Podés cambiar o romperse sin aviso; no hagas scraping del frontend.",
             setupHint:
-                "En vitalrust.com/statistics abrí DevTools → Network (XHR), elegí servidor/wipe y copiá la URL del request JSON a VITAL_API_PLAYERS_PATH (y opcionalmente OVERVIEW/PLAYER) en Render."
+                "Por defecto usa /api/statistics (overview, wipes, statistics?serverId=&wipeId=). Si falla, copiá la URL completa del XHR en DevTools a VITAL_API_*_PATH en Render."
         });
+    });
+
+    app.get("/api/admin/vital/wipes", authAdmin, async (req, res) => {
+        if (!vitalEnabled()) {
+            return res.status(503).json({ error: "Vital API deshabilitada" });
+        }
+        const server = resolveServer(req.query.server);
+        if (!server?.configured) {
+            return res.status(503).json({
+                error: server ? "Falta serverId en VITAL_SERVERS_JSON" : "Servidor inválido",
+                server
+            });
+        }
+        const paths = apiPaths();
+        if (!paths.wipes) {
+            return res.status(503).json({ error: "Sin VITAL_API_WIPES_PATH" });
+        }
+        try {
+            const url = fillTemplate(paths.wipes, buildVars(server.serverId, "null", 1, 1));
+            const { data, cached } = await fetchUpstream(url);
+            const wipes = extractWipesList(data)
+                .map(normalizeWipe)
+                .filter(Boolean)
+                .sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+            return res.json({ server, wipes, cached });
+        } catch (e) {
+            console.error("vital wipes:", e.message);
+            return res.status(502).json({
+                error: e.message || "Error al listar wipes",
+                hint: "Cloudflare puede bloquear el servidor; probá VITAL_API_HEADERS_JSON con Cookie de tu sesión."
+            });
+        }
     });
 
     app.get("/api/admin/vital/overview", authAdmin, async (req, res) => {
@@ -442,18 +565,21 @@ function registerVitalRustApi(app, { getPool }) {
                 server
             });
         }
-        const scope = normalizeScope(req.query.scope);
+        const wipeId = resolveWipeIdParam(req);
+        if (!wipeId) {
+            return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel o scope=total)" });
+        }
         const paths = apiPaths();
         if (!paths.overview && !paths.players && !paths.player) {
             return res.status(503).json({ error: "Configurá VITAL_API_*_PATH en el servidor (ver .env.example)" });
         }
-        const vars = { serverId: server.serverId, scope, page: 1, limit: 100, sort: "kills" };
+        const vars = buildVars(server.serverId, wipeId, 1, 100);
         try {
             if (paths.overview) {
                 const url = fillTemplate(paths.overview, vars);
                 const { data, cached } = await fetchUpstream(url);
                 const overview = extractOverview(data);
-                return res.json({ server, scope, overview, cached, source: "overview" });
+                return res.json({ server, wipeId, overview, cached, source: "overview" });
             }
             const clanIds = await loadClanSteamIds(getPool);
             let players = [];
@@ -473,7 +599,7 @@ function registerVitalRustApi(app, { getPool }) {
             }
             return res.json({
                 server,
-                scope,
+                wipeId,
                 overview: aggregateOverview(players),
                 clanSampleSize: players.length,
                 source: "clan-aggregate"
@@ -498,21 +624,36 @@ function registerVitalRustApi(app, { getPool }) {
                 server
             });
         }
-        const scope = normalizeScope(req.query.scope);
+        const wipeId = resolveWipeIdParam(req);
+        if (!wipeId) {
+            return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel)" });
+        }
         const paths = apiPaths();
         if (!paths.players && !paths.player) {
             return res.status(503).json({ error: "Configurá VITAL_API_PLAYERS_PATH o VITAL_API_PLAYER_PATH" });
         }
-        const vars = { serverId: server.serverId, scope, page: 1, limit: 100, sort: "kills" };
+        const vars = buildVars(server.serverId, wipeId, 1, 100);
         try {
+            let serverOverview = null;
+            if (paths.overview) {
+                try {
+                    const url = fillTemplate(paths.overview, vars);
+                    const { data } = await fetchUpstream(url);
+                    serverOverview = extractOverview(data);
+                } catch (e) {
+                    console.warn("vital clan overview:", e.message);
+                }
+            }
+
             const clanIds = await loadClanSteamIds(getPool);
             if (!clanIds.length) {
                 return res.json({
                     server,
-                    scope,
+                    wipeId,
                     rosterSize: 0,
                     players: [],
                     notFound: [],
+                    serverOverview,
                     message: "Sin SteamID64 en lista wipe ni perfiles aprobados."
                 });
             }
@@ -546,10 +687,11 @@ function registerVitalRustApi(app, { getPool }) {
 
             return res.json({
                 server,
-                scope,
+                wipeId,
                 rosterSize: clanIds.length,
                 players: matched,
                 notFound,
+                serverOverview,
                 overview: aggregateOverview(matched)
             });
         } catch (e) {
