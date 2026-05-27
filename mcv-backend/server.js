@@ -867,6 +867,15 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(UPLOAD_ROOT));
+/** Admin: sin caché agresiva (Cloudflare/navegador); así aparece Vital Rust tras deploy. */
+app.use((req, res, next) => {
+    const p = String(req.path || "");
+    if (p === "/admin.html" || p === "/login.html" || p === "/sw.js") {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+    }
+    next();
+});
 app.use(express.static(ROOT_DIR));
 
 async function boot() {

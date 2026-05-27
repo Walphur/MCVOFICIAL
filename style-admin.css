@@ -125,7 +125,20 @@
     margin: 0 0 18px;
     max-width: 72ch;
 }
-.admin-tabs { flex-wrap: wrap; gap: 10px; }
+.admin-tabs {
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+}
+.admin-tabs .tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 .admin-tabs .tab {
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 600;
