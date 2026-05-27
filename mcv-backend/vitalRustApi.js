@@ -306,23 +306,18 @@ function normalizePlayer(row) {
     }
     const gamblingWagered = num(pve.scrapWheelWagered) + num(pve.scrapSlotsWagered);
     const gamblingWon = num(pve.scrapWheelWon) + num(pve.scrapSlotsWon);
+    const gathered = farming.gathered || {};
     const playerInfo = row.player || {};
     return {
         steamId64,
         name: String(playerInfo.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
         avatar: String(playerInfo.avatarMedium ?? playerInfo.avatar ?? playerInfo.avatarFull ?? "").trim(),
-        kills,
         killsT30: num(combat.killsT3 ?? combat.killsT30 ?? row.killsT30 ?? row.kills_t30),
-        deaths,
         kdr,
         rocketsFired: num(raiding.rockets ?? row.rocketsFired ?? row.rockets_fired ?? row.rockets),
-        bulletsHit: num(combat.hits ?? row.bulletsHit ?? row.bullets_hit),
-        bulletsFired: num(combat.shots ?? row.bulletsFired ?? row.bullets_fired),
-        suicides: num(combat.suicides ?? row.suicides),
-        wounds: num(combat.wounds ?? row.wounds),
-        headshots: num(combat.headshots ?? row.headshots),
-        farmingGathered: sumResourceMap(farming.gathered),
-        farmingBerries: num(farming.gatheredBerries),
+        farmSulfur: farmGathered(gathered, ["sulfur.ore", "sulfur"]),
+        farmHqMetal: farmGathered(gathered, ["hq.metal.ore", "hq.metal"]),
+        farmWood: farmGathered(gathered, ["wood"]),
         gamblingWagered,
         gamblingWon
     };
@@ -470,6 +465,18 @@ function sumResourceMap(obj) {
     let total = 0;
     for (const v of Object.values(obj)) {
         total += num(v);
+    }
+    return total;
+}
+
+/** Cantidad farmeada por clave Vital en statistics.farming.gathered */
+function farmGathered(gathered, keys) {
+    if (!gathered || typeof gathered !== "object") {
+        return 0;
+    }
+    let total = 0;
+    for (const key of keys) {
+        total += num(gathered[key]);
     }
     return total;
 }
@@ -821,7 +828,7 @@ function registerVitalRustApi(app, { getPool }) {
 
             const foundSet = new Set(matched.map((p) => p.steamId64));
             const notFound = clanIds.filter((id) => !foundSet.has(id));
-            matched.sort((a, b) => b.kills - a.kills || b.kdr - a.kdr);
+            matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kdr - a.kdr);
 
             const hint =
                 clanIds.length && !matched.length

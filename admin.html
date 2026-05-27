@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=6">
-    <meta name="mcv-admin-build" content="2026-05-27-vital-grid">
+    <link rel="stylesheet" href="style-admin.css?v=7">
+    <meta name="mcv-admin-build" content="2026-05-27-vital-farm-split">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -349,7 +349,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=29"></script>
+<script src="mcv-i18n.js?v=30"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1430,13 +1430,11 @@
             html += '</div></header>';
             html += '<div class="vital-player-stats">';
             html += vitalStatCard('K/D', p.kdr);
-            html += vitalStatCard(vitalLabel('admin.vitalKills', 'Kills'), vitalFmtNum(p.kills));
             html += vitalStatCard(vitalLabel('admin.vitalKillsT30', 'Kills T30'), vitalFmtNum(p.killsT30));
-            html += vitalStatCard(vitalLabel('admin.vitalDeaths', 'Deaths'), vitalFmtNum(p.deaths));
             html += vitalStatCard(vitalLabel('admin.vitalRockets', 'Rockets'), vitalFmtNum(p.rocketsFired));
-            html += vitalStatCard(vitalLabel('admin.vitalBulletsHit', 'Bullets hit'), vitalFmtNum(p.bulletsHit));
-            html += vitalStatCard(vitalLabel('admin.vitalHeadshots', 'Headshots'), vitalFmtNum(p.headshots));
-            html += vitalStatCard(vitalLabel('admin.vitalFarming', 'Farming'), vitalFmtNum(p.farmingGathered));
+            html += vitalStatCard(vitalLabel('admin.vitalFarmSulfur', 'Azufre'), vitalFmtNum(p.farmSulfur));
+            html += vitalStatCard(vitalLabel('admin.vitalFarmHq', 'HQ metal'), vitalFmtNum(p.farmHqMetal));
+            html += vitalStatCard(vitalLabel('admin.vitalFarmWood', 'Madera'), vitalFmtNum(p.farmWood));
             html += vitalStatCard(vitalLabel('admin.vitalGamblingWagered', 'Apostado'), vitalFmtNum(p.gamblingWagered));
             html += vitalStatCard(vitalLabel('admin.vitalGamblingWon', 'Ganado'), vitalFmtNum(p.gamblingWon));
             html += '</div></article>';
@@ -1586,7 +1584,7 @@
         if (btnExport) {
             btnExport.addEventListener('click', function () {
                 if (!vitalClanRows.length) return;
-                var h = ['name', 'steamId64', 'kdr', 'kills', 'killsT30', 'deaths', 'rocketsFired', 'bulletsHit', 'headshots', 'farmingGathered', 'gamblingWagered', 'gamblingWon'];
+                var h = ['name', 'steamId64', 'kdr', 'killsT30', 'rocketsFired', 'farmSulfur', 'farmHqMetal', 'farmWood', 'gamblingWagered', 'gamblingWon'];
                 var rows = vitalClanRows.map(function (p) {
                     return h.map(function (k) { return '"' + String(p[k] != null ? p[k] : '').replace(/"/g, '""') + '"'; }).join(',');
                 });
