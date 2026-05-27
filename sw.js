@@ -1,5 +1,5 @@
 /* MCV — service worker mínimo (estáticos + offline básico) */
-const CACHE = "mcv-static-v4";
+const CACHE = "mcv-static-v5";
 const PRECACHE = [
     "./",
     "./index.html",

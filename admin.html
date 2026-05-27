@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=3">
-    <meta name="mcv-admin-build" content="2026-05-27-vital-steamid">
+    <meta name="mcv-admin-build" content="2026-05-27-vital-cards">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -294,9 +294,8 @@
                     <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
                     <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
                 </div>
-                <div id="vital-overview-grid" class="vital-overview-grid" hidden></div>
                 <p id="vital-roster-meta" class="admin-form-hint"></p>
-                <div id="vital-clan-table"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
+                <div id="vital-clan-players" class="vital-players-list"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
                 <details class="admin-collapse" style="margin-top:14px;">
                     <summary data-i18n="admin.vitalNotFoundToggle">Jugadores del roster sin datos en Vital</summary>
                     <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
@@ -1393,45 +1392,49 @@
     var vitalClanRows = [];
     var vitalConfigLoaded = false;
 
+    function vitalFmtNum(n) {
+        var x = Number(n);
+        if (!Number.isFinite(x)) return '0';
+        return x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    }
+
     function vitalStatCard(label, value) {
         return '<div class="vital-stat-card"><span class="vital-stat-label">' + esc(label) + '</span><strong class="vital-stat-value">' + esc(String(value)) + '</strong></div>';
     }
 
-    function renderVitalOverview(overview, serverOverview) {
-        var grid = document.getElementById('vital-overview-grid');
-        if (!grid) return;
-        overview = serverOverview || overview;
-        if (!overview) {
-            grid.hidden = true;
-            grid.innerHTML = '';
-            return;
-        }
-        grid.hidden = false;
-        grid.innerHTML =
-            vitalStatCard('K/D', overview.kdr) +
-            vitalStatCard(T('admin.vitalKills'), overview.kills) +
-            vitalStatCard(T('admin.vitalKillsT30'), overview.killsT30) +
-            vitalStatCard(T('admin.vitalDeaths'), overview.deaths) +
-            vitalStatCard(T('admin.vitalRockets'), overview.rocketsFired) +
-            vitalStatCard(T('admin.vitalBulletsHit'), overview.bulletsHit) +
-            vitalStatCard(T('admin.vitalHeadshots'), overview.headshots);
-    }
-
-    function renderVitalClanTable(players) {
-        var box = document.getElementById('vital-clan-table');
+    function renderVitalPlayerCards(players) {
+        var box = document.getElementById('vital-clan-players');
         if (!box) return;
         vitalClanRows = players || [];
         if (!vitalClanRows.length) {
             box.innerHTML = '<p class="empty-hint">' + esc(T('admin.vitalNoPlayers')) + '</p>';
             return;
         }
-        var html = '<table class="admin-table"><thead><tr>';
-        html += '<th>' + esc(T('admin.vitalColName')) + '</th><th>Steam</th><th>K/D</th><th>' + esc(T('admin.vitalKills')) + '</th><th>' + esc(T('admin.vitalDeaths')) + '</th><th>' + esc(T('admin.vitalRockets')) + '</th><th>' + esc(T('admin.vitalBulletsHit')) + '</th></tr></thead><tbody>';
+        var html = '';
         vitalClanRows.forEach(function (p) {
-            html += '<tr><td>' + esc(p.name || '—') + '</td><td class="admin-steam-cell"><a href="https://vitalrust.com/statistics/player-overview?userId=' + esc(p.steamId64) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a></td>';
-            html += '<td>' + esc(p.kdr) + '</td><td>' + esc(p.kills) + '</td><td>' + esc(p.deaths) + '</td><td>' + esc(p.rocketsFired) + '</td><td>' + esc(p.bulletsHit) + '</td></tr>';
+            var vitalUrl = 'https://vitalrust.com/statistics/player-overview?userId=' + encodeURIComponent(p.steamId64);
+            html += '<article class="vital-player-card">';
+            html += '<header class="vital-player-head">';
+            if (p.avatar) {
+                html += '<img class="vital-player-avatar" src="' + esc(p.avatar) + '" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">';
+            }
+            html += '<div class="vital-player-ident">';
+            html += '<h4 class="vital-player-name">' + esc(p.name || '—') + '</h4>';
+            html += '<a class="vital-player-steam admin-steam-cell" href="' + esc(vitalUrl) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a>';
+            html += '</div></header>';
+            html += '<div class="vital-player-stats">';
+            html += vitalStatCard('K/D', p.kdr);
+            html += vitalStatCard(T('admin.vitalKills'), vitalFmtNum(p.kills));
+            html += vitalStatCard(T('admin.vitalKillsT30'), vitalFmtNum(p.killsT30));
+            html += vitalStatCard(T('admin.vitalDeaths'), vitalFmtNum(p.deaths));
+            html += vitalStatCard(T('admin.vitalRockets'), vitalFmtNum(p.rocketsFired));
+            html += vitalStatCard(T('admin.vitalBulletsHit'), vitalFmtNum(p.bulletsHit));
+            html += vitalStatCard(T('admin.vitalHeadshots'), vitalFmtNum(p.headshots));
+            html += vitalStatCard(T('admin.vitalFarming'), vitalFmtNum(p.farmingGathered));
+            html += vitalStatCard(T('admin.vitalGamblingWagered'), vitalFmtNum(p.gamblingWagered));
+            html += vitalStatCard(T('admin.vitalGamblingWon'), vitalFmtNum(p.gamblingWon));
+            html += '</div></article>';
         });
-        html += '</tbody></table>';
         box.innerHTML = html;
     }
 
@@ -1512,7 +1515,7 @@
     function loadVitalClanStats() {
         var sel = document.getElementById('vital-server-select');
         var wipeSel = document.getElementById('vital-wipe-select');
-        var box = document.getElementById('vital-clan-table');
+        var box = document.getElementById('vital-clan-players');
         var meta = document.getElementById('vital-roster-meta');
         if (!sel || !wipeSel || !box) return;
         var server = sel.value;
@@ -1544,8 +1547,7 @@
                         meta.textContent += ' — ' + x.d.hint;
                     }
                 }
-                renderVitalOverview(x.d.overview, x.d.serverOverview);
-                renderVitalClanTable(x.d.players || []);
+                renderVitalPlayerCards(x.d.players || []);
                 var nf = document.getElementById('vital-not-found');
                 if (nf) {
                     nf.textContent = (x.d.notFound && x.d.notFound.length) ? x.d.notFound.join(', ') : T('admin.vitalAllFound');
@@ -1557,8 +1559,7 @@
                 }
             })
             .catch(function (e) {
-                renderVitalOverview(null, null);
-                renderVitalClanTable([]);
+                renderVitalPlayerCards([]);
                 box.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : T('admin.vitalLoadError')) + '</p>';
                 banner((e && e.message) ? e.message : T('admin.vitalLoadError'), true);
             });
@@ -1579,7 +1580,7 @@
         if (btnExport) {
             btnExport.addEventListener('click', function () {
                 if (!vitalClanRows.length) return;
-                var h = ['name', 'steamId64', 'kdr', 'kills', 'deaths', 'rocketsFired', 'bulletsHit', 'headshots'];
+                var h = ['name', 'steamId64', 'kdr', 'kills', 'killsT30', 'deaths', 'rocketsFired', 'bulletsHit', 'headshots', 'farmingGathered', 'gamblingWagered', 'gamblingWon'];
                 var rows = vitalClanRows.map(function (p) {
                     return h.map(function (k) { return '"' + String(p[k] != null ? p[k] : '').replace(/"/g, '""') + '"'; }).join(',');
                 });

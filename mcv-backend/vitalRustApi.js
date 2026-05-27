@@ -294,6 +294,8 @@ function normalizePlayer(row) {
     }
     const combat = row.statistics?.combat || row.combat || row;
     const raiding = row.statistics?.raiding || row.raiding || {};
+    const farming = row.statistics?.farming || row.farming || {};
+    const pve = row.statistics?.pve || row.pve || {};
     const kills = num(combat.kills ?? row.kills);
     const deaths = num(combat.deaths ?? row.deaths);
     let kdr = num(combat.kdr ?? row.kdr);
@@ -302,9 +304,13 @@ function normalizePlayer(row) {
     } else if (!kdr && kills > 0 && deaths === 0) {
         kdr = kills;
     }
+    const gamblingWagered = num(pve.scrapWheelWagered) + num(pve.scrapSlotsWagered);
+    const gamblingWon = num(pve.scrapWheelWon) + num(pve.scrapSlotsWon);
+    const playerInfo = row.player || {};
     return {
         steamId64,
-        name: String(row.player?.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
+        name: String(playerInfo.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
+        avatar: String(playerInfo.avatarMedium ?? playerInfo.avatar ?? playerInfo.avatarFull ?? "").trim(),
         kills,
         killsT30: num(combat.killsT3 ?? combat.killsT30 ?? row.killsT30 ?? row.kills_t30),
         deaths,
@@ -314,7 +320,11 @@ function normalizePlayer(row) {
         bulletsFired: num(combat.shots ?? row.bulletsFired ?? row.bullets_fired),
         suicides: num(combat.suicides ?? row.suicides),
         wounds: num(combat.wounds ?? row.wounds),
-        headshots: num(combat.headshots ?? row.headshots)
+        headshots: num(combat.headshots ?? row.headshots),
+        farmingGathered: sumResourceMap(farming.gathered),
+        farmingBerries: num(farming.gatheredBerries),
+        gamblingWagered,
+        gamblingWon
     };
 }
 
@@ -453,9 +463,20 @@ function normalizeWipe(row) {
     };
 }
 
+function sumResourceMap(obj) {
+    if (!obj || typeof obj !== "object") {
+        return 0;
+    }
+    let total = 0;
+    for (const v of Object.values(obj)) {
+        total += num(v);
+    }
+    return total;
+}
+
 function parsePlayerIncludes() {
-    /** Vital API: includes en minúsculas (combat, raiding). "Combat" devuelve data vacía o 400. */
-    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "combat,raiding").trim();
+    /** Vital API: includes en minúsculas (combat, raiding, farming, pve). "Combat" devuelve data vacía o 400. */
+    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "combat,raiding,farming,pve").trim();
     return raw
         .split(/[,]+/)
         .map((s) => s.trim().toLowerCase())
@@ -489,9 +510,14 @@ async function postPlayersOverview(url, serverId, wipeId, playerIds, includes, o
     return extractPlayersList(data?.data != null ? data : { data });
 }
 
+function clanPlayerIncludes() {
+    const base = parsePlayerIncludes();
+    return [...new Set([...base, "combat", "raiding", "farming", "pve"])];
+}
+
 async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh = false } = {}) {
     const url = fillTemplate(paths.playersOverviewPost, {});
-    const preferred = parsePlayerIncludes();
+    const preferred = clanPlayerIncludes();
     const chunkSize = 100;
     const matched = [];
     const postOpts = refresh ? { skipCache: true } : {};
@@ -504,6 +530,16 @@ async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh
         }
         if (!rows.length) {
             rows = await postPlayersOverview(url, serverId, wipeId, batch, ["combat"], postOpts);
+        }
+        if (!rows.length) {
+            rows = await postPlayersOverview(
+                url,
+                serverId,
+                wipeId,
+                batch,
+                ["combat", "raiding", "farming", "pve"],
+                postOpts
+            );
         }
         for (const row of rows) {
             const p = normalizePlayer(row);
@@ -761,15 +797,7 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel)" });
         }
         const paths = apiPaths();
-        const vars = buildVars(server.serverId, wipeId, 0, 100);
         try {
-            let serverOverview = null;
-            try {
-                serverOverview = await fetchServerOverview(paths, vars);
-            } catch (e) {
-                console.warn("vital clan overview:", e.message);
-            }
-
             const clanIds = await loadClanSteamIds(getPool);
             if (!clanIds.length) {
                 return res.json({
@@ -778,7 +806,6 @@ function registerVitalRustApi(app, { getPool }) {
                     rosterSize: 0,
                     players: [],
                     notFound: [],
-                    serverOverview,
                     message: "Sin SteamID64 en lista wipe ni perfiles aprobados."
                 });
             }
@@ -807,8 +834,6 @@ function registerVitalRustApi(app, { getPool }) {
                 rosterSize: clanIds.length,
                 players: matched,
                 notFound,
-                serverOverview,
-                overview: aggregateOverview(matched),
                 hint,
                 vitalIncludes: parsePlayerIncludes()
             });

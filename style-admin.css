@@ -453,11 +453,55 @@
     color: var(--foreground);
     border-radius: 6px;
 }
-.vital-overview-grid {
+.vital-players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.vital-player-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+    background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+}
+.vital-player-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+.vital-player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+.vital-player-ident {
+    min-width: 0;
+}
+.vital-player-name {
+    margin: 0 0 4px;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--foreground);
+}
+.vital-player-steam {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+}
+.vital-player-steam:hover {
+    color: var(--primary);
+}
+.vital-player-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
     gap: 10px;
-    margin-bottom: 16px;
 }
 .vital-stat-card {
     border: 1px solid var(--border);
