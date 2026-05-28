@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=15">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-ui-polish-v1">
+    <link rel="stylesheet" href="style-admin.css?v=16">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-bm-hours-role-presets-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -389,6 +389,14 @@
                         <option value="mcv_strikes">Rojo (strikes)</option>
                     </select></label>
                     <label><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="Ej: COMPOS, IGL, FARMEO..." /></label>
+                    <div class="vital-role-presets" id="vital-role-presets">
+                        <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
+                        <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
+                        <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
+                        <button type="button" class="vital-role-chip" data-role="BUILDER">BUILDER</button>
+                        <button type="button" class="vital-role-chip" data-role="ELECTRIC">ELECTRIC</button>
+                        <button type="button" class="vital-role-chip" data-role="MONUMENT">MONUMENT</button>
+                    </div>
                     <label><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" placeholder="0" /></label>
                     <label><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
                     <label><span>Vouch / responsable</span><input id="vital-info-vouch" class="admin-input" placeholder="Quién lo vouchó" /></label>
@@ -399,6 +407,7 @@
                         <option value="no_juega">No juega wipe</option>
                     </select></label>
                     <label><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" placeholder="0" /></label>
+                    <button type="button" class="btn-outline" id="btn-vital-info-bm-hours">Traer horas desde BM</button>
                     <label class="vital-info-checkbox"><input id="vital-info-mt" type="checkbox" /> MT team</label>
                     <label><span>Aportación</span><input id="vital-info-contribution" class="admin-input" placeholder="Aportación / tareas" /></label>
                     <label class="vital-info-full"><span>Motivo strike / avisos</span><input id="vital-info-warning" class="admin-input" placeholder="Por qué se puso el strike o aviso" /></label>
@@ -462,7 +471,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=38"></script>
+<script src="mcv-i18n.js?v=39"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -2040,6 +2049,10 @@
         return '<span class="vital-status-chip ' + (map[tag] || 'chip-wipe-guest') + '">' + esc(label) + '</span>';
     }
 
+    function statusRowClass(tag) {
+        return 'vital-info-row--' + String(tag || 'wipe_guest').replace(/[^a-z0-9_-]/gi, '');
+    }
+
     function refreshInfoFilterOptions() {
         var roleSel = document.getElementById('vital-info-role-filter');
         var vouchSel = document.getElementById('vital-info-vouch-filter');
@@ -2085,7 +2098,7 @@
         }
         var html = '<table class="admin-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
-            html += '<tr>';
+            html += '<tr class="vital-info-row ' + statusRowClass(r.statusTag) + '">';
             html += '<td>' + esc(r.displayName || '—') + '</td>';
             html += '<td class="admin-steam-cell">' + esc(r.steamId64) + '</td>';
             html += '<td>' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
@@ -2186,6 +2199,30 @@
             });
     }
 
+    function fillHoursFromBm() {
+        var steamId64 = String((document.getElementById('vital-info-steam') || {}).value || '').trim();
+        var bmUrl = String((document.getElementById('vital-info-bm') || {}).value || '').trim();
+        if (!steamId64 && !bmUrl) {
+            banner('Cargá SteamID64 o BM URL para traer horas.', true);
+            return;
+        }
+        fetch(API + '/api/admin/vital/player-info/bm-hours', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({ steamId64: steamId64, bmUrl: bmUrl })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'bm-hours');
+                var el = document.getElementById('vital-info-hours');
+                if (el) el.value = String(x.d.hoursPlayed || '');
+                banner('Horas actualizadas desde BM: ' + String(x.d.hoursPlayed || 0), false);
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'No se pudieron traer horas desde BM', true);
+            });
+    }
+
     function importVitalPlayerInfo() {
         var txt = document.getElementById('vital-info-import-text');
         var raw = txt ? String(txt.value || '').trim() : '';
@@ -2226,7 +2263,9 @@
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
+        var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
+        var rolePresets = document.getElementById('vital-role-presets');
         var infoSearch = document.getElementById('vital-info-search');
         var infoFilter = document.getElementById('vital-info-filter');
         var infoRoleFilter = document.getElementById('vital-info-role-filter');
@@ -2236,7 +2275,20 @@
         }
         if (btnInfoRefresh) btnInfoRefresh.addEventListener('click', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
+        if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
+        if (rolePresets) {
+            rolePresets.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-role]') : null;
+                if (!btn) return;
+                var role = String(btn.getAttribute('data-role') || '').trim();
+                var input = document.getElementById('vital-info-role');
+                if (!role || !input) return;
+                var current = String(input.value || '').split(',').map(function (x) { return String(x || '').trim(); }).filter(Boolean);
+                if (current.indexOf(role) === -1) current.push(role);
+                input.value = current.join(', ');
+            });
+        }
         if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
         if (infoFilter) infoFilter.addEventListener('change', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (infoRoleFilter) infoRoleFilter.addEventListener('change', renderVitalInfoList);

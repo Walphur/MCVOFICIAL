@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
 );
 CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
 `;
+const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();
@@ -676,6 +677,37 @@ function normalizePlayerInfoRow(row) {
     };
 }
 
+function extractBattleMetricsId(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    if (/^\d+$/.test(s)) return s;
+    const m = s.match(/battlemetrics\.com\/players\/(\d+)/i) || s.match(/battlemetrics\.com\/rcon\/players\/(\d+)/i);
+    return m ? m[1] : "";
+}
+
+function battlemetricsHeaders() {
+    const h = { Accept: "application/vnd.api+json" };
+    if (BATTLEMETRICS_TOKEN) h.Authorization = `Bearer ${BATTLEMETRICS_TOKEN}`;
+    return h;
+}
+
+function collectNumericCandidates(obj, out = []) {
+    if (obj == null) return out;
+    if (typeof obj === "number" && Number.isFinite(obj)) {
+        out.push(obj);
+        return out;
+    }
+    if (typeof obj !== "object") return out;
+    for (const [k, v] of Object.entries(obj)) {
+        const lk = String(k).toLowerCase();
+        if (/time|play|hour|min/i.test(lk) && typeof v === "number" && Number.isFinite(v)) {
+            out.push(v);
+        }
+        collectNumericCandidates(v, out);
+    }
+    return out;
+}
+
 function parseImportBool(v) {
     const s = String(v == null ? "" : v).trim().toLowerCase();
     return s === "1" || s === "true" || s === "si" || s === "sí" || s === "yes" || s === "mt";
@@ -1139,6 +1171,66 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("player-info list:", e.message);
             return res.status(500).json({ error: e.message || "Error listando player-info" });
+        }
+    });
+
+    app.post("/api/admin/vital/player-info/bm-hours", authAdmin, async (req, res) => {
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const steamId64 = normalizeSteamId64(body.steamId64 || body.steam_id64);
+        let bmId = extractBattleMetricsId(body.bmId || body.bmUrl || body.battlemetricsUrl);
+        if (!bmId && !steamId64) {
+            return res.status(400).json({ error: "Pasá steamId64 o bmUrl" });
+        }
+        if (!BATTLEMETRICS_TOKEN) {
+            return res.status(503).json({ error: "Falta BATTLEMETRICS_TOKEN para consultar horas en BattleMetrics" });
+        }
+        try {
+            if (!bmId && steamId64) {
+                const search = await axios.get(`https://api.battlemetrics.com/players?filter[search]=${steamId64}`, {
+                    timeout: 12000,
+                    headers: battlemetricsHeaders()
+                });
+                const first = Array.isArray(search.data?.data) ? search.data.data[0] : null;
+                if (!first?.id) {
+                    return res.status(404).json({ error: "No encontré player BM para ese SteamID64" });
+                }
+                bmId = String(first.id);
+            }
+
+            const [playerRes, relRes] = await Promise.allSettled([
+                axios.get(`https://api.battlemetrics.com/players/${bmId}`, {
+                    timeout: 12000,
+                    headers: battlemetricsHeaders()
+                }),
+                axios.get(`https://api.battlemetrics.com/players/${bmId}/relationships/servers`, {
+                    timeout: 12000,
+                    headers: battlemetricsHeaders()
+                })
+            ]);
+
+            const playerPayload = playerRes.status === "fulfilled" ? playerRes.value.data : null;
+            const relPayload = relRes.status === "fulfilled" ? relRes.value.data : null;
+            const candidates = [];
+            collectNumericCandidates(playerPayload, candidates);
+            collectNumericCandidates(relPayload, candidates);
+
+            // BattleMetrics can expose time values in minutes or seconds; take plausible maxima.
+            const sane = candidates.filter((n) => n > 0);
+            const asHours = sane
+                .map((n) => (n > 100000 ? n / 3600 : n > 2000 ? n / 60 : n))
+                .filter((n) => Number.isFinite(n) && n > 0);
+            const hours = asHours.length ? Math.round(Math.max(...asHours)) : null;
+
+            if (!hours) {
+                return res.status(404).json({
+                    error: "BattleMetrics no devolvió horas jugadas en este momento",
+                    bmId
+                });
+            }
+            return res.json({ ok: true, bmId, hoursPlayed: hours });
+        } catch (e) {
+            const detail = e?.response?.data?.errors?.[0]?.detail || e?.message || "Error consultando BattleMetrics";
+            return res.status(500).json({ error: detail });
         }
     });
 
