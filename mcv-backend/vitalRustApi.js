@@ -84,9 +84,14 @@ function vitalPublicAccessKey() {
     return String(process.env.VITAL_PUBLIC_ACCESS_KEY || "").trim();
 }
 
+function isVitalPublicConfigured() {
+    const k = vitalPublicAccessKey();
+    return Boolean(k && k.length >= 12);
+}
+
 function authVitalPublic(req, res, next) {
     const expected = vitalPublicAccessKey();
-    if (!expected || expected.length < 12) {
+    if (!isVitalPublicConfigured()) {
         return res.status(503).json({
             error: "Acceso público Vital no configurado",
             hint: "Definí VITAL_PUBLIC_ACCESS_KEY en el servidor (mín. 12 caracteres)."
@@ -1500,10 +1505,37 @@ function registerVitalRustApi(app, { getPool }) {
     });
 
     app.get("/api/public/vital/status", (req, res) => {
-        const configured = Boolean(vitalPublicAccessKey());
+        const configured = isVitalPublicConfigured();
         return res.json({
             enabled: vitalEnabled() && configured,
-            linkAccess: configured
+            linkAccess: configured,
+            hint: configured
+                ? null
+                : "Definí VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres) y redeploy del backend."
+        });
+    });
+
+    app.get("/api/admin/vital/public-access", authAdmin, async (req, res) => {
+        const configured = isVitalPublicConfigured();
+        let roster = { ids: [], mcvCount: 0, manualOnlyCount: 0 };
+        try {
+            roster = await loadClanSteamIds(getPool);
+        } catch (e) {
+            console.warn("vital public-access roster:", e.message);
+        }
+        const origin = String(req.headers["x-forwarded-host"] || req.get("host") || "").trim();
+        const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
+        const siteBase = origin ? `${proto}://${origin}`.replace(/\/$/, "") : "";
+        return res.json({
+            configured,
+            publicPath: "/vital-rust.html",
+            publicUrl: siteBase ? `${siteBase}/vital-rust.html` : "vital-rust.html",
+            rosterSize: roster.ids.length,
+            mcvCount: roster.mcvCount,
+            manualExtraCount: roster.manualOnlyCount,
+            hint: configured
+                ? "Compartí el link con ?key= y la misma clave que VITAL_PUBLIC_ACCESS_KEY en Render."
+                : "Falta VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres). Sin eso la página pública responde 503."
         });
     });
 
@@ -1636,4 +1668,9 @@ function registerVitalRustApi(app, { getPool }) {
     });
 }
 
-module.exports = { registerVitalRustApi, authVitalPublic, vitalPublicAccessKey };
+module.exports = {
+    registerVitalRustApi,
+    authVitalPublic,
+    vitalPublicAccessKey,
+    isVitalPublicConfigured
+};

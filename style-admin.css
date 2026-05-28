@@ -3751,6 +3751,12 @@ details.vital-extra-panel > :not(summary) {
     color: #fecaca;
     border: 1px solid rgba(239, 68, 68, 0.28);
 }
+.vital-public-access-status.is-ok {
+    color: #bbf7d0;
+}
+.vital-public-access-status.is-warn {
+    color: #fecaca;
+}
 .vital-rust-controls {
     margin-top: 8px;
 }

@@ -12,6 +12,8 @@
 #    Solución B: subí la imagen a hosting externo (Imgur, S3, etc.) y guardá la URL absoluta en poster_url (PATCH admin o SQL).
 # 5) Si usás dominio propio (ej. mcvoficial.com): conectalo a ESTE Web Service en Render (Custom Domain).
 #    Si el dominio apunta solo a hosting estático (GitHub/Cloudflare Pages), POST /api/* dará 405: usá ?api= o meta mcv-api (ver login.html).
+# 6) Stats públicas Vital Rust (vital-rust.html): en Environment del Web Service definí VITAL_PUBLIC_ACCESS_KEY (mín. 12 caracteres, aleatoria)
+#    y redeploy. El link del team es https://tu-dominio/vital-rust.html?key=<esa-clave>. Los SteamID extra se guardan en admin → Extras roster.
 
 services:
   - type: web

@@ -46,6 +46,22 @@
         }
     }
 
+    function accessKeyIssue(key) {
+        var k = String(key || "").trim();
+        if (!k) return "Falta la clave. Abrí el link completo que te pasó el staff (?key=…).";
+        if (k.length < 12) {
+            return "La clave es demasiado corta (mín. 12 caracteres). Pedí el link actualizado al staff; no uses claves de prueba tipo abc123.";
+        }
+        return "";
+    }
+
+    function formatApiError(x, fallback) {
+        var d = (x && x.d) || {};
+        var msg = d.error || d.message || fallback || "Error";
+        if (d.hint) msg += " " + d.hint;
+        return msg;
+    }
+
     function vitalFetch(path, opts) {
         opts = opts || {};
         var key = accessKey();
@@ -194,7 +210,7 @@
                 showGate(true);
                 throw new Error("Clave incorrecta. Pedí el link actualizado al staff.");
             }
-            if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : "config");
+            if (!x.ok) throw new Error(formatApiError(x, "config"));
             showGate(false);
             var sel = document.getElementById("vital-server-select");
             var disclaimer = document.getElementById("vital-config-banner");
@@ -244,7 +260,7 @@
                 showGate(true);
                 throw new Error("Clave inválida");
             }
-            if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : (x.d && x.d.hint) || "Error");
+            if (!x.ok) throw new Error(formatApiError(x, "Error al cargar stats"));
             if (meta) {
                 meta.textContent =
                     (x.d.players || []).length +
@@ -300,8 +316,10 @@
 
     function tryUnlock(fromInput) {
         var key = String(fromInput || accessKey()).trim();
-        if (!key) {
-            banner("Ingresá la clave del link.", true);
+        var keyErr = accessKeyIssue(key);
+        if (keyErr) {
+            banner(keyErr, true);
+            showGate(true);
             return Promise.resolve();
         }
         try {
@@ -350,13 +368,12 @@
             if (x.ok && x.d && !x.d.enabled) {
                 var hint = document.getElementById("vital-rust-gate-hint");
                 if (hint) {
-                    hint.textContent = "El acceso por link aún no está activo en el servidor.";
+                    hint.textContent = x.d.hint || "El acceso por link aún no está activo en el servidor (falta VITAL_PUBLIC_ACCESS_KEY en Render).";
                 }
             }
         }).catch(function () {});
 
         if (accessKey()) {
-            showGate(false);
             tryUnlock().catch(function () {
                 showGate(true);
             });

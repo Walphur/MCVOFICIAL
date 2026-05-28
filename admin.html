@@ -438,7 +438,8 @@
                     <div class="vital-page-simple">
                         <h4 data-i18n="admin.vitalExtraTitle">Jugadores extra (roster Vital)</h4>
                         <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Aparecen en las stats públicas de Vital Rust.</p>
-                        <p class="admin-form-hint admin-readable">Link público del equipo: <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">vital-rust.html</a> (requiere clave <code>VITAL_PUBLIC_ACCESS_KEY</code> en el servidor).</p>
+                        <p class="admin-form-hint admin-readable">Link público del equipo: <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">vital-rust.html</a></p>
+                        <p id="vital-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
                             <label class="vital-extra-field vital-extra-field-wide">
                                 <span data-i18n="admin.vitalExtraSteam">SteamID64 (uno o varios)</span>
@@ -1647,6 +1648,40 @@
         });
     }
 
+    function loadVitalPublicAccessStatus() {
+        var el = document.getElementById('vital-public-access-status');
+        if (!el) return Promise.resolve();
+        return fetch(API + '/api/admin/vital/public-access', { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) {
+                    el.hidden = false;
+                    el.className = 'admin-form-hint vital-public-access-status is-warn';
+                    el.textContent = (x.d && x.d.error) ? x.d.error : 'No se pudo consultar acceso público.';
+                    return;
+                }
+                var d = x.d || {};
+                el.hidden = false;
+                if (d.configured) {
+                    el.className = 'admin-form-hint vital-public-access-status is-ok';
+                    el.textContent =
+                        'Acceso público activo · roster ' + String(d.rosterSize || 0) + ' jugadores (' +
+                        String(d.mcvCount || 0) + ' MCV + ' + String(d.manualExtraCount || 0) + ' extra). ' +
+                        String(d.hint || '');
+                } else {
+                    el.className = 'admin-form-hint vital-public-access-status is-warn';
+                    el.textContent =
+                        String(d.hint || 'Falta VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres).') +
+                        ' Roster en BD: ' + String(d.rosterSize || 0) + ' jugadores.';
+                }
+            })
+            .catch(function () {
+                el.hidden = false;
+                el.className = 'admin-form-hint vital-public-access-status is-warn';
+                el.textContent = 'No se pudo consultar el estado del link público (¿deploy pendiente?).';
+            });
+    }
+
     function loadVitalExtraPlayers(opts) {
         opts = opts || {};
         var deployHint = document.getElementById('vital-extra-deploy-hint');
@@ -1967,6 +2002,7 @@
         });
         if (vitalInfoSubtab === 'extras') {
             loadVitalExtraPlayers().catch(function () {});
+            loadVitalPublicAccessStatus().catch(function () {});
         }
     }
 
