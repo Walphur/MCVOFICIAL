@@ -816,7 +816,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-05-28-vital-info-split-ux-v1",
+        build: "2026-05-28-vital-info-workspace-v1",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),

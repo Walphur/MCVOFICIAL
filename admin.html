@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=25">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-split-ux-v1">
+    <link rel="stylesheet" href="style-admin.css?v=26">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-workspace-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -362,9 +362,10 @@
                     </nav>
                 </aside>
                 <div class="vital-app-main">
-                <section class="vital-subpanel" data-vital-section="jugadores">
+                <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
+                            <div id="vital-member-stats" class="vital-member-stats" aria-label="Resumen roster"></div>
                             <div class="vital-member-toolbar">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar..." />
                                 <select id="vital-info-filter" class="vital-input-compact" title="Estado">
@@ -387,10 +388,10 @@
                             </div>
                             <div id="vital-info-list" class="vital-member-list"><p class="empty-hint">Cargando…</p></div>
                         </div>
-                        <div class="vital-detail-panel">
+                        <div class="vital-detail-panel vital-detail-workspace">
                             <div id="vital-detail-empty" class="vital-detail-empty">
-                                <p>Seleccioná un jugador de la lista</p>
-                                <span class="vital-detail-empty-hint">o creá uno con +</span>
+                                <p class="vital-detail-empty-title">Seleccioná un jugador</p>
+                                <span class="vital-detail-empty-hint">Elegí alguien de la lista o creá uno con +</span>
                             </div>
                             <div id="vital-detail-content" class="vital-detail-content" hidden>
                                 <header id="vital-player-summary" class="vital-detail-header"></header>
@@ -2101,20 +2102,39 @@
         var hours = selected && selected.hoursPlayed != null ? selected.hoursPlayed : '—';
         var role = selected ? (selected.roleLabel || '—') : '—';
         var status = selected ? selected.statusTag : 'wipe_guest';
+        var bmLink = selected && selected.bmUrl
+            ? '<a class="vital-workspace-bm" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BM ↗</a>'
+            : '';
         box.innerHTML =
-            '<div class="vital-detail-head">' +
-            '<span class="vital-summary-avatar">' + esc(initial) + '</span>' +
-            '<div class="vital-detail-head-text">' +
-            '<h4>' + esc(name) + '</h4>' +
-            '<p class="vital-detail-steam">' + esc(steam || 'Steam pendiente') + '</p>' +
-            '<div class="vital-detail-head-meta">' +
-            '<span class="member-status member-status--' + escAttr(status) + '">' + esc(statusLabelShort(status)) + '</span>' +
-            '<span>' + esc(wipe) + '</span>' +
-            '<span>' + esc(strikes) + ' strikes</span>' +
-            '<span>' + esc(hours) + 'h</span>' +
-            '<span>' + esc(role) + '</span>' +
+            '<div class="vital-workspace-header">' +
+            '<span class="vital-workspace-avatar">' + esc(initial) + '</span>' +
+            '<div class="vital-workspace-title">' +
+            '<div class="vital-workspace-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
+            '<code class="vital-workspace-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
+            '<div class="vital-workspace-badges">' +
+            '<span class="ws-badge ws-badge--' + escAttr(status) + '">' + esc(statusLabelShort(status)) + '</span>' +
+            '<span class="ws-badge">' + esc(wipe) + '</span>' +
+            '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strikes</span>' +
+            '<span class="ws-badge">' + esc(hours) + 'h</span>' +
+            (role && role !== '—' ? '<span class="ws-badge">' + esc(role) + '</span>' : '') +
+            (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--pause">Pausado</span>' : '') +
             '</div></div></div>';
         renderVitalDetailLogs();
+    }
+
+    function renderVitalMemberStats() {
+        var box = document.getElementById('vital-member-stats');
+        if (!box) return;
+        var rows = vitalInfoRows || [];
+        var stats = [
+            { label: 'Total', value: rows.length },
+            { label: 'Activos', value: rows.filter(function (r) { return r.statusTag === 'mcv_active'; }).length },
+            { label: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
+            { label: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length }
+        ];
+        box.innerHTML = stats.map(function (s) {
+            return '<div class="vital-member-stat"><span>' + esc(s.label) + '</span><strong>' + esc(s.value) + '</strong></div>';
+        }).join('');
     }
 
     function statusLabelShort(tag) {
@@ -2308,11 +2328,10 @@
             var strikes = Number(r.strikes || 0);
             return '<button type="button" class="vital-member-row' + active + '" data-steam="' + escAttr(r.steamId64) + '">' +
                 '<span class="vital-member-avatar">' + esc(initial) + '</span>' +
-                '<span class="vital-member-main">' +
+                '<span class="vital-member-body">' +
                 '<span class="vital-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
-                '<span class="vital-member-sub">' + esc(wipe) + ' · ' + strikes + ' str</span>' +
+                '<span class="vital-member-sub">' + esc(wipe) + ' · ' + strikes + ' strikes</span>' +
                 '</span>' +
-                '<span class="member-status member-status--' + escAttr(r.statusTag) + '">' + esc(statusLabelShort(r.statusTag)) + '</span>' +
                 '</button>';
         }).join('');
         box.querySelectorAll('.vital-member-row').forEach(function (btn) {
@@ -2362,7 +2381,8 @@
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'player-info');
                 vitalInfoRows = x.d.profiles || [];
                 refreshInfoFilterOptions();
-                if (!vitalSelectedSteam && vitalInfoRows.length) {
+                renderVitalMemberStats();
+                if (!vitalSelectedSteam && !vitalIsNewPlayer && vitalInfoRows.length) {
                     selectVitalPlayer(vitalInfoRows[0].steamId64);
                 } else {
                     renderVitalPlayerSummary();
