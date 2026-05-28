@@ -304,22 +304,22 @@ function normalizePlayer(row) {
     } else if (!kdr && kills > 0 && deaths === 0) {
         kdr = kills;
     }
-    const gamblingWagered = num(pve.scrapWheelWagered) + num(pve.scrapSlotsWagered);
-    const gamblingWon = num(pve.scrapWheelWon) + num(pve.scrapSlotsWon);
     const gathered = farming.gathered || {};
     const playerInfo = row.player || {};
     return {
         steamId64,
         name: String(playerInfo.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
         avatar: String(playerInfo.avatarMedium ?? playerInfo.avatar ?? playerInfo.avatarFull ?? "").trim(),
+        kills,
+        deaths,
         killsT30: num(combat.killsT3 ?? combat.killsT30 ?? row.killsT30 ?? row.kills_t30),
         kdr,
         rocketsFired: num(raiding.rockets ?? row.rocketsFired ?? row.rockets_fired ?? row.rockets),
         farmSulfur: farmGathered(gathered, ["sulfur.ore", "sulfur"]),
         farmHqMetal: farmGathered(gathered, ["hq.metal.ore", "hq.metal"]),
         farmWood: farmGathered(gathered, ["wood"]),
-        gamblingWagered,
-        gamblingWon
+        scrapLooted: scrapLooted(farming),
+        scrapRecycled: scrapRecycled(pve)
     };
 }
 
@@ -479,6 +479,22 @@ function farmGathered(gathered, keys) {
         total += num(gathered[key]);
     }
     return total;
+}
+
+/** Scrap loteado: farming.looted.scrap (como en vitalrust.com → SCRAP LOOTED) */
+function scrapLooted(farming) {
+    if (!farming || typeof farming !== "object") {
+        return 0;
+    }
+    const looted = farming.looted || {};
+    return num(looted.scrap);
+}
+
+function scrapRecycled(pve) {
+    if (!pve || typeof pve !== "object") {
+        return 0;
+    }
+    return num(pve.scrapRecycled);
 }
 
 function parsePlayerIncludes() {
@@ -1008,7 +1024,7 @@ function registerVitalRustApi(app, { getPool }) {
                     p.rosterSource = "mcv";
                 }
             }
-            matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kdr - a.kdr);
+            matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kills - a.kills || b.kdr - a.kdr);
 
             const hint =
                 clanIds.length && !matched.length

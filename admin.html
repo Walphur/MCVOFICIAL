@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=11">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-sort-cards">
+    <link rel="stylesheet" href="style-admin.css?v=12">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-scrap-kills">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -317,14 +317,16 @@
                 <div id="vital-sort-bar" class="vital-sort-bar" hidden>
                     <label><span data-i18n="admin.vitalSortBy">Ordenar por</span>
                         <select id="vital-sort-key">
+                            <option value="kills" data-i18n="admin.vitalKills">Kills</option>
                             <option value="killsT30" data-i18n="admin.vitalKillsT30">Kills T30</option>
+                            <option value="deaths" data-i18n="admin.vitalDeaths">Deaths</option>
                             <option value="farmSulfur" data-i18n="admin.vitalFarmSulfur">Azufre</option>
                             <option value="farmHqMetal" data-i18n="admin.vitalFarmHq">HQ metal</option>
                             <option value="farmWood" data-i18n="admin.vitalFarmWood">Madera</option>
                             <option value="rocketsFired" data-i18n="admin.vitalRockets">Rockets</option>
                             <option value="kdr">K/D</option>
-                            <option value="gamblingWagered" data-i18n="admin.vitalGamblingWagered">Apostado</option>
-                            <option value="gamblingWon" data-i18n="admin.vitalGamblingWon">Ganado</option>
+                            <option value="scrapLooted" data-i18n="admin.vitalScrapLooted">Scrap loteado</option>
+                            <option value="scrapRecycled" data-i18n="admin.vitalScrapRecycled">Scrap reciclado</option>
                             <option value="name" data-i18n="admin.vitalColName">Jugador</option>
                         </select>
                     </label>
@@ -389,7 +391,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=34"></script>
+<script src="mcv-i18n.js?v=35"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1496,18 +1498,15 @@
 
     function sortVitalPlayers(rows) {
         var key = vitalSortKey;
-        var dir = vitalSortDir === 'asc' ? 1 : -1;
+        var asc = vitalSortDir === 'asc';
         return (rows || []).slice().sort(function (a, b) {
             if (key === 'name') {
-                var na = vitalSortValue(a, 'name');
-                var nb = vitalSortValue(b, 'name');
-                if (na < nb) return -1 * dir;
-                if (na > nb) return 1 * dir;
-                return 0;
+                var c = String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+                return asc ? c : -c;
             }
             var va = vitalSortValue(a, key);
             var vb = vitalSortValue(b, key);
-            if (vb !== va) return (vb - va) * (dir === -1 ? 1 : -1) * (dir === -1 ? 1 : -1);
+            if (va !== vb) return asc ? va - vb : vb - va;
             return String(a.name || '').localeCompare(String(b.name || ''));
         });
     }
@@ -1554,8 +1553,10 @@
             html += '<a class="vital-player-steam admin-steam-cell" href="' + esc(vitalUrl) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a>';
             html += '</div></header>';
             html += '<div class="vital-player-body">';
-            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupCombat', 'Combate')) + '</h5><div class="vital-stat-group-grid">';
+            html += '<section class="vital-stat-group vital-stat-group--combat"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupCombat', 'Combate')) + '</h5><div class="vital-stat-group-grid">';
             html += vitalStatCard('K/D', p.kdr, hi === 'kdr');
+            html += vitalStatCard(vitalLabel('admin.vitalKills', 'Kills'), vitalFmtNum(p.kills), hi === 'kills');
+            html += vitalStatCard(vitalLabel('admin.vitalDeaths', 'Deaths'), vitalFmtNum(p.deaths), hi === 'deaths');
             html += vitalStatCard(vitalLabel('admin.vitalKillsT30', 'Kills T30'), vitalFmtNum(p.killsT30), hi === 'killsT30');
             html += vitalStatCard(vitalLabel('admin.vitalRockets', 'Rockets'), vitalFmtNum(p.rocketsFired), hi === 'rocketsFired');
             html += '</div></section>';
@@ -1564,9 +1565,9 @@
             html += vitalStatCard(vitalLabel('admin.vitalFarmHq', 'HQ metal'), vitalFmtNum(p.farmHqMetal), hi === 'farmHqMetal');
             html += vitalStatCard(vitalLabel('admin.vitalFarmWood', 'Madera'), vitalFmtNum(p.farmWood), hi === 'farmWood');
             html += '</div></section>';
-            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupGambling', 'Casino')) + '</h5><div class="vital-stat-group-grid">';
-            html += vitalStatCard(vitalLabel('admin.vitalGamblingWagered', 'Apostado'), vitalFmtNum(p.gamblingWagered), hi === 'gamblingWagered');
-            html += vitalStatCard(vitalLabel('admin.vitalGamblingWon', 'Ganado'), vitalFmtNum(p.gamblingWon), hi === 'gamblingWon');
+            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupScrap', 'Scrap')) + '</h5><div class="vital-stat-group-grid">';
+            html += vitalStatCard(vitalLabel('admin.vitalScrapLooted', 'Scrap loteado'), vitalFmtNum(p.scrapLooted), hi === 'scrapLooted');
+            html += vitalStatCard(vitalLabel('admin.vitalScrapRecycled', 'Scrap reciclado'), vitalFmtNum(p.scrapRecycled), hi === 'scrapRecycled');
             html += '</div></section></div></article>';
         });
         box.innerHTML = html;
@@ -1920,7 +1921,7 @@
         if (btnExport) {
             btnExport.addEventListener('click', function () {
                 if (!vitalClanRows.length) return;
-                var h = ['name', 'steamId64', 'kdr', 'killsT30', 'rocketsFired', 'farmSulfur', 'farmHqMetal', 'farmWood', 'gamblingWagered', 'gamblingWon'];
+                var h = ['name', 'steamId64', 'kdr', 'kills', 'deaths', 'killsT30', 'rocketsFired', 'farmSulfur', 'farmHqMetal', 'farmWood', 'scrapLooted', 'scrapRecycled'];
                 var rows = vitalClanRows.map(function (p) {
                     return h.map(function (k) { return '"' + String(p[k] != null ? p[k] : '').replace(/"/g, '""') + '"'; }).join(',');
                 });
