@@ -2620,9 +2620,13 @@ details.vital-extra-panel > :not(summary) {
     border: none;
     background: transparent;
 }
+#vital-info-panel .vital-pro-panel {
+    font-family: "Inter", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.011em;
+}
 .vital-app-shell {
     display: grid;
-    grid-template-columns: 152px minmax(0, 1fr);
+    grid-template-columns: 168px minmax(0, 1fr);
     gap: 0;
     min-height: min(78vh, 820px);
     height: min(78vh, 820px);
@@ -2630,6 +2634,19 @@ details.vital-extra-panel > :not(summary) {
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: #0b0f14;
+    font-family: "Inter", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.vital-app-shell button,
+.vital-app-shell input,
+.vital-app-shell select,
+.vital-app-shell textarea {
+    font-family: inherit;
 }
 .vital-sidebar--compact {
     padding: 10px 8px;
@@ -2641,19 +2658,23 @@ details.vital-extra-panel > :not(summary) {
     gap: 8px;
 }
 .vital-sidebar--compact .vital-sidebar-brand strong {
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    font-size: 11px;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #94a3b8;
+    font-weight: 600;
 }
 .vital-nav-item {
-    padding: 8px 10px;
-    font-size: 0.8rem;
-    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 14px;
+    border-radius: 8px;
     border: none;
     background: transparent;
-    color: #c5cdd8;
-    font-weight: 600;
+    color: #c8d0dc;
+    font-weight: 500;
+    line-height: 1.35;
+    text-transform: none;
+    letter-spacing: -0.01em;
 }
 .vital-nav-item:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -2710,18 +2731,21 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-member-stat span {
     display: block;
-    font-size: 0.68rem;
-    color: #b8c0cc;
+    font-size: 11px;
+    color: #9ca8b8;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     font-weight: 600;
+    line-height: 1.3;
 }
 .vital-member-stat strong {
     display: block;
-    font-size: 1rem;
+    font-size: 18px;
     color: #fafafa;
-    margin-top: 3px;
+    margin-top: 4px;
     font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
 }
 .vital-member-toolbar {
     display: flex;
@@ -2733,9 +2757,10 @@ details.vital-extra-panel > :not(summary) {
     flex-shrink: 0;
 }
 .vital-input-compact {
-    height: 32px;
-    padding: 0 10px;
-    font-size: 0.82rem;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 1.4;
     border-radius: 7px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.08);
@@ -2761,14 +2786,16 @@ details.vital-extra-panel > :not(summary) {
     width: 100%;
 }
 .vital-qchip {
-    height: 28px;
-    padding: 0 10px;
+    height: 30px;
+    padding: 0 11px;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.06);
-    color: #d1d8e3;
-    font-size: 0.74rem;
-    font-weight: 600;
+    color: #d8dee8;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
     cursor: pointer;
 }
 .vital-qchip:hover {
@@ -2792,18 +2819,18 @@ details.vital-extra-panel > :not(summary) {
 .vital-member-list {
     flex: 1;
     overflow: auto;
-    padding: 8px 10px 12px;
+    padding: 10px 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     min-height: 0;
 }
 .vital-member-row {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 14px;
     width: 100%;
-    padding: 12px 12px;
+    padding: 14px 14px;
     border: none;
     border-radius: 10px;
     background: transparent;
@@ -2820,14 +2847,14 @@ details.vital-extra-panel > :not(summary) {
     box-shadow: inset 3px 0 0 #ff7a00;
 }
 .vital-member-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
     background: rgba(255, 255, 255, 0.08);
     color: #f9fafb;
 }
@@ -2836,24 +2863,26 @@ details.vital-extra-panel > :not(summary) {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
-    padding-top: 2px;
+    gap: 4px;
+    padding-top: 1px;
 }
 .vital-member-name {
     display: block;
-    font-size: 0.98rem;
+    font-size: 15px;
     font-weight: 600;
     color: #fafafa;
-    line-height: 1.3;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .vital-member-sub {
     display: block;
-    font-size: 0.8rem;
-    color: #c5cdd8;
-    line-height: 1.35;
+    font-size: 12px;
+    color: #9ca8b8;
+    line-height: 1.45;
+    font-weight: 400;
 }
 .vital-detail-panel,
 .vital-detail-workspace {
@@ -2888,14 +2917,17 @@ details.vital-extra-panel > :not(summary) {
     min-height: 100%;
 }
 .vital-detail-empty-title {
-    margin: 0 0 6px;
-    font-size: 1rem;
+    margin: 0 0 8px;
+    font-size: 18px;
     color: #f3f4f6;
     font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
 }
 .vital-detail-empty-hint {
-    font-size: 0.88rem;
-    color: #c5cdd8;
+    font-size: 14px;
+    color: #b8c4d4;
+    line-height: 1.5;
     opacity: 1;
 }
 .vital-detail-content {
@@ -2907,7 +2939,7 @@ details.vital-extra-panel > :not(summary) {
     align-content: start;
 }
 .vital-detail-header {
-    padding: 18px 22px 14px;
+    padding: 20px 24px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     flex-shrink: 0;
 }
@@ -2940,22 +2972,27 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-workspace-title h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-family: inherit;
+    font-size: 23px;
     font-weight: 600;
-    letter-spacing: -0.02em;
-    color: #f9fafb;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    color: #fafafa;
 }
 .vital-workspace-bm {
-    font-size: 0.72rem;
+    font-size: 13px;
+    font-weight: 500;
     color: #93c5fd;
     text-decoration: none;
 }
 .vital-workspace-steam {
     display: block;
-    margin: 4px 0 10px;
-    font-size: 0.78rem;
-    color: #b8c4d4;
-    font-family: "JetBrains Mono", monospace;
+    margin: 6px 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #a8b4c4;
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    font-weight: 400;
 }
 .vital-workspace-badges {
     display: flex;
@@ -2963,13 +3000,16 @@ details.vital-extra-panel > :not(summary) {
     gap: 6px;
 }
 .ws-badge {
-    font-size: 0.74rem;
+    font-size: 11px;
     font-weight: 600;
-    padding: 4px 9px;
+    padding: 4px 8px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.1);
     color: #eceff4;
     border: 1px solid rgba(255, 255, 255, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.3;
 }
 .ws-badge--mcv_active { color: #ddd6fe; background: rgba(139, 92, 246, 0.14); }
 .ws-badge--admin { color: #bbf7d0; background: rgba(34, 197, 94, 0.12); }
@@ -2978,42 +3018,45 @@ details.vital-extra-panel > :not(summary) {
 .ws-badge--pause { color: #d1d5db; background: rgba(107, 114, 128, 0.25); }
 .vital-detail-tabs {
     display: flex;
-    gap: 2px;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 4px;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.12);
 }
 .vital-dtab {
-    padding: 11px 16px;
+    padding: 12px 18px;
     border: none;
     background: transparent;
-    color: #c5cdd8;
-    font-size: 0.8rem;
-    font-weight: 600;
+    color: #a8b4c4;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    transition: color 0.12s ease;
-    letter-spacing: 0.02em;
+    transition: color 0.12s ease, border-color 0.12s ease;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    line-height: 1.35;
 }
 .vital-dtab:hover {
-    color: #f3f4f6;
+    color: #e8edf4;
 }
 .vital-dtab.active {
     color: #ffffff;
+    font-weight: 600;
     border-bottom-color: #ff7a00;
 }
 .vital-detail-body {
     overflow: auto;
-    padding: 18px 24px 22px;
+    padding: 20px 24px 24px;
     min-height: 0;
     align-self: stretch;
 }
 .vital-detail-pane {
     display: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 16px;
+    gap: 18px 20px;
     align-content: start;
 }
 .vital-detail-pane.active {
@@ -3027,22 +3070,24 @@ details.vital-extra-panel > :not(summary) {
 .vital-field {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 7px;
 }
 .vital-field span {
-    font-size: 0.74rem;
-    color: #d4dae3;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: 13px;
+    color: #c8d0dc;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    line-height: 1.35;
 }
 .vital-field .admin-input,
 .vital-field select.admin-input,
 .vital-field textarea.admin-input {
-    min-height: 38px;
-    padding: 9px 12px;
-    font-size: 0.92rem;
-    line-height: 1.4;
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(30, 38, 52, 0.85);
@@ -3071,21 +3116,23 @@ details.vital-extra-panel > :not(summary) {
     box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.14);
 }
 .vital-field textarea.admin-input {
-    min-height: 88px;
+    min-height: 100px;
+    padding: 12px 14px;
     resize: vertical;
 }
 .vital-field-check {
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     grid-column: 1 / -1;
 }
 .vital-field-check span {
-    font-size: 0.88rem;
-    color: #eceff4;
+    font-size: 14px;
+    color: #e8edf4;
     font-weight: 500;
     text-transform: none;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
 }
 .vital-role-presets {
     grid-column: 1 / -1;
@@ -3094,24 +3141,30 @@ details.vital-extra-panel > :not(summary) {
     gap: 6px;
 }
 .vital-detail-body .vital-role-chip {
-    font-size: 0.72rem;
+    font-size: 13px;
+    font-weight: 500;
     color: #e8edf4;
     border-color: rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.06);
-    padding: 6px 12px;
+    padding: 7px 13px;
+    letter-spacing: 0;
+    text-transform: none;
 }
 .vital-detail-body .btn-outline.btn-sm {
-    font-size: 0.82rem;
+    font-size: 14px;
+    font-weight: 500;
     color: #f3f4f6;
     border-color: rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.06);
+    padding: 8px 14px;
+    line-height: 1.4;
 }
 .vital-detail-footer {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
+    gap: 12px;
+    padding: 14px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(8, 12, 18, 0.92);
     backdrop-filter: blur(8px);
@@ -3120,17 +3173,29 @@ details.vital-extra-panel > :not(summary) {
     bottom: 0;
     z-index: 3;
 }
+.vital-detail-footer .btn-primary-small,
+.vital-detail-footer .btn-outline {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
 .vital-detail-footer .btn-primary-small {
-    min-width: 100px;
+    min-width: 108px;
 }
 .btn-ghost-danger {
     margin-right: auto;
     background: transparent;
     border: none;
     color: #f87171;
-    font-size: 0.8rem;
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    padding: 8px 4px;
+    padding: 8px 6px;
+    letter-spacing: 0;
+    text-transform: none;
 }
 .btn-ghost-danger:hover {
     color: #fca5a5;
@@ -3140,8 +3205,33 @@ details.vital-extra-panel > :not(summary) {
     font-size: 0.76rem;
 }
 .vital-page-simple {
-    padding: 20px 22px;
+    padding: 22px 24px;
     max-width: 720px;
+}
+.vital-app-shell .vital-page-simple h4 {
+    margin: 0 0 10px;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: #f3f4f6;
+    line-height: 1.35;
+}
+.vital-app-shell .vital-page-simple .admin-form-hint {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #a8b4c4;
+}
+.vital-app-shell .vital-activity-log .vital-log-time {
+    font-size: 12px;
+    color: #9ca8b8;
+}
+.vital-app-shell .vital-activity-log .vital-log-msg,
+.vital-app-shell .vital-activity-log--compact .vital-log-item span:last-child {
+    font-size: 14px;
+    line-height: 1.45;
+    color: #e8edf4;
 }
 .vital-activity-log--compact .vital-log-item {
     grid-template-columns: 52px 1fr;
