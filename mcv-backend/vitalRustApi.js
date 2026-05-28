@@ -591,12 +591,35 @@ function parseSteamIdsInput(raw) {
     return out;
 }
 
+const ENSURE_VITAL_EXTRA_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    label TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_vital_extra_created ON vital_extra_steam_ids (created_at DESC);
+`;
+
+async function ensureVitalExtraTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(ENSURE_VITAL_EXTRA_TABLE_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure vital_extra_steam_ids:", e.message);
+        return false;
+    }
+}
+
 async function loadManualSteamIdsFromDb(pool) {
     const rows = [];
     if (!pool) {
         return rows;
     }
     try {
+        await ensureVitalExtraTable(pool);
         const r = await pool.query(
             `SELECT steam_id64, label, created_at FROM vital_extra_steam_ids ORDER BY created_at DESC`
         );
@@ -841,10 +864,16 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(503).json({ error: "Base de datos no configurada" });
         }
         try {
+            const ready = await ensureVitalExtraTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar la tabla vital_extra_steam_ids" });
+            }
             const players = await loadManualSteamIdsFromDb(pool);
             const roster = await loadClanSteamIds(getPool);
             const mcvSet = new Set(roster.mcvIds);
             return res.json({
+                persisted: true,
+                total: players.length,
                 players: players.map((p) => ({
                     ...p,
                     alsoInMcv: mcvSet.has(p.steamId64)
@@ -872,6 +901,10 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(400).json({ error: "Indicá al menos un SteamID64 válido (17 dígitos)" });
         }
         try {
+            const ready = await ensureVitalExtraTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar la tabla vital_extra_steam_ids" });
+            }
             const added = [];
             for (const steamId64 of unique) {
                 await pool.query(
@@ -882,7 +915,14 @@ function registerVitalRustApi(app, { getPool }) {
                 );
                 added.push(steamId64);
             }
-            return res.json({ ok: true, added, count: added.length });
+            const saved = await loadManualSteamIdsFromDb(pool);
+            return res.json({
+                ok: true,
+                added,
+                count: added.length,
+                persisted: true,
+                totalSaved: saved.length
+            });
         } catch (e) {
             console.error("vital extra add:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo guardar" });

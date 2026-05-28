@@ -478,6 +478,18 @@
     font-family: "JetBrains Mono", monospace;
     font-size: 0.82rem;
 }
+.vital-extra-field-wide {
+    flex: 1 1 100%;
+}
+.vital-extra-textarea {
+    min-height: 88px;
+    resize: vertical;
+    line-height: 1.45;
+}
+.vital-extra-count {
+    margin: 0 0 8px;
+    color: var(--primary);
+}
 .vital-extra-list {
     list-style: none;
     margin: 0;
