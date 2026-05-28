@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=22">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-production-polish-v1">
+    <link rel="stylesheet" href="style-admin.css?v=23">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-production-polish-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -453,8 +453,32 @@
                 </div>
                 <section class="vital-table-shell">
                     <div class="vital-table-header">
-                        <h4>Jugadores registrados</h4>
-                        <p>Tabla principal · gestión rápida</p>
+                        <div>
+                            <h4>Jugadores registrados</h4>
+                            <p>Tabla principal · gestión rápida</p>
+                        </div>
+                        <div class="vital-table-tools">
+                            <div class="vital-quick-filters" id="vital-quick-filters">
+                                <button type="button" class="vital-chip is-active" data-vital-quick="all">Todos</button>
+                                <button type="button" class="vital-chip" data-vital-quick="active">Activos</button>
+                                <button type="button" class="vital-chip" data-vital-quick="paused">Pausados</button>
+                                <button type="button" class="vital-chip" data-vital-quick="strikes">Strikes</button>
+                            </div>
+                            <label class="vital-density">
+                                <span>Densidad</span>
+                                <select id="vital-info-density" class="admin-input">
+                                    <option value="comfortable">Comfortable</option>
+                                    <option value="compact">Compact</option>
+                                </select>
+                            </label>
+                            <details class="vital-cols-menu">
+                                <summary>Columnas</summary>
+                                <label><input type="checkbox" data-col="motivo" checked /> Motivo</label>
+                                <label><input type="checkbox" data-col="vouch" checked /> Vouch</label>
+                                <label><input type="checkbox" data-col="bm" checked /> BM</label>
+                                <label><input type="checkbox" data-col="horas" checked /> Horas</label>
+                            </details>
+                        </div>
                     </div>
                     <div id="vital-info-list"><p class="empty-hint">Sin datos.</p></div>
                 </section>
@@ -2049,6 +2073,9 @@
     var vitalInfoRows = [];
     var vitalInfoLogs = [];
     var vitalInfoSubtab = 'overview';
+    var vitalInfoDensity = 'comfortable';
+    var vitalInfoQuick = 'all';
+    var vitalInfoCols = { motivo: true, vouch: true, bm: true, horas: true };
 
     function escAttr(s) {
         return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
@@ -2131,6 +2158,14 @@
         });
         document.querySelectorAll('.vital-subtab').forEach(function (btn) {
             btn.classList.toggle('active', btn.getAttribute('data-vital-subtab') === vitalInfoSubtab);
+        });
+    }
+
+    function applyVitalTablePrefs() {
+        var shell = document.querySelector('.vital-table-shell');
+        if (shell) shell.setAttribute('data-density', vitalInfoDensity);
+        document.querySelectorAll('.vital-chip').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-vital-quick') === vitalInfoQuick);
         });
     }
 
@@ -2254,6 +2289,9 @@
             if (st && r.statusTag !== st) return false;
             if (roleF && String(r.roleLabel || '').trim() !== roleF) return false;
             if (vouchF && String(r.vouchBy || '').trim() !== vouchF) return false;
+            if (vitalInfoQuick === 'active' && r.statusTag !== 'mcv_active') return false;
+            if (vitalInfoQuick === 'paused' && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
+            if (vitalInfoQuick === 'strikes' && Number(r.strikes || 0) <= 0) return false;
             if (!q) return true;
             var hay = [r.displayName, r.steamId64, r.vouchBy, r.roleLabel].join(' ').toLowerCase();
             return hay.indexOf(q) !== -1;
@@ -2282,24 +2320,28 @@
             var ch = base ? base.charAt(0).toUpperCase() : '?';
             return '<span class="vital-avatar" aria-hidden="true">' + esc(ch) + '</span>';
         };
-        var html = '<table class="admin-table vital-info-table"><thead><tr><th>Jugador</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
+        var html = '<table class="admin-table vital-info-table"><thead><tr><th>Jugador</th><th class="col-bm">BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th class="col-motivo">Motivo strike</th><th>Rol</th><th>Wipe</th><th class="col-horas">Horas</th><th class="col-vouch">Vouch</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
             html += '<tr class="vital-info-row ' + statusRowClass(r.statusTag) + '">';
             html += '<td><div class="vital-player-cell">' + avatar(r.displayName) + '<span>' + esc(r.displayName || '—') + '</span></div></td>';
-            html += '<td>' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
+            html += '<td class="col-bm">' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
             html += '<td>' + statusChip(r.statusTag) + '</td>';
             html += '<td>' + (r.pausedOutsideWipe ? '<span class="vital-pause-chip">⏸ pausado</span>' : '—') + '</td>';
             html += '<td>' + strikeBadge(r.strikes) + '</td>';
-            html += '<td>' + esc(r.strikeNotes || r.warnings || '—') + '</td>';
+            html += '<td class="col-motivo">' + esc(r.strikeNotes || r.warnings || '—') + '</td>';
             html += '<td>' + esc(r.roleLabel || '—') + '</td>';
             html += '<td>' + wipeBadge(r.wipePhase || 'unknown') + '</td>';
-            html += '<td>' + esc(r.hoursPlayed != null ? r.hoursPlayed : '—') + '</td>';
-            html += '<td>' + esc(r.vouchBy || '—') + '</td>';
-            html += '<td class="row-actions"><button type="button" class="btn-outline vital-icon-btn vital-info-edit" title="Editar" data-steam="' + escAttr(r.steamId64) + '">✏️</button> <button type="button" class="btn-outline vital-icon-btn vital-info-pause" title="Pausar" data-steam="' + escAttr(r.steamId64) + '">⏸</button> <button type="button" class="btn-outline vital-icon-btn vital-info-del" title="Borrar" data-steam="' + escAttr(r.steamId64) + '">🗑️</button></td>';
+            html += '<td class="col-horas">' + esc(r.hoursPlayed != null ? r.hoursPlayed : '—') + '</td>';
+            html += '<td class="col-vouch">' + esc(r.vouchBy || '—') + '</td>';
+            html += '<td class="row-actions"><button type="button" class="btn-outline vital-icon-btn vital-info-edit" data-tooltip="Editar" data-steam="' + escAttr(r.steamId64) + '">✏️</button> <button type="button" class="btn-outline vital-icon-btn vital-info-pause" data-tooltip="Pausar" data-steam="' + escAttr(r.steamId64) + '">⏸</button> <button type="button" class="btn-outline vital-icon-btn vital-info-del" data-tooltip="Borrar" data-steam="' + escAttr(r.steamId64) + '">🗑️</button></td>';
             html += '</tr>';
         });
         html += '</tbody></table>';
         box.innerHTML = html;
+        Object.keys(vitalInfoCols).forEach(function (k) {
+            if (vitalInfoCols[k]) return;
+            box.querySelectorAll('.col-' + k).forEach(function (el) { el.style.display = 'none'; });
+        });
         box.querySelectorAll('.vital-info-edit').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var sid = btn.getAttribute('data-steam');
@@ -2506,6 +2548,9 @@
         var rolePresets = document.getElementById('vital-role-presets');
         var playerPick = document.getElementById('vital-info-player-pick');
         var vitalSubtabs = document.getElementById('vital-subtabs');
+        var vitalQuickFilters = document.getElementById('vital-quick-filters');
+        var vitalDensity = document.getElementById('vital-info-density');
+        var vitalColsMenu = document.querySelector('.vital-cols-menu');
         var infoSearch = document.getElementById('vital-info-search');
         var infoFilter = document.getElementById('vital-info-filter');
         var infoRoleFilter = document.getElementById('vital-info-role-filter');
@@ -2550,7 +2595,34 @@
                 setVitalSubtab(btn.getAttribute('data-vital-subtab'));
             });
         }
+        if (vitalQuickFilters) {
+            vitalQuickFilters.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vital-quick]') : null;
+                if (!btn) return;
+                vitalInfoQuick = String(btn.getAttribute('data-vital-quick') || 'all');
+                applyVitalTablePrefs();
+                renderVitalInfoList();
+            });
+        }
+        if (vitalDensity) {
+            vitalDensity.value = vitalInfoDensity;
+            vitalDensity.addEventListener('change', function () {
+                vitalInfoDensity = String(vitalDensity.value || 'comfortable');
+                applyVitalTablePrefs();
+            });
+        }
+        if (vitalColsMenu) {
+            vitalColsMenu.addEventListener('change', function (ev) {
+                var el = ev.target;
+                if (!el || !el.matches || !el.matches('[data-col]')) return;
+                var col = String(el.getAttribute('data-col') || '');
+                if (!col) return;
+                vitalInfoCols[col] = !!el.checked;
+                renderVitalInfoList();
+            });
+        }
         setVitalSubtab(vitalInfoSubtab);
+        applyVitalTablePrefs();
         renderVitalInfoLogs();
         if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
         if (infoFilter) infoFilter.addEventListener('change', function () { loadVitalPlayerInfo().catch(function () {}); });
