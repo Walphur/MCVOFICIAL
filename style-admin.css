@@ -2683,6 +2683,7 @@ details.vital-extra-panel > :not(summary) {
 .vital-nav-item.active {
     background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
+    font-weight: 600;
     box-shadow: inset 2px 0 0 #ff7a00;
 }
 .vital-app-main {
