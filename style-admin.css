@@ -522,6 +522,15 @@ details.vital-extra-panel .vital-extra-list {
     padding: 4px 10px;
     font-size: 0.78rem;
 }
+.vital-pro-panel {
+    background: radial-gradient(circle at top, rgba(250, 166, 26, 0.05), rgba(0, 0, 0, 0) 35%);
+}
+.vital-pro-panel .admin-form-title {
+    letter-spacing: 0.03em;
+}
+.vital-pro-panel .admin-form-hint {
+    color: #9a9a9a;
+}
 .vital-info-toolbar,
 .vital-info-form {
     display: grid;
@@ -530,52 +539,64 @@ details.vital-extra-panel .vital-extra-list {
 }
 .vital-info-toolbar {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    position: sticky;
+    top: 8px;
+    z-index: 4;
+    background: rgba(8, 8, 8, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    backdrop-filter: blur(4px);
 }
 .vital-info-form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
 }
 .vital-info-block {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     background: linear-gradient(180deg, rgba(20, 20, 20, 0.9), rgba(10, 10, 10, 0.92));
-    padding: 12px;
+    padding: 10px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .vital-info-block h4 {
-    margin: 0 0 10px;
-    font-size: 0.72rem;
+    margin: 0 0 8px;
+    font-size: 0.68rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #9f9f9f;
+    letter-spacing: 0.1em;
+    color: #8f8f8f;
 }
 .vital-info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
 }
 .vital-info-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 2px;
+    margin-top: 4px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
 }
 .vital-role-presets {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     align-content: flex-start;
-    padding-top: 22px;
+    padding-top: 21px;
 }
 .vital-role-chip {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
-    padding: 6px 11px;
+    padding: 5px 10px;
     background: #0a0a0a;
     color: #d6d6d6;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     cursor: pointer;
@@ -589,9 +610,14 @@ details.vital-extra-panel .vital-extra-list {
 .vital-info-form label {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    font-size: 0.78rem;
+    gap: 4px;
+    font-size: 0.72rem;
     color: var(--muted);
+}
+.vital-pro-panel .admin-input {
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 7px;
 }
 .vital-info-full {
     grid-column: 1 / -1;
@@ -603,8 +629,8 @@ details.vital-extra-panel .vital-extra-list {
     gap: 8px;
     font-size: 0.8rem;
     color: #c9c9c9;
-    min-height: 40px;
-    margin-top: 22px;
+    min-height: 36px;
+    margin-top: 20px;
     border: 1px dashed rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     padding: 0 10px;
@@ -650,10 +676,11 @@ details.vital-extra-panel .vital-extra-list {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     overflow: hidden;
+    font-size: 0.83rem;
 }
 .vital-info-table thead th {
     background: rgba(255, 255, 255, 0.03);
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #bcbcbc;
@@ -670,8 +697,26 @@ details.vital-extra-panel .vital-extra-list {
     gap: 6px;
 }
 .vital-info-table .row-actions .btn-outline {
-    padding: 5px 9px;
-    font-size: 0.72rem;
+    padding: 4px 8px;
+    font-size: 0.68rem;
+}
+.vital-pro-panel .btn-outline,
+.vital-pro-panel .btn-primary-small {
+    min-height: 36px;
+    border-radius: 8px;
+}
+@media (min-width: 1280px) {
+    .vital-pro-panel .vital-info-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .vital-pro-panel .vital-info-block:last-of-type {
+        grid-column: 1 / -1;
+    }
+    .vital-pro-panel .vital-info-actions {
+        grid-column: 1 / -1;
+    }
 }
 .vital-player-badge {
     display: inline-block;
