@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=16">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-bm-hours-role-presets-v1">
+    <link rel="stylesheet" href="style-admin.css?v=17">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-clean-pause-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -378,40 +378,59 @@
                     <button type="button" class="btn-outline" id="btn-vital-info-refresh">Actualizar</button>
                 </div>
                 <div class="vital-info-form">
-                    <label><span>SteamID64</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
-                    <label><span>Nombre</span><input id="vital-info-name" class="admin-input" placeholder="Nombre" /></label>
-                    <label><span>BM URL</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
-                    <label><span>Estado / color</span><select id="vital-info-status" class="admin-input">
-                        <option value="wipe_guest">Blanco (wipe no MCV)</option>
-                        <option value="admin">Verde (admin)</option>
-                        <option value="mcv_active">Violeta (MCV)</option>
-                        <option value="mcv_inactive">Negro (MCV no wipe)</option>
-                        <option value="mcv_strikes">Rojo (strikes)</option>
-                    </select></label>
-                    <label><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="Ej: COMPOS, IGL, FARMEO..." /></label>
-                    <div class="vital-role-presets" id="vital-role-presets">
-                        <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
-                        <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
-                        <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
-                        <button type="button" class="vital-role-chip" data-role="BUILDER">BUILDER</button>
-                        <button type="button" class="vital-role-chip" data-role="ELECTRIC">ELECTRIC</button>
-                        <button type="button" class="vital-role-chip" data-role="MONUMENT">MONUMENT</button>
+                    <section class="vital-info-block">
+                        <h4>Identidad</h4>
+                        <div class="vital-info-grid">
+                            <label><span>SteamID64</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
+                            <label><span>Nombre</span><input id="vital-info-name" class="admin-input" placeholder="Nombre" /></label>
+                            <label><span>BM URL</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
+                        </div>
+                    </section>
+                    <section class="vital-info-block">
+                        <h4>Estado y rol</h4>
+                        <div class="vital-info-grid">
+                            <label><span>Estado / color</span><select id="vital-info-status" class="admin-input">
+                                <option value="wipe_guest">Blanco (wipe no MCV)</option>
+                                <option value="admin">Verde (admin)</option>
+                                <option value="mcv_active">Violeta (MCV)</option>
+                                <option value="mcv_inactive">Negro (MCV no wipe)</option>
+                                <option value="mcv_strikes">Rojo (strikes)</option>
+                            </select></label>
+                            <label><span>Estado wipe</span><select id="vital-info-wipe-phase" class="admin-input">
+                                <option value="unknown">Wipe: sin definir</option>
+                                <option value="inicio">Inicio wipe</option>
+                                <option value="late">Late wipe</option>
+                                <option value="no_juega">No juega wipe</option>
+                            </select></label>
+                            <label class="vital-info-checkbox"><input id="vital-info-paused" type="checkbox" /> Pausado (fuera de wipe)</label>
+                            <label><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="Ej: COMPOS, IGL, FARMEO..." /></label>
+                            <div class="vital-role-presets" id="vital-role-presets">
+                                <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
+                                <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
+                                <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
+                                <button type="button" class="vital-role-chip" data-role="BUILDER">BUILDER</button>
+                                <button type="button" class="vital-role-chip" data-role="ELECTRIC">ELECTRIC</button>
+                                <button type="button" class="vital-role-chip" data-role="MONUMENT">MONUMENT</button>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="vital-info-block">
+                        <h4>Seguimiento interno</h4>
+                        <div class="vital-info-grid">
+                            <label><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" placeholder="0" /></label>
+                            <label><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
+                            <label><span>Vouch / responsable</span><input id="vital-info-vouch" class="admin-input" placeholder="Quién lo vouchó" /></label>
+                            <label><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" placeholder="0" /></label>
+                            <button type="button" class="btn-outline" id="btn-vital-info-bm-hours">Traer horas desde BM</button>
+                            <label class="vital-info-checkbox"><input id="vital-info-mt" type="checkbox" /> MT team</label>
+                            <label><span>Aportación</span><input id="vital-info-contribution" class="admin-input" placeholder="Aportación / tareas" /></label>
+                            <label class="vital-info-full"><span>Motivo strike / avisos</span><input id="vital-info-warning" class="admin-input" placeholder="Por qué se puso el strike o aviso" /></label>
+                        </div>
+                    </section>
+                    <div class="vital-info-actions">
+                        <button type="button" class="btn-outline" id="btn-vital-info-pause-quick">Pausar por no wipe</button>
+                        <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar / actualizar</button>
                     </div>
-                    <label><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" placeholder="0" /></label>
-                    <label><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
-                    <label><span>Vouch / responsable</span><input id="vital-info-vouch" class="admin-input" placeholder="Quién lo vouchó" /></label>
-                    <label><span>Estado wipe</span><select id="vital-info-wipe-phase" class="admin-input">
-                        <option value="unknown">Wipe: sin definir</option>
-                        <option value="inicio">Inicio wipe</option>
-                        <option value="late">Late wipe</option>
-                        <option value="no_juega">No juega wipe</option>
-                    </select></label>
-                    <label><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" placeholder="0" /></label>
-                    <button type="button" class="btn-outline" id="btn-vital-info-bm-hours">Traer horas desde BM</button>
-                    <label class="vital-info-checkbox"><input id="vital-info-mt" type="checkbox" /> MT team</label>
-                    <label><span>Aportación</span><input id="vital-info-contribution" class="admin-input" placeholder="Aportación / tareas" /></label>
-                    <label class="vital-info-full"><span>Motivo strike / avisos</span><input id="vital-info-warning" class="admin-input" placeholder="Por qué se puso el strike o aviso" /></label>
-                    <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar / actualizar</button>
                 </div>
                 <details class="admin-collapse">
                     <summary>Importación masiva</summary>
@@ -2009,7 +2028,8 @@
             hoursPlayed: Number((document.getElementById('vital-info-hours') || {}).value || 0),
             contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
             warnings: (document.getElementById('vital-info-warning') || {}).value || '',
-            mtTeam: Boolean((document.getElementById('vital-info-mt') || {}).checked)
+            mtTeam: Boolean((document.getElementById('vital-info-mt') || {}).checked),
+            pausedOutsideWipe: Boolean((document.getElementById('vital-info-paused') || {}).checked)
         };
     }
 
@@ -2030,6 +2050,8 @@
         set('vital-info-warning', p.warnings || p.strikeNotes || '');
         var mt = document.getElementById('vital-info-mt');
         if (mt) mt.checked = !!p.mtTeam;
+        var paused = document.getElementById('vital-info-paused');
+        if (paused) paused.checked = !!p.pausedOutsideWipe || String(p.wipePhase || '') === 'no_juega';
     }
 
     function statusChip(tag) {
@@ -2096,20 +2118,21 @@
             box.innerHTML = '<p class="empty-hint">' + esc(vitalLabel('admin.vitalNoPlayers', 'Sin datos')) + '</p>';
             return;
         }
-        var html = '<table class="admin-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
+        var html = '<table class="admin-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
             html += '<tr class="vital-info-row ' + statusRowClass(r.statusTag) + '">';
             html += '<td>' + esc(r.displayName || '—') + '</td>';
             html += '<td class="admin-steam-cell">' + esc(r.steamId64) + '</td>';
             html += '<td>' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
             html += '<td>' + statusChip(r.statusTag) + '</td>';
+            html += '<td>' + (r.pausedOutsideWipe ? '<span class="vital-pause-chip">⏸ pausado</span>' : '—') + '</td>';
             html += '<td>' + esc(r.strikes) + '</td>';
             html += '<td>' + esc(r.strikeNotes || r.warnings || '—') + '</td>';
             html += '<td>' + esc(r.roleLabel || '—') + '</td>';
             html += '<td>' + esc(r.wipePhase || 'unknown') + '</td>';
             html += '<td>' + esc(r.hoursPlayed != null ? r.hoursPlayed : '—') + '</td>';
             html += '<td>' + esc(r.vouchBy || '—') + '</td>';
-            html += '<td class="row-actions"><button type="button" class="btn-outline vital-info-edit" data-steam="' + escAttr(r.steamId64) + '">Editar</button> <button type="button" class="btn-outline vital-info-del" data-steam="' + escAttr(r.steamId64) + '">Borrar</button></td>';
+            html += '<td class="row-actions"><button type="button" class="btn-outline vital-info-edit" data-steam="' + escAttr(r.steamId64) + '">Editar</button> <button type="button" class="btn-outline vital-info-pause" data-steam="' + escAttr(r.steamId64) + '">Pausar</button> <button type="button" class="btn-outline vital-info-del" data-steam="' + escAttr(r.steamId64) + '">Borrar</button></td>';
             html += '</tr>';
         });
         html += '</tbody></table>';
@@ -2135,6 +2158,28 @@
                         loadVitalPlayerInfo().catch(function () {});
                     })
                     .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+            });
+        });
+        box.querySelectorAll('.vital-info-pause').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sid = btn.getAttribute('data-steam');
+                var row = vitalInfoRows.find(function (x) { return x.steamId64 === sid; });
+                if (!row) return;
+                var payload = Object.assign({}, row, {
+                    pausedOutsideWipe: true,
+                    wipePhase: 'no_juega'
+                });
+                fetch(API + '/api/admin/vital/player-info', {
+                    method: 'POST',
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+                    body: JSON.stringify(payload)
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'pause');
+                        loadVitalPlayerInfo().catch(function () {});
+                    })
+                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error pausando jugador', true); });
             });
         });
     }
@@ -2183,6 +2228,7 @@
 
     function saveVitalPlayerInfo() {
         var payload = gatherVitalInfoPayload();
+        if (payload.pausedOutsideWipe) payload.wipePhase = 'no_juega';
         fetch(API + '/api/admin/vital/player-info', {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
@@ -2197,6 +2243,19 @@
             .catch(function (e) {
                 banner((e && e.message) ? e.message : 'Error guardando info', true);
             });
+    }
+
+    function quickPausePlayer() {
+        var steam = String((document.getElementById('vital-info-steam') || {}).value || '').trim();
+        if (!steam) {
+            banner('Primero cargá SteamID64 para pausar.', true);
+            return;
+        }
+        var paused = document.getElementById('vital-info-paused');
+        var wipe = document.getElementById('vital-info-wipe-phase');
+        if (paused) paused.checked = true;
+        if (wipe) wipe.value = 'no_juega';
+        saveVitalPlayerInfo();
     }
 
     function fillHoursFromBm() {
@@ -2263,6 +2322,7 @@
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
+        var btnInfoPauseQuick = document.getElementById('btn-vital-info-pause-quick');
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
         var rolePresets = document.getElementById('vital-role-presets');
@@ -2275,6 +2335,7 @@
         }
         if (btnInfoRefresh) btnInfoRefresh.addEventListener('click', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
+        if (btnInfoPauseQuick) btnInfoPauseQuick.addEventListener('click', quickPausePlayer);
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
         if (rolePresets) {

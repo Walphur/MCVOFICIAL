@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
+    paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -648,6 +649,10 @@ async function ensurePlayerInfoTable(pool) {
     if (!pool) return false;
     try {
         await pool.query(PLAYER_INFO_TABLE_SQL);
+        await pool.query(
+            `ALTER TABLE player_info_profiles
+             ADD COLUMN IF NOT EXISTS paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE`
+        );
         return true;
     } catch (e) {
         console.error("ensure player_info_profiles:", e.message);
@@ -673,6 +678,9 @@ function normalizePlayerInfoRow(row) {
         contribution: String(row.contribution || "").trim(),
         warnings: String(row.warnings || "").trim(),
         mtTeam: Boolean(row.mt_team ?? row.mtTeam),
+        pausedOutsideWipe:
+            Boolean(row.paused_outside_wipe ?? row.pausedOutsideWipe) ||
+            normalizeWipePhase(row.wipe_phase || row.wipePhase) === "no_juega",
         updatedAt: row.updated_at || row.updatedAt || null
     };
 }
@@ -737,6 +745,7 @@ function parsePlayerInfoImportText(raw) {
     const cHours = idx(["hours", "horas", "hours_played"]);
     const cContrib = idx(["aportacion", "aporte", "contribution"]);
     const cMt = idx(["mt", "mt team", "mt_team"]);
+    const cPaused = idx(["pausado", "paused", "pause", "paused_outside_wipe"]);
 
     const mapStatus = (rawStatus) => {
         const s = String(rawStatus || "").trim().toLowerCase();
@@ -774,7 +783,11 @@ function parsePlayerInfoImportText(raw) {
                 hours_played: cHours >= 0 ? cols[cHours] : null,
                 contribution: cContrib >= 0 ? cols[cContrib] : "",
                 warnings: cNotes >= 0 ? cols[cNotes] : "",
-                mt_team: cMt >= 0 ? parseImportBool(cols[cMt]) : false
+                mt_team: cMt >= 0 ? parseImportBool(cols[cMt]) : false,
+                paused_outside_wipe:
+                    cPaused >= 0
+                        ? parseImportBool(cols[cPaused])
+                        : normalizeWipePhase(cWipe >= 0 ? cols[cWipe] : "unknown") === "no_juega"
             })
         );
     }
@@ -1242,6 +1255,8 @@ function registerVitalRustApi(app, { getPool }) {
         const body = req.body && typeof req.body === "object" ? req.body : {};
         const steamId64 = normalizeSteamId64(body.steamId64 || body.steam_id64);
         if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const incomingWipe = normalizeWipePhase(body.wipePhase);
+        const pausedOutsideWipe = Boolean(body.pausedOutsideWipe) || incomingWipe === "no_juega";
         const row = normalizePlayerInfoRow({
             steam_id64: steamId64,
             display_name: body.displayName,
@@ -1252,19 +1267,20 @@ function registerVitalRustApi(app, { getPool }) {
             strike_notes: body.strikeNotes,
             entry_date: body.entryDate || null,
             vouch_by: body.vouchBy,
-            wipe_phase: body.wipePhase,
+            wipe_phase: pausedOutsideWipe ? "no_juega" : incomingWipe,
             hours_played: body.hoursPlayed,
             contribution: body.contribution,
             warnings: body.warnings,
-            mt_team: body.mtTeam
+            mt_team: body.mtTeam,
+            paused_outside_wipe: pausedOutsideWipe
         });
         try {
             const r = await pool.query(
                 `INSERT INTO player_info_profiles (
                     steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                    hours_played, contribution, warnings, mt_team, updated_at
+                    hours_played, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                  ) VALUES (
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW()
                  )
                  ON CONFLICT (steam_id64) DO UPDATE SET
                     display_name = EXCLUDED.display_name,
@@ -1280,6 +1296,7 @@ function registerVitalRustApi(app, { getPool }) {
                     contribution = EXCLUDED.contribution,
                     warnings = EXCLUDED.warnings,
                     mt_team = EXCLUDED.mt_team,
+                    paused_outside_wipe = EXCLUDED.paused_outside_wipe,
                     updated_at = NOW()
                  RETURNING *`,
                 [
@@ -1296,7 +1313,8 @@ function registerVitalRustApi(app, { getPool }) {
                     row.hoursPlayed,
                     row.contribution || null,
                     row.warnings || null,
-                    row.mtTeam
+                    row.mtTeam,
+                    row.pausedOutsideWipe
                 ]
             );
             return res.json({ ok: true, profile: normalizePlayerInfoRow(r.rows[0]) });
@@ -1320,9 +1338,9 @@ function registerVitalRustApi(app, { getPool }) {
                 await pool.query(
                     `INSERT INTO player_info_profiles (
                         steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                        hours_played, contribution, warnings, mt_team, updated_at
+                        hours_played, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                      ) VALUES (
-                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()
+                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW()
                      )
                      ON CONFLICT (steam_id64) DO UPDATE SET
                         display_name = EXCLUDED.display_name,
@@ -1338,6 +1356,7 @@ function registerVitalRustApi(app, { getPool }) {
                         contribution = EXCLUDED.contribution,
                         warnings = EXCLUDED.warnings,
                         mt_team = EXCLUDED.mt_team,
+                        paused_outside_wipe = EXCLUDED.paused_outside_wipe,
                         updated_at = NOW()`,
                     [
                         row.steamId64,
@@ -1353,7 +1372,8 @@ function registerVitalRustApi(app, { getPool }) {
                         row.hoursPlayed,
                         row.contribution || null,
                         row.warnings || null,
-                        row.mtTeam
+                        row.mtTeam,
+                        row.pausedOutsideWipe
                     ]
                 );
                 saved += 1;

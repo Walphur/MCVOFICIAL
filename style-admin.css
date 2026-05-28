@@ -532,7 +532,32 @@ details.vital-extra-panel .vital-extra-list {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 .vital-info-form {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.vital-info-block {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(8, 8, 8, 0.85);
+    padding: 10px;
+}
+.vital-info-block h4 {
+    margin: 0 0 8px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #bdbdbd;
+}
+.vital-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+.vital-info-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 .vital-role-presets {
     display: flex;
@@ -594,6 +619,16 @@ details.vital-extra-panel .vital-extra-list {
 .vital-info-row--mcv_inactive td:first-child { border-left-color: #777; }
 .vital-info-row--mcv_strikes td:first-child { border-left-color: #df4253; }
 .vital-info-row--wipe_guest td:first-child { border-left-color: #cfcfcf; }
+.vital-pause-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #cf9d1d;
+    color: #ffcf5a;
+    background: rgba(207, 157, 29, 0.15);
+    font-size: 0.68rem;
+    font-weight: 700;
+}
 .vital-player-badge {
     display: inline-block;
     font-family: "IBM Plex Sans", sans-serif;
