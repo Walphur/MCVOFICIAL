@@ -2648,6 +2648,42 @@ details.vital-extra-panel > :not(summary) {
 .vital-app-shell textarea {
     font-family: inherit;
 }
+/* style.css aplica Bebas Neue a todos los <button> — reset en el workspace Vital */
+.admin-body .vital-app-shell button,
+.admin-body .vital-app-shell .vital-member-row,
+.admin-body .vital-app-shell .vital-nav-item,
+.admin-body .vital-app-shell .vital-dtab,
+.admin-body .vital-app-shell .vital-qchip,
+.admin-body .vital-app-shell .vital-icon-only,
+.admin-body .vital-app-shell .vital-role-chip {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 500 !important;
+}
+.admin-body .vital-app-shell h2,
+.admin-body .vital-app-shell h3,
+.admin-body .vital-app-shell h4 {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 500 !important;
+}
+.admin-body .vital-app-shell .vital-member-row .vital-member-name,
+.admin-body .vital-app-shell .vital-member-row .vital-member-sub {
+    font-family: inherit !important;
+    text-transform: none !important;
+}
+.admin-body .vital-app-shell input,
+.admin-body .vital-app-shell select,
+.admin-body .vital-app-shell textarea {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+.admin-body .vital-app-shell .vital-dtab.active {
+    font-weight: 500 !important;
+}
 .vital-sidebar--compact {
     padding: 10px 8px;
     background: #080c12;
@@ -2683,7 +2719,7 @@ details.vital-extra-panel > :not(summary) {
 .vital-nav-item.active {
     background: rgba(255, 255, 255, 0.08);
     color: #ffffff;
-    font-weight: 600;
+    font-weight: 500;
     box-shadow: inset 2px 0 0 #ff7a00;
 }
 .vital-app-main {
@@ -2847,6 +2883,10 @@ details.vital-extra-panel > :not(summary) {
     background: rgba(255, 122, 0, 0.08);
     box-shadow: inset 3px 0 0 #ff7a00;
 }
+.vital-member-row.is-active .vital-member-name {
+    font-weight: 500;
+    color: #ffffff;
+}
 .vital-member-avatar {
     width: 44px;
     height: 44px;
@@ -2854,8 +2894,8 @@ details.vital-extra-panel > :not(summary) {
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
     background: rgba(255, 255, 255, 0.08);
     color: #f9fafb;
 }
@@ -2869,11 +2909,11 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-member-name {
     display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: #fafafa;
-    line-height: 1.35;
-    letter-spacing: -0.015em;
+    font-size: 16px;
+    font-weight: 500;
+    color: #f5f5f5;
+    line-height: 1.4;
+    letter-spacing: -0.012em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2955,8 +2995,8 @@ details.vital-extra-panel > :not(summary) {
     border-radius: 12px;
     display: grid;
     place-items: center;
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 500;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
     color: #fff;
     flex-shrink: 0;
@@ -2974,10 +3014,10 @@ details.vital-extra-panel > :not(summary) {
 .vital-workspace-title h2 {
     margin: 0;
     font-family: inherit;
-    font-size: 23px;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.25;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    line-height: 1.28;
     color: #fafafa;
 }
 .vital-workspace-bm {
@@ -3045,7 +3085,7 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-dtab.active {
     color: #ffffff;
-    font-weight: 600;
+    font-weight: 500;
     border-bottom-color: #ff7a00;
 }
 .vital-detail-body {
@@ -3075,11 +3115,11 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-field span {
     font-size: 13px;
-    color: #c8d0dc;
+    color: #b8c4d4;
     font-weight: 500;
     letter-spacing: -0.01em;
     text-transform: none;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 .vital-field .admin-input,
 .vital-field select.admin-input,
