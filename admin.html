@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=12">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-scrap-kills">
+    <link rel="stylesheet" href="style-admin.css?v=13">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-metal-extra-bottom">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -283,24 +283,6 @@
                 <p class="admin-form-hint admin-readable" data-i18n-html="admin.vitalIntro"></p>
                 <p id="vital-config-banner" class="admin-form-hint" hidden></p>
                 <p id="vital-build-line" class="admin-form-hint vital-build-line" aria-live="polite"></p>
-                <section class="vital-extra-panel" id="vital-extra-panel" aria-labelledby="vital-extra-heading">
-                    <h4 id="vital-extra-heading" class="vital-extra-heading" data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</h4>
-                    <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Podés pegar varios separados por coma o por línea.</p>
-                    <div class="vital-extra-form">
-                        <label class="vital-extra-field vital-extra-field-wide">
-                            <span data-i18n="admin.vitalExtraSteam">SteamID64 (uno o varios)</span>
-                            <textarea id="vital-extra-steam" class="admin-input vital-extra-textarea" rows="4" placeholder="76561198…&#10;76561199…, 76561200…" autocomplete="off" spellcheck="false"></textarea>
-                        </label>
-                        <label class="vital-extra-field">
-                            <span data-i18n="admin.vitalExtraLabel">Nota (opcional)</span>
-                            <input type="text" id="vital-extra-label" class="admin-input" placeholder="Ej. trial, recruit" maxlength="120">
-                        </label>
-                        <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
-                    </div>
-                    <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
-                    <ul id="vital-extra-list" class="vital-extra-list"></ul>
-                    <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
-                </section>
                 <div class="vital-controls">
                     <label><span data-i18n="admin.vitalServer">Servidor</span>
                         <select id="vital-server-select"></select>
@@ -321,6 +303,7 @@
                             <option value="killsT30" data-i18n="admin.vitalKillsT30">Kills T30</option>
                             <option value="deaths" data-i18n="admin.vitalDeaths">Deaths</option>
                             <option value="farmSulfur" data-i18n="admin.vitalFarmSulfur">Azufre</option>
+                            <option value="farmMetal" data-i18n="admin.vitalFarmMetal">Metal</option>
                             <option value="farmHqMetal" data-i18n="admin.vitalFarmHq">HQ metal</option>
                             <option value="farmWood" data-i18n="admin.vitalFarmWood">Madera</option>
                             <option value="rocketsFired" data-i18n="admin.vitalRockets">Rockets</option>
@@ -341,6 +324,24 @@
                 <details class="admin-collapse" style="margin-top:14px;">
                     <summary data-i18n="admin.vitalNotFoundToggle">Jugadores del roster sin datos en Vital</summary>
                     <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
+                </details>
+                <details class="vital-extra-panel admin-collapse" id="vital-extra-panel" style="margin-top:14px;">
+                    <summary id="vital-extra-heading" class="vital-extra-heading" data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</summary>
+                    <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Podés pegar varios separados por coma o por línea.</p>
+                    <div class="vital-extra-form">
+                        <label class="vital-extra-field vital-extra-field-wide">
+                            <span data-i18n="admin.vitalExtraSteam">SteamID64 (uno o varios)</span>
+                            <textarea id="vital-extra-steam" class="admin-input vital-extra-textarea" rows="4" placeholder="76561198…&#10;76561199…, 76561200…" autocomplete="off" spellcheck="false"></textarea>
+                        </label>
+                        <label class="vital-extra-field">
+                            <span data-i18n="admin.vitalExtraLabel">Nota (opcional)</span>
+                            <input type="text" id="vital-extra-label" class="admin-input" placeholder="Ej. trial, recruit" maxlength="120">
+                        </label>
+                        <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
+                    </div>
+                    <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
+                    <ul id="vital-extra-list" class="vital-extra-list"></ul>
+                    <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
                 </details>
             </div>
         </div>
@@ -391,7 +392,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=35"></script>
+<script src="mcv-i18n.js?v=36"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1562,6 +1563,7 @@
             html += '</div></section>';
             html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupFarm', 'Farming')) + '</h5><div class="vital-stat-group-grid">';
             html += vitalStatCard(vitalLabel('admin.vitalFarmSulfur', 'Azufre'), vitalFmtNum(p.farmSulfur), hi === 'farmSulfur');
+            html += vitalStatCard(vitalLabel('admin.vitalFarmMetal', 'Metal'), vitalFmtNum(p.farmMetal), hi === 'farmMetal');
             html += vitalStatCard(vitalLabel('admin.vitalFarmHq', 'HQ metal'), vitalFmtNum(p.farmHqMetal), hi === 'farmHqMetal');
             html += vitalStatCard(vitalLabel('admin.vitalFarmWood', 'Madera'), vitalFmtNum(p.farmWood), hi === 'farmWood');
             html += '</div></section>';
@@ -1921,7 +1923,7 @@
         if (btnExport) {
             btnExport.addEventListener('click', function () {
                 if (!vitalClanRows.length) return;
-                var h = ['name', 'steamId64', 'kdr', 'kills', 'deaths', 'killsT30', 'rocketsFired', 'farmSulfur', 'farmHqMetal', 'farmWood', 'scrapLooted', 'scrapRecycled'];
+                var h = ['name', 'steamId64', 'kdr', 'kills', 'deaths', 'killsT30', 'rocketsFired', 'farmSulfur', 'farmMetal', 'farmHqMetal', 'farmWood', 'scrapLooted', 'scrapRecycled'];
                 var rows = vitalClanRows.map(function (p) {
                     return h.map(function (k) { return '"' + String(p[k] != null ? p[k] : '').replace(/"/g, '""') + '"'; }).join(',');
                 });

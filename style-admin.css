@@ -438,21 +438,21 @@
     margin: 0 0 12px;
 }
 .vital-extra-panel {
-    margin: 0 0 18px;
+    margin: 0;
     padding: 14px 16px;
     border: 1px solid var(--primary);
     border-radius: 10px;
     background: rgba(250, 166, 26, 0.06);
 }
 .vital-extra-heading {
-    margin: 0 0 8px;
+    margin: 0;
     font-family: "Bebas Neue", sans-serif;
     font-size: 1.2rem;
     font-weight: 400;
     letter-spacing: 0.05em;
     color: var(--primary);
 }
-.vital-extra-form {
+details.vital-extra-panel .vital-extra-form {
     display: flex;
     flex-wrap: wrap;
     gap: 10px 14px;
@@ -486,11 +486,11 @@
     resize: vertical;
     line-height: 1.45;
 }
-.vital-extra-count {
+details.vital-extra-panel .vital-extra-count {
     margin: 0 0 8px;
     color: var(--primary);
 }
-.vital-extra-list {
+details.vital-extra-panel .vital-extra-list {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -1776,3 +1776,34 @@
     box-sizing: border-box;
 }
 
+
+
+details.vital-extra-panel > summary {
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    padding: 2px 0;
+}
+
+details.vital-extra-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.vital-extra-panel > summary::after {
+    content: "▾";
+    float: right;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+details.vital-extra-panel:not([open]) > summary::after {
+    content: "▸";
+}
+
+details.vital-extra-panel[open] {
+    margin-top: 14px;
+}
+
+details.vital-extra-panel > :not(summary) {
+    margin-top: 10px;
+}

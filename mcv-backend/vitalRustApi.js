@@ -316,6 +316,7 @@ function normalizePlayer(row) {
         kdr,
         rocketsFired: num(raiding.rockets ?? row.rocketsFired ?? row.rockets_fired ?? row.rockets),
         farmSulfur: farmGathered(gathered, ["sulfur.ore", "sulfur"]),
+        farmMetal: farmGathered(gathered, ["metal.ore", "metal"]),
         farmHqMetal: farmGathered(gathered, ["hq.metal.ore", "hq.metal"]),
         farmWood: farmGathered(gathered, ["wood"]),
         scrapLooted: scrapLooted(farming),
