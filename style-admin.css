@@ -2613,3 +2613,361 @@ details.vital-extra-panel[open] {
 details.vital-extra-panel > :not(summary) {
     margin-top: 10px;
 }
+
+/* —— Vital Info: split member list + detail panel —— */
+.vital-pro-panel .data-area {
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+.vital-app-shell {
+    display: grid;
+    grid-template-columns: 168px minmax(0, 1fr);
+    gap: 0;
+    min-height: min(78vh, 820px);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #0b0f14;
+}
+.vital-sidebar--compact {
+    padding: 12px 10px;
+    background: rgba(8, 12, 18, 0.95);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    padding: 4px 6px 12px;
+    gap: 8px;
+    border-bottom: none;
+}
+.vital-sidebar--compact .vital-sidebar-brand strong {
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+}
+.vital-nav-item {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+}
+.vital-nav-item.active {
+    background: rgba(255, 122, 0, 0.12);
+    color: #ffb366;
+    box-shadow: none;
+}
+.vital-app-main {
+    padding: 14px 16px;
+    min-width: 0;
+}
+.vital-split {
+    display: grid;
+    grid-template-columns: minmax(280px, 35%) minmax(0, 65%);
+    gap: 12px;
+    min-height: min(72vh, 760px);
+}
+.vital-member-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-radius: 12px;
+    background: rgba(17, 24, 39, 0.45);
+    overflow: hidden;
+}
+.vital-member-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+}
+.vital-input-compact {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(11, 15, 20, 0.8);
+    color: #e5e7eb;
+    min-width: 0;
+}
+.vital-input-compact:focus {
+    outline: none;
+    border-color: rgba(255, 122, 0, 0.45);
+    box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.12);
+}
+#vital-info-search {
+    flex: 1 1 120px;
+}
+.vital-quick-inline {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.vital-qchip {
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 7px;
+    border: none;
+    background: rgba(255, 255, 255, 0.04);
+    color: #9ca3af;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.vital-qchip.is-active {
+    background: rgba(255, 122, 0, 0.16);
+    color: #ffbf80;
+}
+.vital-icon-only {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    color: #d1d5db;
+    cursor: pointer;
+}
+.vital-member-list {
+    flex: 1;
+    overflow: auto;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.vital-member-row {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.vital-member-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.vital-member-row.is-active {
+    background: rgba(255, 122, 0, 0.1);
+}
+.vital-member-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3f4f6;
+}
+.vital-member-name {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #f9fafb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-member-sub {
+    display: block;
+    font-size: 0.68rem;
+    color: #9ca3af;
+}
+.member-status {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #d1d5db;
+}
+.member-status--mcv_active { color: #c4b5fd; background: rgba(139, 92, 246, 0.15); }
+.member-status--admin { color: #86efac; background: rgba(34, 197, 94, 0.12); }
+.member-status--mcv_strikes { color: #fca5a5; background: rgba(239, 68, 68, 0.12); }
+.vital-detail-panel {
+    min-height: 0;
+    border-radius: 12px;
+    background: rgba(17, 24, 39, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.vital-detail-empty {
+    flex: 1;
+    display: grid;
+    place-content: center;
+    text-align: center;
+    color: #9ca3af;
+    padding: 24px;
+}
+.vital-detail-empty-hint {
+    display: block;
+    font-size: 0.78rem;
+    margin-top: 6px;
+    opacity: 0.7;
+}
+.vital-detail-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+.vital-detail-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.vital-detail-head {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.vital-detail-head h4 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+.vital-detail-steam {
+    margin: 2px 0 8px;
+    font-size: 0.72rem;
+    color: #9ca3af;
+    font-family: "JetBrains Mono", monospace;
+}
+.vital-detail-head-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: #cbd5e1;
+}
+.vital-detail-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.vital-dtab {
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    color: #9ca3af;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+.vital-dtab.active {
+    color: #f3f4f6;
+    border-bottom-color: #ff7a00;
+}
+.vital-detail-body {
+    flex: 1;
+    overflow: auto;
+    padding: 14px 16px;
+}
+.vital-detail-pane {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px 12px;
+    align-content: start;
+}
+.vital-detail-pane.active {
+    display: grid;
+}
+.vital-detail-pane[data-detail-pane="strikes"],
+.vital-detail-pane[data-detail-pane="notes"],
+.vital-detail-pane[data-detail-pane="logs"] {
+    grid-template-columns: 1fr;
+}
+.vital-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.vital-field span {
+    font-size: 0.68rem;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.vital-field .admin-input {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(11, 15, 20, 0.65);
+}
+.vital-field-check {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+.vital-field-check span {
+    text-transform: none;
+    font-size: 0.8rem;
+}
+.vital-detail-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(8, 12, 18, 0.5);
+}
+.btn-ghost-danger {
+    margin-right: auto;
+    background: transparent;
+    border: none;
+    color: #f87171;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+}
+.vital-page-simple {
+    max-width: 720px;
+}
+.vital-activity-log--compact .vital-log-item {
+    grid-template-columns: 52px 1fr;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+@media (max-width: 1100px) {
+    .vital-split {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+    .vital-member-panel {
+        max-height: 280px;
+    }
+}
+@media (max-width: 800px) {
+    .vital-app-shell {
+        grid-template-columns: 1fr;
+    }
+    .vital-sidebar--compact {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .vital-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
