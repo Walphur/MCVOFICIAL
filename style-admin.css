@@ -744,11 +744,12 @@ details.vital-extra-panel .vital-extra-list {
     color: #fff6ef;
 }
 .vital-pro-panel {
-    background: linear-gradient(180deg, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.55));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(20, 28, 43, 0.62), rgba(16, 22, 36, 0.58));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
     padding: 16px;
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.03);
+    backdrop-filter: blur(5px);
 }
 .vital-pro-panel .admin-form-title {
     font-family: "Rajdhani", "Inter", sans-serif;
@@ -783,18 +784,34 @@ details.vital-extra-panel .vital-extra-list {
 }
 .vital-info-toolbar {
     top: 74px;
-    background: rgba(17, 24, 39, 0.75);
+    background: rgba(18, 25, 40, 0.72);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.vital-info-form {
+    gap: 12px;
+}
+.vital-info-form-grid {
+    display: grid;
+    gap: 12px;
+}
+.vital-info-block {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.62), rgba(17, 24, 39, 0.42));
+    border-radius: 16px;
+    padding: 13px;
 }
 .vital-info-grid {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
 }
 .vital-pro-panel .admin-input,
 .vital-pro-panel select.admin-input,
 .vital-pro-panel input.admin-input {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(31, 41, 55, 0.68);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(39, 51, 70, 0.45);
     color: #f9fafb;
     min-height: 40px;
+    border-radius: 12px;
 }
 .vital-pro-panel .admin-input::placeholder {
     color: #9ca3af;
@@ -811,10 +828,11 @@ details.vital-extra-panel .vital-extra-list {
 .btn-primary-small:hover {
     filter: brightness(1.04);
     transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(255,122,0,0.25);
 }
 .btn-outline {
     background: rgba(17, 24, 39, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.09);
 }
 .btn-outline:hover {
     background: #1f2937;
@@ -845,16 +863,107 @@ details.vital-extra-panel .vital-extra-list {
 }
 .vital-info-table {
     border-radius: 12px;
+    border: none;
 }
 .vital-info-table thead th {
-    background: #111827;
+    background: rgba(20, 28, 43, 0.88);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 .vital-info-table tbody td {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: none;
 }
 .vital-info-table tbody tr:hover {
     background: rgba(31, 41, 55, 0.52) !important;
+}
+.vital-info-table tbody tr {
+    transition: background .16s ease, transform .12s ease;
+}
+.vital-info-table tbody tr + tr td {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.vital-player-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vital-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(255,122,0,0.3), rgba(255,122,0,0.1));
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.vital-icon-btn {
+    width: 30px;
+    min-height: 30px !important;
+    height: 30px;
+    border-radius: 9px !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.vital-wipe-badge,
+.vital-strike-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+.wipe-inicio { background: rgba(34,197,94,0.2); color: #9ef7b9; }
+.wipe-late { background: rgba(96,165,250,0.2); color: #b9dbff; }
+.wipe-no-juega { background: rgba(156,163,175,0.22); color: #e5e7eb; }
+.wipe-unknown { background: rgba(255,255,255,0.14); color: #f3f4f6; }
+.strike-none { background: rgba(255,255,255,0.12); color: #d1d5db; }
+.strike-low { background: rgba(245,158,11,0.2); color: #fcd78a; }
+.strike-high { background: rgba(239,68,68,0.24); color: #ffb4b4; }
+.vital-table-shell {
+    margin-top: 12px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(17,24,39,.63), rgba(17,24,39,.46));
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 12px;
+}
+.vital-table-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.vital-table-header h4 {
+    margin: 0;
+    font-family: "Rajdhani", "Inter", sans-serif;
+    font-size: 1.05rem;
+}
+.vital-table-header p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.78rem;
+}
+.vital-table-skeleton {
+    display: grid;
+    gap: 8px;
+}
+.vital-table-skeleton .sk-row {
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    background-size: 300% 100%;
+    animation: vitalShimmer 1.2s infinite linear;
+}
+@keyframes vitalShimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
 }
 .vital-summary-list {
     display: grid;
@@ -918,6 +1027,20 @@ details.vital-extra-panel .vital-extra-list {
     }
     .vital-info-toolbar {
         position: static;
+    }
+}
+@media (min-width: 1100px) {
+    .vital-info-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .vital-info-block--identity { grid-column: 1; }
+    .vital-info-block--status { grid-column: 2; }
+    .vital-info-block--tracking { grid-column: 1 / -1; }
+    .vital-info-actions {
+        position: sticky;
+        bottom: 10px;
+        z-index: 3;
+        justify-content: flex-end;
     }
 }
 .vital-player-badge {
