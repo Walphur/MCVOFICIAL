@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=8">
-    <meta name="mcv-admin-build" content="2026-05-27-vital-extra">
+    <link rel="stylesheet" href="style-admin.css?v=9">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-extra-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -282,20 +282,9 @@
                 <h3 class="admin-form-title" data-i18n="admin.vitalTitle">Estadísticas Vital Rust (clan)</h3>
                 <p class="admin-form-hint admin-readable" data-i18n-html="admin.vitalIntro"></p>
                 <p id="vital-config-banner" class="admin-form-hint" hidden></p>
-                <div class="vital-controls">
-                    <label><span data-i18n="admin.vitalServer">Servidor</span>
-                        <select id="vital-server-select"></select>
-                    </label>
-                    <label><span data-i18n="admin.vitalWipe">Wipe</span>
-                        <select id="vital-wipe-select">
-                            <option value="null" data-i18n="admin.vitalScopeTotal">Total</option>
-                        </select>
-                    </label>
-                    <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
-                    <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
-                </div>
-                <details class="admin-collapse vital-extra-panel" id="vital-extra-panel">
-                    <summary data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</summary>
+                <p id="vital-build-line" class="admin-form-hint vital-build-line" aria-live="polite"></p>
+                <section class="vital-extra-panel" id="vital-extra-panel" aria-labelledby="vital-extra-heading">
+                    <h4 id="vital-extra-heading" class="vital-extra-heading" data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</h4>
                     <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Podés pegar varios separados por coma o por línea.</p>
                     <div class="vital-extra-form">
                         <label class="vital-extra-field">
@@ -309,7 +298,20 @@
                         <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
                     </div>
                     <ul id="vital-extra-list" class="vital-extra-list"></ul>
-                </details>
+                    <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
+                </section>
+                <div class="vital-controls">
+                    <label><span data-i18n="admin.vitalServer">Servidor</span>
+                        <select id="vital-server-select"></select>
+                    </label>
+                    <label><span data-i18n="admin.vitalWipe">Wipe</span>
+                        <select id="vital-wipe-select">
+                            <option value="null" data-i18n="admin.vitalScopeTotal">Total</option>
+                        </select>
+                    </label>
+                    <button type="button" class="btn-primary-small" id="btn-vital-refresh" data-i18n="admin.vitalLoad">Cargar stats del clan</button>
+                    <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
+                </div>
                 <p id="vital-roster-meta" class="admin-form-hint"></p>
                 <div id="vital-clan-players" class="vital-players-list"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
                 <details class="admin-collapse" style="margin-top:14px;">
@@ -365,7 +367,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=31"></script>
+<script src="mcv-i18n.js?v=32"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1633,7 +1635,17 @@
         });
     }
 
+    function setVitalBuildLine() {
+        var el = document.getElementById('vital-build-line');
+        if (!el) return;
+        var meta = document.querySelector('meta[name="mcv-admin-build"]');
+        var build = meta ? meta.getAttribute('content') : '?';
+        el.textContent = 'Build admin: ' + build;
+    }
+
     function loadVitalExtraPlayers() {
+        var deployHint = document.getElementById('vital-extra-deploy-hint');
+        if (deployHint) deployHint.hidden = true;
         return fetch(API + '/api/admin/vital/extra-players', { headers: authHeaders() })
             .then(function (r) {
                 if (r.status === 401) {
@@ -1641,14 +1653,26 @@
                     window.location.href = 'login.html?expired=1';
                     return Promise.reject();
                 }
-                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+                if (r.status === 404) {
+                    var err = new Error('deploy');
+                    err.status = 404;
+                    throw err;
+                }
+                return r.json().then(function (d) { return { ok: r.ok, status: r.status, d: d }; });
             })
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'extra');
                 renderVitalExtraList(x.d.players || []);
             })
-            .catch(function () {
+            .catch(function (e) {
                 renderVitalExtraList([]);
+                if (e && e.status === 404 && deployHint) {
+                    deployHint.textContent = vitalLabel(
+                        'admin.vitalExtraDeployPending',
+                        'El servidor aún no tiene esta función (deploy pendiente en Render). Cuando esté listo, acá listás los SteamID extra.'
+                    );
+                    deployHint.hidden = false;
+                }
             });
     }
 
@@ -1683,6 +1707,8 @@
     }
 
     function initVitalPanel() {
+        setVitalBuildLine();
+        loadVitalExtraPlayers().catch(function () {});
         var btnRefresh = document.getElementById('btn-vital-refresh');
         var btnExport = document.getElementById('btn-vital-export');
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
