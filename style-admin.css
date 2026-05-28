@@ -2858,6 +2858,16 @@ details.vital-extra-panel > :not(summary) {
     overflow: hidden;
     box-shadow: inset 10px 0 18px -16px rgba(0, 0, 0, 0.5);
 }
+.vital-detail-empty[hidden],
+.vital-detail-content[hidden] {
+    display: none !important;
+}
+.vital-detail-panel.has-selection .vital-detail-empty {
+    display: none !important;
+}
+.vital-detail-panel:not(.has-selection) .vital-detail-content {
+    display: none !important;
+}
 .vital-detail-empty {
     flex: 1;
     display: flex;

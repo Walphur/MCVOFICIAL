@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=26">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-workspace-v1">
+    <link rel="stylesheet" href="style-admin.css?v=27">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-detail-selection-fix">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -2048,6 +2048,39 @@
         return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
     }
 
+    function normalizeVitalSteamLocal(id) {
+        var digits = String(id == null ? '' : id).replace(/\D/g, '');
+        return /^\d{17}$/.test(digits) ? digits : String(id == null ? '' : id).trim();
+    }
+
+    function findVitalRow(steamId) {
+        var norm = normalizeVitalSteamLocal(steamId);
+        if (!norm) return null;
+        return (vitalInfoRows || []).find(function (r) {
+            return normalizeVitalSteamLocal(r.steamId64) === norm;
+        }) || null;
+    }
+
+    function setDetailPanelVisible(show) {
+        var empty = document.getElementById('vital-detail-empty');
+        var content = document.getElementById('vital-detail-content');
+        var panel = document.querySelector('.vital-detail-panel.vital-detail-workspace');
+        if (!empty || !content) return;
+        if (show) {
+            empty.hidden = true;
+            empty.setAttribute('hidden', '');
+            content.hidden = false;
+            content.removeAttribute('hidden');
+            if (panel) panel.classList.add('has-selection');
+        } else {
+            content.hidden = true;
+            content.setAttribute('hidden', '');
+            empty.hidden = false;
+            empty.removeAttribute('hidden');
+            if (panel) panel.classList.remove('has-selection');
+        }
+    }
+
     function addVitalInfoLog(message, level) {
         var ts = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         vitalInfoLogs.unshift({
@@ -2073,28 +2106,19 @@
 
     function renderVitalPlayerSummary() {
         var box = document.getElementById('vital-player-summary');
-        var empty = document.getElementById('vital-detail-empty');
-        var content = document.getElementById('vital-detail-content');
         var steamField = document.getElementById('vital-field-steam');
-        if (!box || !empty || !content) return;
-        if (!vitalSelectedSteam && !vitalIsNewPlayer) {
-            empty.hidden = false;
-            content.hidden = true;
+        if (!box) return;
+        var hasSelection = !!(vitalSelectedSteam || vitalIsNewPlayer);
+        setDetailPanelVisible(hasSelection);
+        if (!hasSelection) {
             box.innerHTML = '';
             return;
         }
-        empty.hidden = true;
-        content.hidden = false;
         if (steamField) steamField.style.display = vitalIsNewPlayer ? '' : 'none';
-        var selected = vitalIsNewPlayer
-            ? null
-            : (vitalInfoRows || []).find(function (r) { return r.steamId64 === vitalSelectedSteam; });
-        if (!selected && !vitalIsNewPlayer) {
-            empty.hidden = false;
-            content.hidden = true;
-            return;
-        }
-        var name = selected ? (selected.displayName || 'Jugador') : 'Nuevo jugador';
+        var selected = vitalIsNewPlayer ? null : findVitalRow(vitalSelectedSteam);
+        var name = selected
+            ? (selected.displayName || 'Jugador')
+            : (vitalIsNewPlayer ? 'Nuevo jugador' : String((document.getElementById('vital-info-name') || {}).value || '').trim() || 'Jugador');
         var steam = selected ? selected.steamId64 : String((document.getElementById('vital-info-steam') || {}).value || '');
         var initial = String(name).trim().charAt(0).toUpperCase() || '?';
         var wipe = selected ? String(selected.wipePhase || 'unknown').replace('_', ' ') : '—';
@@ -2155,14 +2179,24 @@
     function selectVitalPlayer(steamId, opts) {
         opts = opts || {};
         vitalIsNewPlayer = !!opts.isNew;
-        vitalSelectedSteam = vitalIsNewPlayer ? '' : String(steamId || '');
+        vitalSelectedSteam = vitalIsNewPlayer ? '' : (normalizeVitalSteamLocal(steamId) || String(steamId || '').trim());
         if (vitalIsNewPlayer) {
             fillVitalInfoForm({
                 steamId64: '', displayName: '', statusTag: 'wipe_guest', wipePhase: 'unknown', strikes: 0
             });
         } else {
-            var row = (vitalInfoRows || []).find(function (x) { return x.steamId64 === vitalSelectedSteam; });
-            if (row) fillVitalInfoForm(row);
+            var row = findVitalRow(vitalSelectedSteam);
+            if (row) {
+                fillVitalInfoForm(row);
+            } else if (vitalSelectedSteam) {
+                fillVitalInfoForm({
+                    steamId64: vitalSelectedSteam,
+                    displayName: '',
+                    statusTag: 'wipe_guest',
+                    wipePhase: 'unknown',
+                    strikes: 0
+                });
+            }
         }
         renderVitalPlayerSummary();
         renderVitalInfoList();
@@ -2322,7 +2356,7 @@
             return;
         }
         box.innerHTML = rows.map(function (r) {
-            var active = r.steamId64 === vitalSelectedSteam ? ' is-active' : '';
+            var active = normalizeVitalSteamLocal(r.steamId64) === normalizeVitalSteamLocal(vitalSelectedSteam) ? ' is-active' : '';
             var initial = String(r.displayName || '?').trim().charAt(0).toUpperCase() || '?';
             var wipe = String(r.wipePhase || '?').replace('_', ' ');
             var strikes = Number(r.strikes || 0);
@@ -2334,11 +2368,6 @@
                 '</span>' +
                 '</button>';
         }).join('');
-        box.querySelectorAll('.vital-member-row').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                selectVitalPlayer(btn.getAttribute('data-steam'));
-            });
-        });
     }
 
     function loadVitalInfoMap() {
@@ -2587,6 +2616,16 @@
         if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
         if (infoFilter) infoFilter.addEventListener('change', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (infoRoleFilter) infoRoleFilter.addEventListener('change', renderVitalInfoList);
+        var infoList = document.getElementById('vital-info-list');
+        if (infoList && !infoList.dataset.delegateBound) {
+            infoList.dataset.delegateBound = '1';
+            infoList.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('.vital-member-row') : null;
+                if (!btn) return;
+                var steam = btn.getAttribute('data-steam');
+                if (steam != null && steam !== '') selectVitalPlayer(steam);
+            });
+        }
         loadVitalPlayerInfo().catch(function () {});
         if (btnRefresh) {
             btnRefresh.addEventListener('click', function () {
