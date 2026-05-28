@@ -11,10 +11,10 @@
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=20">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-player-pick-v1">
+    <link rel="stylesheet" href="style-admin.css?v=21">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-saas-premium-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -348,9 +348,21 @@
         </div>
 
         <div id="vital-info-panel" class="admin-panel-anchor" style="display:none;">
-            <div class="data-area">
+            <div class="data-area vital-pro-panel">
                 <h3 class="admin-form-title" data-i18n="admin.vitalInfoTitle">Info jugadores (BM / strikes / wipe)</h3>
                 <p class="admin-form-hint admin-readable" data-i18n="admin.vitalInfoHint">Panel interno para seguimiento del equipo: color de estado, strikes (0-3), rol, entrada, vouch, horas/aportación y notas.</p>
+                <div class="vital-subtabs" id="vital-subtabs">
+                    <button type="button" class="vital-subtab active" data-vital-subtab="overview">Overview</button>
+                    <button type="button" class="vital-subtab" data-vital-subtab="jugadores">Jugadores</button>
+                    <button type="button" class="vital-subtab" data-vital-subtab="wipe">Wipe Status</button>
+                    <button type="button" class="vital-subtab" data-vital-subtab="strikes">Strikes</button>
+                    <button type="button" class="vital-subtab" data-vital-subtab="importacion">Importación</button>
+                    <button type="button" class="vital-subtab" data-vital-subtab="logs">Logs</button>
+                </div>
+                <section class="vital-subpanel" data-vital-section="overview" style="display:block;">
+                    <div id="vital-info-overview-cards" class="vital-overview-cards"></div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="jugadores" style="display:none;">
                 <div class="vital-info-toolbar">
                     <label><span data-i18n="admin.vitalInfoFilter">Filtrar por estado</span>
                         <select id="vital-info-filter">
@@ -437,7 +449,16 @@
                         <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar / actualizar</button>
                     </div>
                 </div>
-                <details class="admin-collapse">
+                <div id="vital-info-list"><p class="empty-hint">Sin datos.</p></div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="wipe" style="display:none;">
+                    <div id="vital-info-wipe-summary" class="vital-summary-list"></div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="strikes" style="display:none;">
+                    <div id="vital-info-strikes-list" class="vital-summary-list"></div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
+                <details class="admin-collapse" open>
                     <summary>Importación masiva</summary>
                     <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, NOTAS, ENTRADA, VOUCH, color/estado, wipe, horas, aportación, mt team).</p>
                     <textarea id="vital-info-import-text" class="admin-input vital-extra-textarea" rows="8" placeholder="NOMBRE\tSTEAM ID\tBM\tROL\tSTRIKES..."></textarea>
@@ -445,7 +466,12 @@
                         <button type="button" class="btn-primary-small" id="btn-vital-info-import">Importar</button>
                     </div>
                 </details>
-                <div id="vital-info-list"><p class="empty-hint">Sin datos.</p></div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="logs" style="display:none;">
+                    <ul id="vital-info-activity-log" class="vital-activity-log">
+                        <li class="vital-log-empty">Sin actividad todavía.</li>
+                    </ul>
+                </section>
             </div>
         </div>
 
@@ -2013,9 +2039,91 @@
     }
 
     var vitalInfoRows = [];
+    var vitalInfoLogs = [];
+    var vitalInfoSubtab = 'overview';
 
     function escAttr(s) {
         return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
+    }
+
+    function addVitalInfoLog(message, level) {
+        var ts = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        vitalInfoLogs.unshift({
+            at: ts,
+            level: level || 'info',
+            message: String(message || '').trim()
+        });
+        if (vitalInfoLogs.length > 120) vitalInfoLogs = vitalInfoLogs.slice(0, 120);
+        renderVitalInfoLogs();
+    }
+
+    function renderVitalInfoLogs() {
+        var box = document.getElementById('vital-info-activity-log');
+        if (!box) return;
+        if (!vitalInfoLogs.length) {
+            box.innerHTML = '<li class="vital-log-empty">Sin actividad todavía.</li>';
+            return;
+        }
+        box.innerHTML = vitalInfoLogs.map(function (l) {
+            return '<li class="vital-log-item vital-log-' + escAttr(l.level) + '"><span class="vital-log-time">' + esc(l.at) + '</span><span class="vital-log-msg">' + esc(l.message) + '</span></li>';
+        }).join('');
+    }
+
+    function renderVitalInfoOverview() {
+        var box = document.getElementById('vital-info-overview-cards');
+        if (!box) return;
+        var rows = vitalInfoRows || [];
+        var total = rows.length;
+        var active = rows.filter(function (r) { return r.statusTag === 'mcv_active'; }).length;
+        var paused = rows.filter(function (r) { return !!r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length;
+        var strikes = rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length;
+        var hours = rows.reduce(function (acc, r) { return acc + (Number(r.hoursPlayed) || 0); }, 0);
+        box.innerHTML = [
+            ['Jugadores', total],
+            ['Activos', active],
+            ['Pausados', paused],
+            ['Con strikes', strikes],
+            ['Horas acumuladas', hours]
+        ].map(function (card) {
+            return '<article class="vital-overview-card"><p>' + esc(card[0]) + '</p><strong>' + esc(card[1]) + '</strong></article>';
+        }).join('');
+    }
+
+    function renderVitalWipeSummary() {
+        var box = document.getElementById('vital-info-wipe-summary');
+        if (!box) return;
+        var map = { inicio: 0, late: 0, no_juega: 0, unknown: 0 };
+        (vitalInfoRows || []).forEach(function (r) {
+            var k = String(r.wipePhase || 'unknown');
+            map[k] = (map[k] || 0) + 1;
+        });
+        box.innerHTML = Object.keys(map).map(function (k) {
+            return '<div class="vital-summary-item"><span>' + esc(k.replace('_', ' ')) + '</span><strong>' + esc(map[k]) + '</strong></div>';
+        }).join('');
+    }
+
+    function renderVitalStrikesSummary() {
+        var box = document.getElementById('vital-info-strikes-list');
+        if (!box) return;
+        var rows = (vitalInfoRows || []).filter(function (r) { return Number(r.strikes || 0) > 0; })
+            .sort(function (a, b) { return Number(b.strikes || 0) - Number(a.strikes || 0); });
+        if (!rows.length) {
+            box.innerHTML = '<p class="empty-hint">No hay jugadores con strikes.</p>';
+            return;
+        }
+        box.innerHTML = rows.map(function (r) {
+            return '<div class="vital-summary-item"><span>' + esc(r.displayName || r.steamId64) + '</span><strong>' + esc(r.strikes) + '</strong></div>';
+        }).join('');
+    }
+
+    function setVitalSubtab(tab) {
+        vitalInfoSubtab = tab || 'overview';
+        document.querySelectorAll('[data-vital-section]').forEach(function (el) {
+            el.style.display = el.getAttribute('data-vital-section') === vitalInfoSubtab ? 'block' : 'none';
+        });
+        document.querySelectorAll('.vital-subtab').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-vital-subtab') === vitalInfoSubtab);
+        });
     }
 
     function gatherVitalInfoPayload() {
@@ -2182,6 +2290,7 @@
                     .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
                     .then(function (x) {
                         if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'delete');
+                addVitalInfoLog('Jugador eliminado de info interna.', 'warn');
                         loadVitalPlayerInfo().catch(function () {});
                     })
                     .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
@@ -2204,6 +2313,7 @@
                     .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
                     .then(function (x) {
                         if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'pause');
+                        addVitalInfoLog('Jugador pausado por no wipe.', 'warn');
                         loadVitalPlayerInfo().catch(function () {});
                     })
                     .catch(function (e) { banner((e && e.message) ? e.message : 'Error pausando jugador', true); });
@@ -2246,6 +2356,9 @@
                 vitalInfoRows = x.d.profiles || [];
                 refreshInfoFilterOptions();
                 refreshPlayerPickOptions();
+                renderVitalInfoOverview();
+                renderVitalWipeSummary();
+                renderVitalStrikesSummary();
                 renderVitalInfoList();
             })
             .catch(function (e) {
@@ -2266,6 +2379,7 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'save');
                 banner('Info jugador guardada.', false);
+                addVitalInfoLog('Perfil guardado/actualizado.', 'ok');
                 loadVitalPlayerInfo().catch(function () {});
             })
             .catch(function (e) {
@@ -2304,6 +2418,7 @@
                 var el = document.getElementById('vital-info-hours');
                 if (el) el.value = String(x.d.hoursPlayed || '');
                 banner('Horas actualizadas desde BM: ' + String(x.d.hoursPlayed || 0), false);
+                addVitalInfoLog('Horas sincronizadas desde BattleMetrics.', 'ok');
             })
             .catch(function (e) {
                 banner((e && e.message) ? e.message : 'No se pudieron traer horas desde BM', true);
@@ -2326,6 +2441,7 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'import');
                 banner('Importación OK: ' + String(x.d.imported || 0) + ' filas.', false);
+                addVitalInfoLog('Importación masiva completada: ' + String(x.d.imported || 0) + ' filas.', 'ok');
                 if (txt) txt.value = '';
                 loadVitalPlayerInfo().catch(function () {});
             })
@@ -2355,6 +2471,7 @@
         var btnInfoImport = document.getElementById('btn-vital-info-import');
         var rolePresets = document.getElementById('vital-role-presets');
         var playerPick = document.getElementById('vital-info-player-pick');
+        var vitalSubtabs = document.getElementById('vital-subtabs');
         var infoSearch = document.getElementById('vital-info-search');
         var infoFilter = document.getElementById('vital-info-filter');
         var infoRoleFilter = document.getElementById('vital-info-role-filter');
@@ -2392,6 +2509,15 @@
                 fillVitalInfoForm(row);
             });
         }
+        if (vitalSubtabs) {
+            vitalSubtabs.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vital-subtab]') : null;
+                if (!btn) return;
+                setVitalSubtab(btn.getAttribute('data-vital-subtab'));
+            });
+        }
+        setVitalSubtab(vitalInfoSubtab);
+        renderVitalInfoLogs();
         if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
         if (infoFilter) infoFilter.addEventListener('change', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (infoRoleFilter) infoRoleFilter.addEventListener('change', renderVitalInfoList);
