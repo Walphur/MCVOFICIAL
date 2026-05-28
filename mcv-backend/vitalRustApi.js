@@ -26,6 +26,29 @@ const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-mo
 
 const cache = new Map();
 let lastUpstreamAt = 0;
+const PLAYER_INFO_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS player_info_profiles (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    display_name VARCHAR(120),
+    bm_url TEXT,
+    status_tag VARCHAR(24) NOT NULL DEFAULT 'wipe_guest'
+        CHECK (status_tag IN ('admin', 'mcv_active', 'mcv_inactive', 'mcv_strikes', 'wipe_guest')),
+    role_label VARCHAR(160),
+    strikes SMALLINT NOT NULL DEFAULT 0 CHECK (strikes >= 0 AND strikes <= 3),
+    strike_notes TEXT,
+    entry_date DATE,
+    vouch_by VARCHAR(120),
+    wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
+        CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
+    hours_played INT,
+    contribution TEXT,
+    warnings TEXT,
+    mt_team BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
+`;
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();
@@ -608,6 +631,51 @@ function parseSteamIdsInput(raw) {
     return out;
 }
 
+function normalizeStatusTag(raw) {
+    const v = String(raw || "").trim().toLowerCase();
+    const allowed = new Set(["admin", "mcv_active", "mcv_inactive", "mcv_strikes", "wipe_guest"]);
+    return allowed.has(v) ? v : "wipe_guest";
+}
+
+function normalizeWipePhase(raw) {
+    const v = String(raw || "").trim().toLowerCase();
+    const allowed = new Set(["inicio", "late", "no_juega", "unknown"]);
+    return allowed.has(v) ? v : "unknown";
+}
+
+async function ensurePlayerInfoTable(pool) {
+    if (!pool) return false;
+    try {
+        await pool.query(PLAYER_INFO_TABLE_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure player_info_profiles:", e.message);
+        return false;
+    }
+}
+
+function normalizePlayerInfoRow(row) {
+    const steamId64 = normalizeSteamId64(row.steam_id64 || row.steamId64 || row.steamId);
+    if (!steamId64) return null;
+    return {
+        steamId64,
+        displayName: String(row.display_name || row.displayName || "").trim(),
+        bmUrl: String(row.bm_url || row.bmUrl || "").trim(),
+        statusTag: normalizeStatusTag(row.status_tag || row.statusTag),
+        roleLabel: String(row.role_label || row.roleLabel || "").trim(),
+        strikes: Math.max(0, Math.min(3, num(row.strikes))),
+        strikeNotes: String(row.strike_notes || row.strikeNotes || "").trim(),
+        entryDate: row.entry_date || row.entryDate || null,
+        vouchBy: String(row.vouch_by || row.vouchBy || "").trim(),
+        wipePhase: normalizeWipePhase(row.wipe_phase || row.wipePhase),
+        hoursPlayed: Number.isFinite(Number(row.hours_played ?? row.hoursPlayed)) ? Number(row.hours_played ?? row.hoursPlayed) : null,
+        contribution: String(row.contribution || "").trim(),
+        warnings: String(row.warnings || "").trim(),
+        mtTeam: Boolean(row.mt_team ?? row.mtTeam),
+        updatedAt: row.updated_at || row.updatedAt || null
+    };
+}
+
 const ENSURE_VITAL_EXTRA_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
     steam_id64 VARCHAR(17) PRIMARY KEY,
@@ -966,6 +1034,125 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("vital extra delete:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo eliminar" });
+        }
+    });
+
+    app.get("/api/admin/vital/player-info", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar la tabla player_info_profiles" });
+        try {
+            const statusTag = String(req.query.status || "").trim();
+            const q = String(req.query.q || "").trim().toLowerCase();
+            const params = [];
+            const where = [];
+            if (statusTag) {
+                params.push(normalizeStatusTag(statusTag));
+                where.push(`status_tag = $${params.length}`);
+            }
+            if (q) {
+                params.push(`%${q}%`);
+                where.push(
+                    `(LOWER(COALESCE(display_name, '')) LIKE $${params.length} OR LOWER(steam_id64) LIKE $${params.length} OR LOWER(COALESCE(vouch_by, '')) LIKE $${params.length})`
+                );
+            }
+            const sql =
+                `SELECT * FROM player_info_profiles` +
+                (where.length ? ` WHERE ${where.join(" AND ")}` : "") +
+                ` ORDER BY updated_at DESC NULLS LAST, created_at DESC`;
+            const r = await pool.query(sql, params);
+            return res.json({ profiles: r.rows.map(normalizePlayerInfoRow).filter(Boolean) });
+        } catch (e) {
+            console.error("player-info list:", e.message);
+            return res.status(500).json({ error: e.message || "Error listando player-info" });
+        }
+    });
+
+    app.post("/api/admin/vital/player-info", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar la tabla player_info_profiles" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const steamId64 = normalizeSteamId64(body.steamId64 || body.steam_id64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const row = normalizePlayerInfoRow({
+            steam_id64: steamId64,
+            display_name: body.displayName,
+            bm_url: body.bmUrl,
+            status_tag: body.statusTag,
+            role_label: body.roleLabel,
+            strikes: body.strikes,
+            strike_notes: body.strikeNotes,
+            entry_date: body.entryDate || null,
+            vouch_by: body.vouchBy,
+            wipe_phase: body.wipePhase,
+            hours_played: body.hoursPlayed,
+            contribution: body.contribution,
+            warnings: body.warnings,
+            mt_team: body.mtTeam
+        });
+        try {
+            const r = await pool.query(
+                `INSERT INTO player_info_profiles (
+                    steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
+                    hours_played, contribution, warnings, mt_team, updated_at
+                 ) VALUES (
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()
+                 )
+                 ON CONFLICT (steam_id64) DO UPDATE SET
+                    display_name = EXCLUDED.display_name,
+                    bm_url = EXCLUDED.bm_url,
+                    status_tag = EXCLUDED.status_tag,
+                    role_label = EXCLUDED.role_label,
+                    strikes = EXCLUDED.strikes,
+                    strike_notes = EXCLUDED.strike_notes,
+                    entry_date = EXCLUDED.entry_date,
+                    vouch_by = EXCLUDED.vouch_by,
+                    wipe_phase = EXCLUDED.wipe_phase,
+                    hours_played = EXCLUDED.hours_played,
+                    contribution = EXCLUDED.contribution,
+                    warnings = EXCLUDED.warnings,
+                    mt_team = EXCLUDED.mt_team,
+                    updated_at = NOW()
+                 RETURNING *`,
+                [
+                    row.steamId64,
+                    row.displayName || null,
+                    row.bmUrl || null,
+                    row.statusTag,
+                    row.roleLabel || null,
+                    row.strikes,
+                    row.strikeNotes || null,
+                    row.entryDate || null,
+                    row.vouchBy || null,
+                    row.wipePhase,
+                    row.hoursPlayed,
+                    row.contribution || null,
+                    row.warnings || null,
+                    row.mtTeam
+                ]
+            );
+            return res.json({ ok: true, profile: normalizePlayerInfoRow(r.rows[0]) });
+        } catch (e) {
+            console.error("player-info upsert:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo guardar player-info" });
+        }
+    });
+
+    app.delete("/api/admin/vital/player-info/:steamId64", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        try {
+            const r = await pool.query(`DELETE FROM player_info_profiles WHERE steam_id64 = $1 RETURNING steam_id64`, [steamId64]);
+            if (!r.rowCount) return res.status(404).json({ error: "No existe ese SteamID en player-info" });
+            return res.json({ ok: true, steamId64 });
+        } catch (e) {
+            console.error("player-info delete:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo eliminar player-info" });
         }
     });
 

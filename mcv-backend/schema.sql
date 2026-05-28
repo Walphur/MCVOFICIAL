@@ -223,6 +223,32 @@ CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
 CREATE INDEX IF NOT EXISTS idx_vital_extra_created ON vital_extra_steam_ids (created_at DESC);
 
 -- split
+-- Info interna de jugadores para staff (BM, strikes, estado wipe, vouch, etc.)
+CREATE TABLE IF NOT EXISTS player_info_profiles (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    display_name VARCHAR(120),
+    bm_url TEXT,
+    status_tag VARCHAR(24) NOT NULL DEFAULT 'wipe_guest'
+        CHECK (status_tag IN ('admin', 'mcv_active', 'mcv_inactive', 'mcv_strikes', 'wipe_guest')),
+    role_label VARCHAR(160),
+    strikes SMALLINT NOT NULL DEFAULT 0 CHECK (strikes >= 0 AND strikes <= 3),
+    strike_notes TEXT,
+    entry_date DATE,
+    vouch_by VARCHAR(120),
+    wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
+        CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
+    hours_played INT,
+    contribution TEXT,
+    warnings TEXT,
+    mt_team BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
+
+-- split
 CREATE TABLE IF NOT EXISTS support_tickets (
     id SERIAL PRIMARY KEY,
     ticket_type VARCHAR(32) NOT NULL

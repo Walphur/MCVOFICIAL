@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=13">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-metal-extra-bottom">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-player-info-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -324,6 +324,54 @@
                 <details class="admin-collapse" style="margin-top:14px;">
                     <summary data-i18n="admin.vitalNotFoundToggle">Jugadores del roster sin datos en Vital</summary>
                     <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
+                </details>
+                <details class="admin-collapse" id="vital-player-info-panel" style="margin-top:14px;" open>
+                    <summary data-i18n="admin.vitalInfoTitle">Info jugadores (BM / strikes / wipe)</summary>
+                    <p class="admin-form-hint admin-readable" data-i18n="admin.vitalInfoHint">Panel interno para seguimiento del equipo: color de estado, strikes (0-3), rol, entrada, vouch, horas/aportación y notas.</p>
+                    <div class="vital-info-toolbar">
+                        <label><span data-i18n="admin.vitalInfoFilter">Filtrar por estado</span>
+                            <select id="vital-info-filter">
+                                <option value="">Todos</option>
+                                <option value="admin">Verde (admin)</option>
+                                <option value="mcv_active">Violeta (MCV)</option>
+                                <option value="mcv_inactive">Negro (MCV no wipe)</option>
+                                <option value="mcv_strikes">Rojo (strikes)</option>
+                                <option value="wipe_guest">Blanco (wipe no MCV)</option>
+                            </select>
+                        </label>
+                        <label><span data-i18n="admin.vitalInfoSearch">Buscar</span>
+                            <input id="vital-info-search" class="admin-input" placeholder="Nombre / Steam / Vouch">
+                        </label>
+                        <button type="button" class="btn-outline" id="btn-vital-info-refresh">Actualizar</button>
+                    </div>
+                    <div class="vital-info-form">
+                        <input id="vital-info-steam" class="admin-input" placeholder="SteamID64" />
+                        <input id="vital-info-name" class="admin-input" placeholder="Nombre" />
+                        <input id="vital-info-bm" class="admin-input" placeholder="BM URL" />
+                        <select id="vital-info-status" class="admin-input">
+                            <option value="wipe_guest">Blanco (wipe no MCV)</option>
+                            <option value="admin">Verde (admin)</option>
+                            <option value="mcv_active">Violeta (MCV)</option>
+                            <option value="mcv_inactive">Negro (MCV no wipe)</option>
+                            <option value="mcv_strikes">Rojo (strikes)</option>
+                        </select>
+                        <input id="vital-info-role" class="admin-input" placeholder="Rol" />
+                        <input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" placeholder="Strikes (0-3)" />
+                        <input id="vital-info-entry" class="admin-input" type="date" />
+                        <input id="vital-info-vouch" class="admin-input" placeholder="Vouch" />
+                        <select id="vital-info-wipe-phase" class="admin-input">
+                            <option value="unknown">Wipe: sin definir</option>
+                            <option value="inicio">Inicio wipe</option>
+                            <option value="late">Late wipe</option>
+                            <option value="no_juega">No juega wipe</option>
+                        </select>
+                        <input id="vital-info-hours" class="admin-input" type="number" min="0" placeholder="Horas jugadas" />
+                        <label class="vital-info-checkbox"><input id="vital-info-mt" type="checkbox" /> MT team</label>
+                        <input id="vital-info-contribution" class="admin-input" placeholder="Aportación" />
+                        <input id="vital-info-warning" class="admin-input" placeholder="Avisos / notas strike" />
+                        <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar / actualizar</button>
+                    </div>
+                    <div id="vital-info-list"><p class="empty-hint">Sin datos.</p></div>
                 </details>
                 <details class="vital-extra-panel admin-collapse" id="vital-extra-panel" style="margin-top:14px;">
                     <summary id="vital-extra-heading" class="vital-extra-heading" data-i18n="admin.vitalExtraTitle">Jugadores extra (no clan aún)</summary>
@@ -1894,6 +1942,163 @@
             });
     }
 
+    var vitalInfoRows = [];
+
+    function escAttr(s) {
+        return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
+    }
+
+    function gatherVitalInfoPayload() {
+        return {
+            steamId64: (document.getElementById('vital-info-steam') || {}).value || '',
+            displayName: (document.getElementById('vital-info-name') || {}).value || '',
+            bmUrl: (document.getElementById('vital-info-bm') || {}).value || '',
+            statusTag: (document.getElementById('vital-info-status') || {}).value || 'wipe_guest',
+            roleLabel: (document.getElementById('vital-info-role') || {}).value || '',
+            strikes: Number((document.getElementById('vital-info-strikes') || {}).value || 0),
+            strikeNotes: (document.getElementById('vital-info-warning') || {}).value || '',
+            entryDate: (document.getElementById('vital-info-entry') || {}).value || null,
+            vouchBy: (document.getElementById('vital-info-vouch') || {}).value || '',
+            wipePhase: (document.getElementById('vital-info-wipe-phase') || {}).value || 'unknown',
+            hoursPlayed: Number((document.getElementById('vital-info-hours') || {}).value || 0),
+            contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
+            warnings: (document.getElementById('vital-info-warning') || {}).value || '',
+            mtTeam: Boolean((document.getElementById('vital-info-mt') || {}).checked)
+        };
+    }
+
+    function fillVitalInfoForm(p) {
+        if (!p) return;
+        var set = function (id, val) { var el = document.getElementById(id); if (el) el.value = val == null ? '' : String(val); };
+        set('vital-info-steam', p.steamId64);
+        set('vital-info-name', p.displayName);
+        set('vital-info-bm', p.bmUrl);
+        set('vital-info-status', p.statusTag);
+        set('vital-info-role', p.roleLabel);
+        set('vital-info-strikes', p.strikes);
+        set('vital-info-entry', p.entryDate ? String(p.entryDate).slice(0, 10) : '');
+        set('vital-info-vouch', p.vouchBy);
+        set('vital-info-wipe-phase', p.wipePhase);
+        set('vital-info-hours', p.hoursPlayed || '');
+        set('vital-info-contribution', p.contribution);
+        set('vital-info-warning', p.warnings || p.strikeNotes || '');
+        var mt = document.getElementById('vital-info-mt');
+        if (mt) mt.checked = !!p.mtTeam;
+    }
+
+    function statusChip(tag) {
+        var map = {
+            admin: 'chip-admin',
+            mcv_active: 'chip-mcv-active',
+            mcv_inactive: 'chip-mcv-inactive',
+            mcv_strikes: 'chip-mcv-strikes',
+            wipe_guest: 'chip-wipe-guest'
+        };
+        return '<span class="vital-status-chip ' + (map[tag] || 'chip-wipe-guest') + '">' + esc(tag || 'wipe_guest') + '</span>';
+    }
+
+    function renderVitalInfoList() {
+        var box = document.getElementById('vital-info-list');
+        if (!box) return;
+        var q = String((document.getElementById('vital-info-search') || {}).value || '').toLowerCase().trim();
+        var st = String((document.getElementById('vital-info-filter') || {}).value || '').trim();
+        var rows = (vitalInfoRows || []).filter(function (r) {
+            if (st && r.statusTag !== st) return false;
+            if (!q) return true;
+            var hay = [r.displayName, r.steamId64, r.vouchBy, r.roleLabel].join(' ').toLowerCase();
+            return hay.indexOf(q) !== -1;
+        });
+        if (!rows.length) {
+            box.innerHTML = '<p class="empty-hint">' + esc(vitalLabel('admin.vitalNoPlayers', 'Sin datos')) + '</p>';
+            return;
+        }
+        var html = '<table class="admin-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Strikes</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
+        rows.forEach(function (r) {
+            html += '<tr>';
+            html += '<td>' + esc(r.displayName || '—') + '</td>';
+            html += '<td class="admin-steam-cell">' + esc(r.steamId64) + '</td>';
+            html += '<td>' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
+            html += '<td>' + statusChip(r.statusTag) + '</td>';
+            html += '<td>' + esc(r.strikes) + '</td>';
+            html += '<td>' + esc(r.roleLabel || '—') + '</td>';
+            html += '<td>' + esc(r.wipePhase || 'unknown') + '</td>';
+            html += '<td>' + esc(r.hoursPlayed != null ? r.hoursPlayed : '—') + '</td>';
+            html += '<td>' + esc(r.vouchBy || '—') + '</td>';
+            html += '<td class="row-actions"><button type="button" class="btn-outline vital-info-edit" data-steam="' + escAttr(r.steamId64) + '">Editar</button> <button type="button" class="btn-outline vital-info-del" data-steam="' + escAttr(r.steamId64) + '">Borrar</button></td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+        box.querySelectorAll('.vital-info-edit').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sid = btn.getAttribute('data-steam');
+                var row = vitalInfoRows.find(function (x) { return x.steamId64 === sid; });
+                fillVitalInfoForm(row);
+            });
+        });
+        box.querySelectorAll('.vital-info-del').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sid = btn.getAttribute('data-steam');
+                if (!sid || !confirm('¿Borrar este jugador de info interna?')) return;
+                fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid), {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'delete');
+                        loadVitalPlayerInfo().catch(function () {});
+                    })
+                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+            });
+        });
+    }
+
+    function loadVitalPlayerInfo() {
+        var filter = String((document.getElementById('vital-info-filter') || {}).value || '');
+        var q = String((document.getElementById('vital-info-search') || {}).value || '');
+        var params = [];
+        if (filter) params.push('status=' + encodeURIComponent(filter));
+        if (q) params.push('q=' + encodeURIComponent(q));
+        var url = API + '/api/admin/vital/player-info' + (params.length ? '?' + params.join('&') : '');
+        return fetch(url, { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) {
+                if (r.status === 401) {
+                    clearAdminSession();
+                    window.location.href = 'login.html?expired=1';
+                    return Promise.reject();
+                }
+                return r.json().then(function (d) { return { ok: r.ok, d: d }; });
+            })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'player-info');
+                vitalInfoRows = x.d.profiles || [];
+                renderVitalInfoList();
+            })
+            .catch(function (e) {
+                var box = document.getElementById('vital-info-list');
+                if (box) box.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : 'Error') + '</p>';
+            });
+    }
+
+    function saveVitalPlayerInfo() {
+        var payload = gatherVitalInfoPayload();
+        fetch(API + '/api/admin/vital/player-info', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify(payload)
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'save');
+                banner('Info jugador guardada.', false);
+                loadVitalPlayerInfo().catch(function () {});
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'Error guardando info', true);
+            });
+    }
+
     function initVitalPanel() {
         try {
             vitalSortKey = sessionStorage.getItem('mcv_vital_sort_key') || vitalSortKey;
@@ -1908,9 +2113,18 @@
         var btnRefresh = document.getElementById('btn-vital-refresh');
         var btnExport = document.getElementById('btn-vital-export');
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
+        var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
+        var btnInfoSave = document.getElementById('btn-vital-info-save');
+        var infoSearch = document.getElementById('vital-info-search');
+        var infoFilter = document.getElementById('vital-info-filter');
         if (btnExtraAdd) {
             btnExtraAdd.addEventListener('click', addVitalExtraPlayers);
         }
+        if (btnInfoRefresh) btnInfoRefresh.addEventListener('click', function () { loadVitalPlayerInfo().catch(function () {}); });
+        if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
+        if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
+        if (infoFilter) infoFilter.addEventListener('change', function () { loadVitalPlayerInfo().catch(function () {}); });
+        loadVitalPlayerInfo().catch(function () {});
         if (btnRefresh) {
             btnRefresh.addEventListener('click', function () {
                 if (!vitalConfigLoaded) {

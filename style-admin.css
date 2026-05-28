@@ -522,6 +522,38 @@ details.vital-extra-panel .vital-extra-list {
     padding: 4px 10px;
     font-size: 0.78rem;
 }
+.vital-info-toolbar,
+.vital-info-form {
+    display: grid;
+    gap: 10px;
+    margin: 10px 0;
+}
+.vital-info-toolbar {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.vital-info-form {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.vital-info-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.vital-status-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+.chip-admin { background: rgba(40, 167, 69, 0.2); color: #8bf1a0; border: 1px solid #2b9d45; }
+.chip-mcv-active { background: rgba(123, 70, 255, 0.2); color: #c5a7ff; border: 1px solid #7a4dff; }
+.chip-mcv-inactive { background: rgba(20, 20, 20, 0.9); color: #d0d0d0; border: 1px solid #444; }
+.chip-mcv-strikes { background: rgba(220, 53, 69, 0.2); color: #ff9aa5; border: 1px solid #d44152; }
+.chip-wipe-guest { background: rgba(255, 255, 255, 0.12); color: #f1f1f1; border: 1px solid #aaa; }
 .vital-player-badge {
     display: inline-block;
     font-family: "IBM Plex Sans", sans-serif;
