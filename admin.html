@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=17">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-clean-pause-v1">
+    <link rel="stylesheet" href="style-admin.css?v=18">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-ui-polish-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -2118,7 +2118,7 @@
             box.innerHTML = '<p class="empty-hint">' + esc(vitalLabel('admin.vitalNoPlayers', 'Sin datos')) + '</p>';
             return;
         }
-        var html = '<table class="admin-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
+        var html = '<table class="admin-table vital-info-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
             html += '<tr class="vital-info-row ' + statusRowClass(r.statusTag) + '">';
             html += '<td>' + esc(r.displayName || '—') + '</td>';
