@@ -431,8 +431,26 @@
 }
 .admin-table th { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
+.vital-build-line {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+}
 .vital-extra-panel {
-    margin: 0 0 16px;
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    background: rgba(250, 166, 26, 0.06);
+}
+.vital-extra-heading {
+    margin: 0 0 8px;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--primary);
 }
 .vital-extra-form {
     display: flex;

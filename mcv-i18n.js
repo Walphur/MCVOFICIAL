@@ -862,6 +862,7 @@
             "admin.vitalExtraRemoved": "Extra removed.",
             "admin.vitalExtraNeedSteam": "Enter at least one SteamID64.",
             "admin.vitalExtraAdded": "Added:",
+            "admin.vitalExtraDeployPending": "The server does not have this feature yet (deploy pending on Render). When ready, you can manage extra SteamIDs here.",
             "admin.vitalExtraBadge": "Extra",
             "admin.vitalExtraAlsoMcv": "also in MCV",
             "admin.vitalRosterBreakdown": "MCV: {mcv} · Extra: {manual}",
