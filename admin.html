@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=10">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-extra-persist">
+    <link rel="stylesheet" href="style-admin.css?v=11">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-sort-cards">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -314,7 +314,28 @@
                     <button type="button" class="btn-outline" id="btn-vital-export" data-i18n="admin.vitalExport">Exportar CSV</button>
                 </div>
                 <p id="vital-roster-meta" class="admin-form-hint"></p>
-                <div id="vital-clan-players" class="vital-players-list"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
+                <div id="vital-sort-bar" class="vital-sort-bar" hidden>
+                    <label><span data-i18n="admin.vitalSortBy">Ordenar por</span>
+                        <select id="vital-sort-key">
+                            <option value="killsT30" data-i18n="admin.vitalKillsT30">Kills T30</option>
+                            <option value="farmSulfur" data-i18n="admin.vitalFarmSulfur">Azufre</option>
+                            <option value="farmHqMetal" data-i18n="admin.vitalFarmHq">HQ metal</option>
+                            <option value="farmWood" data-i18n="admin.vitalFarmWood">Madera</option>
+                            <option value="rocketsFired" data-i18n="admin.vitalRockets">Rockets</option>
+                            <option value="kdr">K/D</option>
+                            <option value="gamblingWagered" data-i18n="admin.vitalGamblingWagered">Apostado</option>
+                            <option value="gamblingWon" data-i18n="admin.vitalGamblingWon">Ganado</option>
+                            <option value="name" data-i18n="admin.vitalColName">Jugador</option>
+                        </select>
+                    </label>
+                    <label><span data-i18n="admin.vitalSortDir">Orden</span>
+                        <select id="vital-sort-dir">
+                            <option value="desc" data-i18n="admin.vitalSortDesc">Mayor → menor</option>
+                            <option value="asc" data-i18n="admin.vitalSortAsc">Menor → mayor</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="vital-clan-players" class="vital-players-grid"><p class="empty-hint" data-i18n="admin.vitalEmpty">Elegí servidor y cargá datos.</p></div>
                 <details class="admin-collapse" style="margin-top:14px;">
                     <summary data-i18n="admin.vitalNotFoundToggle">Jugadores del roster sin datos en Vital</summary>
                     <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
@@ -368,7 +389,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=33"></script>
+<script src="mcv-i18n.js?v=34"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
@@ -1410,6 +1431,8 @@
 
     var vitalClanRows = [];
     var vitalConfigLoaded = false;
+    var vitalSortKey = 'killsT30';
+    var vitalSortDir = 'desc';
     var VITAL_EXTRA_LS_KEY = 'mcv_vital_extra_steam_v1';
 
     function readVitalExtraLocal() {
@@ -1458,25 +1481,66 @@
         return s;
     }
 
-    function vitalStatCard(label, value) {
-        return '<div class="vital-stat-card"><span class="vital-stat-label">' + esc(label) + '</span><strong class="vital-stat-value">' + esc(String(value)) + '</strong></div>';
+    function vitalStatCard(label, value, highlight) {
+        var cls = 'vital-stat-card' + (highlight ? ' vital-stat-card--hi' : '');
+        return '<div class="' + cls + '"><span class="vital-stat-label">' + esc(label) + '</span><strong class="vital-stat-value">' + esc(String(value)) + '</strong></div>';
+    }
+
+    function vitalSortValue(p, key) {
+        if (key === 'name') {
+            return String(p.name || p.steamId64 || '').toLowerCase();
+        }
+        var n = Number(p[key]);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function sortVitalPlayers(rows) {
+        var key = vitalSortKey;
+        var dir = vitalSortDir === 'asc' ? 1 : -1;
+        return (rows || []).slice().sort(function (a, b) {
+            if (key === 'name') {
+                var na = vitalSortValue(a, 'name');
+                var nb = vitalSortValue(b, 'name');
+                if (na < nb) return -1 * dir;
+                if (na > nb) return 1 * dir;
+                return 0;
+            }
+            var va = vitalSortValue(a, key);
+            var vb = vitalSortValue(b, key);
+            if (vb !== va) return (vb - va) * (dir === -1 ? 1 : -1) * (dir === -1 ? 1 : -1);
+            return String(a.name || '').localeCompare(String(b.name || ''));
+        });
+    }
+
+    function syncVitalSortControls() {
+        var keySel = document.getElementById('vital-sort-key');
+        var dirSel = document.getElementById('vital-sort-dir');
+        if (keySel) keySel.value = vitalSortKey;
+        if (dirSel) dirSel.value = vitalSortDir;
     }
 
     function renderVitalPlayerCards(players) {
         var box = document.getElementById('vital-clan-players');
+        var sortBar = document.getElementById('vital-sort-bar');
         if (!box) return;
         vitalClanRows = players || [];
         if (!vitalClanRows.length) {
+            if (sortBar) sortBar.hidden = true;
             box.innerHTML = '<p class="empty-hint">' + esc(T('admin.vitalNoPlayers')) + '</p>';
             return;
         }
+        if (sortBar) sortBar.hidden = false;
+        syncVitalSortControls();
+        var sorted = sortVitalPlayers(vitalClanRows);
         var html = '';
-        vitalClanRows.forEach(function (p) {
+        sorted.forEach(function (p, idx) {
             var vitalUrl = 'https://vitalrust.com/statistics/player-overview?userId=' + encodeURIComponent(p.steamId64);
+            var hi = vitalSortKey;
             html += '<article class="vital-player-card">';
             html += '<header class="vital-player-head">';
+            html += '<span class="vital-player-rank">#' + String(idx + 1) + '</span>';
             if (p.avatar) {
-                html += '<img class="vital-player-avatar" src="' + esc(p.avatar) + '" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">';
+                html += '<img class="vital-player-avatar" src="' + esc(p.avatar) + '" alt="" width="48" height="48" loading="lazy" referrerpolicy="no-referrer">';
             }
             html += '<div class="vital-player-ident">';
             html += '<h4 class="vital-player-name">' + esc(p.name || '—');
@@ -1489,18 +1553,35 @@
             }
             html += '<a class="vital-player-steam admin-steam-cell" href="' + esc(vitalUrl) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a>';
             html += '</div></header>';
-            html += '<div class="vital-player-stats">';
-            html += vitalStatCard('K/D', p.kdr);
-            html += vitalStatCard(vitalLabel('admin.vitalKillsT30', 'Kills T30'), vitalFmtNum(p.killsT30));
-            html += vitalStatCard(vitalLabel('admin.vitalRockets', 'Rockets'), vitalFmtNum(p.rocketsFired));
-            html += vitalStatCard(vitalLabel('admin.vitalFarmSulfur', 'Azufre'), vitalFmtNum(p.farmSulfur));
-            html += vitalStatCard(vitalLabel('admin.vitalFarmHq', 'HQ metal'), vitalFmtNum(p.farmHqMetal));
-            html += vitalStatCard(vitalLabel('admin.vitalFarmWood', 'Madera'), vitalFmtNum(p.farmWood));
-            html += vitalStatCard(vitalLabel('admin.vitalGamblingWagered', 'Apostado'), vitalFmtNum(p.gamblingWagered));
-            html += vitalStatCard(vitalLabel('admin.vitalGamblingWon', 'Ganado'), vitalFmtNum(p.gamblingWon));
-            html += '</div></article>';
+            html += '<div class="vital-player-body">';
+            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupCombat', 'Combate')) + '</h5><div class="vital-stat-group-grid">';
+            html += vitalStatCard('K/D', p.kdr, hi === 'kdr');
+            html += vitalStatCard(vitalLabel('admin.vitalKillsT30', 'Kills T30'), vitalFmtNum(p.killsT30), hi === 'killsT30');
+            html += vitalStatCard(vitalLabel('admin.vitalRockets', 'Rockets'), vitalFmtNum(p.rocketsFired), hi === 'rocketsFired');
+            html += '</div></section>';
+            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupFarm', 'Farming')) + '</h5><div class="vital-stat-group-grid">';
+            html += vitalStatCard(vitalLabel('admin.vitalFarmSulfur', 'Azufre'), vitalFmtNum(p.farmSulfur), hi === 'farmSulfur');
+            html += vitalStatCard(vitalLabel('admin.vitalFarmHq', 'HQ metal'), vitalFmtNum(p.farmHqMetal), hi === 'farmHqMetal');
+            html += vitalStatCard(vitalLabel('admin.vitalFarmWood', 'Madera'), vitalFmtNum(p.farmWood), hi === 'farmWood');
+            html += '</div></section>';
+            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">' + esc(vitalLabel('admin.vitalGroupGambling', 'Casino')) + '</h5><div class="vital-stat-group-grid">';
+            html += vitalStatCard(vitalLabel('admin.vitalGamblingWagered', 'Apostado'), vitalFmtNum(p.gamblingWagered), hi === 'gamblingWagered');
+            html += vitalStatCard(vitalLabel('admin.vitalGamblingWon', 'Ganado'), vitalFmtNum(p.gamblingWon), hi === 'gamblingWon');
+            html += '</div></section></div></article>';
         });
         box.innerHTML = html;
+    }
+
+    function applyVitalSortFromControls() {
+        var keySel = document.getElementById('vital-sort-key');
+        var dirSel = document.getElementById('vital-sort-dir');
+        if (keySel) vitalSortKey = keySel.value || 'killsT30';
+        if (dirSel) vitalSortDir = dirSel.value || 'desc';
+        try {
+            sessionStorage.setItem('mcv_vital_sort_key', vitalSortKey);
+            sessionStorage.setItem('mcv_vital_sort_dir', vitalSortDir);
+        } catch (e) {}
+        if (vitalClanRows.length) renderVitalPlayerCards(vitalClanRows);
     }
 
     function loadVitalConfig() {
@@ -1811,8 +1892,16 @@
     }
 
     function initVitalPanel() {
+        try {
+            vitalSortKey = sessionStorage.getItem('mcv_vital_sort_key') || vitalSortKey;
+            vitalSortDir = sessionStorage.getItem('mcv_vital_sort_dir') || vitalSortDir;
+        } catch (e) {}
         setVitalBuildLine();
         loadVitalExtraPlayers().catch(function () {});
+        var sortKey = document.getElementById('vital-sort-key');
+        var sortDir = document.getElementById('vital-sort-dir');
+        if (sortKey) sortKey.addEventListener('change', applyVitalSortFromControls);
+        if (sortDir) sortDir.addEventListener('change', applyVitalSortFromControls);
         var btnRefresh = document.getElementById('btn-vital-refresh');
         var btnExport = document.getElementById('btn-vital-export');
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
