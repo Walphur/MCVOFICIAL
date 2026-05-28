@@ -404,54 +404,100 @@
                                 </div>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
-                                        <label class="vital-field"><span>Nombre</span><input id="vital-info-name" class="admin-input" /></label>
-                                        <label class="vital-field vital-field--new-only" id="vital-field-steam"><span>SteamID64</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
-                                        <label class="vital-field"><span>BM URL</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
-                                        <label class="vital-field"><span>Estado</span><select id="vital-info-status" class="admin-input">
-                                            <option value="wipe_guest">Wipe guest</option>
-                                            <option value="admin">Admin</option>
-                                            <option value="mcv_active">MCV activo</option>
-                                            <option value="mcv_inactive">MCV inactivo</option>
-                                            <option value="mcv_strikes">MCV strikes</option>
-                                        </select></label>
-                                        <label class="vital-field"><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="IGL, PVP, FARM..." /></label>
-                                        <div class="vital-role-presets" id="vital-role-presets">
-                                            <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
-                                            <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
-                                            <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
-                                            <button type="button" class="vital-role-chip" data-role="BUILDER">BUILD</button>
-                                        </div>
-                                        <label class="vital-field"><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
-                                        <label class="vital-field"><span>Vouch</span><input id="vital-info-vouch" class="admin-input" /></label>
-                                        <label class="vital-field"><span>Horas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" /></label>
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-info-bm-hours">Traer horas BM</button>
-                                        <label class="vital-field vital-field-check"><input id="vital-info-mt" type="checkbox" /> MT team</label>
+                                        <section class="vital-form-section">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Identity</h3></header>
+                                            <div class="vital-form-section__body vital-form-grid">
+                                                <label class="vital-field"><span>Nombre</span><input id="vital-info-name" class="admin-input" /></label>
+                                                <label class="vital-field vital-field--new-only" id="vital-field-steam"><span>SteamID64</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
+                                                <label class="vital-field vital-field--wide"><span>BM URL</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
+                                            </div>
+                                        </section>
+                                        <section class="vital-form-section">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Status</h3></header>
+                                            <div class="vital-form-section__body vital-form-grid">
+                                                <label class="vital-field"><span>Estado</span><select id="vital-info-status" class="admin-input">
+                                                    <option value="wipe_guest">Wipe guest</option>
+                                                    <option value="admin">Admin</option>
+                                                    <option value="mcv_active">MCV activo</option>
+                                                    <option value="mcv_inactive">MCV inactivo</option>
+                                                    <option value="mcv_strikes">MCV strikes</option>
+                                                </select></label>
+                                                <label class="vital-field"><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="IGL, PVP, FARM..." /></label>
+                                                <div class="vital-role-presets" id="vital-role-presets">
+                                                    <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
+                                                    <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
+                                                    <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
+                                                    <button type="button" class="vital-role-chip" data-role="BUILDER">BUILD</button>
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <section class="vital-form-section">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Tracking</h3></header>
+                                            <div class="vital-form-section__body vital-form-grid">
+                                                <label class="vital-field"><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
+                                                <label class="vital-field"><span>Vouch</span><input id="vital-info-vouch" class="admin-input" /></label>
+                                                <label class="vital-field"><span>Horas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" /></label>
+                                                <div class="vital-field vital-field--action">
+                                                    <span class="vital-field__action-label">BattleMetrics</span>
+                                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-info-bm-hours">Traer horas BM</button>
+                                                </div>
+                                            </div>
+                                        </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="wipe">
-                                        <label class="vital-field"><span>Fase wipe</span><select id="vital-info-wipe-phase" class="admin-input">
-                                            <option value="unknown">Sin definir</option>
-                                            <option value="inicio">Inicio</option>
-                                            <option value="late">Late</option>
-                                            <option value="no_juega">No juega</option>
-                                        </select></label>
-                                        <label class="vital-field vital-field-check"><input id="vital-info-paused" type="checkbox" /> Pausado (fuera de wipe)</label>
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Wipe</h3><p class="vital-form-section__hint">Participación en el wipe actual. El estado En wipe / Pausado está en la barra inferior.</p></header>
+                                            <div class="vital-form-section__body vital-form-grid">
+                                                <label class="vital-field vital-field--wide"><span>Fase wipe</span><select id="vital-info-wipe-phase" class="admin-input">
+                                                    <option value="unknown">Sin definir</option>
+                                                    <option value="inicio">Inicio</option>
+                                                    <option value="late">Late</option>
+                                                    <option value="no_juega">No juega</option>
+                                                </select></label>
+                                            </div>
+                                        </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="strikes">
-                                        <label class="vital-field"><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" /></label>
-                                        <label class="vital-field"><span>Motivo strike</span><textarea id="vital-info-warning" class="admin-input" rows="4"></textarea></label>
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Strikes</h3></header>
+                                            <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
+                                                <label class="vital-field"><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" /></label>
+                                                <label class="vital-field vital-field--wide"><span>Motivo strike</span><textarea id="vital-info-warning" class="admin-input" rows="4"></textarea></label>
+                                            </div>
+                                        </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="notes">
-                                        <label class="vital-field"><span>Aportación</span><textarea id="vital-info-contribution" class="admin-input" rows="3"></textarea></label>
-                                        <label class="vital-field"><span>Avisos internos</span><textarea id="vital-info-notes-extra" class="admin-input" rows="4" placeholder="Notas adicionales"></textarea></label>
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Notes</h3></header>
+                                            <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
+                                                <label class="vital-field vital-field--wide"><span>Aportación</span><textarea id="vital-info-contribution" class="admin-input" rows="3"></textarea></label>
+                                                <label class="vital-field vital-field--wide"><span>Avisos internos</span><textarea id="vital-info-notes-extra" class="admin-input" rows="4" placeholder="Notas adicionales"></textarea></label>
+                                            </div>
+                                        </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="logs">
                                         <ul id="vital-detail-player-logs" class="vital-activity-log vital-activity-log--compact"></ul>
                                     </div>
                                 </div>
+                                <input type="checkbox" id="vital-info-paused" hidden tabindex="-1" aria-hidden="true" />
                                 <footer class="vital-detail-footer">
                                     <button type="button" class="btn-ghost-danger" id="btn-vital-info-del-detail">Eliminar</button>
-                                    <button type="button" class="btn-outline" id="btn-vital-info-pause-quick">Pausar wipe</button>
-                                    <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar</button>
+                                    <div class="vital-detail-footer__cluster">
+                                        <div class="vital-wipe-control" role="group" aria-label="Participación wipe" id="vital-wipe-segment">
+                                            <span class="vital-wipe-control__label">Wipe</span>
+                                            <div class="vital-segment">
+                                                <button type="button" class="vital-segment__btn is-active" data-wipe-state="active" aria-pressed="true">
+                                                    <span class="vital-segment__dot vital-segment__dot--active" aria-hidden="true"></span>
+                                                    En wipe
+                                                </button>
+                                                <button type="button" class="vital-segment__btn" data-wipe-state="paused" aria-pressed="false">
+                                                    <span class="vital-segment__dot vital-segment__dot--paused" aria-hidden="true"></span>
+                                                    Pausado
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar</button>
+                                    </div>
                                 </footer>
                             </div>
                         </div>
@@ -460,7 +506,7 @@
                 <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Importación masiva</h4>
-                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación, mt team).</p>
+                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
                         <textarea id="vital-info-import-text" class="admin-input vital-extra-textarea" rows="10"></textarea>
                         <button type="button" class="btn-primary-small" id="btn-vital-info-import">Importar</button>
                     </div>
@@ -2136,13 +2182,14 @@
             '<div class="vital-workspace-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
             '<code class="vital-workspace-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
             '<div class="vital-workspace-badges">' +
-            '<span class="ws-badge ws-badge--' + escAttr(status) + '">' + esc(statusLabelShort(status)) + '</span>' +
-            '<span class="ws-badge">' + esc(wipe) + '</span>' +
-            '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strikes</span>' +
-            '<span class="ws-badge">' + esc(hours) + 'h</span>' +
-            (role && role !== '—' ? '<span class="ws-badge">' + esc(role) + '</span>' : '') +
-            (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--pause">Pausado</span>' : '') +
+            '<span class="ws-badge ws-badge--status ws-badge--' + escAttr(status) + '">' + esc(statusLabelShort(status)) + '</span>' +
+            (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--status ws-badge--pause">Pausado</span>' : '') +
+            '<span class="ws-badge ws-badge--meta">' + esc(wipe) + '</span>' +
+            '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strike' + (strikes === 1 ? '' : 's') + '</span>' +
+            '<span class="ws-badge ws-badge--meta">' + esc(hours) + 'h</span>' +
+            (role && role !== '—' ? '<span class="ws-badge ws-badge--role">' + esc(role) + '</span>' : '') +
             '</div></div></div>';
+        syncWipeSegmentUI();
         renderVitalDetailLogs();
     }
 
@@ -2242,7 +2289,40 @@
         });
     }
 
+    function isVitalPaused() {
+        var paused = document.getElementById('vital-info-paused');
+        return !!(paused && paused.checked);
+    }
+
+    function syncWipeSegmentUI() {
+        var isPaused = isVitalPaused();
+        document.querySelectorAll('#vital-wipe-segment [data-wipe-state]').forEach(function (btn) {
+            var st = btn.getAttribute('data-wipe-state');
+            var on = st === (isPaused ? 'paused' : 'active');
+            btn.classList.toggle('is-active', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        var seg = document.querySelector('#vital-wipe-segment .vital-segment');
+        if (seg) seg.classList.toggle('is-paused', isPaused);
+    }
+
+    function setWipeParticipationState(paused) {
+        var pausedEl = document.getElementById('vital-info-paused');
+        var wipeEl = document.getElementById('vital-info-wipe-phase');
+        if (pausedEl) pausedEl.checked = !!paused;
+        if (wipeEl) {
+            if (paused) {
+                wipeEl.value = 'no_juega';
+            } else if (wipeEl.value === 'no_juega') {
+                wipeEl.value = 'unknown';
+            }
+        }
+        syncWipeSegmentUI();
+        renderVitalPlayerSummary();
+    }
+
     function gatherVitalInfoPayload() {
+        var row = findVitalRow(vitalSelectedSteam);
         return {
             steamId64: (document.getElementById('vital-info-steam') || {}).value || '',
             displayName: (document.getElementById('vital-info-name') || {}).value || '',
@@ -2258,8 +2338,8 @@
             contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
             warnings: (document.getElementById('vital-info-warning') || {}).value || '',
             notesExtra: (document.getElementById('vital-info-notes-extra') || {}).value || '',
-            mtTeam: Boolean((document.getElementById('vital-info-mt') || {}).checked),
-            pausedOutsideWipe: Boolean((document.getElementById('vital-info-paused') || {}).checked)
+            mtTeam: row ? !!row.mtTeam : false,
+            pausedOutsideWipe: isVitalPaused()
         };
     }
 
@@ -2279,11 +2359,9 @@
         set('vital-info-contribution', p.contribution);
         set('vital-info-warning', p.strikeNotes || p.warnings || '');
         set('vital-info-notes-extra', p.notesExtra || '');
-        var mt = document.getElementById('vital-info-mt');
-        if (mt) mt.checked = !!p.mtTeam;
         var paused = document.getElementById('vital-info-paused');
         if (paused) paused.checked = !!p.pausedOutsideWipe || String(p.wipePhase || '') === 'no_juega';
-        
+        syncWipeSegmentUI();
     }
 
     function statusChip(tag) {
@@ -2452,19 +2530,6 @@
             });
     }
 
-    function quickPausePlayer() {
-        var steam = String((document.getElementById('vital-info-steam') || {}).value || '').trim();
-        if (!steam) {
-            banner('Primero cargá SteamID64 para pausar.', true);
-            return;
-        }
-        var paused = document.getElementById('vital-info-paused');
-        var wipe = document.getElementById('vital-info-wipe-phase');
-        if (paused) paused.checked = true;
-        if (wipe) wipe.value = 'no_juega';
-        saveVitalPlayerInfo();
-    }
-
     function fillHoursFromBm() {
         var steamId64 = String((document.getElementById('vital-info-steam') || {}).value || '').trim();
         var bmUrl = String((document.getElementById('vital-info-bm') || {}).value || '').trim();
@@ -2531,8 +2596,8 @@
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
-        var btnInfoPauseQuick = document.getElementById('btn-vital-info-pause-quick');
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
+        var vitalWipeSegment = document.getElementById('vital-wipe-segment');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
         var rolePresets = document.getElementById('vital-role-presets');
         var vitalQuickFilters = document.getElementById('vital-quick-filters');
@@ -2547,7 +2612,20 @@
         }
         if (btnInfoRefresh) btnInfoRefresh.addEventListener('click', function () { loadVitalPlayerInfo().catch(function () {}); });
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
-        if (btnInfoPauseQuick) btnInfoPauseQuick.addEventListener('click', quickPausePlayer);
+        if (vitalWipeSegment) {
+            vitalWipeSegment.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-wipe-state]') : null;
+                if (!btn) return;
+                setWipeParticipationState(btn.getAttribute('data-wipe-state') === 'paused');
+            });
+        }
+        var wipePhaseEl = document.getElementById('vital-info-wipe-phase');
+        if (wipePhaseEl) {
+            wipePhaseEl.addEventListener('change', function () {
+                if (wipePhaseEl.value === 'no_juega') setWipeParticipationState(true);
+                else if (isVitalPaused()) setWipeParticipationState(false);
+            });
+        }
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
         if (rolePresets) {
