@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=19">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-info-pro-panel-v1">
+    <link rel="stylesheet" href="style-admin.css?v=20">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-info-player-pick-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -381,8 +381,13 @@
                     <section class="vital-info-block">
                         <h4>Identidad</h4>
                         <div class="vital-info-grid">
-                            <label><span>SteamID64</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
-                            <label><span>Nombre</span><input id="vital-info-name" class="admin-input" placeholder="Nombre" /></label>
+                            <label><span>Jugador (Steam/roster)</span>
+                                <select id="vital-info-player-pick" class="admin-input">
+                                    <option value="">Seleccionar jugador...</option>
+                                </select>
+                            </label>
+                            <input id="vital-info-steam" type="hidden" />
+                            <input id="vital-info-name" type="hidden" />
                             <label><span>BM URL</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
                         </div>
                     </section>
@@ -2052,6 +2057,29 @@
         if (mt) mt.checked = !!p.mtTeam;
         var paused = document.getElementById('vital-info-paused');
         if (paused) paused.checked = !!p.pausedOutsideWipe || String(p.wipePhase || '') === 'no_juega';
+        var pick = document.getElementById('vital-info-player-pick');
+        if (pick) pick.value = p.steamId64 || '';
+    }
+
+    function refreshPlayerPickOptions() {
+        var pick = document.getElementById('vital-info-player-pick');
+        if (!pick) return;
+        var seen = {};
+        var rows = (vitalInfoRows || [])
+            .filter(function (r) { return r && r.steamId64; })
+            .sort(function (a, b) {
+                return String(a.displayName || a.steamId64).localeCompare(String(b.displayName || b.steamId64), 'es');
+            });
+        var html = '<option value="">Seleccionar jugador...</option>';
+        rows.forEach(function (r) {
+            if (seen[r.steamId64]) return;
+            seen[r.steamId64] = 1;
+            var label = (r.displayName ? r.displayName : ('Steam ' + r.steamId64));
+            html += '<option value="' + escAttr(r.steamId64) + '">' + esc(label) + '</option>';
+        });
+        var cur = pick.value || '';
+        pick.innerHTML = html;
+        if (cur && seen[cur]) pick.value = cur;
     }
 
     function statusChip(tag) {
@@ -2118,11 +2146,10 @@
             box.innerHTML = '<p class="empty-hint">' + esc(vitalLabel('admin.vitalNoPlayers', 'Sin datos')) + '</p>';
             return;
         }
-        var html = '<table class="admin-table vital-info-table"><thead><tr><th>Jugador</th><th>Steam</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
+        var html = '<table class="admin-table vital-info-table"><thead><tr><th>Jugador</th><th>BM</th><th>Estado</th><th>Pausa</th><th>Strikes</th><th>Motivo strike</th><th>Rol</th><th>Wipe</th><th>Horas</th><th>Vouch</th><th>Acciones</th></tr></thead><tbody>';
         rows.forEach(function (r) {
             html += '<tr class="vital-info-row ' + statusRowClass(r.statusTag) + '">';
             html += '<td>' + esc(r.displayName || '—') + '</td>';
-            html += '<td class="admin-steam-cell">' + esc(r.steamId64) + '</td>';
             html += '<td>' + (r.bmUrl ? '<a href="' + escAttr(r.bmUrl) + '" target="_blank" rel="noopener">BM</a>' : '—') + '</td>';
             html += '<td>' + statusChip(r.statusTag) + '</td>';
             html += '<td>' + (r.pausedOutsideWipe ? '<span class="vital-pause-chip">⏸ pausado</span>' : '—') + '</td>';
@@ -2218,6 +2245,7 @@
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'player-info');
                 vitalInfoRows = x.d.profiles || [];
                 refreshInfoFilterOptions();
+                refreshPlayerPickOptions();
                 renderVitalInfoList();
             })
             .catch(function (e) {
@@ -2326,6 +2354,7 @@
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
         var rolePresets = document.getElementById('vital-role-presets');
+        var playerPick = document.getElementById('vital-info-player-pick');
         var infoSearch = document.getElementById('vital-info-search');
         var infoFilter = document.getElementById('vital-info-filter');
         var infoRoleFilter = document.getElementById('vital-info-role-filter');
@@ -2348,6 +2377,19 @@
                 var current = String(input.value || '').split(',').map(function (x) { return String(x || '').trim(); }).filter(Boolean);
                 if (current.indexOf(role) === -1) current.push(role);
                 input.value = current.join(', ');
+            });
+        }
+        if (playerPick) {
+            playerPick.addEventListener('change', function () {
+                var sid = String(playerPick.value || '').trim();
+                if (!sid) return;
+                var row = vitalInfoRows.find(function (x) { return x.steamId64 === sid; });
+                if (!row) return;
+                var steamEl = document.getElementById('vital-info-steam');
+                var nameEl = document.getElementById('vital-info-name');
+                if (steamEl) steamEl.value = row.steamId64 || sid;
+                if (nameEl) nameEl.value = row.displayName || '';
+                fillVitalInfoForm(row);
             });
         }
         if (infoSearch) infoSearch.addEventListener('input', renderVitalInfoList);
