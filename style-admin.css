@@ -529,10 +529,20 @@ details.vital-extra-panel .vital-extra-list {
     margin: 10px 0;
 }
 .vital-info-toolbar {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 .vital-info-form {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.vital-info-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+.vital-info-full {
+    grid-column: 1 / -1;
 }
 .vital-info-checkbox {
     display: flex;
@@ -543,11 +553,12 @@ details.vital-extra-panel .vital-extra-list {
 }
 .vital-status-chip {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.03em;
+    white-space: nowrap;
 }
 .chip-admin { background: rgba(40, 167, 69, 0.2); color: #8bf1a0; border: 1px solid #2b9d45; }
 .chip-mcv-active { background: rgba(123, 70, 255, 0.2); color: #c5a7ff; border: 1px solid #7a4dff; }
