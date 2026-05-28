@@ -676,6 +676,79 @@ function normalizePlayerInfoRow(row) {
     };
 }
 
+function parseImportBool(v) {
+    const s = String(v == null ? "" : v).trim().toLowerCase();
+    return s === "1" || s === "true" || s === "si" || s === "sí" || s === "yes" || s === "mt";
+}
+
+function parsePlayerInfoImportText(raw) {
+    const text = String(raw || "").replace(/\r\n/g, "\n").trim();
+    if (!text) return [];
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return [];
+
+    const first = lines[0];
+    const delim = first.includes("\t") ? "\t" : (first.includes(";") ? ";" : ",");
+    const headers = first.split(delim).map((h) => h.trim().toLowerCase());
+    const idx = (names) => headers.findIndex((h) => names.includes(h));
+    const cSteam = idx(["steam id", "steamid", "steam_id", "steam_id64", "steamid64", "steam"]);
+    if (cSteam < 0) return [];
+    const cName = idx(["nombre", "name", "display_name", "display"]);
+    const cBm = idx(["bm", "battlemetrics", "battlemetrics url", "bm url", "bm_url"]);
+    const cRole = idx(["rol", "role", "role_label"]);
+    const cStrikes = idx(["strikes", "strike"]);
+    const cNotes = idx(["notas", "notes", "warnings", "avisos", "strike_notes"]);
+    const cEntry = idx(["entrada", "entry", "entry_date", "ingreso"]);
+    const cVouch = idx(["vouch", "vouched", "vouch_by"]);
+    const cStatus = idx(["status", "estado", "color", "status_tag"]);
+    const cWipe = idx(["wipe", "wipe_phase", "fase_wipe", "wipe phase"]);
+    const cHours = idx(["hours", "horas", "hours_played"]);
+    const cContrib = idx(["aportacion", "aporte", "contribution"]);
+    const cMt = idx(["mt", "mt team", "mt_team"]);
+
+    const mapStatus = (rawStatus) => {
+        const s = String(rawStatus || "").trim().toLowerCase();
+        if (["verde", "green", "admin"].includes(s)) return "admin";
+        if (["violeta", "purple", "mcv", "mcv_active", "active"].includes(s)) return "mcv_active";
+        if (["negro", "black", "mcv_inactive", "inactive"].includes(s)) return "mcv_inactive";
+        if (["rojo", "red", "mcv_strikes", "strikes"].includes(s)) return "mcv_strikes";
+        if (["blanco", "white", "wipe_guest", "guest"].includes(s)) return "wipe_guest";
+        return "wipe_guest";
+    };
+
+    const rows = [];
+    for (let i = 1; i < lines.length; i += 1) {
+        const cols = lines[i].split(delim).map((c) => c.trim());
+        const steamId64 = normalizeSteamId64(cols[cSteam]);
+        if (!steamId64) continue;
+        const entryRaw = cEntry >= 0 ? cols[cEntry] : "";
+        const entryDate = /^\d{4}-\d{2}-\d{2}$/.test(entryRaw)
+            ? entryRaw
+            : (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(entryRaw)
+                ? entryRaw.split("/").reverse().join("-")
+                : null);
+        rows.push(
+            normalizePlayerInfoRow({
+                steam_id64: steamId64,
+                display_name: cName >= 0 ? cols[cName] : "",
+                bm_url: cBm >= 0 ? cols[cBm] : "",
+                status_tag: cStatus >= 0 ? mapStatus(cols[cStatus]) : "wipe_guest",
+                role_label: cRole >= 0 ? cols[cRole] : "",
+                strikes: cStrikes >= 0 ? cols[cStrikes] : 0,
+                strike_notes: cNotes >= 0 ? cols[cNotes] : "",
+                entry_date: entryDate,
+                vouch_by: cVouch >= 0 ? cols[cVouch] : "",
+                wipe_phase: cWipe >= 0 ? cols[cWipe] : "unknown",
+                hours_played: cHours >= 0 ? cols[cHours] : null,
+                contribution: cContrib >= 0 ? cols[cContrib] : "",
+                warnings: cNotes >= 0 ? cols[cNotes] : "",
+                mt_team: cMt >= 0 ? parseImportBool(cols[cMt]) : false
+            })
+        );
+    }
+    return rows.filter(Boolean);
+}
+
 const ENSURE_VITAL_EXTRA_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
     steam_id64 VARCHAR(17) PRIMARY KEY,
@@ -1138,6 +1211,65 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("player-info upsert:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo guardar player-info" });
+        }
+    });
+
+    app.post("/api/admin/vital/player-info/import", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar la tabla player_info_profiles" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const rows = parsePlayerInfoImportText(body.text || body.csv || "");
+        if (!rows.length) return res.status(400).json({ error: "No se detectaron filas válidas con SteamID64" });
+        try {
+            let saved = 0;
+            for (const row of rows) {
+                await pool.query(
+                    `INSERT INTO player_info_profiles (
+                        steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
+                        hours_played, contribution, warnings, mt_team, updated_at
+                     ) VALUES (
+                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,NOW()
+                     )
+                     ON CONFLICT (steam_id64) DO UPDATE SET
+                        display_name = EXCLUDED.display_name,
+                        bm_url = EXCLUDED.bm_url,
+                        status_tag = EXCLUDED.status_tag,
+                        role_label = EXCLUDED.role_label,
+                        strikes = EXCLUDED.strikes,
+                        strike_notes = EXCLUDED.strike_notes,
+                        entry_date = EXCLUDED.entry_date,
+                        vouch_by = EXCLUDED.vouch_by,
+                        wipe_phase = EXCLUDED.wipe_phase,
+                        hours_played = EXCLUDED.hours_played,
+                        contribution = EXCLUDED.contribution,
+                        warnings = EXCLUDED.warnings,
+                        mt_team = EXCLUDED.mt_team,
+                        updated_at = NOW()`,
+                    [
+                        row.steamId64,
+                        row.displayName || null,
+                        row.bmUrl || null,
+                        row.statusTag,
+                        row.roleLabel || null,
+                        row.strikes,
+                        row.strikeNotes || null,
+                        row.entryDate || null,
+                        row.vouchBy || null,
+                        row.wipePhase,
+                        row.hoursPlayed,
+                        row.contribution || null,
+                        row.warnings || null,
+                        row.mtTeam
+                    ]
+                );
+                saved += 1;
+            }
+            return res.json({ ok: true, imported: saved });
+        } catch (e) {
+            console.error("player-info import:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo importar player-info" });
         }
     });
 
