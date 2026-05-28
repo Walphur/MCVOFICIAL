@@ -3665,3 +3665,102 @@ details.vital-extra-panel > :not(summary) {
         grid-template-columns: 1fr;
     }
 }
+
+/* —— Vital Rust página pública (link con clave) —— */
+.vital-rust-page {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+}
+.vital-rust-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 72px 20px 80px;
+}
+.vital-rust-hero {
+    margin-bottom: 28px;
+}
+.vital-rust-title {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0.15em 0;
+    text-transform: none;
+}
+.vital-rust-title span {
+    color: var(--primary);
+}
+.vital-rust-lead {
+    color: #a8b4c4;
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 52ch;
+    margin: 0;
+}
+.card-surface {
+    background: linear-gradient(180deg, rgba(18, 24, 36, 0.92), rgba(12, 16, 24, 0.88));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.55);
+}
+.vital-rust-gate h2 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: -0.02em;
+}
+.vital-rust-gate-hint {
+    color: #9ca8b8;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin: 0 0 16px;
+}
+.vital-rust-gate-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.vital-rust-gate-label {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #c8d0dc;
+}
+.vital-rust-app {
+    margin-top: 20px;
+}
+.vital-rust-banner {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.vital-rust-banner.is-ok {
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+.vital-rust-banner.is-error {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.28);
+}
+.vital-rust-controls {
+    margin-top: 8px;
+}
+.vital-rust-page .vital-player-name,
+.vital-rust-page .vital-stat-group-title,
+.vital-rust-page button {
+    font-family: "Inter", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+.vital-rust-details {
+    margin-top: 18px;
+}

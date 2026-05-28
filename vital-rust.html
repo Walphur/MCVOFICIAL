@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Stats Vital Rust</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=29">
+    <link rel="stylesheet" href="style-admin.css?v=32">
+    <script src="mcv-purge-legacy-api.js?v=2"></script>
+    <script src="mcv-api-base.js?v=2"></script>
+</head>
+<body class="grain vital-rust-page" data-mcv-page="vital-rust">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<main class="vital-rust-main page-section">
+    <div class="vital-rust-hero">
+        <div class="section-label">
+            <div class="yellow-line"></div>
+            <span>// Clan MCV</span>
+        </div>
+        <h1 class="vital-rust-title">Estadísticas <span>Vital Rust</span></h1>
+        <p class="vital-rust-lead">Roster del clan en el servidor y wipe que elijas. Acceso solo con el link que te comparte el staff.</p>
+    </div>
+
+    <section id="vital-rust-gate" class="vital-rust-gate card-surface">
+        <h2>Acceso al panel</h2>
+        <p id="vital-rust-gate-hint" class="vital-rust-gate-hint">Pegá la clave que viene en el link privado (<code>?key=…</code>) o abrí el link completo que te pasaron.</p>
+        <form id="vital-rust-gate-form" class="vital-rust-gate-form">
+            <label class="vital-rust-gate-label">
+                <span>Clave de acceso</span>
+                <input id="vital-rust-key-input" class="admin-input" type="password" autocomplete="off" placeholder="Clave del link" />
+            </label>
+            <button type="submit" class="btn-primary-small">Entrar</button>
+        </form>
+    </section>
+
+    <div id="vital-rust-app" class="vital-rust-app card-surface" hidden>
+        <p id="vital-rust-banner" class="vital-rust-banner" hidden aria-live="polite"></p>
+        <p id="vital-config-banner" class="admin-form-hint admin-readable" hidden></p>
+
+        <div class="vital-controls vital-rust-controls">
+            <label><span>Servidor</span><select id="vital-server-select" class="admin-input"></select></label>
+            <label><span>Wipe</span>
+                <select id="vital-wipe-select" class="admin-input">
+                    <option value="null">Total</option>
+                </select>
+            </label>
+            <button type="button" class="btn-primary-small" id="btn-vital-refresh">Actualizar stats</button>
+            <button type="button" class="btn-outline" id="btn-vital-export">Exportar CSV</button>
+        </div>
+
+        <p id="vital-roster-meta" class="admin-form-hint"></p>
+
+        <div id="vital-sort-bar" class="vital-sort-bar" hidden>
+            <label><span>Ordenar por</span>
+                <select id="vital-sort-key" class="admin-input">
+                    <option value="killsT30">Kills T30</option>
+                    <option value="kills">Kills</option>
+                    <option value="deaths">Deaths</option>
+                    <option value="farmSulfur">Azufre</option>
+                    <option value="farmMetal">Metal</option>
+                    <option value="farmHqMetal">HQ metal</option>
+                    <option value="farmWood">Madera</option>
+                    <option value="rocketsFired">Rockets</option>
+                    <option value="kdr">K/D</option>
+                    <option value="scrapLooted">Scrap loteado</option>
+                    <option value="scrapRecycled">Scrap reciclado</option>
+                    <option value="name">Jugador</option>
+                </select>
+            </label>
+            <label><span>Orden</span>
+                <select id="vital-sort-dir" class="admin-input">
+                    <option value="desc">Mayor → menor</option>
+                    <option value="asc">Menor → mayor</option>
+                </select>
+            </label>
+        </div>
+
+        <div id="vital-clan-players" class="vital-players-grid">
+            <p class="empty-hint">Elegí servidor y tocá «Actualizar stats».</p>
+        </div>
+
+        <details class="admin-collapse vital-rust-details">
+            <summary>Sin datos en Vital</summary>
+            <p id="vital-not-found" class="admin-form-hint admin-steam-cell"></p>
+        </details>
+    </div>
+</main>
+
+<script src="mcv-layout.js?v=3" defer></script>
+<script src="vital-rust-view.js?v=1"></script>
+</body>
+</html>
