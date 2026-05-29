@@ -861,9 +861,45 @@ async function loadManualSteamIdsFromDb(pool) {
     }
 }
 
+async function loadActivePlayerInfoSteamIds(pool) {
+    if (!pool) {
+        return [];
+    }
+    try {
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) {
+            return [];
+        }
+        const r = await pool.query(
+            `SELECT steam_id64, status_tag, wipe_phase, paused_outside_wipe
+             FROM player_info_profiles
+             WHERE steam_id64 IS NOT NULL
+               AND COALESCE(paused_outside_wipe, false) = false
+               AND wipe_phase IS DISTINCT FROM 'no_juega'
+               AND status_tag NOT IN ('mcv_inactive')
+               AND (
+                   status_tag IN ('admin', 'mcv_active', 'mcv_strikes')
+                   OR (status_tag = 'wipe_guest' AND wipe_phase IN ('inicio', 'late'))
+               )`
+        );
+        const ids = [];
+        for (const row of r.rows) {
+            const id = normalizeSteamId64(row.steam_id64);
+            if (id) {
+                ids.push(id);
+            }
+        }
+        return [...new Set(ids)];
+    } catch (e) {
+        console.warn("vital clan player_info:", e.message);
+        return [];
+    }
+}
+
 async function loadClanSteamIds(getPool) {
     const manualSet = new Set();
     const mcvSet = new Set();
+    const playerInfoSet = new Set();
 
     const envExtra = parseSteamIdsInput(process.env.VITAL_CLAN_EXTRA_STEAMS || "");
     envExtra.forEach((s) => manualSet.add(s));
@@ -874,6 +910,7 @@ async function loadClanSteamIds(getPool) {
 
     const useWipe = String(process.env.VITAL_API_USE_WIPE_LIST || "1").trim() !== "0";
     const useRoster = String(process.env.VITAL_API_USE_TEAM_ROSTER || "1").trim() !== "0";
+    const usePlayerInfo = String(process.env.VITAL_API_USE_PLAYER_INFO || "1").trim() !== "0";
 
     if (pool && useWipe) {
         try {
@@ -905,6 +942,14 @@ async function loadClanSteamIds(getPool) {
         }
     }
 
+    if (pool && usePlayerInfo) {
+        const fromInfo = await loadActivePlayerInfoSteamIds(pool);
+        fromInfo.forEach((id) => {
+            playerInfoSet.add(id);
+            mcvSet.add(id);
+        });
+    }
+
     const all = new Set([...mcvSet, ...manualSet]);
     return {
         ids: [...all],
@@ -912,6 +957,7 @@ async function loadClanSteamIds(getPool) {
         manualIds: [...manualSet].filter((id) => !mcvSet.has(id)),
         manualOnlyCount: [...manualSet].filter((id) => !mcvSet.has(id)).length,
         mcvCount: mcvSet.size,
+        playerInfoCount: playerInfoSet.size,
         manualLabels: Object.fromEntries(dbManual.map((r) => [r.steamId64, r.label]).filter(([id]) => id))
     };
 }
@@ -1532,6 +1578,7 @@ function registerVitalRustApi(app, { getPool }) {
             publicUrl: siteBase ? `${siteBase}/vital-rust.html` : "vital-rust.html",
             rosterSize: roster.ids.length,
             mcvCount: roster.mcvCount,
+            playerInfoCount: roster.playerInfoCount || 0,
             manualExtraCount: roster.manualOnlyCount,
             hint: configured
                 ? "Compartí el link con ?key= y la misma clave que VITAL_PUBLIC_ACCESS_KEY en Render."
@@ -1657,6 +1704,7 @@ function registerVitalRustApi(app, { getPool }) {
                 server,
                 wipeId,
                 rosterSize: clanIds.length,
+                playerInfoCount: roster.playerInfoCount || 0,
                 players: matched,
                 notFound,
                 hint

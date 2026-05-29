@@ -437,7 +437,7 @@
                 <section class="vital-subpanel" data-vital-section="extras" style="display:none;">
                     <div class="vital-page-simple">
                         <h4 data-i18n="admin.vitalExtraTitle">Jugadores extra (roster Vital)</h4>
-                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en lista wipe ni perfil aprobado. Aparecen en las stats públicas de Vital Rust.</p>
+                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en Info jugadores. El roster Vital incluye automáticamente a quienes en Info jugadores están activos en el wipe (MCV activo/admin, no pausados).</p>
                         <p class="admin-form-hint admin-readable">Link público del equipo: <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">vital-rust.html</a></p>
                         <p id="vital-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
@@ -1666,13 +1666,15 @@
                     el.className = 'admin-form-hint vital-public-access-status is-ok';
                     el.textContent =
                         'Acceso público activo · roster ' + String(d.rosterSize || 0) + ' jugadores (' +
-                        String(d.mcvCount || 0) + ' MCV + ' + String(d.manualExtraCount || 0) + ' extra). ' +
+                        String(d.playerInfoCount || 0) + ' Info jugadores activos en wipe · ' +
+                        String(d.manualExtraCount || 0) + ' extra manual). ' +
                         String(d.hint || '');
                 } else {
                     el.className = 'admin-form-hint vital-public-access-status is-warn';
                     el.textContent =
                         String(d.hint || 'Falta VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres).') +
-                        ' Roster en BD: ' + String(d.rosterSize || 0) + ' jugadores.';
+                        ' Roster previsto: ' + String(d.rosterSize || 0) + ' (' +
+                        String(d.playerInfoCount || 0) + ' desde Info jugadores).';
                 }
             })
             .catch(function () {
