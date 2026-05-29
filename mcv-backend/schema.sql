@@ -238,6 +238,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
         CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
     hours_played INT,
+    broken_attacks INT NOT NULL DEFAULT 0 CHECK (broken_attacks >= 0 AND broken_attacks <= 9999),
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,

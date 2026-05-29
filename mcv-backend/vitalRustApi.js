@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
         CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
     hours_played INT,
+    broken_attacks INT NOT NULL DEFAULT 0 CHECK (broken_attacks >= 0 AND broken_attacks <= 9999),
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
@@ -669,6 +670,14 @@ function normalizeWipePhase(raw) {
     return allowed.has(v) ? v : "unknown";
 }
 
+function normalizeBrokenAttacks(raw) {
+    const n = Number(raw);
+    if (!Number.isFinite(n) || n < 0) {
+        return 0;
+    }
+    return Math.min(9999, Math.round(n));
+}
+
 async function ensurePlayerInfoTable(pool) {
     if (!pool) return false;
     try {
@@ -676,6 +685,10 @@ async function ensurePlayerInfoTable(pool) {
         await pool.query(
             `ALTER TABLE player_info_profiles
              ADD COLUMN IF NOT EXISTS paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE`
+        );
+        await pool.query(
+            `ALTER TABLE player_info_profiles
+             ADD COLUMN IF NOT EXISTS broken_attacks INT NOT NULL DEFAULT 0`
         );
         return true;
     } catch (e) {
@@ -699,6 +712,7 @@ function normalizePlayerInfoRow(row) {
         vouchBy: String(row.vouch_by || row.vouchBy || "").trim(),
         wipePhase: normalizeWipePhase(row.wipe_phase || row.wipePhase),
         hoursPlayed: Number.isFinite(Number(row.hours_played ?? row.hoursPlayed)) ? Number(row.hours_played ?? row.hoursPlayed) : null,
+        brokenAttacks: normalizeBrokenAttacks(row.broken_attacks ?? row.brokenAttacks),
         contribution: String(row.contribution || "").trim(),
         warnings: String(row.warnings || "").trim(),
         mtTeam: Boolean(row.mt_team ?? row.mtTeam),
@@ -767,6 +781,14 @@ function parsePlayerInfoImportText(raw) {
     const cStatus = idx(["status", "estado", "color", "status_tag"]);
     const cWipe = idx(["wipe", "wipe_phase", "fase_wipe", "wipe phase"]);
     const cHours = idx(["hours", "horas", "hours_played"]);
+    const cBroken = idx([
+        "ataques rotos",
+        "ataques_rotos",
+        "broken_attacks",
+        "broken attacks",
+        "attacks_broken",
+        "rotos"
+    ]);
     const cContrib = idx(["aportacion", "aporte", "contribution"]);
     const cMt = idx(["mt", "mt team", "mt_team"]);
     const cPaused = idx(["pausado", "paused", "pause", "paused_outside_wipe"]);
@@ -805,6 +827,7 @@ function parsePlayerInfoImportText(raw) {
                 vouch_by: cVouch >= 0 ? cols[cVouch] : "",
                 wipe_phase: cWipe >= 0 ? cols[cWipe] : "unknown",
                 hours_played: cHours >= 0 ? cols[cHours] : null,
+                broken_attacks: cBroken >= 0 ? cols[cBroken] : 0,
                 contribution: cContrib >= 0 ? cols[cContrib] : "",
                 warnings: cNotes >= 0 ? cols[cNotes] : "",
                 mt_team: cMt >= 0 ? parseImportBool(cols[cMt]) : false,
@@ -1339,6 +1362,7 @@ function registerVitalRustApi(app, { getPool }) {
             vouch_by: body.vouchBy,
             wipe_phase: pausedOutsideWipe ? "no_juega" : incomingWipe,
             hours_played: body.hoursPlayed,
+            broken_attacks: body.brokenAttacks,
             contribution: body.contribution,
             warnings: body.warnings,
             mt_team: body.mtTeam,
@@ -1348,9 +1372,9 @@ function registerVitalRustApi(app, { getPool }) {
             const r = await pool.query(
                 `INSERT INTO player_info_profiles (
                     steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                    hours_played, contribution, warnings, mt_team, paused_outside_wipe, updated_at
+                    hours_played, broken_attacks, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                  ) VALUES (
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW()
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW()
                  )
                  ON CONFLICT (steam_id64) DO UPDATE SET
                     display_name = EXCLUDED.display_name,
@@ -1363,6 +1387,7 @@ function registerVitalRustApi(app, { getPool }) {
                     vouch_by = EXCLUDED.vouch_by,
                     wipe_phase = EXCLUDED.wipe_phase,
                     hours_played = EXCLUDED.hours_played,
+                    broken_attacks = EXCLUDED.broken_attacks,
                     contribution = EXCLUDED.contribution,
                     warnings = EXCLUDED.warnings,
                     mt_team = EXCLUDED.mt_team,
@@ -1381,6 +1406,7 @@ function registerVitalRustApi(app, { getPool }) {
                     row.vouchBy || null,
                     row.wipePhase,
                     row.hoursPlayed,
+                    row.brokenAttacks,
                     row.contribution || null,
                     row.warnings || null,
                     row.mtTeam,
@@ -1408,9 +1434,9 @@ function registerVitalRustApi(app, { getPool }) {
                 await pool.query(
                     `INSERT INTO player_info_profiles (
                         steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                        hours_played, contribution, warnings, mt_team, paused_outside_wipe, updated_at
+                        hours_played, broken_attacks, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                      ) VALUES (
-                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW()
+                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW()
                      )
                      ON CONFLICT (steam_id64) DO UPDATE SET
                         display_name = EXCLUDED.display_name,
@@ -1423,6 +1449,7 @@ function registerVitalRustApi(app, { getPool }) {
                         vouch_by = EXCLUDED.vouch_by,
                         wipe_phase = EXCLUDED.wipe_phase,
                         hours_played = EXCLUDED.hours_played,
+                        broken_attacks = EXCLUDED.broken_attacks,
                         contribution = EXCLUDED.contribution,
                         warnings = EXCLUDED.warnings,
                         mt_team = EXCLUDED.mt_team,
@@ -1440,6 +1467,7 @@ function registerVitalRustApi(app, { getPool }) {
                         row.vouchBy || null,
                         row.wipePhase,
                         row.hoursPlayed,
+                        row.brokenAttacks,
                         row.contribution || null,
                         row.warnings || null,
                         row.mtTeam,
@@ -1500,7 +1528,8 @@ function registerVitalRustApi(app, { getPool }) {
                     manualCount: 0,
                     players: [],
                     notFound: [],
-                    message: "Sin SteamID64 en lista wipe, perfiles aprobados ni extras manuales."
+                    message:
+                        "Sin SteamID64 en Info jugadores (activos en wipe), lista wipe, roster aprobado ni extras manuales."
                 });
             }
             const refresh = String(req.query.refresh || "").trim() === "1";
@@ -1538,6 +1567,7 @@ function registerVitalRustApi(app, { getPool }) {
                 wipeId,
                 rosterSize: clanIds.length,
                 mcvCount: roster.mcvCount,
+                playerInfoCount: roster.playerInfoCount || 0,
                 manualCount: roster.manualOnlyCount,
                 players: matched,
                 notFound,

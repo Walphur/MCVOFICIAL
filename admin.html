@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=31">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-public-page-v1">
+    <link rel="stylesheet" href="style-admin.css?v=32">
+    <meta name="mcv-admin-build" content="2026-05-28-player-broken-attacks-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -393,6 +393,7 @@
                                             <header class="vital-form-section__head"><h3 class="vital-form-section__title">Strikes</h3></header>
                                             <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
                                                 <label class="vital-field"><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" /></label>
+                                                <label class="vital-field"><span>Ataques rotos</span><input id="vital-info-broken-attacks" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" title="Cantidad de raids/ataques fallidos en el wipe" /></label>
                                                 <label class="vital-field vital-field--wide"><span>Motivo strike</span><textarea id="vital-info-warning" class="admin-input" rows="4"></textarea></label>
                                             </div>
                                         </section>
@@ -459,7 +460,7 @@
                 <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Importación masiva</h4>
-                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
+                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, ATAQUES ROTOS, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
                         <textarea id="vital-info-import-text" class="admin-input vital-extra-textarea" rows="10"></textarea>
                         <button type="button" class="btn-primary-small" id="btn-vital-info-import">Importar</button>
                     </div>
@@ -1907,6 +1908,9 @@
             (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--status ws-badge--pause">Pausado</span>' : '') +
             '<span class="ws-badge ws-badge--meta">' + esc(wipe) + '</span>' +
             '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strike' + (strikes === 1 ? '' : 's') + '</span>' +
+            (selected && Number(selected.brokenAttacks || 0) > 0
+                ? '<span class="ws-badge ws-badge--meta ws-badge--broken">' + esc(selected.brokenAttacks) + ' rotos</span>'
+                : '') +
             '<span class="ws-badge ws-badge--meta">' + esc(hours) + 'h</span>' +
             (role && role !== '—' ? '<span class="ws-badge ws-badge--role">' + esc(role) + '</span>' : '') +
             '</div></div></div>';
@@ -1922,7 +1926,11 @@
             { label: 'Total', value: rows.length },
             { label: 'Activos', value: rows.filter(function (r) { return r.statusTag === 'mcv_active'; }).length },
             { label: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
-            { label: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length }
+            { label: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
+            {
+                label: 'Ataques rotos',
+                value: rows.reduce(function (sum, r) { return sum + Number(r.brokenAttacks || 0); }, 0)
+            }
         ];
         box.innerHTML = stats.map(function (s) {
             return '<div class="vital-member-stat"><span>' + esc(s.label) + '</span><strong>' + esc(s.value) + '</strong></div>';
@@ -2060,6 +2068,7 @@
             vouchBy: (document.getElementById('vital-info-vouch') || {}).value || '',
             wipePhase: (document.getElementById('vital-info-wipe-phase') || {}).value || 'unknown',
             hoursPlayed: Number((document.getElementById('vital-info-hours') || {}).value || 0),
+            brokenAttacks: Number((document.getElementById('vital-info-broken-attacks') || {}).value || 0),
             contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
             warnings: (document.getElementById('vital-info-warning') || {}).value || '',
             notesExtra: (document.getElementById('vital-info-notes-extra') || {}).value || '',
@@ -2080,7 +2089,8 @@
         set('vital-info-entry', p.entryDate ? String(p.entryDate).slice(0, 10) : '');
         set('vital-info-vouch', p.vouchBy);
         set('vital-info-wipe-phase', p.wipePhase);
-        set('vital-info-hours', p.hoursPlayed || '');
+        set('vital-info-hours', p.hoursPlayed != null && p.hoursPlayed !== '' ? p.hoursPlayed : '');
+        set('vital-info-broken-attacks', p.brokenAttacks != null ? p.brokenAttacks : 0);
         set('vital-info-contribution', p.contribution);
         set('vital-info-warning', p.strikeNotes || p.warnings || '');
         set('vital-info-notes-extra', p.notesExtra || '');
@@ -2146,11 +2156,14 @@
             var initial = String(r.displayName || '?').trim().charAt(0).toUpperCase() || '?';
             var wipe = String(r.wipePhase || '?').replace('_', ' ');
             var strikes = Number(r.strikes || 0);
+            var broken = Number(r.brokenAttacks || 0);
+            var sub = esc(wipe) + ' · ' + strikes + ' strikes';
+            if (broken > 0) sub += ' · ' + broken + ' rotos';
             return '<button type="button" class="vital-member-row' + active + '" data-steam="' + escAttr(r.steamId64) + '">' +
                 '<span class="vital-member-avatar">' + esc(initial) + '</span>' +
                 '<span class="vital-member-body">' +
                 '<span class="vital-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
-                '<span class="vital-member-sub">' + esc(wipe) + ' · ' + strikes + ' strikes</span>' +
+                '<span class="vital-member-sub">' + sub + '</span>' +
                 '</span>' +
                 '</button>';
         }).join('');
