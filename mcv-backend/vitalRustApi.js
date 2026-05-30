@@ -26,6 +26,28 @@ const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-mo
 
 const cache = new Map();
 let lastUpstreamAt = 0;
+let lastVitalNetworkFetchAt = 0;
+let lastVitalResponseFromCache = false;
+
+function buildVitalCacheMeta() {
+    const ttlMs = cacheTtlMs();
+    const at = lastVitalNetworkFetchAt || null;
+    const ageSec = at ? Math.max(0, Math.round((Date.now() - at) / 1000)) : null;
+    return {
+        cacheTtlSec: Math.round(ttlMs / 1000),
+        lastFetchAt: at ? new Date(at).toISOString() : null,
+        lastFetchAgeSec: ageSec,
+        servedFromCache: lastVitalResponseFromCache,
+        suggestRefreshAfterSec: Math.round(ttlMs / 1000)
+    };
+}
+
+function markVitalFetchResult(cached) {
+    lastVitalResponseFromCache = Boolean(cached);
+    if (!cached) {
+        lastVitalNetworkFetchAt = Date.now();
+    }
+}
 const PLAYER_INFO_TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS player_info_profiles (
     steam_id64 VARCHAR(17) PRIMARY KEY,
@@ -252,6 +274,7 @@ async function fetchUpstream(url) {
     const key = `GET ${url}`;
     const hit = cache.get(key);
     if (hit && hit.expires > Date.now()) {
+        markVitalFetchResult(true);
         return { data: hit.data, cached: true };
     }
     await throttleUpstream();
@@ -267,6 +290,7 @@ async function fetchUpstream(url) {
         throw err;
     }
     cache.set(key, { data, expires: Date.now() + cacheTtlMs() });
+    markVitalFetchResult(false);
     return { data, cached: false };
 }
 
@@ -279,6 +303,7 @@ async function fetchUpstreamPost(url, body, { skipCache = false } = {}) {
     if (!skipCache) {
         const hit = cache.get(key);
         if (hit && hit.expires > Date.now()) {
+            markVitalFetchResult(true);
             return { data: hit.data, cached: true };
         }
     }
@@ -300,6 +325,7 @@ async function fetchUpstreamPost(url, body, { skipCache = false } = {}) {
     if (!skipCache && postResponseHasRows(data)) {
         cache.set(key, { data, expires: Date.now() + cacheTtlMs() });
     }
+    markVitalFetchResult(false);
     return { data, cached: false };
 }
 
@@ -1597,7 +1623,8 @@ function registerVitalRustApi(app, { getPool }) {
                 players: matched,
                 notFound,
                 hint,
-                vitalIncludes: parsePlayerIncludes()
+                vitalIncludes: parsePlayerIncludes(),
+                vitalCache: buildVitalCacheMeta()
             });
         } catch (e) {
             console.error("vital clan:", e.message);
@@ -1614,6 +1641,165 @@ function registerVitalRustApi(app, { getPool }) {
                 ? null
                 : "Definí VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres) y redeploy del backend."
         });
+    });
+
+    async function probeVitalApiQuick() {
+        if (!vitalEnabled()) {
+            return { ok: false, error: "Vital API deshabilitada (VITAL_API_ENABLED=0)" };
+        }
+        const paths = apiPaths();
+        if (!paths.wipes || !paths.playersOverviewPost) {
+            return { ok: false, error: "Faltan paths de Vital en el servidor" };
+        }
+        const server = resolveServer(DEFAULT_SERVER_KEY);
+        if (!server?.configured) {
+            return { ok: false, error: "Servidor Vital por defecto sin serverId" };
+        }
+        try {
+            const url = fillTemplate(paths.wipes, buildVars(server.serverId, "null", 1, 1));
+            const { data, cached } = await fetchUpstream(url);
+            const wipes = extractWipesList(data);
+            return {
+                ok: true,
+                cached,
+                wipeCount: wipes.length,
+                serverKey: server.key
+            };
+        } catch (e) {
+            return { ok: false, error: e.message || "Error al consultar Vital" };
+        }
+    }
+
+    async function resolveCurrentWipeId(paths, serverId) {
+        if (!paths.wipesCurrent) {
+            return null;
+        }
+        try {
+            const curUrl = fillTemplate(paths.wipesCurrent, buildVars(serverId, "null", 0, 1));
+            const { data } = await fetchUpstream(curUrl);
+            return String(data?.data?.id || "").trim() || null;
+        } catch (e) {
+            console.warn("resolveCurrentWipeId:", e.message);
+            return null;
+        }
+    }
+
+    app.get("/api/admin/vital/health", authAdmin, async (req, res) => {
+        const pool = getPool();
+        let database = { ok: false, error: "DATABASE_URL no configurada" };
+        if (pool) {
+            try {
+                await pool.query("SELECT 1");
+                database = { ok: true };
+            } catch (e) {
+                database = { ok: false, error: e.message || "Error de BD" };
+            }
+        }
+        const paths = apiPaths();
+        const vitalProbe = await probeVitalApiQuick();
+        let roster = { size: 0, playerInfoCount: 0, manualExtraCount: 0 };
+        try {
+            roster = await loadClanSteamIds(getPool);
+        } catch (e) {
+            roster.error = e.message;
+        }
+        return res.json({
+            ok: database.ok && vitalEnabled() && Boolean(paths.playersOverviewPost),
+            database,
+            vitalApi: {
+                enabled: vitalEnabled(),
+                configured: Boolean(paths.playersOverviewPost && paths.overview),
+                reachable: vitalProbe.ok,
+                detail: vitalProbe.ok ? vitalProbe : { error: vitalProbe.error }
+            },
+            publicAccess: {
+                configured: isVitalPublicConfigured()
+            },
+            roster: {
+                size: roster.ids?.length || 0,
+                playerInfoCount: roster.playerInfoCount || 0,
+                manualExtraCount: roster.manualOnlyCount || 0
+            },
+            vitalCache: buildVitalCacheMeta()
+        });
+    });
+
+    app.post("/api/admin/vital/sync-display-names", authAdmin, async (req, res) => {
+        if (!vitalEnabled()) {
+            return res.status(503).json({ error: "Vital API deshabilitada" });
+        }
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) {
+            return res.status(503).json({ error: "No se pudo preparar player_info_profiles" });
+        }
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const server = resolveServer(req.query.server || body.server || DEFAULT_SERVER_KEY);
+        if (!server?.configured) {
+            return res.status(503).json({ error: "Servidor Vital inválido o sin serverId" });
+        }
+        let wipeId = String(req.query.wipeId || body.wipeId || "").trim();
+        const paths = apiPaths();
+        if (!paths.playersOverviewPost) {
+            return res.status(503).json({ error: "Sin VITAL_API_PLAYERS_OVERVIEW_POST" });
+        }
+        if (!wipeId || wipeId === "current") {
+            wipeId = (await resolveCurrentWipeId(paths, server.serverId)) || "null";
+        }
+        try {
+            const roster = await loadClanSteamIds(getPool);
+            const clanIds = roster.ids;
+            if (!clanIds.length) {
+                return res.json({ ok: true, updated: 0, skipped: 0, message: "Roster vacío" });
+            }
+            const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
+            if (refresh) {
+                for (const k of [...cache.keys()]) {
+                    if (k.startsWith("POST ")) {
+                        cache.delete(k);
+                    }
+                }
+            }
+            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
+            const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
+            const emptyRes = await pool.query(
+                `SELECT steam_id64, display_name FROM player_info_profiles
+                 WHERE steam_id64 = ANY($1::varchar[])
+                   AND (display_name IS NULL OR BTRIM(display_name) = '')`,
+                [clanIds]
+            );
+            let updated = 0;
+            let skipped = 0;
+            for (const row of emptyRes.rows) {
+                const sid = normalizeSteamId64(row.steam_id64);
+                const vital = bySteam.get(sid);
+                const name = String(vital?.name || "").trim();
+                if (!sid || !name) {
+                    skipped += 1;
+                    continue;
+                }
+                await pool.query(
+                    `UPDATE player_info_profiles SET display_name = $2, updated_at = NOW() WHERE steam_id64 = $1`,
+                    [sid, name.slice(0, 120)]
+                );
+                updated += 1;
+            }
+            return res.json({
+                ok: true,
+                server,
+                wipeId,
+                updated,
+                skipped,
+                vitalPlayers: matched.length,
+                vitalCache: buildVitalCacheMeta()
+            });
+        } catch (e) {
+            console.error("vital sync-display-names:", e.message);
+            return res.status(502).json({ error: e.message || "Error al sincronizar nombres" });
+        }
     });
 
     app.get("/api/admin/vital/public-access", authAdmin, async (req, res) => {
@@ -1762,7 +1948,8 @@ function registerVitalRustApi(app, { getPool }) {
                 playerInfoCount: roster.playerInfoCount || 0,
                 players: matched,
                 notFound,
-                hint
+                hint,
+                vitalCache: buildVitalCacheMeta()
             });
         } catch (e) {
             console.error("vital public clan:", e.message);
@@ -1775,5 +1962,9 @@ module.exports = {
     registerVitalRustApi,
     authVitalPublic,
     vitalPublicAccessKey,
-    isVitalPublicConfigured
+    isVitalPublicConfigured,
+    loadClanSteamIds,
+    normalizeSteamId64,
+    normalizePlayerStatCount,
+    buildVitalCacheMeta
 };

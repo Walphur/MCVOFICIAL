@@ -14,7 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=34">
+<<<<<<< HEAD
     <meta name="mcv-admin-build" content="2026-05-28-combats-minis-lost-v1">
+=======
+    <meta name="mcv-admin-build" content="2026-05-28-vital-ops-dashboard-v1">
+>>>>>>> 7b4790b (feat(vital): caché visible, dashboard wipe, health, sync nombres y tests)
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -296,7 +300,15 @@
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
-                            <div id="vital-member-stats" class="vital-member-stats" aria-label="Resumen roster"></div>
+                            <div id="vital-health-bar" class="vital-health-bar" hidden aria-live="polite"></div>
+                            <div class="vital-wipe-dashboard">
+                                <div id="vital-member-stats" class="vital-member-stats" aria-label="Resumen roster"></div>
+                                <div class="vital-dashboard-actions">
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar CSV</button>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
+                                </div>
+                            </div>
                             <div class="vital-member-toolbar">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar..." />
                                 <select id="vital-info-filter" class="vital-input-compact" title="Estado">
@@ -330,8 +342,8 @@
                                     <button type="button" class="vital-dtab active" data-detail-tab="general">General</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="wipe">Wipe</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="combats">Combats</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="minis">Minis</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="combats" data-i18n="admin.vitalTabCombats">Combats</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="minis" data-i18n="admin.vitalTabMinis">Minis</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="notes">Notes</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
                                 </div>
@@ -401,7 +413,7 @@
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="combats">
                                         <section class="vital-form-section vital-form-section--solo">
-                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Combats perdidos</h3><p class="vital-form-section__hint">Peleas o raids del clan que terminaron en derrota en este wipe.</p></header>
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title" data-i18n="admin.vitalCombatsTitle">Combats perdidos</h3><p class="vital-form-section__hint" data-i18n="admin.vitalCombatsHint">Peleas o raids del clan que terminaron en derrota en este wipe.</p></header>
                                             <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
                                                 <label class="vital-field"><span>Cantidad</span><input id="vital-info-combats-lost" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" /></label>
                                             </div>
@@ -409,7 +421,7 @@
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="minis">
                                         <section class="vital-form-section vital-form-section--solo">
-                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Minis perdidos</h3><p class="vital-form-section__hint">Bases mini o externals perdidas en el wipe (aparte de combats).</p></header>
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title" data-i18n="admin.vitalMinisTitle">Minis perdidos</h3><p class="vital-form-section__hint" data-i18n="admin.vitalMinisHint">Bases mini o externals perdidas en el wipe (aparte de combats).</p></header>
                                             <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
                                                 <label class="vital-field"><span>Cantidad</span><input id="vital-info-minis-lost" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" /></label>
                                             </div>
@@ -1979,22 +1991,161 @@
         if (!box) return;
         var rows = vitalInfoRows || [];
         var stats = [
-            { label: 'Total', value: rows.length },
-            { label: 'Activos', value: rows.filter(function (r) { return r.statusTag === 'mcv_active'; }).length },
-            { label: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
-            { label: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
-            {
-                label: 'Combats perd.',
-                value: rows.reduce(function (sum, r) { return sum + Number(r.combatsLost || 0); }, 0)
-            },
-            {
-                label: 'Minis perd.',
-                value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0)
-            }
+            { key: 'admin.vitalDashTotal', fallback: 'Total', value: rows.length },
+            { key: 'admin.vitalDashActive', fallback: 'Activos', value: rows.filter(function (r) { return r.statusTag === 'mcv_active' || r.statusTag === 'admin'; }).length },
+            { key: 'admin.vitalDashPaused', fallback: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
+            { key: 'admin.vitalDashInWipe', fallback: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
+            { key: 'admin.vitalDashStrikes', fallback: 'Con strikes', value: rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length },
+            { key: 'admin.vitalDashCombats', fallback: 'Combats perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.combatsLost || 0); }, 0) },
+            { key: 'admin.vitalDashMinis', fallback: 'Minis perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0) }
         ];
         box.innerHTML = stats.map(function (s) {
-            return '<div class="vital-member-stat"><span>' + esc(s.label) + '</span><strong>' + esc(s.value) + '</strong></div>';
+            return '<div class="vital-member-stat"><span>' + esc(vitalLabel(s.key, s.fallback)) + '</span><strong>' + esc(s.value) + '</strong></div>';
         }).join('');
+    }
+
+    function buildVitalDashboardRows() {
+        return (vitalInfoRows || []).map(function (r) {
+            return {
+                displayName: r.displayName || '',
+                steamId64: r.steamId64 || '',
+                statusTag: r.statusTag || '',
+                wipePhase: r.wipePhase || '',
+                strikes: Number(r.strikes || 0),
+                combatsLost: Number(r.combatsLost || 0),
+                minisLost: Number(r.minisLost || 0),
+                hoursPlayed: r.hoursPlayed != null ? r.hoursPlayed : '',
+                roleLabel: r.roleLabel || '',
+                paused: r.pausedOutsideWipe || r.wipePhase === 'no_juega' ? '1' : '0'
+            };
+        });
+    }
+
+    function exportVitalDashboardCsv() {
+        var rows = buildVitalDashboardRows();
+        if (!rows.length) {
+            banner(vitalLabel('admin.vitalDashboardEmpty', 'No hay jugadores para exportar.'), true);
+            return;
+        }
+        var cols = [
+            ['nombre', 'displayName'],
+            ['steamId64', 'steamId64'],
+            ['estado', 'statusTag'],
+            ['fase_wipe', 'wipePhase'],
+            ['strikes', 'strikes'],
+            ['combats_perdidos', 'combatsLost'],
+            ['minis_perdidos', 'minisLost'],
+            ['horas', 'hoursPlayed'],
+            ['rol', 'roleLabel'],
+            ['pausado', 'paused']
+        ];
+        var h = cols.map(function (c) { return c[0]; });
+        var body = rows.map(function (r) {
+            return cols.map(function (c) {
+                return '"' + String(r[c[1]] != null ? r[c[1]] : '').replace(/"/g, '""') + '"';
+            }).join(',');
+        });
+        var blob = new Blob([[h.join(','), body.join('\n')].join('\n')], { type: 'text/csv;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mcv-info-jugadores-wipe.csv';
+        a.click();
+        banner(vitalLabel('admin.vitalDashboardExported', 'CSV descargado.'), false);
+    }
+
+    function copyVitalDashboardSummary() {
+        var rows = vitalInfoRows || [];
+        if (!rows.length) {
+            banner(vitalLabel('admin.vitalDashboardEmpty', 'No hay jugadores para exportar.'), true);
+            return;
+        }
+        var active = rows.filter(function (r) { return r.statusTag === 'mcv_active' || r.statusTag === 'admin'; }).length;
+        var combats = rows.reduce(function (s, r) { return s + Number(r.combatsLost || 0); }, 0);
+        var minis = rows.reduce(function (s, r) { return s + Number(r.minisLost || 0); }, 0);
+        var strikes = rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length;
+        var text = [
+            'MCV — Resumen wipe (Info jugadores)',
+            'Total: ' + rows.length + ' | Activos: ' + active + ' | Con strikes: ' + strikes,
+            'Combats perdidos: ' + combats + ' | Minis perdidos: ' + minis
+        ].join('\n');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                banner(vitalLabel('admin.vitalDashboardCopied', 'Resumen copiado al portapapeles.'), false);
+            }).catch(function () {
+                banner(text, false);
+            });
+        } else {
+            banner(text, false);
+        }
+    }
+
+    function renderVitalHealthBar(data) {
+        var bar = document.getElementById('vital-health-bar');
+        if (!bar) return;
+        if (!data) {
+            bar.hidden = true;
+            return;
+        }
+        bar.hidden = false;
+        var items = [
+            { ok: data.database && data.database.ok, label: vitalLabel('admin.vitalHealthDb', 'BD') },
+            { ok: data.vitalApi && data.vitalApi.reachable, label: vitalLabel('admin.vitalHealthVital', 'Vital API') },
+            { ok: data.publicAccess && data.publicAccess.configured, label: vitalLabel('admin.vitalHealthPublic', 'Link público') }
+        ];
+        var cacheHint = '';
+        if (data.vitalCache && data.vitalCache.lastFetchAgeSec != null) {
+            cacheHint = vitalLabel('admin.vitalCacheAge', 'Última consulta Vital: hace {n}s').replace('{n}', String(data.vitalCache.lastFetchAgeSec));
+            if (data.vitalCache.servedFromCache) {
+                cacheHint += ' · ' + vitalLabel('admin.vitalCacheFromCache', 'caché');
+            }
+        }
+        bar.innerHTML =
+            '<div class="vital-health-items">' +
+            items.map(function (it) {
+                return '<span class="vital-health-pill' + (it.ok ? ' is-ok' : ' is-bad') + '">' + esc(it.label) + '</span>';
+            }).join('') +
+            '</div>' +
+            (cacheHint ? '<span class="vital-health-cache">' + esc(cacheHint) + '</span>' : '');
+    }
+
+    function loadVitalHealth() {
+        return fetch(API + '/api/admin/vital/health', { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'health');
+                renderVitalHealthBar(x.d);
+                return x.d;
+            })
+            .catch(function () {
+                renderVitalHealthBar({
+                    database: { ok: false },
+                    vitalApi: { reachable: false },
+                    publicAccess: { configured: false }
+                });
+            });
+    }
+
+    function syncVitalDisplayNames() {
+        banner(vitalLabel('admin.vitalSyncNamesLoading', 'Sincronizando nombres desde Vital…'), false);
+        return fetch(API + '/api/admin/vital/sync-display-names', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({ server: 'eu-monthly', wipeId: 'current', refresh: 0 })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'sync');
+                var msg = vitalLabel('admin.vitalSyncNamesDone', 'Nombres actualizados: {n}').replace('{n}', String(x.d.updated || 0));
+                if (x.d.skipped) {
+                    msg += ' · ' + vitalLabel('admin.vitalSyncNamesSkipped', 'sin nombre en Vital: {n}').replace('{n}', String(x.d.skipped));
+                }
+                banner(msg, false);
+                loadVitalHealth().catch(function () {});
+                return loadVitalPlayerInfo();
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : vitalLabel('admin.vitalSyncNamesError', 'No se pudieron sincronizar nombres.'), true);
+            });
     }
 
     function statusLabelShort(tag) {
@@ -2383,7 +2534,18 @@
         if (btnExtraAdd) {
             btnExtraAdd.addEventListener('click', addVitalExtraPlayers);
         }
-        if (btnInfoRefresh) btnInfoRefresh.addEventListener('click', function () { loadVitalPlayerInfo().catch(function () {}); });
+        if (btnInfoRefresh) {
+            btnInfoRefresh.addEventListener('click', function () {
+                loadVitalPlayerInfo().catch(function () {});
+                loadVitalHealth().catch(function () {});
+            });
+        }
+        var btnDashExport = document.getElementById('btn-vital-dashboard-export');
+        var btnDashCopy = document.getElementById('btn-vital-dashboard-copy');
+        var btnSyncNames = document.getElementById('btn-vital-sync-names');
+        if (btnDashExport) btnDashExport.addEventListener('click', exportVitalDashboardCsv);
+        if (btnDashCopy) btnDashCopy.addEventListener('click', copyVitalDashboardSummary);
+        if (btnSyncNames) btnSyncNames.addEventListener('click', function () { syncVitalDisplayNames().catch(function () {}); });
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
         if (vitalWipeSegment) {
             vitalWipeSegment.addEventListener('click', function (ev) {
@@ -2478,6 +2640,7 @@
             });
         }
         loadVitalPlayerInfo().catch(function () {});
+        loadVitalHealth().catch(function () {});
     }
     initVitalPanel();
 
@@ -2508,6 +2671,7 @@
                 vip.style.display = state.tab === 'vital-info' ? 'block' : 'none';
                 if (state.tab === 'vital-info') {
                     loadVitalPlayerInfo().catch(function () {});
+                    loadVitalHealth().catch(function () {});
                     if (vitalInfoSubtab === 'extras') {
                         loadVitalExtraPlayers().catch(function () {});
                     }
