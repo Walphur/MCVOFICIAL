@@ -9,14 +9,14 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css?v=30">
-    <link rel="stylesheet" href="style-ux.css?v=2">
+    <link rel="stylesheet" href="style-ux.css?v=3">
     <meta name="description" content="Streams en vivo de MCV: Kick y Twitch oficiales del clan Rust.">
     <meta property="og:title" content="MCV — Streams en vivo">
     <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=5" defer></script>
+    <script src="mcv-layout.js?v=6" defer></script>
 </head>
 <body class="grain live-page" data-mcv-page="live">
 
@@ -37,6 +37,10 @@
 </section>
 
 <main class="live-layout" id="mcv-main">
+    <div id="live-offline-banner" class="live-offline-banner" hidden>
+        <p data-i18n="live.bothOffline">Ningún canal está en vivo ahora. Seguinos en Discord para avisos de directo.</p>
+        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-primary" data-i18n="live.discordCta">Entrar al Discord</a>
+    </div>
     <div class="live-stack">
         <article class="live-stream-card--ux is-featured" id="kick-card">
             <div class="live-stream-head">
@@ -45,6 +49,7 @@
                     <span class="live-platform-pill live-platform-pill--kick">Kick</span>
                     <span id="kick-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
                     <span id="kick-viewers" class="live-viewers"></span>
+                    <a class="live-external-link" href="https://kick.com/mcompanyv" target="_blank" rel="noopener noreferrer" data-i18n="live.openKick">Abrir en Kick</a>
                 </div>
             </div>
             <div class="stream-frame-wrap" id="kick-frame-wrap">
@@ -63,6 +68,7 @@
                     <span class="live-platform-pill live-platform-pill--twitch">Twitch</span>
                     <span id="twitch-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
                     <span id="twitch-viewers" class="live-viewers"></span>
+                    <a class="live-external-link" href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer" data-i18n="live.openTwitch">Abrir en Twitch</a>
                 </div>
             </div>
             <div class="stream-frame-wrap" id="twitch-frame-wrap">
@@ -83,6 +89,14 @@
     var ch = "mcvteam";
     var kickChannel = "mcompanyv";
     lucide.createIcons();
+    var kickLive = false;
+    var twitchLive = false;
+
+    function updateOfflineBanner() {
+        var banner = document.getElementById("live-offline-banner");
+        if (!banner) return;
+        banner.hidden = kickLive || twitchLive;
+    }
 
     function setBadge(id, live) {
         var b = document.getElementById(id);
@@ -130,8 +144,10 @@
         .then(function (txt) {
             var s = String(txt || "").toLowerCase();
             var live = s.indexOf("live") !== -1 || s.indexOf("online") !== -1;
+            twitchLive = live;
             setBadge("twitch-live-badge", live);
             setOfflineUi("twitch", live);
+            updateOfflineBanner();
             if (live) {
                 return fetch("https://decapi.me/twitch/viewercount/" + encodeURIComponent(ch))
                     .then(function (r2) { return r2.text(); })
@@ -143,8 +159,10 @@
             setViewers("twitch-viewers", null);
         })
         .catch(function () {
+            twitchLive = false;
             setBadge("twitch-live-badge", false);
             setOfflineUi("twitch", false);
+            updateOfflineBanner();
         });
 
     fetch("https://decapi.me/kick/status/" + encodeURIComponent(kickChannel))
@@ -152,8 +170,10 @@
         .then(function (txt) {
             var s = String(txt || "").toLowerCase();
             var live = s.indexOf("live") !== -1 || s.indexOf("online") !== -1;
+            kickLive = live;
             setBadge("kick-live-badge", live);
             setOfflineUi("kick", live);
+            updateOfflineBanner();
             if (live) {
                 return fetch("https://decapi.me/kick/viewercount/" + encodeURIComponent(kickChannel))
                     .then(function (r2) { return r2.text(); })
@@ -165,8 +185,10 @@
             setViewers("kick-viewers", null);
         })
         .catch(function () {
+            kickLive = false;
             setBadge("kick-live-badge", false);
             setOfflineUi("kick", false);
+            updateOfflineBanner();
         });
 })();
 </script>

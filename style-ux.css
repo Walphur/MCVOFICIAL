@@ -381,6 +381,124 @@ a:not(.btn-primary):not(.btn-secondary) {
     color: var(--foreground);
     word-break: break-all;
 }
+.tracker-example-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.45);
+    color: var(--foreground);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    word-break: break-all;
+    transition: border-color 0.2s, background 0.2s;
+}
+.tracker-example-btn:hover {
+    border-color: rgba(250, 166, 26, 0.5);
+    background: rgba(250, 166, 26, 0.08);
+}
+
+/* Estados API / banners */
+.mcv-api-banner {
+    max-width: 1180px;
+    margin: 0 auto 16px;
+    padding: 12px 16px;
+    border: 1px dashed rgba(250, 166, 26, 0.35);
+    border-radius: 8px;
+    background: rgba(250, 166, 26, 0.06);
+}
+.mcv-api-banner p {
+    margin: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+.mcv-data-warn { color: var(--primary) !important; }
+.mcv-data-err { color: #f87171 !important; }
+.footer-pulse-value.mcv-data-err { color: #f87171 !important; }
+
+/* Tickets */
+.ticket-type-badge.is-active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(250, 166, 26, 0.12);
+    box-shadow: 0 0 16px rgba(250, 166, 26, 0.15);
+}
+.ticket-id-success {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 10px;
+    background: rgba(74, 222, 128, 0.08);
+    text-align: center;
+}
+.ticket-id-success strong {
+    display: block;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    margin: 8px 0;
+}
+.ticket-id-copy {
+    margin-top: 10px;
+}
+
+/* Events — CTA principal */
+.events-card-actions--open .events-card-register {
+    font-size: 0.88rem;
+}
+.events-api-banner-wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+.home-stats-hint {
+    max-width: 1180px;
+    margin: -24px auto 12px;
+    padding: 0 16px;
+}
+
+/* Live — offline global + links */
+.live-offline-banner {
+    margin-bottom: 22px;
+    padding: 20px;
+    text-align: center;
+    border: 1px dashed rgba(250, 166, 26, 0.35);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.35);
+}
+.live-offline-banner[hidden] { display: none !important; }
+.live-offline-banner p {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+}
+.live-external-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 10px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    text-decoration: none;
+}
+.live-external-link:hover {
+    border-color: rgba(250, 166, 26, 0.5);
+    background: rgba(250, 166, 26, 0.08);
+}
 .tracker-error-card {
     max-width: 520px;
     margin: 24px auto 0;

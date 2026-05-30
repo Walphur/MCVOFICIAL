@@ -15,7 +15,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=5" defer></script>
+    <script src="mcv-layout.js?v=6" defer></script>
 </head>
 <body class="grain tickets-page" data-mcv-page="tickets">
 
@@ -28,11 +28,11 @@
     <h2><span data-i18n="tickets.title">Abrí un </span><span data-i18n="tickets.titleSpan">ticket.</span></h2>
 
     <div class="form-container">
-        <div class="ticket-type-badges" aria-hidden="true">
-            <span class="ticket-type-badge ticket-type-badge--recruit" data-i18n="tickets.badgeRecruit">Reclutamiento</span>
-            <span class="ticket-type-badge ticket-type-badge--support" data-i18n="tickets.badgeSupport">Soporte</span>
-            <span class="ticket-type-badge ticket-type-badge--report" data-i18n="tickets.badgeReport">Reporte</span>
-            <span class="ticket-type-badge ticket-type-badge--tournament" data-i18n="tickets.badgeTournament">Torneos</span>
+        <div class="ticket-type-badges" id="ticket-type-badges">
+            <span class="ticket-type-badge ticket-type-badge--recruit" data-ticket-type="recruit" data-i18n="tickets.badgeRecruit">Reclutamiento</span>
+            <span class="ticket-type-badge ticket-type-badge--support" data-ticket-type="support" data-i18n="tickets.badgeSupport">Soporte</span>
+            <span class="ticket-type-badge ticket-type-badge--report" data-ticket-type="report" data-i18n="tickets.badgeReport">Reporte</span>
+            <span class="ticket-type-badge ticket-type-badge--tournament" data-ticket-type="tournament" data-i18n="tickets.badgeTournament">Torneos</span>
         </div>
         <div class="tickets-intro">
             <h3 data-i18n="tickets.introH">Cómo funciona</h3>
@@ -61,6 +61,11 @@
                 <textarea name="description" data-i18n-placeholder="tickets.descPh" placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
             </div>
 
+            <div id="tickets-id-box" class="ticket-id-success" hidden>
+                <span data-i18n="tickets.yourNumber">Tu número de ticket</span>
+                <strong id="tickets-id-num">—</strong>
+                <button type="button" class="btn-secondary ticket-id-copy" id="tickets-id-copy" data-i18n="tickets.copyId">Copiar número</button>
+            </div>
             <p id="tickets-form-msg" class="tickets-form-msg" hidden></p>
             <button type="submit" class="btn-primary w-100"><i data-lucide="send"></i> <span data-i18n="tickets.submit">Enviar solicitud</span></button>
             <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-secondary w-100" style="margin-top:12px;display:inline-flex;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none;"><i data-lucide="message-square"></i> <span data-i18n="tickets.submitDiscord">Abrir Discord</span></a>
@@ -89,9 +94,40 @@
     var lookupForm = document.getElementById("tickets-lookup-form");
     var lookupMsg = document.getElementById("tickets-lookup-msg");
     lucide.createIcons();
+
+    var typeSelect = form.querySelector('select[name="ticketType"]');
+    var badges = document.querySelectorAll(".ticket-type-badge[data-ticket-type]");
+    function syncTicketBadges() {
+        var v = typeSelect ? typeSelect.value : "";
+        for (var i = 0; i < badges.length; i++) {
+            var b = badges[i];
+            var t = b.getAttribute("data-ticket-type");
+            var on = !!v && (t === v || (t === "support" && v === "other"));
+            b.classList.toggle("is-active", on);
+        }
+    }
+    if (typeSelect) {
+        typeSelect.addEventListener("change", syncTicketBadges);
+        syncTicketBadges();
+    }
+
+    var idBox = document.getElementById("tickets-id-box");
+    var idNum = document.getElementById("tickets-id-num");
+    var idCopy = document.getElementById("tickets-id-copy");
+    if (idCopy) {
+        idCopy.addEventListener("click", function () {
+            var n = idNum ? idNum.textContent : "";
+            if (!n) return;
+            navigator.clipboard.writeText(n).then(function () {
+                if (typeof mcvToast === "function") mcvToast(T("tickets.copiedId"), "ok");
+            });
+        });
+    }
+
     form.addEventListener("submit", function (e) {
         e.preventDefault();
         msg.hidden = true;
+        if (idBox) idBox.hidden = true;
         if (!API) {
             msg.textContent = T("tickets.noApi");
             msg.className = "tickets-form-msg err";
@@ -119,10 +155,15 @@
                 msg.textContent = okMsg;
                 msg.className = "tickets-form-msg ok";
                 msg.hidden = false;
+                if (tid && idBox && idNum) {
+                    idNum.textContent = "#" + tid;
+                    idBox.hidden = false;
+                }
                 if (typeof mcvToast === "function") {
                     mcvToast(T("tickets.toastSent"), "ok");
                 }
                 form.reset();
+                syncTicketBadges();
             })
             .catch(function (err) {
                 msg.textContent = (err && err.message) ? err.message : T("tickets.error");

@@ -282,13 +282,13 @@
         if (!document.querySelector("link[data-mcv-ux-css]")) {
             var link = document.createElement("link");
             link.rel = "stylesheet";
-            link.href = base + "style-ux.css?v=2";
+            link.href = base + "style-ux.css?v=3";
             link.setAttribute("data-mcv-ux-css", "1");
             document.head.appendChild(link);
         }
         if (!document.querySelector("script[data-mcv-ux-js]")) {
             var script = document.createElement("script");
-            script.src = base + "mcv-ui.js?v=2";
+            script.src = base + "mcv-ui.js?v=3";
             script.defer = true;
             script.setAttribute("data-mcv-ux-js", "1");
             document.body.appendChild(script);

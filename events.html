@@ -17,7 +17,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=5" defer></script>
+    <script src="mcv-layout.js?v=6" defer></script>
 </head>
 <body class="grain events-page" data-mcv-page="events">
 
@@ -41,6 +41,7 @@
 </section>
 
 
+<div id="events-api-banner" class="events-api-banner-wrap" hidden></div>
 <section class="events-stats-strip">
     <div class="events-stat">
         <span class="events-stat-num" id="stat-hosted">—</span>
@@ -180,12 +181,9 @@
                 : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
         var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
         var actions =
-            '<div class="events-card-actions">' +
-            '<a class="events-card-link" href="' +
-            esc(slugQ) +
-            '">' +
-            esc(T('events.cardDetail')) +
-            '</a>';
+            '<div class="events-card-actions' +
+            (open ? ' events-card-actions--open' : '') +
+            '">';
         if (open) {
             actions +=
                 '<a class="events-card-register btn-primary" href="' +
@@ -194,7 +192,12 @@
                 esc(T('events.cardRegister')) +
                 '</a>';
         }
-        actions += '</div>';
+        actions +=
+            '<a class="events-card-link" href="' +
+            esc(slugQ) +
+            '">' +
+            esc(T('events.cardDetail')) +
+            '</a></div>';
         var champPrefix = T('events.championPrefix');
         var pastDetails = '';
         if (isPast) {
@@ -356,7 +359,13 @@
             lucide.createIcons();
         })
         .catch(function () {
-            renderEmpty(document.getElementById('upcoming-list'), T('events.connectFail'));
+            var failMsg = T('ui.eventsApiFail');
+            var banner = document.getElementById('events-api-banner');
+            if (banner && typeof mcvShowApiBanner === 'function') {
+                banner.hidden = false;
+                mcvShowApiBanner(banner, failMsg);
+            }
+            renderEmpty(document.getElementById('upcoming-list'), failMsg, true);
             renderEmpty(document.getElementById('past-list'), '');
         });
 

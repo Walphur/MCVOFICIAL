@@ -1,5 +1,5 @@
 /**
- * MCV — utilidades UI compartidas (toast, contadores, footer pulse).
+ * MCV — utilidades UI compartidas (toast, contadores, footer pulse, estados API).
  */
 (function (global) {
     function ensureToastHost() {
@@ -28,6 +28,18 @@
                 el.remove();
             }, 280);
         }, 3400);
+    }
+
+    function mcvT(key) {
+        return typeof global.mcvT === "function" ? global.mcvT(key) : key;
+    }
+
+    function mcvSetText(id, text, state) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = text;
+        el.classList.remove("mcv-data-ok", "mcv-data-warn", "mcv-data-err");
+        if (state) el.classList.add("mcv-data-" + state);
     }
 
     function parseCount(raw) {
@@ -79,15 +91,21 @@
                 })
                 .then(function (d) {
                     if (!d || !d.tournament) {
-                        last.textContent = "—";
+                        mcvSetText("footer-last-tournament", mcvT("ui.footerNoTournament"), "warn");
                         return;
                     }
                     var t = d.tournament;
-                    last.textContent = (t.title || t.slug || "—") + (d.mode === "recap" ? " · Finalizado" : "");
+                    mcvSetText(
+                        "footer-last-tournament",
+                        (t.title || t.slug || "—") + (d.mode === "recap" ? " · " + mcvT("ui.finished") : ""),
+                        "ok"
+                    );
                 })
                 .catch(function () {
-                    last.textContent = "—";
+                    mcvSetText("footer-last-tournament", mcvT("ui.loadFailShort"), "err");
                 });
+        } else if (last) {
+            mcvSetText("footer-last-tournament", mcvT("ui.loadFailShort"), "err");
         }
 
         fetch("https://discord.com/api/v9/invites/mBRrUA8wH6?with_counts=true")
@@ -97,13 +115,16 @@
             .then(function (d) {
                 if (disc && d && d.approximate_member_count != null) {
                     disc.textContent = String(d.approximate_member_count);
+                    disc.classList.add("mcv-data-ok");
                 }
             })
-            .catch(function () {});
+            .catch(function () {
+                if (disc) mcvSetText("footer-discord-members", mcvT("ui.loadFailShort"), "err");
+            });
 
         if (srv) {
             if (!API) {
-                srv.textContent = "—";
+                mcvSetText("footer-server-status", mcvT("ui.loadFailShort"), "err");
                 return;
             }
             fetch(API + "/api/health")
@@ -111,18 +132,32 @@
                     return r.json();
                 })
                 .then(function (h) {
-                    srv.textContent = h && h.ok ? "Online" : "Degradado";
-                    srv.classList.toggle("is-online", !!(h && h.ok));
+                    if (h && h.ok) {
+                        mcvSetText("footer-server-status", mcvT("ui.serverOnline"), "ok");
+                        srv.classList.add("is-online");
+                    } else {
+                        mcvSetText("footer-server-status", mcvT("ui.serverDegraded"), "warn");
+                    }
                 })
                 .catch(function () {
-                    srv.textContent = "Offline";
+                    mcvSetText("footer-server-status", mcvT("ui.serverOffline"), "err");
                 });
         }
+    }
+
+    function mcvShowApiBanner(container, message) {
+        if (!container) return;
+        container.innerHTML =
+            '<div class="mcv-api-banner" role="status"><p>' +
+            String(message) +
+            "</p></div>";
     }
 
     global.mcvToast = mcvToast;
     global.mcvAnimateCounters = mcvAnimateCounters;
     global.mcvLoadFooterPulse = loadFooterPulse;
+    global.mcvSetText = mcvSetText;
+    global.mcvShowApiBanner = mcvShowApiBanner;
 
     function boot() {
         loadFooterPulse();

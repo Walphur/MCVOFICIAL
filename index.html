@@ -18,7 +18,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=5" defer></script>
+    <script src="mcv-layout.js?v=6" defer></script>
 </head>
 <body class="grain home-page" data-mcv-page="index">
 
@@ -61,6 +61,7 @@
     </div>
 </section>
 
+<p id="home-stats-hint" class="mcv-api-banner home-stats-hint" hidden role="status"></p>
 <section class="stats-bar home-stats">
     <div class="stat-box">
         <span class="stat-title" data-i18n="home.statHosted">// Torneos hosteados</span>
@@ -294,9 +295,23 @@
                 don.setAttribute("data-count-target", don.textContent);
             }
         } else {
-            console.error("Error al cargar stats de Discord");
-            document.getElementById("discord-total").innerText = "OFF";
-            document.getElementById("discord-online").innerText = "OFF";
+            var hint = document.getElementById("home-stats-hint");
+            var failT = typeof mcvT === "function" ? mcvT("ui.statsPartialFail") : "Algunos datos no cargaron. Recargá o unite al Discord.";
+            if (hint) {
+                hint.textContent = failT;
+                hint.hidden = false;
+            }
+            var dt0 = document.getElementById("discord-total");
+            var don0 = document.getElementById("discord-online");
+            if (dt0) dt0.textContent = "—";
+            if (don0) don0.textContent = "—";
+        }
+        if (!stats && API) {
+            var hint2 = document.getElementById("home-stats-hint");
+            if (hint2 && hint2.hidden) {
+                hint2.textContent = typeof mcvT === "function" ? mcvT("ui.statsApiFail") : hint2.textContent;
+                hint2.hidden = false;
+            }
         }
         var hc = document.getElementById("stat-hosted-count");
         var wc = document.getElementById("stat-wipe-count");
