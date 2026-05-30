@@ -190,17 +190,33 @@ a:not(.btn-primary):not(.btn-secondary) {
     color: var(--primary);
 }
 
-/* Footer pulse */
+/* Footer — layout corregido (pulse fuera del flex de footer-content) */
+.footer {
+    padding: 48px 50px 24px;
+}
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px 56px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+.footer-links {
+    flex-shrink: 0;
+}
 .footer-pulse {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
-    margin: 0 0 28px;
-    padding: 16px 0 0;
+    width: 100%;
+    margin: 0 0 24px;
+    padding: 20px 0 0;
     border-top: 1px solid var(--border);
+    box-sizing: border-box;
 }
 .footer-pulse-item {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border: 1px solid var(--border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.02);
@@ -220,11 +236,18 @@ a:not(.btn-primary):not(.btn-secondary) {
     letter-spacing: 0.04em;
     color: var(--foreground);
     line-height: 1.2;
+    word-break: break-word;
 }
 .footer-pulse-value.is-online { color: #4ade80; }
-.footer-content { margin-bottom: 28px; }
+.footer-bottom {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+}
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .footer { padding: 40px 24px 20px; }
+    .footer-content { flex-direction: column; gap: 28px; }
     .footer-pulse { grid-template-columns: 1fr; }
 }
 
@@ -429,17 +452,57 @@ a:not(.btn-primary):not(.btn-secondary) {
 .tickets-form-msg.err { color: #f87171; }
 
 /* —— Live / Streams —— */
-.live-page .live-layout {
-    max-width: 1100px;
+.live-page .page-section.live-layout {
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+}
+.live-hero {
+    position: relative;
+    padding: 100px 24px 36px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+}
+.live-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url("banner.png") center / cover no-repeat;
+    opacity: 0.2;
+}
+.live-hero-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 5, 5, 0.4), rgba(5, 5, 5, 0.92));
+}
+.live-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
     margin: 0 auto;
-    padding: 96px 20px 80px;
+}
+.live-hero-inner .section-label {
+    justify-content: center;
+    margin-bottom: 12px;
+}
+.live-page .live-heading {
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    margin: 0 0 12px;
+    line-height: 1;
 }
 .live-page .live-heading span { color: var(--primary); }
 .live-page .live-lead {
     color: var(--muted);
     max-width: 56ch;
-    margin-bottom: 32px;
+    margin: 0 auto;
     line-height: 1.55;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.9rem;
+}
+.live-page .live-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 20px 80px;
 }
 .live-stack {
     display: flex;
@@ -512,6 +575,27 @@ a:not(.btn-primary):not(.btn-secondary) {
     width: 100%;
     height: 100%;
     border: 0;
+}
+.stream-frame-wrap #twitch-mount {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.stream-frame-wrap #twitch-mount iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.live-stream-card--ux.is-featured .stream-frame-wrap {
+    padding-bottom: 50%;
+}
+@media (min-width: 900px) {
+    .live-stream-card--ux.is-featured .stream-frame-wrap {
+        padding-bottom: 42%;
+    }
 }
 .live-offline-placeholder {
     position: absolute;

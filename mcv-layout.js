@@ -215,8 +215,8 @@
             '<a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>' +
             "</div>" +
             "</div>" +
-            footerPulseHtml() +
             "</div>" +
+            footerPulseHtml() +
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
@@ -227,13 +227,25 @@
         );
     }
 
+    function relocateFooterPulse(footer) {
+        if (!footer) return;
+        var content = footer.querySelector(".footer-content");
+        var pulse = footer.querySelector(".footer-pulse");
+        if (!pulse || !content || !content.contains(pulse)) return;
+        content.after(pulse);
+    }
+
     function injectFooterPulse(footer) {
-        if (!footer || footer.querySelector(".footer-pulse")) return;
+        if (!footer) return;
+        relocateFooterPulse(footer);
+        if (footer.querySelector(".footer-pulse")) return;
         var pulse = document.createElement("div");
         pulse.innerHTML = footerPulseHtml();
         var node = pulse.firstElementChild;
+        var content = footer.querySelector(".footer-content");
         var bottom = footer.querySelector(".footer-bottom");
-        if (bottom) footer.insertBefore(node, bottom);
+        if (content) content.after(node);
+        else if (bottom) footer.insertBefore(node, bottom);
         else footer.appendChild(node);
     }
 
@@ -270,13 +282,13 @@
         if (!document.querySelector("link[data-mcv-ux-css]")) {
             var link = document.createElement("link");
             link.rel = "stylesheet";
-            link.href = base + "style-ux.css?v=1";
+            link.href = base + "style-ux.css?v=2";
             link.setAttribute("data-mcv-ux-css", "1");
             document.head.appendChild(link);
         }
         if (!document.querySelector("script[data-mcv-ux-js]")) {
             var script = document.createElement("script");
-            script.src = base + "mcv-ui.js?v=1";
+            script.src = base + "mcv-ui.js?v=2";
             script.defer = true;
             script.setAttribute("data-mcv-ux-js", "1");
             document.body.appendChild(script);
@@ -289,6 +301,10 @@
         ensureManifest();
         ensureNavbar();
         ensureFooter();
+        var footers = document.querySelectorAll("footer.footer");
+        for (var fi = 0; fi < footers.length; fi++) {
+            injectFooterPulse(footers[fi]);
+        }
         registerServiceWorker();
         if (typeof window.mcvI18n !== "undefined" && window.mcvI18n.apply) {
             window.mcvI18n.apply();

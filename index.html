@@ -18,7 +18,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=4" defer></script>
+    <script src="mcv-layout.js?v=5" defer></script>
 </head>
 <body class="grain home-page" data-mcv-page="index">
 
@@ -192,30 +192,32 @@
                 <span class="link-title" data-i18n="footer.navTitle">// Navegación</span>
                 <a href="index.html"><span data-i18n="nav.clan">Clan</span></a>
                 <a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a>
+                <a href="equipo/"><span data-i18n="nav.team">Equipo</span></a>
                 <a href="bot.html"><span data-i18n="nav.bot">Bot</span></a>
                 <a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>
+                <a href="live.html"><span data-i18n="nav.streams">Streams</span></a>
             </div>
             <div>
                 <span class="link-title" data-i18n="footer.socialTitle">// Redes</span>
-                <a href="https://discord.gg/mBRrUA8wH6" target="_blank">Discord</a>
-                <a href="https://www.twitch.tv/mcvteam" target="_blank">Twitch</a>
-                <a href="https://www.youtube.com/@McompanyV" target="_blank">YouTube</a>
-                <a href="https://kick.com/mcompanyv" target="_blank">Kick</a>
+                <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">Discord</a>
+                <a href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer">Twitch</a>
+                <a href="https://www.youtube.com/@McompanyV" target="_blank" rel="noopener noreferrer">YouTube</a>
+                <a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>
             </div>
         </div>
-        <div class="footer-pulse" aria-label="Estado MCV">
-            <div class="footer-pulse-item">
-                <span class="footer-pulse-label" data-i18n="footer.lastTournament">Último torneo</span>
-                <span class="footer-pulse-value" id="footer-last-tournament">—</span>
-            </div>
-            <div class="footer-pulse-item">
-                <span class="footer-pulse-label" data-i18n="footer.discordMembers">Miembros Discord</span>
-                <span class="footer-pulse-value" id="footer-discord-members">—</span>
-            </div>
-            <div class="footer-pulse-item">
-                <span class="footer-pulse-label" data-i18n="footer.serverStatus">Estado servidor</span>
-                <span class="footer-pulse-value" id="footer-server-status">—</span>
-            </div>
+    </div>
+    <div class="footer-pulse" aria-label="Estado MCV">
+        <div class="footer-pulse-item">
+            <span class="footer-pulse-label" data-i18n="footer.lastTournament">Último torneo</span>
+            <span class="footer-pulse-value" id="footer-last-tournament">—</span>
+        </div>
+        <div class="footer-pulse-item">
+            <span class="footer-pulse-label" data-i18n="footer.discordMembers">Miembros Discord</span>
+            <span class="footer-pulse-value" id="footer-discord-members">—</span>
+        </div>
+        <div class="footer-pulse-item">
+            <span class="footer-pulse-label" data-i18n="footer.serverStatus">Estado servidor</span>
+            <span class="footer-pulse-value" id="footer-server-status">—</span>
         </div>
     </div>
     <div class="footer-bottom">

@@ -9,25 +9,34 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style-ux.css?v=2">
     <meta name="description" content="Streams en vivo de MCV: Kick y Twitch oficiales del clan Rust.">
     <meta property="og:title" content="MCV — Streams en vivo">
     <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=4" defer></script>
+    <script src="mcv-layout.js?v=5" defer></script>
 </head>
 <body class="grain live-page" data-mcv-page="live">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<main class="page-section live-layout" id="mcv-main">
-    <div class="section-label">
-        <div class="yellow-line"></div>
-        <span data-i18n="live.sectionTag">// Cobertura en vivo</span>
-    </div>
-    <h1 class="live-heading"><span data-i18n="live.heading">MCV </span><span data-i18n="live.headingSpan">Live.</span></h1>
-    <p class="live-lead" data-i18n="live.lead">Kick y Twitch oficiales del clan. Stream principal arriba; cobertura secundaria abajo.</p>
 
+<section class="live-hero">
+    <div class="live-hero-bg" aria-hidden="true"></div>
+    <div class="live-hero-shade" aria-hidden="true"></div>
+    <div class="live-hero-inner">
+        <div class="section-label">
+            <div class="yellow-line"></div>
+            <span data-i18n="live.sectionTag">// Cobertura en vivo</span>
+            <div class="yellow-line"></div>
+        </div>
+        <h1 class="live-heading"><span data-i18n="live.heading">MCV </span><span data-i18n="live.headingSpan">Live.</span></h1>
+        <p class="live-lead" data-i18n="live.lead">Kick y Twitch oficiales del clan. Stream principal arriba; cobertura secundaria abajo.</p>
+    </div>
+</section>
+
+<main class="live-layout" id="mcv-main">
     <div class="live-stack">
         <article class="live-stream-card--ux is-featured" id="kick-card">
             <div class="live-stream-head">
@@ -84,19 +93,15 @@
     }
 
     function setOfflineUi(platform, live) {
-        var iframe = document.getElementById(platform + "-iframe") || document.querySelector("#" + platform + "-frame-wrap iframe");
+        var iframe = document.getElementById(platform + "-iframe");
         var placeholder = document.getElementById(platform + "-offline");
         var wrap = document.getElementById(platform + "-frame-wrap");
         if (!wrap) return;
         if (placeholder) placeholder.hidden = !!live;
         if (iframe) iframe.style.visibility = live ? "visible" : "hidden";
-        if (!live && platform === "twitch") {
+        if (platform === "twitch") {
             var mount = document.getElementById("twitch-mount");
-            if (mount) mount.style.visibility = "hidden";
-        }
-        if (live && platform === "twitch") {
-            var mountLive = document.getElementById("twitch-mount");
-            if (mountLive) mountLive.style.visibility = "visible";
+            if (mount) mount.style.visibility = live ? "visible" : "hidden";
         }
     }
 
