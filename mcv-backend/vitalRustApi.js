@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
         CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
     hours_played INT,
-    broken_attacks INT NOT NULL DEFAULT 0 CHECK (broken_attacks >= 0 AND broken_attacks <= 9999),
+    combats_lost INT NOT NULL DEFAULT 0 CHECK (combats_lost >= 0 AND combats_lost <= 9999),
+    minis_lost INT NOT NULL DEFAULT 0 CHECK (minis_lost >= 0 AND minis_lost <= 9999),
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
@@ -670,7 +671,7 @@ function normalizeWipePhase(raw) {
     return allowed.has(v) ? v : "unknown";
 }
 
-function normalizeBrokenAttacks(raw) {
+function normalizePlayerStatCount(raw) {
     const n = Number(raw);
     if (!Number.isFinite(n) || n < 0) {
         return 0;
@@ -688,8 +689,21 @@ async function ensurePlayerInfoTable(pool) {
         );
         await pool.query(
             `ALTER TABLE player_info_profiles
-             ADD COLUMN IF NOT EXISTS broken_attacks INT NOT NULL DEFAULT 0`
+             ADD COLUMN IF NOT EXISTS combats_lost INT NOT NULL DEFAULT 0`
         );
+        await pool.query(
+            `ALTER TABLE player_info_profiles
+             ADD COLUMN IF NOT EXISTS minis_lost INT NOT NULL DEFAULT 0`
+        );
+        try {
+            await pool.query(
+                `UPDATE player_info_profiles
+                 SET combats_lost = broken_attacks
+                 WHERE combats_lost = 0 AND broken_attacks > 0`
+            );
+        } catch (eMigrate) {
+            /* broken_attacks puede no existir en instalaciones nuevas */
+        }
         return true;
     } catch (e) {
         console.error("ensure player_info_profiles:", e.message);
@@ -712,7 +726,8 @@ function normalizePlayerInfoRow(row) {
         vouchBy: String(row.vouch_by || row.vouchBy || "").trim(),
         wipePhase: normalizeWipePhase(row.wipe_phase || row.wipePhase),
         hoursPlayed: Number.isFinite(Number(row.hours_played ?? row.hoursPlayed)) ? Number(row.hours_played ?? row.hoursPlayed) : null,
-        brokenAttacks: normalizeBrokenAttacks(row.broken_attacks ?? row.brokenAttacks),
+        combatsLost: normalizePlayerStatCount(row.combats_lost ?? row.combatsLost ?? row.broken_attacks ?? row.brokenAttacks),
+        minisLost: normalizePlayerStatCount(row.minis_lost ?? row.minisLost),
         contribution: String(row.contribution || "").trim(),
         warnings: String(row.warnings || "").trim(),
         mtTeam: Boolean(row.mt_team ?? row.mtTeam),
@@ -781,14 +796,18 @@ function parsePlayerInfoImportText(raw) {
     const cStatus = idx(["status", "estado", "color", "status_tag"]);
     const cWipe = idx(["wipe", "wipe_phase", "fase_wipe", "wipe phase"]);
     const cHours = idx(["hours", "horas", "hours_played"]);
-    const cBroken = idx([
+    const cCombatsLost = idx([
+        "combats perdidos",
+        "combats_perdidos",
+        "combates perdidos",
+        "combates_perdidos",
+        "combats_lost",
+        "combats lost",
         "ataques rotos",
         "ataques_rotos",
-        "broken_attacks",
-        "broken attacks",
-        "attacks_broken",
-        "rotos"
+        "broken_attacks"
     ]);
+    const cMinisLost = idx(["minis perdidos", "minis_perdidos", "minis_lost", "minis lost"]);
     const cContrib = idx(["aportacion", "aporte", "contribution"]);
     const cMt = idx(["mt", "mt team", "mt_team"]);
     const cPaused = idx(["pausado", "paused", "pause", "paused_outside_wipe"]);
@@ -827,7 +846,8 @@ function parsePlayerInfoImportText(raw) {
                 vouch_by: cVouch >= 0 ? cols[cVouch] : "",
                 wipe_phase: cWipe >= 0 ? cols[cWipe] : "unknown",
                 hours_played: cHours >= 0 ? cols[cHours] : null,
-                broken_attacks: cBroken >= 0 ? cols[cBroken] : 0,
+                combats_lost: cCombatsLost >= 0 ? cols[cCombatsLost] : 0,
+                minis_lost: cMinisLost >= 0 ? cols[cMinisLost] : 0,
                 contribution: cContrib >= 0 ? cols[cContrib] : "",
                 warnings: cNotes >= 0 ? cols[cNotes] : "",
                 mt_team: cMt >= 0 ? parseImportBool(cols[cMt]) : false,
@@ -1362,7 +1382,8 @@ function registerVitalRustApi(app, { getPool }) {
             vouch_by: body.vouchBy,
             wipe_phase: pausedOutsideWipe ? "no_juega" : incomingWipe,
             hours_played: body.hoursPlayed,
-            broken_attacks: body.brokenAttacks,
+            combats_lost: body.combatsLost,
+            minis_lost: body.minisLost,
             contribution: body.contribution,
             warnings: body.warnings,
             mt_team: body.mtTeam,
@@ -1372,9 +1393,9 @@ function registerVitalRustApi(app, { getPool }) {
             const r = await pool.query(
                 `INSERT INTO player_info_profiles (
                     steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                    hours_played, broken_attacks, contribution, warnings, mt_team, paused_outside_wipe, updated_at
+                    hours_played, combats_lost, minis_lost, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                  ) VALUES (
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW()
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW()
                  )
                  ON CONFLICT (steam_id64) DO UPDATE SET
                     display_name = EXCLUDED.display_name,
@@ -1387,7 +1408,8 @@ function registerVitalRustApi(app, { getPool }) {
                     vouch_by = EXCLUDED.vouch_by,
                     wipe_phase = EXCLUDED.wipe_phase,
                     hours_played = EXCLUDED.hours_played,
-                    broken_attacks = EXCLUDED.broken_attacks,
+                    combats_lost = EXCLUDED.combats_lost,
+                    minis_lost = EXCLUDED.minis_lost,
                     contribution = EXCLUDED.contribution,
                     warnings = EXCLUDED.warnings,
                     mt_team = EXCLUDED.mt_team,
@@ -1406,7 +1428,8 @@ function registerVitalRustApi(app, { getPool }) {
                     row.vouchBy || null,
                     row.wipePhase,
                     row.hoursPlayed,
-                    row.brokenAttacks,
+                    row.combatsLost,
+                    row.minisLost,
                     row.contribution || null,
                     row.warnings || null,
                     row.mtTeam,
@@ -1434,9 +1457,9 @@ function registerVitalRustApi(app, { getPool }) {
                 await pool.query(
                     `INSERT INTO player_info_profiles (
                         steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
-                        hours_played, broken_attacks, contribution, warnings, mt_team, paused_outside_wipe, updated_at
+                        hours_played, combats_lost, minis_lost, contribution, warnings, mt_team, paused_outside_wipe, updated_at
                      ) VALUES (
-                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW()
+                        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,NOW()
                      )
                      ON CONFLICT (steam_id64) DO UPDATE SET
                         display_name = EXCLUDED.display_name,
@@ -1449,7 +1472,8 @@ function registerVitalRustApi(app, { getPool }) {
                         vouch_by = EXCLUDED.vouch_by,
                         wipe_phase = EXCLUDED.wipe_phase,
                         hours_played = EXCLUDED.hours_played,
-                        broken_attacks = EXCLUDED.broken_attacks,
+                        combats_lost = EXCLUDED.combats_lost,
+                        minis_lost = EXCLUDED.minis_lost,
                         contribution = EXCLUDED.contribution,
                         warnings = EXCLUDED.warnings,
                         mt_team = EXCLUDED.mt_team,
@@ -1467,7 +1491,8 @@ function registerVitalRustApi(app, { getPool }) {
                         row.vouchBy || null,
                         row.wipePhase,
                         row.hoursPlayed,
-                        row.brokenAttacks,
+                        row.combatsLost,
+                        row.minisLost,
                         row.contribution || null,
                         row.warnings || null,
                         row.mtTeam,

@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=32">
-    <meta name="mcv-admin-build" content="2026-05-28-player-broken-attacks-v1">
+    <link rel="stylesheet" href="style-admin.css?v=33">
+    <meta name="mcv-admin-build" content="2026-05-28-combats-minis-lost-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -330,6 +330,8 @@
                                     <button type="button" class="vital-dtab active" data-detail-tab="general">General</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="wipe">Wipe</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="combats">Combats</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="minis">Minis</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="notes">Notes</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
                                 </div>
@@ -393,8 +395,23 @@
                                             <header class="vital-form-section__head"><h3 class="vital-form-section__title">Strikes</h3></header>
                                             <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
                                                 <label class="vital-field"><span>Strikes (0-3)</span><input id="vital-info-strikes" class="admin-input" type="number" min="0" max="3" /></label>
-                                                <label class="vital-field"><span>Ataques rotos</span><input id="vital-info-broken-attacks" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" title="Cantidad de raids/ataques fallidos en el wipe" /></label>
                                                 <label class="vital-field vital-field--wide"><span>Motivo strike</span><textarea id="vital-info-warning" class="admin-input" rows="4"></textarea></label>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <div class="vital-detail-pane" data-detail-pane="combats">
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Combats perdidos</h3><p class="vital-form-section__hint">Peleas o raids del clan que terminaron en derrota en este wipe.</p></header>
+                                            <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
+                                                <label class="vital-field"><span>Cantidad</span><input id="vital-info-combats-lost" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" /></label>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <div class="vital-detail-pane" data-detail-pane="minis">
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Minis perdidos</h3><p class="vital-form-section__hint">Bases mini o externals perdidas en el wipe (aparte de combats).</p></header>
+                                            <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
+                                                <label class="vital-field"><span>Cantidad</span><input id="vital-info-minis-lost" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" /></label>
                                             </div>
                                         </section>
                                     </div>
@@ -460,7 +477,7 @@
                 <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Importación masiva</h4>
-                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, ATAQUES ROTOS, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
+                        <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, COMBATS PERDIDOS, MINIS PERDIDOS, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
                         <textarea id="vital-info-import-text" class="admin-input vital-extra-textarea" rows="10"></textarea>
                         <button type="button" class="btn-primary-small" id="btn-vital-info-import">Importar</button>
                     </div>
@@ -1908,8 +1925,11 @@
             (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--status ws-badge--pause">Pausado</span>' : '') +
             '<span class="ws-badge ws-badge--meta">' + esc(wipe) + '</span>' +
             '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strike' + (strikes === 1 ? '' : 's') + '</span>' +
-            (selected && Number(selected.brokenAttacks || 0) > 0
-                ? '<span class="ws-badge ws-badge--meta ws-badge--broken">' + esc(selected.brokenAttacks) + ' rotos</span>'
+            (selected && Number(selected.combatsLost || 0) > 0
+                ? '<span class="ws-badge ws-badge--meta">' + esc(selected.combatsLost) + ' combats</span>'
+                : '') +
+            (selected && Number(selected.minisLost || 0) > 0
+                ? '<span class="ws-badge ws-badge--meta">' + esc(selected.minisLost) + ' minis</span>'
                 : '') +
             '<span class="ws-badge ws-badge--meta">' + esc(hours) + 'h</span>' +
             (role && role !== '—' ? '<span class="ws-badge ws-badge--role">' + esc(role) + '</span>' : '') +
@@ -1928,8 +1948,12 @@
             { label: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
             { label: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
             {
-                label: 'Ataques rotos',
-                value: rows.reduce(function (sum, r) { return sum + Number(r.brokenAttacks || 0); }, 0)
+                label: 'Combats perd.',
+                value: rows.reduce(function (sum, r) { return sum + Number(r.combatsLost || 0); }, 0)
+            },
+            {
+                label: 'Minis perd.',
+                value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0)
             }
         ];
         box.innerHTML = stats.map(function (s) {
@@ -2068,7 +2092,8 @@
             vouchBy: (document.getElementById('vital-info-vouch') || {}).value || '',
             wipePhase: (document.getElementById('vital-info-wipe-phase') || {}).value || 'unknown',
             hoursPlayed: Number((document.getElementById('vital-info-hours') || {}).value || 0),
-            brokenAttacks: Number((document.getElementById('vital-info-broken-attacks') || {}).value || 0),
+            combatsLost: Number((document.getElementById('vital-info-combats-lost') || {}).value || 0),
+            minisLost: Number((document.getElementById('vital-info-minis-lost') || {}).value || 0),
             contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
             warnings: (document.getElementById('vital-info-warning') || {}).value || '',
             notesExtra: (document.getElementById('vital-info-notes-extra') || {}).value || '',
@@ -2090,7 +2115,8 @@
         set('vital-info-vouch', p.vouchBy);
         set('vital-info-wipe-phase', p.wipePhase);
         set('vital-info-hours', p.hoursPlayed != null && p.hoursPlayed !== '' ? p.hoursPlayed : '');
-        set('vital-info-broken-attacks', p.brokenAttacks != null ? p.brokenAttacks : 0);
+        set('vital-info-combats-lost', p.combatsLost != null ? p.combatsLost : 0);
+        set('vital-info-minis-lost', p.minisLost != null ? p.minisLost : 0);
         set('vital-info-contribution', p.contribution);
         set('vital-info-warning', p.strikeNotes || p.warnings || '');
         set('vital-info-notes-extra', p.notesExtra || '');
@@ -2156,9 +2182,11 @@
             var initial = String(r.displayName || '?').trim().charAt(0).toUpperCase() || '?';
             var wipe = String(r.wipePhase || '?').replace('_', ' ');
             var strikes = Number(r.strikes || 0);
-            var broken = Number(r.brokenAttacks || 0);
+            var combats = Number(r.combatsLost || 0);
+            var minis = Number(r.minisLost || 0);
             var sub = esc(wipe) + ' · ' + strikes + ' strikes';
-            if (broken > 0) sub += ' · ' + broken + ' rotos';
+            if (combats > 0) sub += ' · ' + combats + ' combats';
+            if (minis > 0) sub += ' · ' + minis + ' minis';
             return '<button type="button" class="vital-member-row' + active + '" data-steam="' + escAttr(r.steamId64) + '">' +
                 '<span class="vital-member-avatar">' + esc(initial) + '</span>' +
                 '<span class="vital-member-body">' +
