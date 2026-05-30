@@ -12,7 +12,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=3" defer></script>
+    <script src="mcv-layout.js?v=4" defer></script>
 
     <style>
         :root {
@@ -612,6 +612,17 @@
             <button type="submit" id="search-btn">BUSCAR</button>
         </form>
 
+        <div class="tracker-examples">
+            <span>Ejemplos:</span>
+            <code>76561197960287930</code>
+            <code>https://steamcommunity.com/id/usuario</code>
+        </div>
+
+        <div id="tracker-error-card" class="tracker-error-card" hidden role="alert">
+            <h3>Sin resultados</h3>
+            <p id="tracker-error-msg"></p>
+        </div>
+
         <div class="features-grid">
             <div class="feature-card">
                 <i data-lucide="shield"></i>
@@ -1065,8 +1076,17 @@ if (serversList) {
 
             const input = document.getElementById("steam-input").value;
 
+            var errCard = document.getElementById("tracker-error-card");
+            var errMsg = document.getElementById("tracker-error-msg");
+            if (errCard) errCard.hidden = true;
+
             if (!input) {
-                alert("Pegá un SteamID o link de Steam");
+                if (errCard && errMsg) {
+                    errMsg.textContent = "Pegá un SteamID o link de Steam";
+                    errCard.hidden = false;
+                } else if (typeof mcvToast === "function") {
+                    mcvToast("Pegá un SteamID o link de Steam", "err");
+                }
                 return;
             }
 
@@ -1085,13 +1105,25 @@ if (serversList) {
                 const data = await res.json();
 
                 if (!data.success) {
-                    alert("Error: " + (data.error || "No se pudo analizar"));
+                    var msgErr = data.error || "No se pudo analizar el jugador.";
+                    if (errCard && errMsg) {
+                        errMsg.textContent = msgErr;
+                        errCard.hidden = false;
+                    } else if (typeof mcvToast === "function") {
+                        mcvToast(msgErr, "err");
+                    }
                     return;
                 }
 
                 renderJugador(data.jugador);
             } catch (err) {
-                alert("Error de conexión con el servidor. Verificá que node server.js esté encendido.");
+                var connMsg = "Error de conexión con el servidor. Intentá de nuevo en unos segundos.";
+                if (errCard && errMsg) {
+                    errMsg.textContent = connMsg;
+                    errCard.hidden = false;
+                } else if (typeof mcvToast === "function") {
+                    mcvToast(connMsg, "err");
+                }
             } finally {
                 btn.innerText = "BUSCAR";
                 btn.disabled = false;

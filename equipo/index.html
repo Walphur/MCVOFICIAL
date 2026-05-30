@@ -12,7 +12,7 @@
     <script src="../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="../mcv-layout.js?v=3" defer></script>
+    <script src="../mcv-layout.js?v=4" defer></script>
 </head>
 <body class="grain equipo-page" data-mcv-page="team">
 
@@ -60,10 +60,26 @@
     var SI = "https://cdn.simpleicons.org";
     var SOC_ICON_HEX = "EF4444";
 
+    function rankBadgeClass(roleLabel) {
+        var r = String(roleLabel || "").toLowerCase();
+        if (/co[-\s]?leader|colider|co-?l[ií]der|sub-?leader/.test(r)) return "equipo-rank-badge--coleader";
+        if (/leader|l[ií]der|capit[aá]n|captain|founder/.test(r)) return "equipo-rank-badge--leader";
+        return "equipo-rank-badge--member";
+    }
+
+    function rankBadgeLabel(roleLabel) {
+        var cls = rankBadgeClass(roleLabel);
+        if (cls === "equipo-rank-badge--coleader") return T("team.badgeCoLeader");
+        if (cls === "equipo-rank-badge--leader") return T("team.badgeLeader");
+        return T("team.badgeMember");
+    }
+
     function socBrand(href, slug, label) {
         if (!href) return "";
         return (
-            '<a class="equipo-soc" href="' +
+            '<a class="equipo-soc" data-soc="' +
+            esc(slug) +
+            '" href="' +
             esc(href) +
             '" target="_blank" rel="noopener noreferrer" title="' +
             esc(label) +
@@ -107,7 +123,15 @@
         var socRow = soc
             ? '<div class="equipo-card-soc-row">' + soc + "</div>"
             : "";
-        var roleHtml = role ? '<p class="equipo-card-role">' + role + "</p>" : "";
+        var roleHtml = role
+            ? '<p class="equipo-card-role">' +
+              role +
+              '</p><span class="equipo-rank-badge ' +
+              rankBadgeClass(m.role_label) +
+              '">' +
+              esc(rankBadgeLabel(m.role_label)) +
+              "</span>"
+            : '<span class="equipo-rank-badge equipo-rank-badge--member">' + esc(T("team.badgeMember")) + "</span>";
         return (
             '<article class="equipo-card">' +
             '<div class="equipo-card-top">' +

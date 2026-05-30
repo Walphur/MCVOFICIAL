@@ -1,0 +1,588 @@
+/* MCV UX polish — microanimaciones, páginas públicas, login, live, tickets, tracker */
+
+:root {
+    --mcv-red-dark: #991b1b;
+    --ease-mcv: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* —— Global microinteractions —— */
+.btn-primary,
+.btn-secondary,
+.btn-outline-red,
+.home-feature-card,
+.bento-grid .card,
+.equipo-card,
+.events-card,
+.events-hof-card,
+.video-card,
+.live-stream-card--ux {
+    transition:
+        transform 0.22s var(--ease-mcv),
+        border-color 0.22s var(--ease-mcv),
+        box-shadow 0.22s var(--ease-mcv),
+        background 0.22s var(--ease-mcv);
+}
+
+.btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 28px rgba(250, 166, 26, 0.35), 0 16px 34px rgba(250, 166, 26, 0.18);
+}
+
+.home-feature-card:hover,
+.bento-grid .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(250, 166, 26, 0.55);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35), 0 0 24px rgba(250, 166, 26, 0.1);
+}
+
+a:not(.btn-primary):not(.btn-secondary) {
+    transition: color 0.2s ease;
+}
+
+/* —— Toast —— */
+.mcv-toast-host {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.mcv-toast {
+    pointer-events: auto;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(250, 166, 26, 0.45);
+    background: rgba(10, 10, 10, 0.94);
+    color: var(--foreground);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s var(--ease-mcv), transform 0.25s var(--ease-mcv);
+}
+.mcv-toast.is-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+.mcv-toast--ok { border-color: rgba(74, 222, 128, 0.5); }
+.mcv-toast--err { border-color: rgba(239, 68, 68, 0.55); }
+
+/* —— Home hero —— */
+.home-hero-particles {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+.home-hero-particles span {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(250, 166, 26, 0.35);
+    filter: blur(1px);
+    animation: mcvParticleDrift 18s linear infinite;
+}
+.home-hero-particles span:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.12);
+    animation-duration: 24s;
+}
+@keyframes mcvParticleDrift {
+    0% { transform: translate3d(0, 110%, 0); opacity: 0; }
+    12% { opacity: 0.7; }
+    88% { opacity: 0.5; }
+    100% { transform: translate3d(40px, -20%, 0); opacity: 0; }
+}
+
+.home-mark {
+    position: relative;
+}
+.home-mark::after {
+    content: "";
+    position: absolute;
+    inset: -18px;
+    border-radius: 24px;
+    background: radial-gradient(circle, rgba(250, 166, 26, 0.22), transparent 68%);
+    z-index: -1;
+    animation: mcvLogoGlow 4s ease-in-out infinite;
+}
+@keyframes mcvLogoGlow {
+    0%, 100% { opacity: 0.55; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1.04); }
+}
+
+.home-stats .stat-box {
+    transition:
+        transform 0.22s var(--ease-mcv),
+        border-color 0.22s var(--ease-mcv),
+        background 0.22s var(--ease-mcv),
+        box-shadow 0.22s var(--ease-mcv);
+}
+.home-stats .stat-box:hover {
+    transform: translateY(-2px);
+    border-color: rgba(250, 166, 26, 0.45);
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.06), rgba(8, 8, 8, 0.9));
+    box-shadow: inset 0 0 0 1px rgba(250, 166, 26, 0.12);
+}
+
+/* Home event strip (migrado desde admin) */
+.home-event-strip {
+    margin-top: 28px;
+    max-width: 640px;
+}
+.home-event-strip[hidden] { display: none !important; }
+.home-event-strip-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+    padding: 14px 18px;
+    border: 1px solid rgba(250, 166, 26, 0.22);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+}
+.home-event-badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    border: 1px solid rgba(250, 166, 26, 0.35);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.home-event-title {
+    flex: 1;
+    min-width: 140px;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.04em;
+    color: var(--foreground);
+}
+.home-event-cta {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--primary);
+    text-decoration: none;
+}
+.home-event-cta:hover { text-decoration: underline; }
+
+/* Media cards */
+.video-card .video-thumb img {
+    transition: transform 0.25s var(--ease-mcv);
+}
+.video-card:hover .video-thumb img {
+    transform: scale(1.05);
+}
+.video-platform {
+    display: inline-block;
+    margin-top: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+/* Footer pulse */
+.footer-pulse {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 0 0 28px;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--border);
+}
+.footer-pulse-item {
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.footer-pulse-label {
+    display: block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+.footer-pulse-value {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 0.04em;
+    color: var(--foreground);
+    line-height: 1.2;
+}
+.footer-pulse-value.is-online { color: #4ade80; }
+.footer-content { margin-bottom: 28px; }
+
+@media (max-width: 768px) {
+    .footer-pulse { grid-template-columns: 1fr; }
+}
+
+/* —— Equipo —— */
+.equipo-card {
+    transition: transform 0.22s var(--ease-mcv), border-color 0.22s, box-shadow 0.22s;
+}
+.equipo-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(250, 166, 26, 0.5);
+    box-shadow: 0 0 28px rgba(250, 166, 26, 0.12);
+}
+.equipo-card-avatar,
+.equipo-card-avatar-link img {
+    transition: transform 0.22s var(--ease-mcv);
+}
+.equipo-card:hover .equipo-card-avatar,
+.equipo-card:hover .equipo-card-avatar-link img {
+    transform: scale(1.05);
+}
+.equipo-rank-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+}
+.equipo-rank-badge--leader {
+    color: var(--primary);
+    border-color: rgba(250, 166, 26, 0.55);
+    background: rgba(250, 166, 26, 0.1);
+}
+.equipo-rank-badge--coleader {
+    color: #f87171;
+    border-color: rgba(153, 27, 27, 0.65);
+    background: rgba(153, 27, 27, 0.15);
+}
+.equipo-rank-badge--member {
+    color: var(--muted);
+    border-color: var(--border);
+    background: rgba(255, 255, 255, 0.03);
+}
+.equipo-soc[data-soc="twitch"]:hover {
+    box-shadow: 0 0 16px rgba(145, 70, 255, 0.55);
+    border-color: #9146ff;
+}
+.equipo-soc[data-soc="kick"]:hover {
+    box-shadow: 0 0 16px rgba(83, 252, 24, 0.45);
+    border-color: #53fc18;
+}
+.equipo-soc[data-soc="youtube"]:hover {
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+    border-color: #ef4444;
+}
+.equipo-soc[data-soc="tiktok"]:hover {
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.45);
+    border-color: #22d3ee;
+}
+
+/* —— Events —— */
+.events-page .events-hero {
+    position: relative;
+    overflow: hidden;
+}
+.events-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url("banner.png") center / cover no-repeat;
+    opacity: 0.22;
+    z-index: 0;
+}
+.events-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 5, 5, 0.55), rgba(5, 5, 5, 0.92));
+    z-index: 1;
+}
+.events-hero-inner {
+    position: relative;
+    z-index: 2;
+}
+.events-card-past-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 8px 0 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.events-card-past-details span strong {
+    color: var(--foreground);
+    font-weight: 500;
+}
+.events-empty-card {
+    text-align: center;
+    padding: 36px 24px;
+    border: 1px dashed rgba(250, 166, 26, 0.35);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.05), transparent);
+}
+.events-empty-card p {
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    margin: 0 0 18px;
+}
+.events-empty-card .btn-primary {
+    text-decoration: none;
+}
+
+/* —— Tracker —— */
+.tracker-examples {
+    max-width: 720px;
+    margin: -28px auto 32px;
+    text-align: left;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.tracker-examples code {
+    display: block;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.45);
+    color: var(--foreground);
+    word-break: break-all;
+}
+.tracker-error-card {
+    max-width: 520px;
+    margin: 24px auto 0;
+    padding: 20px;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    border-radius: 10px;
+    background: rgba(153, 27, 27, 0.12);
+    text-align: center;
+}
+.tracker-error-card[hidden] { display: none !important; }
+.tracker-error-card h3 {
+    margin: 0 0 8px;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    color: #fca5a5;
+    letter-spacing: 0.06em;
+}
+.tracker-error-card p {
+    margin: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+/* —— Tickets —— */
+.ticket-type-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+.ticket-type-badge {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.02);
+}
+.ticket-type-badge--recruit { border-color: rgba(250, 166, 26, 0.45); color: var(--primary); }
+.ticket-type-badge--support { border-color: rgba(59, 130, 246, 0.4); color: #93c5fd; }
+.ticket-type-badge--report { border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+.ticket-type-badge--tournament { border-color: rgba(168, 85, 247, 0.4); color: #d8b4fe; }
+
+.tickets-page .tickets-intro {
+    margin-bottom: 32px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--border);
+}
+.tickets-page .page-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 72px 24px 80px;
+}
+.tickets-lookup {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+.tickets-lookup-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.tickets-form-msg.ok { color: #4ade80; }
+.tickets-form-msg.err { color: #f87171; }
+
+/* —— Live / Streams —— */
+.live-page .live-layout {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 96px 20px 80px;
+}
+.live-page .live-heading span { color: var(--primary); }
+.live-page .live-lead {
+    color: var(--muted);
+    max-width: 56ch;
+    margin-bottom: 32px;
+    line-height: 1.55;
+}
+.live-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.live-stream-card--ux {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #080808;
+}
+.live-stream-card--ux.is-featured {
+    border-color: rgba(250, 166, 26, 0.35);
+}
+.live-stream-card--ux:hover {
+    transform: translateY(-4px);
+    border-color: rgba(250, 166, 26, 0.45);
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.4);
+}
+.live-stream-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.35);
+}
+.live-stream-head h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+}
+.live-stream-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.live-platform-pill {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+.live-platform-pill--kick { color: #53fc18; border-color: rgba(83, 252, 24, 0.4); }
+.live-platform-pill--twitch { color: #9146ff; border-color: rgba(145, 70, 255, 0.4); }
+.live-viewers {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.stream-frame-wrap {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    background: #050505;
+}
+.stream-frame-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.live-offline-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.85)),
+        url("banner.png") center / cover no-repeat;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 20px;
+}
+.live-offline-placeholder strong {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.6rem;
+    color: var(--foreground);
+    letter-spacing: 0.06em;
+}
+.live-status-badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+}
+.live-status-badge.is-live {
+    border-color: rgba(239, 68, 68, 0.55);
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.12);
+}
+.live-status-badge.is-offline { color: var(--muted); }
+
+/* —— Login minimal —— */
+.login-body .login-diag,
+.login-body .login-hint,
+.login-body .login-hint-api {
+    display: none !important;
+}
+.login-body .login-brand h2 {
+    font-size: 2.6rem;
+    letter-spacing: 0.08em;
+}
+.login-body .login-brand .tagline {
+    color: var(--primary);
+}
+.login-body .input-group label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+.login-body #login-password::placeholder {
+    color: #52525b;
+}
+.login-body .login-subtitle {
+    margin: -8px 0 20px;
+    text-align: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+}

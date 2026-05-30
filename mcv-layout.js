@@ -156,6 +156,25 @@
         initMobileNav(nav);
     }
 
+    function footerPulseHtml() {
+        return (
+            '<div class="footer-pulse" aria-label="Estado MCV">' +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.lastTournament">Último torneo</span>' +
+            '<span class="footer-pulse-value" id="footer-last-tournament">—</span>' +
+            "</div>" +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.discordMembers">Miembros Discord</span>' +
+            '<span class="footer-pulse-value" id="footer-discord-members">—</span>' +
+            "</div>" +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.serverStatus">Estado servidor</span>' +
+            '<span class="footer-pulse-value" id="footer-server-status">—</span>' +
+            "</div>" +
+            "</div>"
+        );
+    }
+
     function footerFullHtml() {
         return (
             '<div class="footer-content">' +
@@ -196,6 +215,8 @@
             '<a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>' +
             "</div>" +
             "</div>" +
+            footerPulseHtml() +
+            "</div>" +
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
@@ -206,10 +227,25 @@
         );
     }
 
+    function injectFooterPulse(footer) {
+        if (!footer || footer.querySelector(".footer-pulse")) return;
+        var pulse = document.createElement("div");
+        pulse.innerHTML = footerPulseHtml();
+        var node = pulse.firstElementChild;
+        var bottom = footer.querySelector(".footer-bottom");
+        if (bottom) footer.insertBefore(node, bottom);
+        else footer.appendChild(node);
+    }
+
     function ensureFooter() {
         var existing = document.querySelector("footer.footer");
         if (existing) {
-            if (existing.querySelector(".footer-content") || existing.classList.contains("footer-bottom--solo")) {
+            if (existing.querySelector(".footer-content")) {
+                injectFooterPulse(existing);
+                return;
+            }
+            if (existing.classList.contains("footer-bottom--solo")) {
+                injectFooterPulse(existing);
                 return;
             }
             existing.innerHTML = footerFullHtml();
@@ -230,8 +266,26 @@
         });
     }
 
+    function ensureUxAssets() {
+        if (!document.querySelector("link[data-mcv-ux-css]")) {
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = base + "style-ux.css?v=1";
+            link.setAttribute("data-mcv-ux-css", "1");
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector("script[data-mcv-ux-js]")) {
+            var script = document.createElement("script");
+            script.src = base + "mcv-ui.js?v=1";
+            script.defer = true;
+            script.setAttribute("data-mcv-ux-js", "1");
+            document.body.appendChild(script);
+        }
+    }
+
     function boot() {
         ensureSkipLink();
+        ensureUxAssets();
         ensureManifest();
         ensureNavbar();
         ensureFooter();

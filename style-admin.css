@@ -3770,3 +3770,131 @@ details.vital-extra-panel > :not(summary) {
 .vital-rust-details {
     margin-top: 18px;
 }
+
+/* —— Admin UX polish (solo presentación) —— */
+.admin-tabs {
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+}
+.admin-tabs .tab {
+    position: relative;
+    transition: color 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+}
+.admin-tabs .tab:hover {
+    color: var(--foreground);
+    background: rgba(250, 166, 26, 0.06);
+}
+.admin-tabs .tab.active {
+    color: var(--primary);
+    background: rgba(250, 166, 26, 0.1);
+    border-color: var(--border);
+    border-bottom-color: var(--background);
+}
+.admin-tabs .tab.active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+}
+
+.admin-table-wrap {
+    overflow: auto;
+    max-height: min(70vh, 720px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #0d0d0d;
+    box-shadow: 0 1px 0 var(--border);
+}
+.admin-table tbody tr {
+    transition: background 0.18s ease;
+}
+.admin-table tbody tr:hover {
+    background: rgba(250, 166, 26, 0.06);
+}
+
+.admin-stack-form {
+    gap: 14px;
+}
+.admin-stack-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.admin-form-hint,
+.admin-zone-eyebrow {
+    opacity: 0.92;
+}
+
+.admin-dash-charts {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25);
+}
+.admin-dash-charts-title {
+    margin: 0 0 14px;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+}
+.admin-chart-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 180px) 1fr 48px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.admin-chart-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.admin-chart-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+.admin-chart-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(250, 166, 26, 0.55), var(--primary));
+    transition: width 0.35s ease;
+}
+.admin-chart-value {
+    text-align: right;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.1rem;
+    color: var(--foreground);
+}
+
+.admin-site-status .admin-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.admin-main .data-area {
+    overflow: auto;
+    max-height: min(72vh, 700px);
+    border-radius: 10px;
+}

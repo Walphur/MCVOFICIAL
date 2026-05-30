@@ -15,7 +15,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=3" defer></script>
+    <script src="mcv-layout.js?v=4" defer></script>
 </head>
 <body class="grain tickets-page" data-mcv-page="tickets">
 
@@ -28,6 +28,12 @@
     <h2><span data-i18n="tickets.title">Abrí un </span><span data-i18n="tickets.titleSpan">ticket.</span></h2>
 
     <div class="form-container">
+        <div class="ticket-type-badges" aria-hidden="true">
+            <span class="ticket-type-badge ticket-type-badge--recruit" data-i18n="tickets.badgeRecruit">Reclutamiento</span>
+            <span class="ticket-type-badge ticket-type-badge--support" data-i18n="tickets.badgeSupport">Soporte</span>
+            <span class="ticket-type-badge ticket-type-badge--report" data-i18n="tickets.badgeReport">Reporte</span>
+            <span class="ticket-type-badge ticket-type-badge--tournament" data-i18n="tickets.badgeTournament">Torneos</span>
+        </div>
         <div class="tickets-intro">
             <h3 data-i18n="tickets.introH">Cómo funciona</h3>
             <p data-i18n="tickets.introP">Completá el formulario: tu solicitud queda registrada en el panel del staff. También podés abrir un ticket en Discord para seguimiento en vivo.</p>
@@ -107,11 +113,15 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : T("tickets.error"));
                 var tid = x.d && x.d.ticket && x.d.ticket.id != null ? String(x.d.ticket.id) : "";
-                msg.textContent = tid
+                var okMsg = tid
                     ? tpl("tickets.successWithId", { id: tid })
                     : T("tickets.success");
+                msg.textContent = okMsg;
                 msg.className = "tickets-form-msg ok";
                 msg.hidden = false;
+                if (typeof mcvToast === "function") {
+                    mcvToast(T("tickets.toastSent"), "ok");
+                }
                 form.reset();
             })
             .catch(function (err) {

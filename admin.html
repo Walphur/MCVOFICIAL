@@ -633,6 +633,41 @@
                         ok: true
                     });
                 }
+                function chartRow(label, value, maxVal) {
+                    var v = Number(value) || 0;
+                    var max = Math.max(1, Number(maxVal) || 1);
+                    var pct = Math.min(100, Math.round((v / max) * 100));
+                    return (
+                        '<div class="admin-chart-row">' +
+                        '<span class="admin-chart-label">' +
+                        esc(label) +
+                        '</span><div class="admin-chart-track" aria-hidden="true"><div class="admin-chart-fill" style="width:' +
+                        pct +
+                        '%"></div></div><strong class="admin-chart-value">' +
+                        esc(String(v)) +
+                        "</strong></div>"
+                    );
+                }
+                var chartsHtml = "";
+                if (dash) {
+                    var maxChart = Math.max(
+                        1,
+                        dash.registrationsPending || 0,
+                        dash.ticketsPending || 0,
+                        dash.tournamentsFinished || 0,
+                        dash.rosterPending || 0
+                    );
+                    chartsHtml =
+                        '<section class="admin-dash-charts">' +
+                        '<h3 class="admin-dash-charts-title">' +
+                        esc(T("admin.chartsTitle")) +
+                        "</h3>" +
+                        chartRow(T("admin.chartRegs"), dash.registrationsPending, maxChart) +
+                        chartRow(T("admin.chartTickets"), dash.ticketsPending, maxChart) +
+                        chartRow(T("admin.chartFinished"), dash.tournamentsFinished, maxChart) +
+                        chartRow(T("admin.chartRoster"), dash.rosterPending, maxChart) +
+                        "</section>";
+                }
                 var openList = dash && dash.activeTournaments ? dash.activeTournaments : [];
                 var openHtml = openList.length
                     ? '<ul class="admin-status-tournaments">' +
@@ -663,6 +698,7 @@
                             );
                         })
                         .join('') +
+                    chartsHtml +
                     '<div class="admin-status-wide"><span class="admin-status-label">' +
                     esc(T('admin.statusOpenTournaments')) +
                     '</span>' +

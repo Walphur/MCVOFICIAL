@@ -20,7 +20,16 @@
             .replace(/"/g, "&quot;");
     }
 
+    function formatDuration(sec) {
+        var n = parseInt(sec, 10);
+        if (!Number.isFinite(n) || n < 1) return "";
+        var m = Math.floor(n / 60);
+        var s = n % 60;
+        return m + ":" + String(s).padStart(2, "0");
+    }
+
     function ytCard(v) {
+        var dur = formatDuration(v.duration);
         return (
             '<a href="' +
             esc(v.url) +
@@ -28,10 +37,12 @@
             '<div class="video-thumb"><img src="' +
             esc(v.thumbnail) +
             '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
-            '<span class="video-duration">YT</span><div class="play-btn"><i data-lucide="play"></i></div></div>' +
+            '<span class="video-duration">' +
+            (dur || "YT") +
+            '</span><div class="play-btn"><i data-lucide="play"></i></div></div>' +
             '<div class="video-info"><h4>' +
             esc(v.title) +
-            '</h4><span>YouTube · @McompanyV</span></div></a>'
+            '</h4><span class="video-platform">YouTube</span><span> · @McompanyV</span></div></a>'
         );
     }
 
@@ -51,7 +62,7 @@
             '<span class="video-duration">TT</span><div class="play-btn"><i data-lucide="video"></i></div></div>' +
             '<div class="video-info"><h4>' +
             esc(v.title || T("home.tiktokTitle")) +
-            '</h4><span>' +
+            '</h4><span class="video-platform">TikTok</span><span> · ' +
             esc(ttSub) +
             "</span></div></a>"
         );

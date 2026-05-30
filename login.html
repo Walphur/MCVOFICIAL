@@ -12,8 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=1">
+    <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style-admin.css?v=33">
+    <link rel="stylesheet" href="style-ux.css?v=1">
 </head>
 <body class="login-body" data-mcv-page="login">
 
@@ -21,24 +22,23 @@
         <div class="login-brand">
             <img src="logo.png" width="48" height="48" alt="">
             <div>
-                <span class="tagline" data-i18n="login.tagline">// MCV ADMIN</span>
-                <h2 data-i18n="login.title">CONTROL ROOM</h2>
+                <span class="tagline" data-i18n="login.tagline">// Acceso restringido</span>
+                <h2 data-i18n="login.title">MCV CONTROL ROOM</h2>
             </div>
         </div>
 
+        <p class="login-subtitle" data-i18n="login.subtitle">Acceso restringido</p>
+
         <p id="login-error" class="login-error" role="alert"></p>
-        <p id="login-diag" class="login-diag" role="status"></p>
+        <p id="login-diag" class="login-diag" role="status" hidden></p>
 
         <form class="login-form" id="login-form">
             <div class="input-group">
-                <label for="login-password" data-i18n="login.passwordLabel">Contraseña de entorno</label>
-                <input id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="login.passwordPh" placeholder="ADMIN_PASSWORD del servidor">
+                <label for="login-password" data-i18n="login.passwordLabel">Contraseña</label>
+                <input id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="login.passwordPh" placeholder="••••••••••">
             </div>
-            <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Entrar al panel</button>
+            <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
         </form>
-
-        <p class="login-hint" data-i18n-html="login.hint1Html"></p>
-        <p class="login-hint login-hint-api" data-i18n-html="login.hint2Html"></p>
 
         <div class="login-footer-links">
             <a href="index.html" class="back-link" data-i18n="login.backSite">← Sitio público</a>
@@ -77,58 +77,11 @@
         return attempt(1);
     }
 
-    function runDiag() {
-        var API = apiBase();
-        diag.textContent = '';
-        diag.style.display = 'none';
-        if (!API) {
-            diag.textContent = T('login.diagNoApiUrl');
-            diag.style.display = 'block';
-            return;
-        }
-        diag.textContent = T('login.diagChecking');
-        diag.style.display = 'block';
-        fetchRetry(API + '/api/auth/status', { cache: 'no-store' })
-            .then(function (r) { return r.text().then(function (t) { return { ok: r.ok, t: t, status: r.status }; }); })
-            .then(function (x) {
-                if (x.status === 404 || x.status === 502) {
-                    var trimmed = String(x.t || '').trim();
-                    if (trimmed === 'Not Found' || (trimmed && trimmed.charAt(0) !== '{')) {
-                        diag.textContent = tpl('login.diagRenderPlain404', { api: API });
-                        return;
-                    }
-                }
-                if (x.status === 405) {
-                    diag.textContent = tpl('login.diag405', { status: x.status, api: API });
-                    return;
-                }
-                var d = {};
-                try { d = x.t ? JSON.parse(x.t) : {}; } catch (e) { d = {}; }
-                if (!x.ok || d.loginPossible == null) {
-                    diag.textContent = tpl('login.diagStatusRead', { status: x.status, api: API });
-                    return;
-                }
-                var parts = [];
-                parts.push(tpl('login.diagLineApi', { api: API }));
-                if (!d.hasAdminPassword) parts.push(T('login.diagAdminMissing'));
-                if (!d.hasJwtSecret || !d.jwtLengthOk) parts.push(T('login.diagJwtMissing'));
-                if (d.jwtHadWhitespace) parts.push(T('login.diagJwtWs'));
-                if (!d.hasDatabaseUrl) parts.push(T('login.diagDbMissing'));
-                if (d.loginPossible) parts.push(T('login.diagLoginOk'));
-                diag.textContent = parts.join(' ');
-            })
-            .catch(function () {
-                diag.textContent = tpl('login.diagNoConnect', { api: API });
-            });
-    }
-
     var qs = new URLSearchParams(window.location.search || '');
     if (qs.get('expired') === '1') {
         err.textContent = T('login.errExpired');
         err.style.display = 'block';
     }
-
-    runDiag();
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
