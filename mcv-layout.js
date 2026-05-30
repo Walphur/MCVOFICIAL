@@ -282,7 +282,7 @@
         if (!document.querySelector("link[data-mcv-ux-css]")) {
             var link = document.createElement("link");
             link.rel = "stylesheet";
-            link.href = base + "style-ux.css?v=3";
+            link.href = base + "style-ux.css?v=4";
             link.setAttribute("data-mcv-ux-css", "1");
             document.head.appendChild(link);
         }

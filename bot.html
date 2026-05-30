@@ -9,11 +9,11 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css?v=30">
-    <link rel="stylesheet" href="style-tracker.css?v=1">
+    <link rel="stylesheet" href="style-tracker.css?v=2">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=6" defer></script>
+    <script src="mcv-layout.js?v=7" defer></script>
 
 </head>
 
@@ -21,21 +21,22 @@
 <nav class="navbar" data-mcv-shell-nav></nav>
 <div class="tracker-container">
     <div id="view-search" class="search-view">
-        <div class="section-label" style="justify-content: center; margin-bottom: 20px;">
+        <div class="section-label tracker-label">
             <div class="yellow-line"></div>
-            <span>// SYSTEM TERMINAL</span>
+            <span data-i18n="bot.heroTag">// MCV Tracker</span>
+            <div class="yellow-line"></div>
         </div>
 
-        <h1>INVESTIGA JUGADORES</h1>
-        <p>Obtiene información completa sobre cualquier jugador: bans, horas jugadas, historial de servidores y análisis de amigos.</p>
+        <h1><span data-i18n="bot.heroTitle">Investiga </span><span data-i18n="bot.heroTitleSpan">jugadores.</span></h1>
+        <p data-i18n="bot.heroLead">Bans, horas en Rust, servidores y señales de riesgo en un solo escaneo para staff y capitanes.</p>
 
         <form id="search-form" class="search-box">
             <div class="search-input-wrapper">
                 <i data-lucide="search"></i>
-                <input type="text" id="steam-input" class="tracker-input" placeholder="Pegá el SteamID64 o link de Steam..." required>
+                <input type="text" id="steam-input" class="tracker-input" data-i18n-placeholder="bot.inputPh" placeholder="SteamID64 o link de perfil Steam…" required>
             </div>
 
-            <button type="submit" id="search-btn">BUSCAR</button>
+            <button type="submit" id="search-btn" class="btn-primary tracker-btn"><span data-i18n="bot.searchBtn">Buscar</span></button>
         </form>
 
         <div class="tracker-examples">
@@ -45,33 +46,33 @@
         </div>
 
         <div id="tracker-error-card" class="tracker-error-card" hidden role="alert">
-            <h3>Sin resultados</h3>
+            <h3 data-i18n="bot.errorTitle">Sin resultados</h3>
             <p id="tracker-error-msg"></p>
         </div>
 
         <div class="features-grid">
             <div class="feature-card">
                 <i data-lucide="shield"></i>
-                <h3>VAC y Game Bans</h3>
-                <p>Detecta bans de VAC y fechas del último ban registrado en Valve.</p>
+                <h3 data-i18n="bot.feat1Title">VAC y Game Bans</h3>
+                <p data-i18n="bot.feat1P">Detecta bans de VAC y fechas del último ban registrado en Valve.</p>
             </div>
 
             <div class="feature-card">
                 <i data-lucide="clock"></i>
-                <h3>Horas de Juego</h3>
-                <p>Cruza datos con la API de Steam para verificar horas totales en Rust.</p>
+                <h3 data-i18n="bot.feat2Title">Horas de juego</h3>
+                <p data-i18n="bot.feat2P">Cruza datos con Steam para verificar horas totales en Rust.</p>
             </div>
 
             <div class="feature-card">
                 <i data-lucide="server"></i>
-                <h3>Bases de Datos</h3>
-                <p>Conecta con BattleMetrics y AtlasLookup para historiales.</p>
+                <h3 data-i18n="bot.feat3Title">Servidores</h3>
+                <p data-i18n="bot.feat3P">Historial con BattleMetrics y bases externas.</p>
             </div>
 
             <div class="feature-card">
                 <i data-lucide="users"></i>
-                <h3>Discord Webhooks</h3>
-                <p>Genera reportes instantáneos directo al canal de administración.</p>
+                <h3 data-i18n="bot.feat4Title">Reportes</h3>
+                <p data-i18n="bot.feat4P">Comando listo para pegar en Discord del staff.</p>
             </div>
         </div>
     </div>
@@ -94,28 +95,28 @@
                     <div class="steam-id-text" id="res-id">76561198000000000</div>
 
                     <div class="stats-row">
-                        <div class="stat-item"><span>Horas en Rust</span><strong id="h-rust">Privado</strong></div>
-                        <div class="stat-item"><span>K/D Ratio</span><strong id="h-kd">N/A</strong></div>
-                        <div class="stat-item"><span>Headshot %</span><strong id="h-hs">N/A</strong></div>
-                        <div class="stat-item"><span>VAC Bans</span><strong id="h-vac">0</strong></div>
-                        <div class="stat-item"><span>Game Bans</span><strong id="h-game">0</strong></div>
-                        <div class="stat-item"><span>Rust 2 semanas</span><strong id="h-rust-2w">N/A</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statRust">Horas en Rust</span><strong id="h-rust">Privado</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statKd">K/D Ratio</span><strong id="h-kd">N/A</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statHs">Headshot %</span><strong id="h-hs">N/A</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statVac">VAC Bans</span><strong id="h-vac">0</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statGame">Game Bans</span><strong id="h-game">0</strong></div>
+                        <div class="stat-item"><span data-i18n="bot.statRust2w">Rust 2 semanas</span><strong id="h-rust-2w">N/A</strong></div>
 
                     </div>
                 </div>
             </div>
 
             <div class="profile-footer">
-                <span><i data-lucide="shield" style="width: 14px; vertical-align: text-bottom;"></i> Escaneo MCV Completado</span>
-                <a href="#" target="_blank" id="btn-steam-out">Ver perfil en Steam <i data-lucide="external-link" style="width: 14px;"></i></a>
+                <span><i data-lucide="shield"></i> <span data-i18n="bot.scanDone">Escaneo MCV completado</span></span>
+                <a href="#" target="_blank" id="btn-steam-out"><span data-i18n="bot.viewSteam">Ver perfil en Steam</span> <i data-lucide="external-link"></i></a>
             </div>
         </div>
 
         <div class="tabs-container">
-            <button class="tab-btn active" onclick="openTab(event, 'tab-bans')">Bans</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-stats')">Stats</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-servers')">Servidores</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-links')">Investigar</button>
+            <button type="button" class="tab-btn active" onclick="openTab(event, 'tab-bans')" data-i18n="bot.tabBans">Bans</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'tab-stats')" data-i18n="bot.tabStats">Stats</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'tab-servers')" data-i18n="bot.tabServers">Servidores</button>
+            <button type="button" class="tab-btn" onclick="openTab(event, 'tab-links')" data-i18n="bot.tabInvestigate">Investigar</button>
         </div>
 
         <div id="tab-bans" class="tab-content active">
@@ -300,7 +301,7 @@
     </div>
 </div>
 
-<script src="mcv-i18n.js?v=26"></script>
+<script src="mcv-i18n.js?v=27"></script>
 <script>
     let currentSteamId = null;
 

@@ -14,11 +14,11 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=29">
+    <link rel="stylesheet" href="style.css?v=31">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=6" defer></script>
+    <script src="mcv-layout.js?v=7" defer></script>
 </head>
 <body class="grain home-page" data-mcv-page="index">
 
@@ -45,10 +45,25 @@
         <h1>MCV <span>OFICIAL</span></h1>
         <p data-i18n="home.lead">Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
 
-        <div class="home-actions">
-            <a href="events.html" class="btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="home.ctaTournaments">Ver torneos</span></a>
-            <a href="bot.html" class="btn-secondary"><i data-lucide="shield-check"></i> <span data-i18n="home.ctaTracker">Abrir tracker</span></a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="home.ctaDiscord">Discord</span></a>
+        <div class="home-quick-paths" role="navigation" aria-label="Acciones rápidas">
+            <a href="events.html" class="home-path-card home-path-card--primary">
+                <i data-lucide="swords"></i>
+                <span class="home-path-tag" data-i18n="home.pathCompeteTag">Competir</span>
+                <strong data-i18n="home.pathCompeteTitle">Ver torneos</strong>
+                <p data-i18n="home.pathCompeteP">Calendario, inscripciones y premios del clan.</p>
+            </a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="home-path-card">
+                <i data-lucide="message-square"></i>
+                <span class="home-path-tag" data-i18n="home.pathJoinTag">Unirse</span>
+                <strong data-i18n="home.pathJoinTitle">Entrar al Discord</strong>
+                <p data-i18n="home.pathJoinP">Eventos, roster, tickets y comunidad en vivo.</p>
+            </a>
+            <a href="bot.html" class="home-path-card">
+                <i data-lucide="shield-check"></i>
+                <span class="home-path-tag" data-i18n="home.pathTrackTag">Investigar</span>
+                <strong data-i18n="home.pathTrackTitle">Abrir tracker</strong>
+                <p data-i18n="home.pathTrackP">Bans, horas y servidores antes de fichar jugadores.</p>
+            </a>
         </div>
 
         <div id="home-event-strip" class="home-event-strip" hidden>
@@ -228,7 +243,7 @@
     </div>
 </footer>
 
-<script src="mcv-i18n.js?v=26"></script>
+<script src="mcv-i18n.js?v=27"></script>
 <script>
     lucide.createIcons();
 
