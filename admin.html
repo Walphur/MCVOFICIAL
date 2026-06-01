@@ -480,21 +480,13 @@
                                         <section class="vital-form-section vital-form-section--solo">
                                             <header class="vital-form-section__head">
                                                 <h3 class="vital-form-section__title">Ajustes manuales</h3>
-                                                <p class="vital-form-section__hint">Sumá o restá puntos extra (strikes, combats, etc.). Los puntos Vital se recalculan arriba.</p>
+                                                <p class="vital-form-section__hint">Sumá o restá puntos manualmente. Los puntos Vital automáticos se recalculan arriba.</p>
                                             </header>
                                             <div class="vital-form-section__body">
                                                 <p class="vital-score-total"><span>Total guardado</span>: <strong id="vital-score-total">0</strong> pts</p>
                                                 <div class="vital-score-player-actions">
                                                     <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-score-player">Reiniciar puntos (este jugador)</button>
                                                     <span class="admin-form-hint">El historial se puede borrar línea por línea con ×</span>
-                                                </div>
-                                                <div class="vital-score-presets" id="vital-score-presets">
-                                                    <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="farm" data-reason="Farm bien">+10 Farm</button>
-                                                    <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="role" data-reason="Rol cumplido">+10 Rol</button>
-                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-15" data-cat="strike" data-reason="Strike">−15 Strike</button>
-                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-10" data-cat="combat" data-reason="Combat perdido">−10 Combat</button>
-                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-8" data-cat="mini" data-reason="Mini perdido">−8 Mini</button>
-                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-5" data-cat="farm" data-reason="No farmea / rol incumplido">−5 Incumple</button>
                                                 </div>
                                                 <div class="vital-score-custom vital-form-grid">
                                                     <label class="vital-field"><span>Ajuste</span><input id="vital-score-delta" class="admin-input" type="number" step="1" placeholder="±10" /></label>
@@ -3456,18 +3448,6 @@
         }
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
-        var scorePresets = document.getElementById('vital-score-presets');
-        if (scorePresets) {
-            scorePresets.addEventListener('click', function (ev) {
-                var btn = ev.target && ev.target.closest ? ev.target.closest('.vital-score-btn') : null;
-                if (!btn) return;
-                applyVitalScoreAdjust(
-                    Number(btn.getAttribute('data-delta')),
-                    btn.getAttribute('data-reason') || '',
-                    btn.getAttribute('data-cat') || 'manual'
-                ).catch(function () {});
-            });
-        }
         var btnScoreApply = document.getElementById('btn-vital-score-apply');
         if (btnScoreApply) {
             btnScoreApply.addEventListener('click', function () {
