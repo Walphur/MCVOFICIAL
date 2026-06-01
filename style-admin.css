@@ -2626,10 +2626,10 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-app-shell {
     display: grid;
-    grid-template-columns: 168px minmax(0, 1fr);
+    grid-template-columns: 188px minmax(0, 1fr);
     gap: 0;
-    min-height: min(78vh, 820px);
-    height: min(78vh, 820px);
+    min-height: min(82vh, 880px);
+    height: min(82vh, 880px);
     border-radius: 14px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -5378,4 +5378,172 @@ details.vital-extra-panel > :not(summary) {
         align-items: center;
         width: 100%;
     }
+}
+
+/* ── Vital OPS layout cleanup (sin modo simple, sidebar estático) ── */
+.vital-sidebar--compact {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 8px;
+}
+.vital-sidebar-status {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
+    flex-shrink: 0;
+}
+.vital-health-bar--compact {
+    margin: 0 0 8px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+.vital-health-bar--compact .vital-health-items {
+    gap: 4px;
+}
+.vital-health-bar--compact .vital-health-pill {
+    font-size: 9px;
+    padding: 2px 6px;
+}
+.vital-sidebar-sync {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.vital-sidebar-sync .vital-input-compact {
+    width: 100%;
+    height: 32px;
+    font-size: 12px;
+}
+.vital-sidebar-sync .btn-outline.btn-sm {
+    width: 100%;
+    justify-content: center;
+    min-height: 32px;
+    font-size: 12px;
+}
+.vital-tier-sync-status--compact {
+    display: block;
+    font-size: 10px;
+    line-height: 1.35;
+    margin-top: 4px;
+    max-height: 2.7em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-sidebar-nav {
+    flex: 0 0 auto;
+}
+.vital-sidebar-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px 10px;
+    margin-top: auto;
+    border-top: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
+    flex-shrink: 0;
+}
+.vital-sidebar-stat {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+}
+.vital-sidebar-stat span {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ops-text-subtle, #5c6570);
+}
+.vital-sidebar-stat strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ops-text, #eceef2);
+    margin-top: 2px;
+}
+.vital-sidebar-tools {
+    padding: 0 10px 6px;
+    flex-shrink: 0;
+}
+.vital-sidebar-tools > summary {
+    font-size: 11px;
+    color: var(--ops-text-muted, #8b939e);
+    cursor: pointer;
+    padding: 4px 0;
+}
+.vital-sidebar-tools__body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+}
+.vital-sidebar-tools__body .btn-outline.btn-sm {
+    width: 100%;
+    font-size: 11px;
+    min-height: 30px;
+}
+.vital-sidebar-tools .vital-tier-preview {
+    max-height: 120px;
+    margin-top: 4px;
+}
+
+.vital-member-toolbar--compact {
+    padding: 8px 10px;
+    gap: 6px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-member-toolbar--compact #vital-info-search {
+    flex: 1 1 100%;
+    min-width: 0;
+}
+.vital-member-toolbar--compact .vital-quick-inline {
+    flex: 1 1 100%;
+}
+.vital-member-toolbar__actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+.vital-member-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 6px 8px 10px;
+    gap: 4px;
+}
+.ops-member-row {
+    padding: 8px 8px 8px 4px;
+    gap: 8px;
+}
+.ops-member-row .ops-member-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+}
+.ops-member-row .ops-member-rail {
+    height: 30px;
+}
+.ops-member-name {
+    font-size: 13px;
+}
+.ops-member-sub {
+    font-size: 10px;
+}
+.ops-member-score {
+    font-size: 13px;
+}
+
+.vital-app-shell.is-simple-mode .vital-advanced-only {
+    display: revert !important;
+}
+
+#vital-tier-auto-section .vital-form-section__body {
+    padding-top: 8px;
+}
+#vital-tier-auto-section .vital-perf-stat-cards {
+    margin-top: 0;
 }
