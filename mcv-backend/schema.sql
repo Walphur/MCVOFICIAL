@@ -304,3 +304,35 @@ CREATE TABLE IF NOT EXISTS support_tickets (
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets (status, created_at DESC);
+
+-- split
+-- Encuestas de asistencia al wipe (Accept / Decline / Late en Discord)
+CREATE TABLE IF NOT EXISTS wipe_attendance_polls (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    event_note TEXT,
+    discord_channel_id VARCHAR(32) NOT NULL,
+    discord_message_id VARCHAR(32) NOT NULL,
+    roster_source VARCHAR(24) NOT NULL DEFAULT 'wipe_list'
+        CHECK (roster_source IN ('wipe_list', 'discord_role')),
+    created_by_discord_id VARCHAR(32),
+    closed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_wipe_attendance_polls_channel ON wipe_attendance_polls (discord_channel_id, created_at DESC);
+
+-- split
+CREATE TABLE IF NOT EXISTS wipe_attendance_responses (
+    poll_id INT NOT NULL REFERENCES wipe_attendance_polls(id) ON DELETE CASCADE,
+    discord_user_id VARCHAR(32) NOT NULL,
+    discord_username TEXT,
+    status VARCHAR(16) NOT NULL CHECK (status IN ('accepted', 'declined', 'late')),
+    excuse_text TEXT,
+    responded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (poll_id, discord_user_id)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_wipe_attendance_responses_poll ON wipe_attendance_responses (poll_id, status);

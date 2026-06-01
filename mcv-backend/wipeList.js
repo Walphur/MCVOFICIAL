@@ -6,6 +6,7 @@ const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 const { buildMcHorasSlashCommand } = require("./playtimeSync");
 const { buildMcReporteSlashCommand } = require("./wipeReport");
 const { buildMcYoSlashCommand, buildMcTopSlashCommand, assignWipeLinkedRole } = require("./wipeDiscordExtras");
+const { buildMcAsistenciaSlashCommand } = require("./wipeAttendance");
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();
@@ -291,12 +292,13 @@ async function registerSlashCommands(client, guildId) {
     const cmdReporte = buildMcReporteSlashCommand();
     const cmdYo = buildMcYoSlashCommand();
     const cmdTop = buildMcTopSlashCommand();
+    const cmdAsistencia = buildMcAsistenciaSlashCommand();
 
     const rest = new REST({ version: "10" }).setToken(token);
     await rest.put(Routes.applicationGuildCommands(appId, guildId), {
-        body: [cmdWipe, cmdHoras, cmdReporte, cmdYo, cmdTop]
+        body: [cmdWipe, cmdHoras, cmdReporte, cmdYo, cmdTop, cmdAsistencia]
     });
-    console.log(`Discord: /mcv-wipe, /mcv-horas, /mcv-reporte, /mcv-yo y /mcv-top registrados en guild ${guildId}.`);
+    console.log(`Discord: wipe + asistencia registrados en guild ${guildId}.`);
 }
 
 /** Si DISCORD_WIPE_GUILD_ID está definido, el slash solo (o también) va a ese servidor — ej. clan privado. Si no, usa el guild principal. */

@@ -24,6 +24,7 @@ const { registerVitalRustApi } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
+const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -356,7 +357,8 @@ const discordClient = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
     ],
     partials: [Partials.Message, Partials.Channel]
 });
