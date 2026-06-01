@@ -57,11 +57,6 @@ const EU_MEDIUM_CONFIG = {
             leaderTier: true,
             tiers: buildThresholdTiers([0, 50000, 75000, 100000, 150000, 200000, 350000, 500000, Infinity])
         },
-        farmHqMetal: {
-            label: "HQ",
-            leaderTier: true,
-            tiers: buildThresholdTiers([0, 167, 250, 333, 500, 667, 1167, 1667, Infinity])
-        },
         scrapLooted: {
             label: "Scrap",
             leaderTier: true,
@@ -264,7 +259,6 @@ function extractPlayerValues(vitalPlayer, profile) {
         farmWood: num(vitalPlayer?.farmWood),
         farmMetal: num(vitalPlayer?.farmMetal),
         farmSulfur: num(vitalPlayer?.farmSulfur),
-        farmHqMetal: num(vitalPlayer?.farmHqMetal),
         scrapLooted: num(vitalPlayer?.scrapLooted),
         building: num(profile?.buildingStat ?? profile?.building_stat ?? 0)
     };
