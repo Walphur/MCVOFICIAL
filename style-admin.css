@@ -4328,3 +4328,285 @@ details.vital-extra-panel > :not(summary) {
     max-height: min(72vh, 700px);
     border-radius: 10px;
 }
+
+/* —— Vital UI modo simple —— */
+.vital-mode-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-mode-toggle {
+    display: inline-flex;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.vital-mode-btn {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+}
+.vital-mode-btn.is-active {
+    background: rgba(250, 166, 26, 0.2);
+    color: #fcd34d;
+}
+.vital-mode-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.vital-app-shell.is-simple-mode .vital-advanced-only {
+    display: none !important;
+}
+.vital-wipe-checklist {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.vital-wipe-checklist__title {
+    margin: 0 0 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #93c5fd;
+}
+.vital-wipe-checklist__steps {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+}
+.vital-dashboard-primary {
+    margin: 10px 0;
+}
+.vital-btn-update-all {
+    width: 100%;
+    max-width: 420px;
+    padding: 12px 18px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+}
+.vital-global-period-label {
+    margin: 6px 0 0;
+    font-size: 0.78rem;
+    color: #93c5fd;
+}
+.vital-dashboard-more summary {
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 8px;
+}
+.vital-qchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.vital-qchip-count {
+    display: inline-flex;
+    min-width: 1.25rem;
+    justify-content: center;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.vital-qchip.is-active .vital-qchip-count {
+    background: rgba(250, 166, 26, 0.35);
+}
+.vital-member-row.is-paused-row {
+    opacity: 0.72;
+}
+.vital-member-row.is-paused-row .vital-member-avatar {
+    filter: grayscale(0.6);
+}
+.vital-member-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+    background: rgba(255, 255, 255, 0.35);
+}
+.vital-member-status-dot.is-paused {
+    background: #f87171;
+}
+.vital-member-status-dot.ws-badge--mcv_active,
+.vital-member-status-dot.ws-badge--admin {
+    background: #4ade80;
+}
+.vital-member-pts-badge.is-muted {
+    opacity: 0.45;
+}
+.vital-wipe-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.vital-wipe-hero__btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.vital-wipe-hero__btn--yes.is-active {
+    border-color: rgba(34, 197, 94, 0.6);
+    background: rgba(34, 197, 94, 0.15);
+}
+.vital-wipe-hero__btn--no.is-active {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+}
+.vital-wipe-hero__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+.vital-wipe-hero__text {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.vital-points-card {
+    margin-bottom: 14px;
+    padding: 16px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(250, 166, 26, 0.12), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(250, 166, 26, 0.25);
+}
+.vital-points-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.vital-points-card__label {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.vital-points-card__total {
+    margin: 2px 0 0;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    color: #fcd34d;
+}
+.vital-points-card__total small {
+    font-size: 1rem;
+    opacity: 0.7;
+}
+.vital-points-card__badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+.vital-points-card__badge.is-active {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+.vital-points-card__badge.is-paused {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecaca;
+}
+.vital-points-card__period {
+    margin: 0 0 12px;
+    font-size: 0.78rem;
+    color: #93c5fd;
+}
+.vital-points-card__bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-points-card__bar-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr auto;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.78rem;
+}
+.vital-points-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.vital-points-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #86efac);
+}
+.vital-points-bar--manual i {
+    background: linear-gradient(90deg, #f59e0b, #fcd34d);
+}
+.vital-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.vital-breakdown-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.82rem;
+}
+.vital-breakdown-icon {
+    font-size: 1rem;
+    width: 1.25rem;
+    text-align: center;
+}
+.vital-breakdown-val {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+}
+.vital-breakdown-pts.is-plus { color: #86efac; font-weight: 700; }
+.vital-breakdown-pts.is-minus { color: #fecaca; font-weight: 700; }
+.vital-breakdown-skipped {
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #fecaca;
+    font-size: 0.85rem;
+    margin: 0;
+}
+.vital-extra-points-summary {
+    color: #86efac;
+    font-weight: 600;
+}
+@media (max-width: 720px) {
+    .vital-wipe-hero {
+        grid-template-columns: 1fr;
+    }
+    .vital-points-card__bar-row {
+        grid-template-columns: 1fr;
+    }
+}
