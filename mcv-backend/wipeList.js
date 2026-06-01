@@ -274,7 +274,7 @@ async function registerSlashCommands(client, guildId) {
     }
     const cmd = new SlashCommandBuilder()
         .setName("mcv-wipe")
-        .setDescription("Vinculá tu SteamID64 para el wipe MCV (roster interno; la ficha pública se solicita en mcvoficial.com/equipo/solicitud/)")
+        .setDescription("Vinculá tu SteamID64 (17 dígitos) al roster interno del wipe MCV.")
         .addStringOption((o) =>
             o
                 .setName("steam64")
