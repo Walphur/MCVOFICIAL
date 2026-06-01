@@ -24,14 +24,21 @@ ORDER BY
 `;
 
 function displayName(row) {
-    return (
-        String(row.persona_name || row.info_name || row.discord_username || row.steam_id64 || "Jugador").trim() ||
-        "Jugador"
-    );
+    const name =
+        row.personaName ||
+        row.persona_name ||
+        row.infoName ||
+        row.info_name ||
+        row.discordUsername ||
+        row.discord_username ||
+        row.steamId64 ||
+        row.steam_id64 ||
+        "Jugador";
+    return String(name).trim() || "Jugador";
 }
 
 function discordTag(row) {
-    const u = String(row.discord_username || "").trim();
+    const u = String(row.discordUsername || row.discord_username || "").trim();
     if (!u) {
         return "";
     }

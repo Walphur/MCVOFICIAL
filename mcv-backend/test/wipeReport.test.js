@@ -42,6 +42,16 @@ test("filterReport con_horas y sin_horas", () => {
     assert.equal(onlyPending.pendingHours.length, 1);
 });
 
+test("displayName usa campos camelCase del reporte", () => {
+    assert.equal(
+        formatPlayerLine(
+            { personaName: "Walphur", discordUsername: "Twalphur", hoursPlayed: 31 },
+            { showHours: true }
+        ),
+        "• **Walphur** @Twalphur — **31h**"
+    );
+});
+
 test("buildWipeReportEmbeds incluye resumen y listas", () => {
     const embeds = buildWipeReportEmbeds({
         totalLinked: 2,
