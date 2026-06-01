@@ -4610,3 +4610,269 @@ details.vital-extra-panel > :not(summary) {
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Vital performance dashboard (pestaña Puntos) ── */
+.vital-perf-section .vital-form-section__title {
+    color: rgba(255, 255, 255, 0.92);
+}
+.vital-perf-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.vital-perf-hero {
+    text-align: center;
+    padding: 20px 16px 18px;
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(212, 164, 55, 0.14), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(212, 164, 55, 0.28);
+}
+.vital-perf-hero__label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(212, 164, 55, 0.85);
+    margin-bottom: 6px;
+}
+.vital-perf-hero__score {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: clamp(2.6rem, 6vw, 3.6rem);
+    line-height: 1;
+    color: #D4A437;
+    letter-spacing: 0.02em;
+}
+.vital-perf-hero__score.is-low { color: #A94442; }
+.vital-perf-hero__score.is-mid { color: #D4A437; }
+.vital-perf-hero__score.is-high { color: #2E8B57; }
+.vital-perf-hero__score.is-paused {
+    font-size: 1.4rem;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-perf-hero__status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.vital-perf-hero__status.is-low {
+    background: rgba(169, 68, 66, 0.18);
+    color: #e8a4a2;
+    border: 1px solid rgba(169, 68, 66, 0.35);
+}
+.vital-perf-hero__status.is-mid {
+    background: rgba(212, 164, 55, 0.15);
+    color: #e8cc7a;
+    border: 1px solid rgba(212, 164, 55, 0.3);
+}
+.vital-perf-hero__status.is-high {
+    background: rgba(46, 139, 87, 0.16);
+    color: #8fd4a8;
+    border: 1px solid rgba(46, 139, 87, 0.35);
+}
+.vital-perf-hero__period {
+    margin: 10px 0 0;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.vital-perf-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.vital-perf-metric {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.vital-perf-metric__label {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.62);
+    margin-bottom: 8px;
+}
+.vital-perf-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.vital-perf-bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2E8B57, #5cb87a);
+    transition: width 0.35s ease;
+}
+.vital-perf-bar--contrib i {
+    background: linear-gradient(90deg, #8b6914, #D4A437);
+}
+.vital-perf-metric__value {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+}
+.vital-perf-sw {
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.vital-perf-sw__title {
+    margin: 0 0 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+.vital-perf-sw__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.vital-perf-sw__heading {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+}
+.vital-perf-sw__heading.is-weak { color: #A94442; }
+.vital-perf-sw__heading.is-warn { color: #D4A437; }
+.vital-perf-sw__heading.is-strong { color: #2E8B57; }
+.vital-perf-sw__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.78);
+}
+.vital-perf-sw__list li {
+    padding: 3px 0;
+}
+.vital-perf-sw__empty {
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+.vital-perf-stat-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-perf-stat-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-perf-stat-card--extra {
+    border-style: dashed;
+    opacity: 0.92;
+}
+.vital-perf-stat-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.vital-perf-stat-icon.is-weak {
+    background: rgba(169, 68, 66, 0.2);
+    color: #e8a4a2;
+    border: 1px solid rgba(169, 68, 66, 0.35);
+}
+.vital-perf-stat-icon.is-warn {
+    background: rgba(212, 164, 55, 0.18);
+    color: #e8cc7a;
+    border: 1px solid rgba(212, 164, 55, 0.32);
+}
+.vital-perf-stat-icon.is-strong {
+    background: rgba(46, 139, 87, 0.18);
+    color: #8fd4a8;
+    border: 1px solid rgba(46, 139, 87, 0.35);
+}
+.vital-perf-stat-card__title {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+}
+.vital-perf-stat-card__progress {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.52);
+}
+.vital-perf-stat-card__pts {
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.vital-perf-stat-card__pts.is-plus { color: #2E8B57; }
+.vital-perf-stat-card__pts.is-minus { color: #A94442; }
+.vital-perf-history {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-perf-history-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-perf-history-item__head {
+    margin-bottom: 8px;
+}
+.vital-perf-history-item__time {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-perf-history-item__body {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.vital-perf-history-item__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+.vital-perf-history-item__text strong {
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 600;
+}
+.vital-perf-history-item__penalty {
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.vital-perf-history-item.is-minus .vital-perf-history-item__penalty { color: #A94442; }
+.vital-perf-history-item.is-plus .vital-perf-history-item__penalty { color: #2E8B57; }
+@media (max-width: 720px) {
+    .vital-perf-metrics,
+    .vital-perf-sw__grid {
+        grid-template-columns: 1fr;
+    }
+}

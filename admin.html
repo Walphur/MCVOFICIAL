@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=39">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-points-revert-v1">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-perf-dashboard-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -446,13 +446,12 @@
                                         </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="puntos">
-                                        <section class="vital-form-section" id="vital-tier-auto-section">
+                                        <section class="vital-form-section vital-perf-section" id="vital-tier-auto-section">
                                             <header class="vital-form-section__head">
-                                                <h3 class="vital-form-section__title">Puntos desde Vital (automático)</h3>
-                                                <p class="vital-form-section__hint">Stats del wipe en Vital: T3 kills, K/D, horas, farm, scrap y building (suma de piezas + deployables). En EU Monthly: 1.er–2.º jueves = Monthly; 2.º–4.º jueves = Medium.</p>
+                                                <h3 class="vital-form-section__title">Rendimiento del wipe</h3>
+                                                <p class="vital-form-section__hint">Dashboard de puntos Vital: T3 kills, K/D, horas, farm, scrap y building. En EU Monthly: 1.er–2.º jueves = Monthly; 2.º–4.º jueves = Medium.</p>
                                             </header>
                                             <div class="vital-form-section__body">
-                                                <p id="vital-tier-period-label" class="vital-tier-period-label" aria-live="polite"></p>
                                                 <div class="vital-tier-auto-controls">
                                                     <label class="vital-field"><span>Servidor</span>
                                                         <select id="vital-tier-server-puntos" class="admin-input">
@@ -463,11 +462,47 @@
                                                     <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-recalc">Recalcular desde Vital</button>
                                                     <span id="vital-tier-sync-status" class="vital-tier-sync-status" aria-live="polite"></span>
                                                 </div>
-                                                <p class="vital-tier-auto-total">Total calculado: <strong id="vital-tier-auto-total">—</strong> pts</p>
-                                                <div id="vital-tier-player-breakdown" class="vital-tier-player-breakdown">
-                                                    <p class="empty-hint">Abrí esta pestaña o recalculá para ver el desglose por stat.</p>
+                                                <div class="vital-perf-dashboard" id="vital-perf-dashboard">
+                                                    <div class="vital-perf-hero">
+                                                        <span class="vital-perf-hero__label">Puntaje actual</span>
+                                                        <div class="vital-perf-hero__score" id="vital-tier-auto-total" aria-live="polite">—</div>
+                                                        <span class="vital-perf-hero__status" id="vital-perf-status" aria-live="polite"></span>
+                                                        <p id="vital-tier-period-label" class="vital-perf-hero__period" aria-live="polite"></p>
+                                                    </div>
+                                                    <div class="vital-perf-metrics">
+                                                        <div class="vital-perf-metric">
+                                                            <span class="vital-perf-metric__label">Vital Score</span>
+                                                            <div class="vital-perf-bar" aria-hidden="true"><i id="vital-perf-bar-fill"></i></div>
+                                                            <span class="vital-perf-metric__value" id="vital-perf-bar-label">— / 100</span>
+                                                        </div>
+                                                        <div class="vital-perf-metric">
+                                                            <span class="vital-perf-metric__label">Contribución al wipe</span>
+                                                            <div class="vital-perf-bar vital-perf-bar--contrib" aria-hidden="true"><i id="vital-perf-contrib-fill"></i></div>
+                                                            <span class="vital-perf-metric__value" id="vital-perf-contrib-label">—</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="vital-perf-sw" id="vital-perf-sw" hidden>
+                                                        <h4 class="vital-perf-sw__title">Rendimiento Vital</h4>
+                                                        <div class="vital-perf-sw__grid">
+                                                            <div class="vital-perf-sw__col">
+                                                                <span class="vital-perf-sw__heading is-weak">Debilidades</span>
+                                                                <ul class="vital-perf-sw__list" id="vital-perf-weaknesses"></ul>
+                                                            </div>
+                                                            <div class="vital-perf-sw__col">
+                                                                <span class="vital-perf-sw__heading is-warn">Atención</span>
+                                                                <ul class="vital-perf-sw__list" id="vital-perf-warnings"></ul>
+                                                            </div>
+                                                            <div class="vital-perf-sw__col">
+                                                                <span class="vital-perf-sw__heading is-strong">Fortalezas</span>
+                                                                <ul class="vital-perf-sw__list" id="vital-perf-strengths"></ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="vital-tier-player-breakdown" class="vital-perf-stat-cards">
+                                                        <p class="empty-hint">Abrí esta pestaña o recalculá para ver el desglose por stat.</p>
+                                                    </div>
                                                 </div>
-                                                <details class="vital-tier-config-help" id="vital-tier-config-help">
+                                                <details class="vital-tier-config-help vital-advanced-only" id="vital-tier-config-help">
                                                     <summary>Umbrales Medium / Monthly (tiers)</summary>
                                                     <div id="vital-tier-config-view" class="vital-tier-config-view"></div>
                                                 </details>
@@ -501,7 +536,7 @@
                                                     <label class="vital-field vital-field--wide"><span>Motivo</span><input id="vital-score-reason" class="admin-input" maxlength="200" /></label>
                                                     <button type="button" class="btn-primary-small" id="btn-vital-score-apply">Aplicar</button>
                                                 </div>
-                                                <ul id="vital-score-history" class="vital-score-history"></ul>
+                                                <ul id="vital-score-history" class="vital-score-history vital-perf-history"></ul>
                                             </div>
                                         </section>
                                     </div>
@@ -1980,6 +2015,13 @@
     var vitalExtraCatalog = [];
     var vitalSelectedExtraKeys = [];
     var vitalExtraSaveTimer = null;
+    var vitalTierConfigCache = {};
+
+    var VITAL_PERF_COLORS = {
+        gold: '#D4A437',
+        red: '#A94442',
+        green: '#2E8B57'
+    };
 
     var VITAL_TIER_STAT_LABELS = {
         killsT30: 'T3 Kills',
@@ -2396,6 +2438,7 @@
             pane.classList.toggle('active', pane.getAttribute('data-detail-pane') === vitalDetailTab);
         });
         if (vitalDetailTab === 'puntos') {
+            ensureVitalTierConfigCache(vitalTierServerKey()).catch(function () {});
             renderVitalTierPlayerBreakdown(vitalSelectedSteam);
             loadVitalTierConfigView().catch(function () {});
             syncVitalTierFromVital({ apply: true, quiet: true }).catch(function () {});
@@ -2680,12 +2723,19 @@
             return;
         }
         box.innerHTML = events.map(function (ev) {
-            var sign = Number(ev.delta) > 0 ? '+' : '';
-            return '<li class="vital-score-ev' + (Number(ev.delta) < 0 ? ' is-minus' : ' is-plus') + '">' +
-                '<span class="vital-score-ev__delta">' + esc(sign + String(ev.delta)) + '</span>' +
-                '<span class="vital-score-ev__body">' + esc(ev.reason || ev.category || '—') +
-                ' · <strong>' + esc(String(ev.balanceAfter)) + ' pts</strong></span>' +
-                '<time class="vital-score-ev__time">' + esc(String(ev.createdAt || '').slice(0, 16).replace('T', ' ')) + '</time></li>';
+            var parsed = parseVitalScoreEvent(ev);
+            var signCls = parsed.delta < 0 ? ' is-minus' : (parsed.delta > 0 ? ' is-plus' : '');
+            return '<li class="vital-perf-history-item' + signCls + '">' +
+                '<div class="vital-perf-history-item__head">' +
+                '<time class="vital-perf-history-item__time">' + esc(parsed.timeLabel || '—') + '</time>' +
+                '</div>' +
+                '<div class="vital-perf-history-item__body">' +
+                '<span class="vital-perf-stat-icon ' + escAttr(parsed.iconCls) + '" aria-hidden="true">' + vitalStatIconChar(parsed.iconCls) + '</span>' +
+                '<div class="vital-perf-history-item__text">' +
+                '<strong>' + esc(parsed.title) + '</strong>' +
+                (parsed.detail ? '<span>' + esc(parsed.detail) + '</span>' : '') +
+                '<span class="vital-perf-history-item__penalty">' + esc(parsed.delta >= 0 ? 'Bonificación' : 'Penalización') + ': ' + esc(parsed.penalty.replace(' pts', '')) + '</span>' +
+                '</div></div></li>';
         }).join('');
     }
 
@@ -2726,6 +2776,143 @@
         if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
         if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
         return String(Math.round(n));
+    }
+
+    function formatVitalTierThreshold(key, raw) {
+        if (raw == null || !Number.isFinite(Number(raw))) return '—';
+        return formatVitalTierStatValue(key, raw);
+    }
+
+    function ensureVitalTierConfigCache(serverKey) {
+        serverKey = serverKey === 'eu-monthly' ? 'eu-monthly' : 'eu-medium';
+        if (vitalTierConfigCache[serverKey]) {
+            return Promise.resolve(vitalTierConfigCache[serverKey]);
+        }
+        return fetch(API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey), {
+            headers: authHeaders(),
+            cache: 'no-store'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok || !x.d.config) throw new Error('config');
+                vitalTierConfigCache[serverKey] = x.d;
+                return x.d;
+            });
+    }
+
+    function getVitalTierCategoryConfig(catId) {
+        var payload = vitalTierConfigCache[vitalTierServerKey()];
+        if (!payload || !payload.config) return null;
+        var cats = payload.config.categories || [];
+        for (var i = 0; i < cats.length; i++) {
+            if (cats[i].id === catId) return cats[i];
+        }
+        return null;
+    }
+
+    function getStatTierProgress(catId, rawValue) {
+        var cat = getVitalTierCategoryConfig(catId);
+        if (!cat || !cat.tiers || !cat.tiers.length) return null;
+        var value = Number(rawValue);
+        if (!Number.isFinite(value)) value = 0;
+        var tiers = cat.tiers.slice().sort(function (a, b) { return a.min - b.min; });
+        var currentIdx = 0;
+        for (var i = 0; i < tiers.length; i++) {
+            if (value >= tiers[i].min) currentIdx = i;
+            else break;
+        }
+        var currentPts = tiers[currentIdx] ? Number(tiers[currentIdx].points) : 0;
+        var nextNeutral = null;
+        var nextUp = null;
+        for (var j = 0; j < tiers.length; j++) {
+            if (tiers[j].min > value && tiers[j].points >= 0 && !nextNeutral) nextNeutral = tiers[j];
+            if (tiers[j].min > value && tiers[j].points > currentPts && !nextUp) nextUp = tiers[j];
+        }
+        var target = currentPts < 0 ? nextNeutral : nextUp;
+        return {
+            currentPts: currentPts,
+            targetMin: target ? target.min : null,
+            targetPts: target ? target.points : null
+        };
+    }
+
+    function vitalPerfStatusLabel(total) {
+        var n = Number(total);
+        if (!Number.isFinite(n)) return '';
+        if (n <= -10) return 'Bajo rendimiento';
+        if (n < 0) return 'Por debajo del objetivo';
+        if (n < 8) return 'Rendimiento regular';
+        if (n < 18) return 'Buen rendimiento';
+        return 'Excelente rendimiento';
+    }
+
+    function vitalPerfStatusClass(total) {
+        var n = Number(total);
+        if (!Number.isFinite(n)) return '';
+        if (n < 0) return 'is-low';
+        if (n < 8) return 'is-mid';
+        return 'is-high';
+    }
+
+    function vitalStatIconClass(pts, isLeader) {
+        var n = Number(pts);
+        if (isLeader && n > 0) return 'is-strong';
+        if (n > 0) return 'is-strong';
+        if (n < 0) return 'is-weak';
+        return 'is-warn';
+    }
+
+    function vitalStatIconChar(cls) {
+        if (cls === 'is-strong') return '✓';
+        if (cls === 'is-weak') return '✕';
+        return '⚠';
+    }
+
+    function vitalScoreToPercent(total) {
+        var n = Number(total);
+        if (!Number.isFinite(n)) return 0;
+        return Math.max(0, Math.min(100, Math.round(((n + 24) / 56) * 100)));
+    }
+
+    function vitalContribPercent(total) {
+        var n = Number(total);
+        if (!Number.isFinite(n)) return 0;
+        if (n <= 0) return Math.max(5, Math.round(((n + 24) / 56) * 25));
+        return Math.max(0, Math.min(100, Math.round((n / 30) * 100)));
+    }
+
+    function parseVitalScoreEvent(ev) {
+        var delta = Number(ev.delta);
+        var reason = String(ev.reason || ev.category || '—');
+        var category = String(ev.category || '');
+        var createdAt = String(ev.createdAt || '');
+        var timeLabel = createdAt ? createdAt.slice(0, 16).replace('T', ' ') : '';
+        var statId = category.indexOf('tier_') === 0 ? category.slice(5) : '';
+        var statLabel = VITAL_TIER_STAT_LABELS[statId] || statId.replace(/_/g, ' ');
+        var title = reason;
+        var detail = '';
+        var penalty = (delta > 0 ? '+' : '') + String(delta) + ' pts';
+        var iconCls = delta > 0 ? 'is-strong' : (delta < 0 ? 'is-weak' : 'is-warn');
+
+        if (category.indexOf('tier_') === 0) {
+            var rawMatch = reason.match(/\(([0-9.,]+)/);
+            var rawVal = rawMatch ? rawMatch[1] : '';
+            if (delta < 0) {
+                title = statLabel + ' insuficiente';
+                detail = rawVal ? (rawVal + ' recolectado') : reason.split('·')[0].trim();
+            } else if (delta > 0) {
+                title = statLabel + (reason.indexOf('líder') >= 0 ? ' · líder del roster' : ' · objetivo cumplido');
+                detail = rawVal ? (rawVal + ' logrado') : '';
+            } else {
+                title = statLabel;
+                detail = reason;
+            }
+        } else if (category === 'manual' || category.indexOf('tier_') !== 0) {
+            title = reason || 'Ajuste manual';
+            detail = 'Balance: ' + String(ev.balanceAfter != null ? ev.balanceAfter : '—') + ' pts';
+        }
+
+        return { title: title, detail: detail, penalty: penalty, iconCls: iconCls, timeLabel: timeLabel, delta: delta };
     }
 
     function ingestVitalTierPayload(data) {
@@ -2871,47 +3058,148 @@
         });
     }
 
+    function updateVitalPerfMetrics(total, tier) {
+        var statusEl = document.getElementById('vital-perf-status');
+        var barFill = document.getElementById('vital-perf-bar-fill');
+        var barLabel = document.getElementById('vital-perf-bar-label');
+        var contribFill = document.getElementById('vital-perf-contrib-fill');
+        var contribLabel = document.getElementById('vital-perf-contrib-label');
+        var swBox = document.getElementById('vital-perf-sw');
+        var weakEl = document.getElementById('vital-perf-weaknesses');
+        var warnEl = document.getElementById('vital-perf-warnings');
+        var strongEl = document.getElementById('vital-perf-strengths');
+        var n = Number(total);
+        var hasTotal = Number.isFinite(n);
+
+        if (statusEl) {
+            statusEl.textContent = hasTotal ? vitalPerfStatusLabel(n) : '';
+            statusEl.className = 'vital-perf-hero__status ' + (hasTotal ? vitalPerfStatusClass(n) : '');
+        }
+        var pct = hasTotal ? vitalScoreToPercent(n) : 0;
+        var cpct = hasTotal ? vitalContribPercent(n) : 0;
+        if (barFill) barFill.style.width = pct + '%';
+        if (barLabel) barLabel.textContent = hasTotal ? (pct + ' / 100') : '— / 100';
+        if (contribFill) contribFill.style.width = cpct + '%';
+        if (contribLabel) contribLabel.textContent = hasTotal ? (cpct + '%') : '—';
+
+        var weaknesses = [];
+        var warnings = [];
+        var strengths = [];
+        (tier && tier.breakdown ? tier.breakdown : []).forEach(function (b) {
+            if (String(b.id || '').indexOf('extra_') === 0) return;
+            var label = VITAL_TIER_STAT_LABELS[b.id] || b.label;
+            var pts = Number(b.points || 0);
+            if (pts < 0) weaknesses.push(label);
+            else if (pts === 0) warnings.push(label);
+            else strengths.push(label);
+        });
+
+        if (swBox) swBox.hidden = !(weaknesses.length || warnings.length || strengths.length);
+        if (weakEl) {
+            weakEl.innerHTML = weaknesses.length
+                ? weaknesses.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('')
+                : '<li class="vital-perf-sw__empty">—</li>';
+        }
+        if (warnEl) {
+            warnEl.innerHTML = warnings.length
+                ? warnings.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('')
+                : '<li class="vital-perf-sw__empty">—</li>';
+        }
+        if (strongEl) {
+            strongEl.innerHTML = strengths.length
+                ? strengths.map(function (l) { return '<li>' + esc(l) + '</li>'; }).join('')
+                : '<li class="vital-perf-sw__empty">—</li>';
+        }
+    }
+
     function renderVitalTierPlayerBreakdown(steamId) {
         var box = document.getElementById('vital-tier-player-breakdown');
         var totalEl = document.getElementById('vital-tier-auto-total');
         if (!box) return;
         var sid = normalizeVitalSteamLocal(steamId);
         var tier = getVitalTierForSteam(sid);
-        if (totalEl) totalEl.textContent = sid && tier.skipped ? '— (no juega)' : (sid && tier.total != null ? String(tier.total) : '—');
+
+        if (totalEl) {
+            if (!sid) {
+                totalEl.textContent = '—';
+                totalEl.className = 'vital-perf-hero__score';
+            } else if (tier.skipped) {
+                totalEl.textContent = '—';
+                totalEl.className = 'vital-perf-hero__score is-paused';
+            } else if (tier.total != null) {
+                totalEl.textContent = String(tier.total) + ' pts';
+                totalEl.className = 'vital-perf-hero__score ' + vitalPerfStatusClass(tier.total);
+            } else {
+                totalEl.textContent = '—';
+                totalEl.className = 'vital-perf-hero__score';
+            }
+        }
+        updateVitalPerfMetrics(tier.skipped ? null : tier.total, tier);
+
         if (!sid) {
             box.innerHTML = '<p class="empty-hint">Seleccioná un jugador de la lista.</p>';
             return;
         }
         if (tier.skipped) {
-            box.innerHTML = '<p class="empty-hint">Este jugador está pausado / no juega el wipe: no se suman ni restan puntos automáticos.</p>';
+            box.innerHTML = '<p class="vital-breakdown-skipped">Este jugador está pausado / no juega el wipe: no se suman ni restan puntos automáticos.</p>';
             return;
         }
         if (!tier.breakdown || !tier.breakdown.length) {
             box.innerHTML = '<p class="empty-hint">Sin stats Vital para este jugador en el wipe actual. Probá Recalcular o revisá que tenga SteamID en Info jugadores.</p>';
             return;
         }
-        var statRows = tier.breakdown.filter(function (b) {
-            return String(b.id || '').indexOf('extra_') !== 0;
-        }).map(function (b) {
-            var statLabel = VITAL_TIER_STAT_LABELS[b.id] || b.label;
-            var val = tier.values && tier.values[b.id] != null ? formatVitalTierStatValue(b.id, tier.values[b.id]) : '—';
-            var pts = Number(b.points || 0);
-            var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
-            var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
-            return '<tr><td>' + esc(statLabel) + leader + '</td><td class="vital-tier-stat-val">' + esc(val) + '</td><td class="vital-tier-stat-pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + '</td></tr>';
-        }).join('');
-        var extraRows = tier.breakdown.filter(function (b) {
-            return String(b.id || '').indexOf('extra_') === 0 && Number(b.points) !== 0;
-        }).map(function (b) {
-            var pts = Number(b.points || 0);
-            var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
-            return '<tr><td>' + esc(b.label) + '</td><td class="vital-tier-stat-val">manual</td><td class="vital-tier-stat-pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + '</td></tr>';
-        }).join('');
-        var meta = vitalTierMeta.serverLabel ? '<p class="vital-tier-preview__meta">' + esc(vitalTierMeta.serverLabel) + ' · wipe ' + esc(String(vitalTierMeta.wipeId || '—')) + '</p>' : '';
-        box.innerHTML = meta +
-            '<table class="vital-tier-player-table"><thead><tr><th>Stat Vital</th><th>Valor</th><th>Pts</th></tr></thead><tbody>' +
-            statRows + extraRows +
-            '</tbody><tfoot><tr><td colspan="2"><strong>Total auto</strong></td><td class="vital-tier-stat-pts is-plus"><strong>' + esc(String(tier.total)) + '</strong></td></tr></tfoot></table>';
+
+        ensureVitalTierConfigCache(vitalTierServerKey()).finally(function () {
+            var statCards = tier.breakdown.filter(function (b) {
+                return String(b.id || '').indexOf('extra_') !== 0;
+            }).map(function (b) {
+                var statId = b.id;
+                var statLabel = VITAL_TIER_STAT_LABELS[statId] || b.label;
+                var rawVal = tier.values && tier.values[statId] != null ? tier.values[statId] : null;
+                var val = formatVitalTierStatValue(statId, rawVal);
+                var pts = Number(b.points || 0);
+                var iconCls = vitalStatIconClass(pts, b.isLeader);
+                var progress = getStatTierProgress(statId, rawVal);
+                var progressHtml = '';
+                if (progress && progress.targetMin != null) {
+                    progressHtml = '<span class="vital-perf-stat-card__progress">' +
+                        esc(val) + ' / ' + esc(formatVitalTierThreshold(statId, progress.targetMin)) + ' requeridos</span>';
+                } else if (statId === 'kdr') {
+                    progressHtml = '<span class="vital-perf-stat-card__progress">Valor: ' + esc(val) + '</span>';
+                } else {
+                    progressHtml = '<span class="vital-perf-stat-card__progress">' + esc(val) + ' logrado</span>';
+                }
+                var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
+                var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
+                return '<article class="vital-perf-stat-card">' +
+                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+                    '<div class="vital-perf-stat-card__main">' +
+                    '<h5 class="vital-perf-stat-card__title">' + esc(statLabel) + leader + '</h5>' +
+                    progressHtml +
+                    '</div>' +
+                    '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
+                    '</article>';
+            }).join('');
+
+            var extraCards = tier.breakdown.filter(function (b) {
+                return String(b.id || '').indexOf('extra_') === 0 && Number(b.points) !== 0;
+            }).map(function (b) {
+                var pts = Number(b.points || 0);
+                var iconCls = vitalStatIconClass(pts, false);
+                var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
+                return '<article class="vital-perf-stat-card vital-perf-stat-card--extra">' +
+                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+                    '<div class="vital-perf-stat-card__main">' +
+                    '<h5 class="vital-perf-stat-card__title">' + esc(b.label) + '</h5>' +
+                    '<span class="vital-perf-stat-card__progress">Extra manual</span>' +
+                    '</div>' +
+                    '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
+                    '</article>';
+            }).join('');
+
+            box.innerHTML = statCards + extraCards;
+            updateVitalPerfMetrics(tier.total, tier);
+        });
     }
 
     function renderVitalTierPreview(data) {
@@ -2983,6 +3271,7 @@
                 var html = '';
                 results.forEach(function (x) {
                     if (!x.ok || !x.d.config) return;
+                    vitalTierConfigCache[x.serverKey] = x.d;
                     var cfg = x.d.config;
                     var resolved = x.d.resolved || {};
                     var periodNote = resolved.periodLabel ? ' · ' + resolved.periodLabel : '';
@@ -3523,6 +3812,9 @@
             if (el) {
                 el.addEventListener('change', function () {
                     setVitalTierServerKey(el.value);
+                    ensureVitalTierConfigCache(vitalTierServerKey()).then(function () {
+                        renderVitalTierPlayerBreakdown(vitalSelectedSteam);
+                    }).catch(function () {});
                     syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {});
                 });
             }
