@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=49">
-    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v11">
+    <link rel="stylesheet" href="style-admin.css?v=50">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v12">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -290,8 +290,8 @@
                         <div id="vital-health-bar" class="vital-health-bar vital-health-bar--compact" hidden aria-live="polite"></div>
                         <div class="vital-sidebar-sync">
                             <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
-                                <option value="eu-medium">EU Medium 2x</option>
                                 <option value="eu-monthly">EU Monthly 2x</option>
+                                <option value="eu-medium">EU Medium 2x</option>
                             </select>
                             <select id="vital-tier-wipe" class="vital-input-compact" title="Wipe Vital">
                                 <option value="">Cargando wipes…</option>
@@ -2643,10 +2643,36 @@
         }).join('');
     }
 
+    function vitalTierDefaultServerKey() {
+        return 'eu-monthly';
+    }
+
+    function vitalTierServerPriority() {
+        return ['eu-monthly', 'eu-medium'];
+    }
+
     function vitalTierServerKey() {
         var sel = document.getElementById('vital-tier-server');
-        var key = String((sel && sel.value) || localStorage.getItem(VITAL_TIER_SERVER_LS) || 'eu-medium').trim();
+        var key = String((sel && sel.value) || localStorage.getItem(VITAL_TIER_SERVER_LS) || vitalTierDefaultServerKey()).trim();
         return key === 'eu-monthly' ? 'eu-monthly' : 'eu-medium';
+    }
+
+    function findCurrentVitalWipe(wipes) {
+        wipes = wipes || [];
+        for (var i = 0; i < wipes.length; i++) {
+            if (wipes[i].current) return wipes[i];
+        }
+        return null;
+    }
+
+    function findLatestVitalWipe(wipes) {
+        wipes = wipes || [];
+        if (!wipes.length) return null;
+        var current = findCurrentVitalWipe(wipes);
+        if (current) return current;
+        return wipes.slice().sort(function (a, b) {
+            return (b.startMs || 0) - (a.startMs || 0);
+        })[0] || null;
     }
 
     function syncVitalTierServerSelects() {
@@ -2736,7 +2762,7 @@
     }
 
     function pickLatestVitalTierContext() {
-        return Promise.all(['eu-medium', 'eu-monthly'].map(function (serverKey) {
+        return Promise.all(vitalTierServerPriority().map(function (serverKey) {
             return fetch(API + '/api/admin/vital/wipes?server=' + encodeURIComponent(serverKey), {
                 headers: authHeaders(),
                 cache: 'no-store'
@@ -2752,24 +2778,32 @@
                     return { serverKey: serverKey, wipes: [] };
                 });
         })).then(function (results) {
-            var withCurrent = results.filter(function (r) {
-                return (r.wipes || []).some(function (w) { return w.current; });
+            var priority = vitalTierServerPriority();
+            var candidates = [];
+            results.forEach(function (r) {
+                var latest = findLatestVitalWipe(r.wipes);
+                if (!latest) return;
+                candidates.push({
+                    serverKey: r.serverKey,
+                    wipes: r.wipes,
+                    wipeId: latest.id,
+                    startMs: latest.startMs || 0
+                });
             });
-            var pick = withCurrent[0];
-            if (!pick) {
-                pick = results.slice().sort(function (a, b) {
-                    return (b.wipes || []).length - (a.wipes || []).length;
-                })[0] || { serverKey: vitalTierServerKey(), wipes: [] };
-            }
+            candidates.sort(function (a, b) {
+                if (b.startMs !== a.startMs) return b.startMs - a.startMs;
+                return priority.indexOf(a.serverKey) - priority.indexOf(b.serverKey);
+            });
+            var pick = candidates[0] || {
+                serverKey: vitalTierDefaultServerKey(),
+                wipes: [],
+                wipeId: 'current'
+            };
             setVitalTierServerKey(pick.serverKey);
             syncVitalTierServerSelects();
-            var preferred = pickPreferredVitalWipe(pick.wipes, {
-                serverKey: pick.serverKey,
-                preferLatest: true
-            });
             return loadVitalTierWipes({
                 serverKey: pick.serverKey,
-                preferredWipeId: preferred,
+                preferredWipeId: pick.wipeId,
                 preferLatest: true,
                 quiet: true
             });
@@ -3167,7 +3201,7 @@
         var box = document.getElementById('vital-tier-config-view');
         if (!box) return Promise.resolve();
         box.innerHTML = '<p class="empty-hint">Cargando umbrales…</p>';
-        return Promise.all(['eu-medium', 'eu-monthly'].map(function (serverKey) {
+        return Promise.all(vitalTierServerPriority().map(function (serverKey) {
             return fetch(API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey), {
                 headers: authHeaders(),
                 cache: 'no-store'
