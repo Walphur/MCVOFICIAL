@@ -8,17 +8,17 @@ const {
     filterReport
 } = require("../wipeReport");
 
-test("formatPlayerLine muestra horas o pendiente", () => {
-    assert.match(
-        formatPlayerLine(
-            { persona_name: "Kami", discord_username: "Kami", hoursPlayed: 59 },
-            { showHours: true }
-        ),
-        /59h/
+test("formatPlayerLine muestra horas, puntos y sin @discord", () => {
+    const line = formatPlayerLine(
+        { persona_name: "Kami", hoursPlayed: 59, performanceScore: 42 },
+        { showHours: true }
     );
+    assert.match(line, /59h/);
+    assert.match(line, /42 pts/);
+    assert.doesNotMatch(line, /@/);
     assert.match(
         formatPlayerLine(
-            { persona_name: "Checha", discord_username: "Checha · x", hoursPlayed: null },
+            { persona_name: "Checha", hoursPlayed: null, performanceScore: 0 },
             { showHours: false }
         ),
         /sin horas/
@@ -30,8 +30,8 @@ test("filterReport con_horas y sin_horas", () => {
         totalLinked: 3,
         withHoursCount: 2,
         pendingHoursCount: 1,
-        withHours: [{ persona_name: "A", hoursPlayed: 10 }],
-        pendingHours: [{ persona_name: "B", hoursPlayed: null }],
+        withHours: [{ persona_name: "A", hoursPlayed: 10, performanceScore: 5 }],
+        pendingHours: [{ persona_name: "B", hoursPlayed: null, performanceScore: 0 }],
         rows: []
     };
     const onlyHours = filterReport(report, "con_horas");
@@ -45,10 +45,10 @@ test("filterReport con_horas y sin_horas", () => {
 test("displayName usa campos camelCase del reporte", () => {
     assert.equal(
         formatPlayerLine(
-            { personaName: "Walphur", discordUsername: "Twalphur", hoursPlayed: 31 },
+            { personaName: "Walphur", hoursPlayed: 31, performanceScore: 10 },
             { showHours: true }
         ),
-        "• **Walphur** @Twalphur — **31h**"
+        "• **Walphur** — **31h** · **10 pts**"
     );
 });
 
@@ -57,13 +57,14 @@ test("buildWipeReportEmbeds incluye resumen y listas", () => {
         totalLinked: 2,
         withHoursCount: 1,
         pendingHoursCount: 1,
-        withHours: [{ persona_name: "Kami", discord_username: "Kami", hoursPlayed: 59 }],
-        pendingHours: [{ persona_name: "Checha", discord_username: "Checha", hoursPlayed: null }],
+        withPointsCount: 1,
+        withHours: [{ persona_name: "Kami", hoursPlayed: 59, performanceScore: 80 }],
+        pendingHours: [{ persona_name: "Checha", hoursPlayed: null, performanceScore: 0 }],
         rows: []
     });
     assert.ok(embeds.length >= 2);
     const allText = embeds.map((e) => JSON.stringify(e.data || e)).join(" ");
     assert.match(allText, /Vinculados Discord/);
     assert.match(allText, /Kami/);
-    assert.match(allText, /Checha/);
+    assert.match(allText, /80 pts/);
 });

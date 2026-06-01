@@ -13,12 +13,14 @@ SELECT
     w.steam_id64,
     w.updated_at AS linked_at,
     p.hours_played,
+    p.performance_score,
     p.display_name AS info_name
 FROM wipe_list_members w
 LEFT JOIN player_info_profiles p ON p.steam_id64 = w.steam_id64
 WHERE w.discord_user_id NOT LIKE $1
   AND w.discord_user_id NOT LIKE $2
 ORDER BY
+    COALESCE(p.performance_score, 0) DESC,
     COALESCE(p.hours_played, -1) DESC,
     LOWER(COALESCE(w.persona_name, w.discord_username, w.steam_id64)) ASC
 `;
@@ -37,21 +39,25 @@ function displayName(row) {
     return String(name).trim() || "Jugador";
 }
 
-function discordTag(row) {
-    const u = String(row.discordUsername || row.discord_username || "").trim();
-    if (!u) {
-        return "";
-    }
-    const nick = u.split(" · ").pop();
-    return nick ? `@${nick}` : "";
-}
-
 function normalizeHours(value) {
     const n = Number(value);
     if (!Number.isFinite(n) || n < 0) {
         return null;
     }
     return Math.round(n);
+}
+
+function normalizeScore(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return 0;
+    }
+    return Math.round(n);
+}
+
+function formatPointsSuffix(row) {
+    const score = normalizeScore(row.performanceScore ?? row.performance_score);
+    return ` · **${score} pts**`;
 }
 
 async function loadWipeHoursReport(pool) {
@@ -66,14 +72,19 @@ async function loadWipeHoursReport(pool) {
         steamId64: String(row.steam_id64 || ""),
         linkedAt: row.linked_at || null,
         hoursPlayed: normalizeHours(row.hours_played),
+        performanceScore: normalizeScore(row.performance_score),
         infoName: String(row.info_name || "")
     }));
     const withHours = rows.filter((row) => row.hoursPlayed != null && row.hoursPlayed > 0);
     const pendingHours = rows.filter((row) => row.hoursPlayed == null || row.hoursPlayed <= 0);
+    const withPoints = rows.filter((row) => row.performanceScore !== 0);
+    const totalPoints = rows.reduce((sum, row) => sum + row.performanceScore, 0);
     return {
         totalLinked: rows.length,
         withHoursCount: withHours.length,
         pendingHoursCount: pendingHours.length,
+        withPointsCount: withPoints.length,
+        totalPoints,
         withHours,
         pendingHours,
         rows
@@ -82,12 +93,11 @@ async function loadWipeHoursReport(pool) {
 
 function formatPlayerLine(row, { showHours }) {
     const name = displayName(row);
-    const tag = discordTag(row);
-    const tagPart = tag ? ` ${tag}` : "";
+    const pts = formatPointsSuffix(row);
     if (showHours) {
-        return `• **${name}**${tagPart} — **${row.hoursPlayed}h**`;
+        return `• **${name}** — **${row.hoursPlayed}h**${pts}`;
     }
-    return `• **${name}**${tagPart} — Steam OK · _sin horas_`;
+    return `• **${name}** — Steam OK · _sin horas_${pts}`;
 }
 
 function chunkLines(lines, maxLen) {
@@ -118,7 +128,8 @@ function buildWipeReportEmbeds(report) {
         .setDescription(
             `**Vinculados Discord:** ${report.totalLinked}\n` +
                 `**Con horas:** ${report.withHoursCount}\n` +
-                `**Steam OK, sin horas:** ${report.pendingHoursCount}\n\n` +
+                `**Steam OK, sin horas:** ${report.pendingHoursCount}\n` +
+                `**Con puntos (≠0):** ${report.withPointsCount || 0}\n\n` +
                 `_Usá \`/mcv-wipe\` para vincular Steam y \`/mcv-horas\` o #playtime para cargar horas._`
         );
     embeds.push(summary);
@@ -131,7 +142,7 @@ function buildWipeReportEmbeds(report) {
             embeds.push(
                 new EmbedBuilder()
                     .setColor(0x57f287)
-                    .setTitle(idx === 0 ? "✅ Con horas" : `✅ Con horas (${idx + 1})`)
+                    .setTitle(idx === 0 ? "✅ Horas + puntos" : `✅ Horas + puntos (${idx + 1})`)
                     .setDescription(chunk)
             );
         });
@@ -165,7 +176,7 @@ function buildWipeReportEmbeds(report) {
 function buildMcReporteSlashCommand() {
     return new SlashCommandBuilder()
         .setName("mcv-reporte")
-        .setDescription("Lista quién vinculó Steam y cuántas horas tiene cada uno en el wipe")
+        .setDescription("Horas y puntos del wipe: quién vinculó Steam y cuánto tiene cada uno")
         .addStringOption((o) =>
             o
                 .setName("filtro")
