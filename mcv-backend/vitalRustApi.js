@@ -392,6 +392,7 @@ function normalizePlayer(row) {
     }
     const gathered = farming.gathered || {};
     const playerInfo = row.player || {};
+    const buildingRaw = row.statistics?.building || row.building || {};
     return {
         steamId64,
         name: String(playerInfo.name ?? row.name ?? row.username ?? row.displayName ?? row.persona ?? "").trim(),
@@ -406,7 +407,9 @@ function normalizePlayer(row) {
         farmHqMetal: farmGathered(gathered, ["hq.metal.ore", "hq.metal"]),
         farmWood: farmGathered(gathered, ["wood"]),
         scrapLooted: scrapLooted(farming),
-        scrapRecycled: scrapRecycled(pve)
+        scrapRecycled: scrapRecycled(pve),
+        building: buildingTotalFromVital(buildingRaw),
+        buildingDetail: buildingRaw
     };
 }
 
@@ -584,9 +587,41 @@ function scrapRecycled(pve) {
     return num(pve.scrapRecycled);
 }
 
+function sumNumericObjectValues(obj) {
+    if (!obj || typeof obj !== "object") {
+        return 0;
+    }
+    let total = 0;
+    for (const v of Object.values(obj)) {
+        const n = Number(v);
+        if (Number.isFinite(n) && n > 0) {
+            total += n;
+        }
+    }
+    return total;
+}
+
+function buildingTotalFromVital(building) {
+    if (!building || typeof building !== "object") {
+        return 0;
+    }
+    let total = sumNumericObjectValues(building.buildings);
+    total += sumNumericObjectValues(building.deployables);
+    for (const [key, val] of Object.entries(building)) {
+        if (key === "buildings" || key === "deployables") {
+            continue;
+        }
+        const n = Number(val);
+        if (Number.isFinite(n) && n > 0) {
+            total += n;
+        }
+    }
+    return Math.round(total);
+}
+
 function parsePlayerIncludes() {
     /** Vital API: includes en minúsculas (combat, raiding, farming, pve). "Combat" devuelve data vacía o 400. */
-    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "combat,raiding,farming,pve").trim();
+    const raw = String(process.env.VITAL_API_PLAYER_INCLUDES || "combat,raiding,farming,pve,building").trim();
     return raw
         .split(/[,]+/)
         .map((s) => s.trim().toLowerCase())
@@ -622,7 +657,7 @@ async function postPlayersOverview(url, serverId, wipeId, playerIds, includes, o
 
 function clanPlayerIncludes() {
     const base = parsePlayerIncludes();
-    return [...new Set([...base, "combat", "raiding", "farming", "pve"])];
+    return [...new Set([...base, "combat", "raiding", "farming", "pve", "building"])];
 }
 
 async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh = false } = {}) {
@@ -1051,6 +1086,23 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
         }
         if (player.skipped) {
             skippedNoWipe += 1;
+            const existsSkipped = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [
+                steamId64
+            ]);
+            if (existsSkipped.rowCount) {
+                await pool.query(`DELETE FROM player_score_events WHERE steam_id64 = $1 AND category LIKE 'tier_%'`, [
+                    steamId64
+                ]);
+                const manualSum = await pool.query(
+                    `SELECT COALESCE(SUM(delta), 0)::numeric AS total FROM player_score_events WHERE steam_id64 = $1`,
+                    [steamId64]
+                );
+                const balance = normalizePerformanceScore(manualSum.rows[0]?.total);
+                await pool.query(
+                    `UPDATE player_info_profiles SET performance_score = $2, updated_at = NOW() WHERE steam_id64 = $1`,
+                    [steamId64, balance]
+                );
+            }
             continue;
         }
         const exists = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
@@ -2854,5 +2906,6 @@ module.exports = {
     loadClanSteamIds,
     normalizeSteamId64,
     normalizePlayerStatCount,
-    buildVitalCacheMeta
+    buildVitalCacheMeta,
+    buildingTotalFromVital
 };

@@ -2,8 +2,8 @@
 
 /**
  * Calendario MCV para elegir tabla de puntos en EU Monthly:
- * - 1.er jueves → wipe monthly (tabla Monthly) hasta el rewipe del 4.º jueves
- * - 4.º jueves → rewipe 4 días en monthly (tabla Medium)
+ * - 1.er jueves → 2.º jueves: wipe monthly (tabla Monthly)
+ * - 2.º jueves → 4.º jueves (+ rewipe 4 días): tabla Medium en servidor Monthly
  * EU Medium siempre usa tabla Medium.
  */
 
@@ -36,43 +36,42 @@ function resolveMonthlyPeriod(at = new Date()) {
     const y = at.getFullYear();
     const m = at.getMonth();
     const firstThu = getNthThursdayOfMonth(y, m, 1);
+    const secondThu = getNthThursdayOfMonth(y, m, 2);
     const fourthThu = getNthThursdayOfMonth(y, m, 4);
     const t = at.getTime();
 
-    if (fourthThu) {
-        const rewipeStart = startOfDay(fourthThu).getTime();
-        const rewipeEnd = endOfDay(new Date(fourthThu.getFullYear(), fourthThu.getMonth(), fourthThu.getDate() + 3)).getTime();
-        if (t >= rewipeStart && t <= rewipeEnd) {
-            return {
-                configKey: "eu-medium",
-                period: "monthly-rewipe",
-                label: "Rewipe 4.º jueves (tabla Medium en Monthly)",
-                rewipeStart: new Date(rewipeStart).toISOString(),
-                rewipeEnd: new Date(rewipeEnd).toISOString()
-            };
-        }
-    }
-
-    if (firstThu) {
+    if (firstThu && secondThu) {
         const monthlyStart = startOfDay(firstThu).getTime();
-        const monthlyEnd = fourthThu
-            ? startOfDay(fourthThu).getTime() - 1
-            : endOfDay(new Date(y, m + 1, 0)).getTime();
+        const monthlyEnd = startOfDay(secondThu).getTime() - 1;
         if (t >= monthlyStart && t <= monthlyEnd) {
             return {
                 configKey: "eu-monthly",
                 period: "monthly-main",
-                label: "Wipe monthly (1.er jueves del mes)",
+                label: "Wipe monthly (1.er al 2.º jueves)",
                 monthlyStart: new Date(monthlyStart).toISOString(),
                 monthlyEnd: new Date(monthlyEnd).toISOString()
             };
         }
     }
 
+    if (secondThu && fourthThu) {
+        const mediumStart = startOfDay(secondThu).getTime();
+        const mediumEnd = endOfDay(new Date(fourthThu.getFullYear(), fourthThu.getMonth(), fourthThu.getDate() + 3)).getTime();
+        if (t >= mediumStart && t <= mediumEnd) {
+            return {
+                configKey: "eu-medium",
+                period: "monthly-medium-window",
+                label: "Medium en Monthly (2.º al 4.º jueves + rewipe)",
+                mediumStart: new Date(mediumStart).toISOString(),
+                mediumEnd: new Date(mediumEnd).toISOString()
+            };
+        }
+    }
+
     return {
-        configKey: "eu-monthly",
+        configKey: "eu-medium",
         period: "off-season",
-        label: "Fuera de ventana monthly (usa Monthly por defecto)"
+        label: "Fuera de ventana monthly (tabla Medium)"
     };
 }
 

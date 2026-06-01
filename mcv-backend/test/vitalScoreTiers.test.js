@@ -31,14 +31,14 @@ test("computeTierScoresForRoster marca líder en T3 kills (Medium)", () => {
                 steamId64: "76561198000000001",
                 name: "Alpha",
                 vital: { killsT30: 80, kdr: 2, farmWood: 500000 },
-                profile: { hoursPlayed: 40 },
+                profile: { hoursPlayed: 40, statusTag: "mcv_active" },
                 extraKeys: ["locker"]
             },
             {
                 steamId64: "76561198000000002",
                 name: "Beta",
                 vital: { killsT30: 30, kdr: 1, farmWood: 100000 },
-                profile: { hoursPlayed: 30 },
+                profile: { hoursPlayed: 30, statusTag: "mcv_active" },
                 extraKeys: []
             }
         ]
@@ -67,7 +67,7 @@ test("jugador no_juega no recibe puntos", () => {
             {
                 steamId64: "76561198000000005",
                 vital: { killsT30: 80, farmMetal: 500000 },
-                profile: { wipePhase: "no_juega", pausedOutsideWipe: true },
+                profile: { wipePhase: "no_juega", pausedOutsideWipe: true, statusTag: "mcv_active" },
                 extraKeys: ["locker"]
             }
         ]
@@ -78,10 +78,43 @@ test("jugador no_juega no recibe puntos", () => {
     assert.equal(p.skipReason, "no_juega_wipe");
 });
 
-test("shouldScorePlayerProfile respeta pausa y no_juega", () => {
-    assert.equal(shouldScorePlayerProfile({ wipePhase: "inicio" }), true);
+test("wipe_guest sin fase inicio/late no recibe puntos", () => {
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-medium",
+        players: [
+            {
+                steamId64: "76561198000000007",
+                vital: { killsT30: 50 },
+                profile: { statusTag: "wipe_guest", wipePhase: "unknown" }
+            }
+        ]
+    });
+    assert.equal(result.players[0].skipped, true);
+});
+
+test("building viene de Vital (suma buildings + deployables)", () => {
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-medium",
+        players: [
+            {
+                steamId64: "76561198000000008",
+                vital: { building: 2500, killsT30: 0, kdr: 0, farmWood: 0, farmMetal: 0, farmSulfur: 0, scrapLooted: 0 },
+                profile: { statusTag: "mcv_active", hoursPlayed: 0 }
+            }
+        ]
+    });
+    const building = result.players[0].breakdown.find((b) => b.id === "building");
+    assert.equal(building.raw, 2500);
+    assert.ok(building.points >= 2);
+});
+
+test("shouldScorePlayerProfile respeta pausa, no_juega e inactivos", () => {
+    assert.equal(shouldScorePlayerProfile({ statusTag: "mcv_active", wipePhase: "inicio" }), true);
+    assert.equal(shouldScorePlayerProfile({ statusTag: "wipe_guest", wipePhase: "inicio" }), true);
+    assert.equal(shouldScorePlayerProfile({ statusTag: "wipe_guest", wipePhase: "unknown" }), false);
     assert.equal(shouldScorePlayerProfile({ wipePhase: "no_juega" }), false);
-    assert.equal(shouldScorePlayerProfile({ pausedOutsideWipe: true }), false);
+    assert.equal(shouldScorePlayerProfile({ pausedOutsideWipe: true, statusTag: "mcv_active" }), false);
+    assert.equal(shouldScorePlayerProfile({ statusTag: "mcv_inactive" }), false);
 });
 
 test("madera no resta puntos bajo 500k (Medium)", () => {
@@ -99,7 +132,7 @@ test("madera no resta puntos bajo 500k (Medium)", () => {
             {
                 steamId64: "76561198000000004",
                 vital: { farmWood: 100000 },
-                profile: {}
+                profile: { statusTag: "mcv_active" }
             }
         ]
     });
@@ -107,18 +140,18 @@ test("madera no resta puntos bajo 500k (Medium)", () => {
     assert.equal(wood.points, 0);
 });
 
-test("Monthly en rewipe usa tabla Medium", () => {
+test("Monthly en ventana 2.º-4.º jueves usa tabla Medium", () => {
     const result = computeTierScoresForRoster({
         serverKey: "eu-monthly",
-        at: new Date(2026, 4, 29, 12, 0, 0),
+        at: new Date(2026, 4, 20, 12, 0, 0),
         players: [
             {
                 steamId64: "76561198000000006",
                 vital: { killsT30: 40, farmMetal: 200000 },
-                profile: { hoursPlayed: 35 }
+                profile: { hoursPlayed: 35, statusTag: "mcv_active" }
             }
         ]
     });
     assert.equal(result.configKey, "eu-medium");
-    assert.equal(result.period, "monthly-rewipe");
+    assert.equal(result.period, "monthly-medium-window");
 });

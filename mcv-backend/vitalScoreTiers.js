@@ -319,7 +319,7 @@ function extractPlayerValues(vitalPlayer, profile) {
         farmMetal: num(vitalPlayer?.farmMetal),
         farmSulfur: num(vitalPlayer?.farmSulfur),
         scrapLooted: num(vitalPlayer?.scrapLooted),
-        building: num(profile?.buildingStat ?? profile?.building_stat ?? 0)
+        building: num(vitalPlayer?.building)
     };
 }
 
@@ -329,10 +329,24 @@ function shouldScorePlayerProfile(profile) {
     }
     const paused = Boolean(profile.pausedOutsideWipe ?? profile.paused_outside_wipe);
     const phase = String(profile.wipePhase ?? profile.wipe_phase ?? "").trim();
+    const status = String(profile.statusTag ?? profile.status_tag ?? "").trim();
+
     if (paused || phase === "no_juega") {
         return false;
     }
-    return true;
+    if (status === "mcv_inactive") {
+        return false;
+    }
+
+    const inWipePhase = phase === "inicio" || phase === "late";
+    const coreMember = status === "admin" || status === "mcv_active" || status === "mcv_strikes";
+    if (coreMember) {
+        return true;
+    }
+    if (status === "wipe_guest" && inWipePhase) {
+        return true;
+    }
+    return false;
 }
 
 function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
