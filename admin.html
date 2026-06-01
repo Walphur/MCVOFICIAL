@@ -384,6 +384,7 @@
                                             <div class="vital-form-section__body vital-form-grid">
                                                 <label class="vital-field"><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
                                                 <label class="vital-field"><span>Vouch</span><input id="vital-info-vouch" class="admin-input" /></label>
+                                                <label class="vital-field"><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" step="1" /></label>
                                                 <input type="hidden" id="vital-info-combats-lost" value="0" />
                                                 <input type="hidden" id="vital-info-minis-lost" value="0" />
                                                 <div class="vital-field vital-field--action">
@@ -3223,6 +3224,11 @@
 
     function gatherVitalInfoPayload() {
         var row = findVitalRow(vitalSelectedSteam);
+        var hoursInput = document.getElementById('vital-info-hours');
+        var hoursRaw = hoursInput ? String(hoursInput.value || '').trim() : '';
+        var hoursPlayed = hoursRaw === ''
+            ? (row && row.hoursPlayed != null ? Number(row.hoursPlayed) : 0)
+            : Number(hoursRaw || 0);
         return {
             steamId64: (document.getElementById('vital-info-steam') || {}).value || '',
             displayName: (document.getElementById('vital-info-name') || {}).value || '',
@@ -3235,7 +3241,7 @@
             entryDate: (document.getElementById('vital-info-entry') || {}).value || null,
             vouchBy: (document.getElementById('vital-info-vouch') || {}).value || '',
             wipePhase: (document.getElementById('vital-info-wipe-phase') || {}).value || 'unknown',
-            hoursPlayed: Number((document.getElementById('vital-info-hours') || {}).value || 0),
+            hoursPlayed: Number.isFinite(hoursPlayed) ? Math.max(0, Math.round(hoursPlayed)) : 0,
             combatsLost: Number((document.getElementById('vital-info-combats-lost') || {}).value || 0),
             minisLost: Number((document.getElementById('vital-info-minis-lost') || {}).value || 0),
             contribution: (document.getElementById('vital-info-contribution') || {}).value || '',
