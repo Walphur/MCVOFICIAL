@@ -5,10 +5,17 @@ require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
+const helmet = require("helmet");
 const axios = require("axios");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
-const { registerTournamentApi, authAdmin } = require("./tournamentApi");
+const { authAdmin, authAdminIpAllowlist } = require("./auth");
+const { registerTournamentApi } = require("./tournamentApi");
+const {
+    scannerRateLimit,
+    publicWriteRateLimitMiddleware,
+    adminWriteRateLimit
+} = require("./rateLimits");
 const {
     registerWipeListApi,
     attachWipeListDiscord,
@@ -28,6 +35,16 @@ const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+/** Render / proxies: necesario para rate-limit por IP real. */
+app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS || 1));
+
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    })
+);
+
 const ROOT_DIR = path.join(__dirname, "..");
 /** Pósteres y subidas: en Render sin disco persistente usar MCV_UPLOAD_ROOT apuntando a un volume montado. */
 const MCV_UPLOAD_ROOT_ENV = String(process.env.MCV_UPLOAD_ROOT || "").trim();
@@ -114,7 +131,15 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "256kb" }));
+app.use(publicWriteRateLimitMiddleware);
+app.use("/api/admin", authAdminIpAllowlist);
+app.use("/api/admin", (req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+        return next();
+    }
+    return adminWriteRateLimit(req, res, next);
+});
 
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
@@ -643,7 +668,7 @@ async function getBattleMetricsServers(bmId) {
     }
 }
 
-app.post("/api/battlemetrics/manual", (req, res) => {
+app.post("/api/battlemetrics/manual", authAdmin, (req, res) => {
     const steamRaw = String(req.body?.steamId || "");
     const urlRaw = String(req.body?.battleMetricsUrl || req.body?.battlemetricsUrl || "");
     const steamMatch = steamRaw.match(/\d{17}/);
@@ -662,7 +687,7 @@ app.post("/api/battlemetrics/manual", (req, res) => {
     return res.json({ success: true, bmId });
 });
 
-app.post("/escaner-rapido", async (req, res) => {
+app.post("/escaner-rapido", scannerRateLimit, async (req, res) => {
     try {
         if (!STEAM_API_KEY) {
             return res.status(503).json({
@@ -904,6 +929,7 @@ app.use((req, res, next) => {
     if (p === "/admin.html" || p === "/login.html" || p === "/sw.js") {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         res.setHeader("Pragma", "no-cache");
+        res.setHeader("X-Robots-Tag", "noindex, nofollow");
     }
     next();
 });

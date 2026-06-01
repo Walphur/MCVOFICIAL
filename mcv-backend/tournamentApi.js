@@ -6,6 +6,8 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const axios = require("axios");
+const { authAdmin, jwtSecret, timingSafeEqualStr, authAdminIpAllowlist } = require("./auth");
+const { loginRateLimit } = require("./rateLimits");
 
 function makePosterUpload(uploadRoot) {
     if (!uploadRoot) {
@@ -96,34 +98,6 @@ function slugifyTitle(title) {
         .replace(/^-+|-+$/g, "")
         .slice(0, 48);
     return (base || "torneo") + "-" + crypto.randomBytes(3).toString("hex");
-}
-
-function jwtSecret() {
-    const s = String(process.env.JWT_SECRET || "").trim();
-    if (!s || s.length < 12) {
-        return null;
-    }
-    return s;
-}
-
-function authAdmin(req, res, next) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
-    }
-    const h = req.headers.authorization;
-    if (!h || !h.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-    try {
-        const decoded = jwt.verify(h.slice(7), secret);
-        if (!decoded || decoded.role !== "admin") {
-            return res.status(403).json({ error: "Prohibido" });
-        }
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token inválido o expirado" });
-    }
 }
 
 function nextPow2(n) {
@@ -238,27 +212,30 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         const rawJwt = String(process.env.JWT_SECRET || "");
         const jwtTrim = rawJwt.trim();
         const hasAdminPassword = Boolean(String(process.env.ADMIN_PASSWORD || "").trim());
-        const hasJwtSecret = Boolean(jwtTrim);
         const jwtLengthOk = jwtTrim.length >= 12;
         const loginPossible = hasAdminPassword && jwtLengthOk;
+        if (String(process.env.NODE_ENV || "").trim() === "production") {
+            return res.json({ ok: loginPossible });
+        }
         return res.json({
             loginPossible,
             hasAdminPassword,
-            hasJwtSecret,
+            hasJwtSecret: Boolean(jwtTrim),
             jwtLengthOk,
             jwtHadWhitespace: rawJwt.length !== jwtTrim.length,
             hasDatabaseUrl: Boolean(String(process.env.DATABASE_URL || "").trim())
         });
     });
 
-    app.post("/api/auth/login", (req, res) => {
+    app.post("/api/auth/login", loginRateLimit, authAdminIpAllowlist, (req, res) => {
         const adminPw = String(process.env.ADMIN_PASSWORD || "").trim();
         const secret = jwtSecret();
         if (!adminPw || !secret) {
             return res.status(503).json({ error: "ADMIN_PASSWORD o JWT_SECRET no configurados" });
         }
         const given = String(req.body?.password || "").trim();
-        if (given !== adminPw) {
+        if (!timingSafeEqualStr(given, adminPw)) {
+            console.warn("login failed from", req.ip || "unknown");
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: "12h" });

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - MCV</title>
+    <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#FAA61A">
     <!-- Si mcvoficial.com (u otro) es solo estático y da 405 en /api, poné aquí la URL del Web Service en Render, sin barra final. -->
     <meta name="mcv-api" content="">
@@ -128,7 +129,7 @@
                 }
                 var tok = String(x.d.token).trim();
                 sessionStorage.setItem('mcv_admin_jwt', tok);
-                try { localStorage.setItem('mcv_admin_jwt', tok); } catch (ignore) {}
+                try { localStorage.removeItem('mcv_admin_jwt'); } catch (ignore) {}
                 window.location.href = 'admin.html';
             })
             .catch(function (e) {

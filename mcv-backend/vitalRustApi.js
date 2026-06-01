@@ -1,7 +1,7 @@
 "use strict";
 
 const axios = require("axios");
-const jwt = require("jsonwebtoken");
+const { authAdmin, timingSafeEqualStr } = require("./auth");
 const {
     computeTierScoresForRoster,
     getTierScoreConfig,
@@ -109,34 +109,6 @@ CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (statu
 `;
 const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
 
-function jwtSecret() {
-    const s = String(process.env.JWT_SECRET || "").trim();
-    if (!s || s.length < 12) {
-        return null;
-    }
-    return s;
-}
-
-function authAdmin(req, res, next) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
-    }
-    const h = req.headers.authorization;
-    if (!h || !h.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-    try {
-        const decoded = jwt.verify(h.slice(7), secret);
-        if (!decoded || decoded.role !== "admin") {
-            return res.status(403).json({ error: "Prohibido" });
-        }
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token inválido o expirado" });
-    }
-}
-
 function vitalPublicAccessKey() {
     return String(process.env.VITAL_PUBLIC_ACCESS_KEY || "").trim();
 }
@@ -155,7 +127,7 @@ function authVitalPublic(req, res, next) {
         });
     }
     const key = String(req.query.key || req.headers["x-vital-access-key"] || "").trim();
-    if (!key || key !== expected) {
+    if (!key || !timingSafeEqualStr(key, expected)) {
         return res.status(401).json({ error: "Clave de acceso inválida o faltante" });
     }
     next();
