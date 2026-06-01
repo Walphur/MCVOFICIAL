@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=38">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-tier-auto-v2">
+    <link rel="stylesheet" href="style-admin.css?v=39">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-tier-fix-v3">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -458,6 +458,10 @@
                                                 <div id="vital-tier-player-breakdown" class="vital-tier-player-breakdown">
                                                     <p class="empty-hint">Abrí esta pestaña o recalculá para ver el desglose por stat.</p>
                                                 </div>
+                                                <details class="vital-tier-config-help" id="vital-tier-config-help">
+                                                    <summary>Umbrales Medium / Monthly (tiers)</summary>
+                                                    <div id="vital-tier-config-view" class="vital-tier-config-view"></div>
+                                                </details>
                                             </div>
                                         </section>
                                         <section class="vital-form-section vital-form-section--solo">
@@ -1956,6 +1960,7 @@
     var vitalTierBySteam = {};
     var vitalTierMeta = {};
     var vitalTierSkipSync = false;
+    var vitalTierLastPayload = null;
     var VITAL_TIER_SERVER_LS = 'mcv_vital_tier_server_v1';
 
     var VITAL_TIER_STAT_LABELS = {
@@ -1966,6 +1971,7 @@
         farmMetal: 'Metal',
         farmSulfur: 'Azufre',
         farmHqMetal: 'HQ',
+        scrapLooted: 'Scrap',
         building: 'Building'
     };
 
@@ -2295,6 +2301,7 @@
         });
         if (vitalDetailTab === 'puntos') {
             renderVitalTierPlayerBreakdown(vitalSelectedSteam);
+            loadVitalTierConfigView().catch(function () {});
             syncVitalTierFromVital({ apply: true, quiet: true }).catch(function () {});
         }
     }
@@ -2323,7 +2330,11 @@
         }
         renderVitalPlayerSummary();
         renderVitalInfoList();
-        setDetailTab('general');
+        if (opts.isNew) {
+            setDetailTab('general');
+        } else if (opts.tab) {
+            setDetailTab(opts.tab);
+        }
         loadVitalScoreEvents(vitalSelectedSteam).catch(function () {});
         renderVitalTierPlayerBreakdown(vitalSelectedSteam);
     }
@@ -2620,6 +2631,7 @@
     }
 
     function ingestVitalTierPayload(data) {
+        vitalTierLastPayload = data;
         vitalTierMeta = {
             serverKey: data && data.server ? data.server.key : '',
             serverLabel: data && data.tierResult ? data.tierResult.serverLabel : '',
@@ -2695,14 +2707,16 @@
         if (!box) return;
         var tr = (data && data.tierResult) ? data.tierResult : null;
         if (!tr || !tr.players || !tr.players.length) {
-            box.innerHTML = '<p class="empty-hint">Sin datos Vital todavía.</p>';
+            if (box.classList.contains('is-open')) {
+                box.innerHTML = '<p class="empty-hint">Sin datos Vital todavía.</p>';
+            }
             return;
         }
         var meta =
             '<p class="vital-tier-preview__meta">' +
             esc(tr.serverLabel || '') +
             ' · wipe ' + esc(String(data.wipeId || '—')) +
-            ' · ' + String(tr.players.length) + ' jugadores' +
+            ' · ' + String(tr.players.length) + ' jugadores · click fila para abrir jugador' +
             (data.notFound && data.notFound.length ? ' · sin Vital: ' + data.notFound.length : '') +
             '</p>';
         var rows = tr.players.map(function (p) {
@@ -2710,7 +2724,7 @@
                 .map(function (b) {
                     return esc(b.label) + ' ' + (b.points > 0 ? '+' : '') + String(b.points);
                 }).join(', ');
-            return '<tr>' +
+            return '<tr class="vital-tier-rank-row" data-steam="' + escAttr(String(p.steamId64 || '')) + '" tabindex="0" role="button">' +
                 '<td>' + esc(p.name || p.steamId64) + '</td>' +
                 '<td class="vital-tier-preview__pts"><strong>' + esc(String(p.total)) + '</strong></td>' +
                 '<td class="vital-tier-preview__detail">' + esc(breakdown || '—') + '</td>' +
@@ -2722,6 +2736,50 @@
             '<table class="vital-tier-preview__table"><thead><tr><th>Jugador</th><th>Total</th><th>Desglose</th></tr></thead><tbody>' +
             rows +
             '</tbody></table></div>';
+    }
+
+    function toggleVitalTierRanking(forceOpen) {
+        var box = document.getElementById('vital-tier-preview');
+        if (!box) return;
+        var open = forceOpen != null ? !!forceOpen : !box.classList.contains('is-open');
+        box.classList.toggle('is-open', open);
+        if (open && vitalTierLastPayload) {
+            renderVitalTierPreview(vitalTierLastPayload);
+        }
+    }
+
+    function loadVitalTierConfigView() {
+        var box = document.getElementById('vital-tier-config-view');
+        if (!box) return Promise.resolve();
+        box.innerHTML = '<p class="empty-hint">Cargando umbrales…</p>';
+        return Promise.all(['eu-medium', 'eu-monthly'].map(function (serverKey) {
+            return fetch(API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey), {
+                headers: authHeaders(),
+                cache: 'no-store'
+            }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); });
+        }))
+            .then(function (results) {
+                var html = '';
+                results.forEach(function (x) {
+                    if (!x.ok || !x.d.config) return;
+                    var cfg = x.d.config;
+                    html += '<div class="vital-tier-config-block"><p><strong>' + esc(cfg.label || '') + '</strong> · pts ×' + esc(String(cfg.pointScale || 1)) + '</p>';
+                    html += (cfg.categories || []).map(function (cat) {
+                        var tiers = (cat.tiers || []).map(function (t) {
+                            var minLabel = t.min >= 1000000 ? (t.min / 1000000) + 'M' : (t.min >= 1000 ? Math.round(t.min / 1000) + 'k' : t.min);
+                            return (t.points > 0 ? '+' : '') + t.points + '@' + minLabel;
+                        }).join(' · ');
+                        return '<div class="vital-tier-config-cat"><strong>' + esc(cat.label) + '</strong><span>' + esc(tiers) + '</span></div>';
+                    }).join('');
+                    html += '<div class="vital-tier-config-cat"><strong>Extras</strong><span>' +
+                        (cfg.extraRoles || []).map(function (r) { return esc(r.label) + ' ' + (r.points > 0 ? '+' : '') + r.points; }).join(' · ') +
+                        '</span></div></div>';
+                });
+                box.innerHTML = html || '<p class="empty-hint">No se pudieron cargar umbrales.</p>';
+            })
+            .catch(function () {
+                box.innerHTML = '<p class="empty-hint">Error al cargar umbrales.</p>';
+            });
     }
 
     function syncVitalTierFromVital(opts) {
@@ -2741,7 +2799,9 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'tier sync');
                 ingestVitalTierPayload(x.d);
-                renderVitalTierPreview(x.d);
+                if (document.getElementById('vital-tier-preview') && document.getElementById('vital-tier-preview').classList.contains('is-open')) {
+                    renderVitalTierPreview(x.d);
+                }
                 renderVitalTierPlayerBreakdown(vitalSelectedSteam);
                 renderVitalInfoList();
                 renderVitalPlayerSummary();
@@ -2770,7 +2830,11 @@
     }
 
     function previewVitalTierScores(refresh) {
-        return syncVitalTierFromVital({ apply: false, refresh: !!refresh, quiet: false });
+        toggleVitalTierRanking(true);
+        return syncVitalTierFromVital({ apply: false, refresh: !!refresh, quiet: false }).then(function (d) {
+            renderVitalTierPreview(vitalTierLastPayload || { tierResult: d && d.tierResult, wipeId: d && d.wipeId });
+            return d;
+        });
     }
 
     function loadVitalScoreEvents(steamId) {
@@ -3193,6 +3257,22 @@
         var btnTierPreview = document.getElementById('btn-vital-tier-preview');
         var btnTierRecalc = document.getElementById('btn-vital-tier-recalc');
         if (btnTierPreview) btnTierPreview.addEventListener('click', function () { previewVitalTierScores(true).catch(function () {}); });
+        var tierPreviewBox = document.getElementById('vital-tier-preview');
+        if (tierPreviewBox && !tierPreviewBox.dataset.delegateBound) {
+            tierPreviewBox.dataset.delegateBound = '1';
+            tierPreviewBox.addEventListener('click', function (ev) {
+                var row = ev.target && ev.target.closest ? ev.target.closest('.vital-tier-rank-row') : null;
+                if (!row) return;
+                var steam = row.getAttribute('data-steam');
+                if (steam) selectVitalPlayer(steam, { tab: 'puntos' });
+            });
+        }
+        var tierConfigHelp = document.getElementById('vital-tier-config-help');
+        if (tierConfigHelp) {
+            tierConfigHelp.addEventListener('toggle', function () {
+                if (tierConfigHelp.open) loadVitalTierConfigView().catch(function () {});
+            });
+        }
         if (btnTierRecalc) btnTierRecalc.addEventListener('click', function () { syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {}); });
         ['vital-tier-server', 'vital-tier-server-puntos'].forEach(function (id) {
             var el = document.getElementById(id);

@@ -59,13 +59,15 @@ test("computeExtraPoints suma bonos por rol", () => {
     assert.ok(extra.hits.some((h) => h.label === "ELEC+WINDMILL"));
 });
 
-test("Monthly escala umbrales y puntos", () => {
+test("Monthly escala umbrales sin inflar puntos", () => {
+    const monthlyCfg = getTierScoreConfig("eu-monthly");
+    assert.equal(monthlyCfg.pointScale, 1);
     const medium = computeTierScoresForRoster({
         serverKey: "eu-medium",
         players: [
             {
                 steamId64: "76561198000000003",
-                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000 },
+                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000, scrapLooted: 120000 },
                 profile: { hoursPlayed: 35 }
             }
         ]
@@ -75,12 +77,11 @@ test("Monthly escala umbrales y puntos", () => {
         players: [
             {
                 steamId64: "76561198000000003",
-                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000 },
+                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000, scrapLooted: 120000 },
                 profile: { hoursPlayed: 35 }
             }
         ]
     });
-    assert.ok(monthly.players[0].total !== medium.players[0].total || monthly.players[0].breakdown.length === medium.players[0].breakdown.length);
-    const monthlyCfg = getTierScoreConfig("eu-monthly");
-    assert.equal(monthlyCfg.pointScale, 1.5);
+    assert.ok(monthly.players[0].breakdown.some((b) => b.id === "scrapLooted"));
+    assert.ok(Math.abs(monthly.players[0].total) <= Math.abs(medium.players[0].total) + 15);
 });

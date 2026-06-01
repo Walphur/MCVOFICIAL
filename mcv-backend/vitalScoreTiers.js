@@ -62,6 +62,11 @@ const EU_MEDIUM_CONFIG = {
             leaderTier: true,
             tiers: buildThresholdTiers([0, 167, 250, 333, 500, 667, 1167, 1667, Infinity])
         },
+        scrapLooted: {
+            label: "Scrap",
+            leaderTier: true,
+            tiers: buildThresholdTiers([0, 25000, 50000, 75000, 100000, 150000, 250000, 500000, Infinity])
+        },
         building: {
             label: "Building",
             leaderTier: "builder",
@@ -91,9 +96,12 @@ const EU_MEDIUM_CONFIG = {
     ]
 };
 
-/** Monthly: ~2.5× umbrales numéricos, ~1.5× magnitud de puntos por tier. */
-const MONTHLY_THRESHOLD_FACTOR = 2.5;
-const MONTHLY_POINT_SCALE = 1.5;
+/**
+ * Monthly: wipe más largo → umbrales más altos, mismos puntos por tier que Medium
+ * (evita totales excesivos por escala 1.5× en negativos y extras).
+ */
+const MONTHLY_THRESHOLD_FACTOR = 3;
+const MONTHLY_POINT_SCALE = 1;
 
 function cloneCategoryTiers(baseCats, thresholdFactor, pointScale) {
     const out = {};
@@ -134,10 +142,7 @@ const EU_MONTHLY_CONFIG = {
     label: "EU Monthly 2x",
     pointScale: MONTHLY_POINT_SCALE,
     categories: cloneCategoryTiers(EU_MEDIUM_CONFIG.categories, MONTHLY_THRESHOLD_FACTOR, MONTHLY_POINT_SCALE),
-    extraRoles: EU_MEDIUM_CONFIG.extraRoles.map((r) => ({
-        ...r,
-        points: r.points < 0 ? Math.round(r.points * MONTHLY_POINT_SCALE) : Math.round(r.points * MONTHLY_POINT_SCALE)
-    }))
+    extraRoles: EU_MEDIUM_CONFIG.extraRoles.map((r) => ({ ...r }))
 };
 
 const CONFIG_BY_KEY = {
@@ -260,6 +265,7 @@ function extractPlayerValues(vitalPlayer, profile) {
         farmMetal: num(vitalPlayer?.farmMetal),
         farmSulfur: num(vitalPlayer?.farmSulfur),
         farmHqMetal: num(vitalPlayer?.farmHqMetal),
+        scrapLooted: num(vitalPlayer?.scrapLooted),
         building: num(profile?.buildingStat ?? profile?.building_stat ?? 0)
     };
 }
