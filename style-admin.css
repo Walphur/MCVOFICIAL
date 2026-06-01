@@ -2805,6 +2805,100 @@ details.vital-extra-panel > :not(summary) {
     color: rgba(255, 255, 255, 0.55);
     font-size: 0.82rem;
 }
+.vital-score-total {
+    font-size: 1.1rem;
+    margin: 0 0 12px;
+}
+.vital-score-total strong {
+    color: #fbbf24;
+    font-size: 1.35rem;
+}
+.vital-score-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.vital-score-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #e5e7eb;
+    cursor: pointer;
+}
+.vital-score-btn.is-plus {
+    border-color: rgba(34, 197, 94, 0.35);
+    color: #86efac;
+}
+.vital-score-btn.is-minus {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fecaca;
+}
+.vital-score-custom {
+    align-items: end;
+    margin-bottom: 14px;
+}
+.vital-score-history {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.vital-score-ev {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.82rem;
+}
+.vital-score-ev__delta {
+    font-weight: 700;
+    min-width: 3rem;
+}
+.vital-score-ev.is-plus .vital-score-ev__delta { color: #86efac; }
+.vital-score-ev.is-minus .vital-score-ev__delta { color: #fecaca; }
+.vital-score-ev__time {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.72rem;
+}
+.vital-roles-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+.vital-roles-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.vital-roles-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-roles-item__name {
+    font-weight: 600;
+    flex: 1 1 200px;
+}
+.vital-roles-item__meta {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.ws-badge--hi {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fde68a;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+}
 .vital-member-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));

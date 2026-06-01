@@ -240,6 +240,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     hours_played INT,
     combats_lost INT NOT NULL DEFAULT 0 CHECK (combats_lost >= 0 AND combats_lost <= 9999),
     minis_lost INT NOT NULL DEFAULT 0 CHECK (minis_lost >= 0 AND minis_lost <= 9999),
+    performance_score INT NOT NULL DEFAULT 0,
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
@@ -250,6 +251,31 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
+
+-- split
+CREATE TABLE IF NOT EXISTS mcv_vital_roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_mcv_vital_roles_sort ON mcv_vital_roles (sort_order ASC, name ASC);
+
+-- split
+CREATE TABLE IF NOT EXISTS player_score_events (
+    id SERIAL PRIMARY KEY,
+    steam_id64 VARCHAR(17) NOT NULL,
+    delta INT NOT NULL,
+    reason TEXT,
+    category VARCHAR(32) NOT NULL DEFAULT 'manual',
+    balance_after INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_score_events_steam ON player_score_events (steam_id64, created_at DESC);
 
 -- split
 CREATE TABLE IF NOT EXISTS support_tickets (

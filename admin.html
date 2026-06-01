@@ -13,12 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=34">
-<<<<<<< HEAD
-    <meta name="mcv-admin-build" content="2026-05-28-combats-minis-lost-v1">
-=======
-    <meta name="mcv-admin-build" content="2026-05-28-vital-ops-dashboard-v1">
->>>>>>> 7b4790b (feat(vital): caché visible, dashboard wipe, health, sync nombres y tests)
+    <link rel="stylesheet" href="style-admin.css?v=35">
+    <meta name="mcv-admin-build" content="2026-05-28-player-scores-roles-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -292,6 +288,7 @@
                     <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
                         <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores">Jugadores</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="extras">Extras roster</button>
+                        <button type="button" class="vital-nav-item" data-vital-subtab="roles" data-i18n="admin.vitalNavRoles">Roles</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="importacion">Importación</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="logs">Logs</button>
                     </nav>
@@ -325,6 +322,7 @@
                                     <button type="button" class="vital-qchip" data-vital-quick="active">Act</button>
                                     <button type="button" class="vital-qchip" data-vital-quick="paused">Pausa</button>
                                     <button type="button" class="vital-qchip" data-vital-quick="strikes">Str</button>
+                                    <button type="button" class="vital-qchip" data-vital-quick="points" data-i18n="admin.vitalQuickPoints">Pts</button>
                                 </div>
                                 <button type="button" class="vital-qchip" id="btn-vital-new-player" title="Nuevo jugador">+</button>
                                 <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar">↻</button>
@@ -344,6 +342,7 @@
                                     <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="combats" data-i18n="admin.vitalTabCombats">Combats</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="minis" data-i18n="admin.vitalTabMinis">Minis</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="puntos" data-i18n="admin.vitalTabPoints">Puntos</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="notes">Notes</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
                                 </div>
@@ -367,13 +366,11 @@
                                                     <option value="mcv_inactive">MCV inactivo</option>
                                                     <option value="mcv_strikes">MCV strikes</option>
                                                 </select></label>
-                                                <label class="vital-field"><span>Rol</span><input id="vital-info-role" class="admin-input" placeholder="IGL, PVP, FARM..." /></label>
-                                                <div class="vital-role-presets" id="vital-role-presets">
-                                                    <button type="button" class="vital-role-chip" data-role="IGL">IGL</button>
-                                                    <button type="button" class="vital-role-chip" data-role="PVP">PVP</button>
-                                                    <button type="button" class="vital-role-chip" data-role="FARM">FARM</button>
-                                                    <button type="button" class="vital-role-chip" data-role="BUILDER">BUILD</button>
-                                                </div>
+                                                <label class="vital-field vital-field--wide"><span data-i18n="admin.vitalRoleLabel">Rol</span>
+                                                    <select id="vital-info-role-select" class="admin-input"><option value="">— Elegí rol —</option></select>
+                                                </label>
+                                                <input type="hidden" id="vital-info-role" />
+                                                <div class="vital-role-presets" id="vital-role-presets" aria-label="Roles rápidos"></div>
                                             </div>
                                         </section>
                                         <section class="vital-form-section">
@@ -424,6 +421,31 @@
                                             <header class="vital-form-section__head"><h3 class="vital-form-section__title" data-i18n="admin.vitalMinisTitle">Minis perdidos</h3><p class="vital-form-section__hint" data-i18n="admin.vitalMinisHint">Bases mini o externals perdidas en el wipe (aparte de combats).</p></header>
                                             <div class="vital-form-section__body vital-form-grid vital-form-grid--single">
                                                 <label class="vital-field"><span>Cantidad</span><input id="vital-info-minis-lost" class="admin-input" type="number" min="0" max="9999" step="1" placeholder="0" /></label>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    <div class="vital-detail-pane" data-detail-pane="puntos">
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head">
+                                                <h3 class="vital-form-section__title" data-i18n="admin.vitalPointsTitle">Puntuación wipe</h3>
+                                                <p class="vital-form-section__hint" data-i18n="admin.vitalPointsHint">Sumá o restá puntos según desempeño. Queda historial de cada movimiento.</p>
+                                            </header>
+                                            <div class="vital-form-section__body">
+                                                <p class="vital-score-total"><span data-i18n="admin.vitalPointsTotal">Total</span>: <strong id="vital-score-total">0</strong> pts</p>
+                                                <div class="vital-score-presets" id="vital-score-presets">
+                                                    <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="farm" data-reason="Farm bien">+10 Farm</button>
+                                                    <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="role" data-reason="Rol cumplido">+10 Rol</button>
+                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-15" data-cat="strike" data-reason="Strike">−15 Strike</button>
+                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-10" data-cat="combat" data-reason="Combat perdido">−10 Combat</button>
+                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-8" data-cat="mini" data-reason="Mini perdido">−8 Mini</button>
+                                                    <button type="button" class="vital-score-btn is-minus" data-delta="-5" data-cat="farm" data-reason="No farmea / rol incumplido">−5 Incumple</button>
+                                                </div>
+                                                <div class="vital-score-custom vital-form-grid">
+                                                    <label class="vital-field"><span data-i18n="admin.vitalPointsDelta">Ajuste</span><input id="vital-score-delta" class="admin-input" type="number" step="1" placeholder="±10" /></label>
+                                                    <label class="vital-field vital-field--wide"><span data-i18n="admin.vitalPointsReason">Motivo</span><input id="vital-score-reason" class="admin-input" maxlength="200" /></label>
+                                                    <button type="button" class="btn-primary-small" id="btn-vital-score-apply" data-i18n="admin.vitalPointsApply">Aplicar</button>
+                                                </div>
+                                                <ul id="vital-score-history" class="vital-score-history"></ul>
                                             </div>
                                         </section>
                                     </div>
@@ -484,6 +506,20 @@
                         <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
                         <ul id="vital-extra-list" class="vital-extra-list"></ul>
                         <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
+                    </div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="roles" style="display:none;">
+                    <div class="vital-page-simple">
+                        <h4 data-i18n="admin.vitalRolesManageTitle">Roles del clan</h4>
+                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalRolesManageHint">Creá, editá o eliminá roles. Aparecen en el selector de cada jugador.</p>
+                        <div class="vital-roles-form">
+                            <input type="hidden" id="vital-role-edit-id" value="" />
+                            <label class="vital-field vital-field--wide"><span data-i18n="admin.vitalRoleName">Nombre del rol</span><input id="vital-role-name-input" class="admin-input" maxlength="120" placeholder="MAIN FARMERS" /></label>
+                            <label class="vital-field"><span data-i18n="admin.vitalRoleOrder">Orden</span><input id="vital-role-order-input" class="admin-input" type="number" min="0" step="1" value="0" /></label>
+                            <button type="button" class="btn-primary-small" id="btn-vital-role-save" data-i18n="admin.vitalRoleSave">Guardar rol</button>
+                            <button type="button" class="btn-outline btn-sm" id="btn-vital-role-cancel" data-i18n="admin.vitalRoleCancel">Cancelar edición</button>
+                        </div>
+                        <ul id="vital-roles-list" class="vital-roles-list"></ul>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
@@ -1872,6 +1908,7 @@
     var vitalInfoRows = [];
     var vitalInfoLogs = [];
     var vitalInfoSubtab = 'jugadores';
+    var vitalRolesList = [];
     var vitalSelectedSteam = '';
     var vitalDetailTab = 'general';
     var vitalInfoQuick = 'all';
@@ -1979,6 +2016,7 @@
             (selected && Number(selected.minisLost || 0) > 0
                 ? '<span class="ws-badge ws-badge--meta">' + esc(selected.minisLost) + ' minis</span>'
                 : '') +
+            '<span class="ws-badge ws-badge--hi">' + esc(selected ? Number(selected.performanceScore || 0) : 0) + ' pts</span>' +
             '<span class="ws-badge ws-badge--meta">' + esc(hours) + 'h</span>' +
             (role && role !== '—' ? '<span class="ws-badge ws-badge--role">' + esc(role) + '</span>' : '') +
             '</div></div></div>';
@@ -1997,7 +2035,8 @@
             { key: 'admin.vitalDashInWipe', fallback: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
             { key: 'admin.vitalDashStrikes', fallback: 'Con strikes', value: rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length },
             { key: 'admin.vitalDashCombats', fallback: 'Combats perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.combatsLost || 0); }, 0) },
-            { key: 'admin.vitalDashMinis', fallback: 'Minis perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0) }
+            { key: 'admin.vitalDashMinis', fallback: 'Minis perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0) },
+            { key: 'admin.vitalDashPoints', fallback: 'Pts totales', value: rows.reduce(function (sum, r) { return sum + Number(r.performanceScore || 0); }, 0) }
         ];
         box.innerHTML = stats.map(function (s) {
             return '<div class="vital-member-stat"><span>' + esc(vitalLabel(s.key, s.fallback)) + '</span><strong>' + esc(s.value) + '</strong></div>';
@@ -2016,7 +2055,8 @@
                 minisLost: Number(r.minisLost || 0),
                 hoursPlayed: r.hoursPlayed != null ? r.hoursPlayed : '',
                 roleLabel: r.roleLabel || '',
-                paused: r.pausedOutsideWipe || r.wipePhase === 'no_juega' ? '1' : '0'
+                paused: r.pausedOutsideWipe || r.wipePhase === 'no_juega' ? '1' : '0',
+                performanceScore: Number(r.performanceScore || 0)
             };
         });
     }
@@ -2037,7 +2077,8 @@
             ['minis_perdidos', 'minisLost'],
             ['horas', 'hoursPlayed'],
             ['rol', 'roleLabel'],
-            ['pausado', 'paused']
+            ['pausado', 'paused'],
+            ['puntos', 'performanceScore']
         ];
         var h = cols.map(function (c) { return c[0]; });
         var body = rows.map(function (r) {
@@ -2188,6 +2229,7 @@
         renderVitalPlayerSummary();
         renderVitalInfoList();
         setDetailTab('general');
+        loadVitalScoreEvents(vitalSelectedSteam).catch(function () {});
     }
 
     function renderVitalDetailLogs() {
@@ -2225,6 +2267,216 @@
             loadVitalExtraPlayers().catch(function () {});
             loadVitalPublicAccessStatus().catch(function () {});
         }
+        if (vitalInfoSubtab === 'roles') {
+            loadVitalRolesManager().catch(function () {});
+        }
+    }
+
+    function renderVitalRoleSelect() {
+        var sel = document.getElementById('vital-info-role-select');
+        var hidden = document.getElementById('vital-info-role');
+        var presets = document.getElementById('vital-role-presets');
+        var cur = hidden ? hidden.value : '';
+        if (sel) {
+            var html = '<option value="">' + esc(vitalLabel('admin.vitalRolePick', '— Elegí rol —')) + '</option>';
+            vitalRolesList.forEach(function (r) {
+                html += '<option value="' + escAttr(r.name) + '">' + esc(r.name) + '</option>';
+            });
+            sel.innerHTML = html;
+            if (cur && sel.querySelector('option[value="' + cur.replace(/"/g, '') + '"]')) {
+                sel.value = cur;
+            }
+            sel.onchange = function () {
+                if (hidden) hidden.value = sel.value || '';
+            };
+        }
+        if (presets) {
+            presets.innerHTML = vitalRolesList.map(function (r) {
+                return '<button type="button" class="vital-role-chip" data-role="' + escAttr(r.name) + '">' + esc(r.name) + '</button>';
+            }).join('');
+            presets.querySelectorAll('.vital-role-chip').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var role = btn.getAttribute('data-role') || '';
+                    if (hidden) hidden.value = role;
+                    if (sel) sel.value = role;
+                });
+            });
+        }
+    }
+
+    function loadVitalRolesManager() {
+        return fetch(API + '/api/admin/vital/roles', { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'roles');
+                vitalRolesList = x.d.roles || [];
+                renderVitalRoleSelect();
+                renderVitalRolesManagerList();
+                refreshInfoFilterOptions();
+            });
+    }
+
+    function renderVitalRolesManagerList() {
+        var list = document.getElementById('vital-roles-list');
+        if (!list) return;
+        if (!vitalRolesList.length) {
+            list.innerHTML = '<li class="empty-hint">' + esc(vitalLabel('admin.vitalRolesEmpty', 'Sin roles.')) + '</li>';
+            return;
+        }
+        list.innerHTML = vitalRolesList.map(function (r) {
+            return '<li class="vital-roles-item"><span class="vital-roles-item__name">' + esc(r.name) + '</span>' +
+                '<span class="vital-roles-item__meta">#' + esc(String(r.sortOrder)) + '</span>' +
+                '<button type="button" class="btn-outline btn-sm vital-role-edit" data-id="' + escAttr(String(r.id)) + '" data-name="' + escAttr(r.name) + '" data-order="' + escAttr(String(r.sortOrder)) + '">' +
+                esc(vitalLabel('admin.vitalRoleEdit', 'Editar')) + '</button>' +
+                '<button type="button" class="btn-ghost-danger btn-sm vital-role-del" data-id="' + escAttr(String(r.id)) + '">' +
+                esc(vitalLabel('admin.vitalRoleDelete', 'Eliminar')) + '</button></li>';
+        }).join('');
+        list.querySelectorAll('.vital-role-edit').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idEl = document.getElementById('vital-role-edit-id');
+                var nameEl = document.getElementById('vital-role-name-input');
+                var orderEl = document.getElementById('vital-role-order-input');
+                if (idEl) idEl.value = btn.getAttribute('data-id') || '';
+                if (nameEl) nameEl.value = btn.getAttribute('data-name') || '';
+                if (orderEl) orderEl.value = btn.getAttribute('data-order') || '0';
+            });
+        });
+        list.querySelectorAll('.vital-role-del').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-id');
+                if (!id || !confirm(vitalLabel('admin.vitalRoleConfirmDel', '¿Eliminar este rol?'))) return;
+                fetch(API + '/api/admin/vital/roles/' + encodeURIComponent(id), { method: 'DELETE', headers: authHeaders() })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                        loadVitalRolesManager().catch(function () {});
+                        banner(vitalLabel('admin.vitalRoleDeleted', 'Rol eliminado.'), false);
+                    })
+                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+            });
+        });
+    }
+
+    function saveVitalRole() {
+        var idEl = document.getElementById('vital-role-edit-id');
+        var nameEl = document.getElementById('vital-role-name-input');
+        var orderEl = document.getElementById('vital-role-order-input');
+        var name = nameEl ? String(nameEl.value || '').trim() : '';
+        if (!name) {
+            banner(vitalLabel('admin.vitalRoleNeedName', 'Indicá el nombre del rol.'), true);
+            return;
+        }
+        var sortOrder = orderEl ? Number(orderEl.value || 0) : 0;
+        var editId = idEl ? String(idEl.value || '').trim() : '';
+        var req = editId
+            ? fetch(API + '/api/admin/vital/roles/' + encodeURIComponent(editId), {
+                method: 'PATCH',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+                body: JSON.stringify({ name: name, sortOrder: sortOrder })
+            })
+            : fetch(API + '/api/admin/vital/roles', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+                body: JSON.stringify({ name: name, sortOrder: sortOrder })
+            });
+        req.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                if (idEl) idEl.value = '';
+                if (nameEl) nameEl.value = '';
+                if (orderEl) orderEl.value = '0';
+                loadVitalRolesManager().catch(function () {});
+                banner(vitalLabel('admin.vitalRoleSaved', 'Rol guardado.'), false);
+            })
+            .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+    }
+
+    function cancelVitalRoleEdit() {
+        var idEl = document.getElementById('vital-role-edit-id');
+        var nameEl = document.getElementById('vital-role-name-input');
+        var orderEl = document.getElementById('vital-role-order-input');
+        if (idEl) idEl.value = '';
+        if (nameEl) nameEl.value = '';
+        if (orderEl) orderEl.value = '0';
+    }
+
+    function updateVitalScoreTotalDisplay(score) {
+        var el = document.getElementById('vital-score-total');
+        if (el) el.textContent = String(score != null ? score : 0);
+    }
+
+    function renderVitalScoreHistory(events) {
+        var box = document.getElementById('vital-score-history');
+        if (!box) return;
+        events = events || [];
+        if (!events.length) {
+            box.innerHTML = '<li class="empty-hint">' + esc(vitalLabel('admin.vitalPointsHistoryEmpty', 'Sin movimientos aún.')) + '</li>';
+            return;
+        }
+        box.innerHTML = events.map(function (ev) {
+            var sign = Number(ev.delta) > 0 ? '+' : '';
+            return '<li class="vital-score-ev' + (Number(ev.delta) < 0 ? ' is-minus' : ' is-plus') + '">' +
+                '<span class="vital-score-ev__delta">' + esc(sign + String(ev.delta)) + '</span>' +
+                '<span class="vital-score-ev__body">' + esc(ev.reason || ev.category || '—') +
+                ' · <strong>' + esc(String(ev.balanceAfter)) + ' pts</strong></span>' +
+                '<time class="vital-score-ev__time">' + esc(String(ev.createdAt || '').slice(0, 16).replace('T', ' ')) + '</time></li>';
+        }).join('');
+    }
+
+    function loadVitalScoreEvents(steamId) {
+        var sid = normalizeVitalSteamLocal(steamId);
+        if (!sid) {
+            renderVitalScoreHistory([]);
+            updateVitalScoreTotalDisplay(0);
+            return Promise.resolve();
+        }
+        return fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid) + '/score-events?limit=40', {
+            headers: authHeaders(),
+            cache: 'no-store'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'score');
+                updateVitalScoreTotalDisplay(x.d.performanceScore);
+                renderVitalScoreHistory(x.d.events || []);
+                var row = findVitalRow(sid);
+                if (row) row.performanceScore = x.d.performanceScore;
+            })
+            .catch(function () {
+                renderVitalScoreHistory([]);
+            });
+    }
+
+    function applyVitalScoreAdjust(delta, reason, category) {
+        var sid = normalizeVitalSteamLocal(vitalSelectedSteam);
+        if (!sid) {
+            banner(vitalLabel('admin.vitalPointsNeedPlayer', 'Seleccioná un jugador.'), true);
+            return Promise.resolve();
+        }
+        return fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid) + '/score', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({ delta: delta, reason: reason, category: category || 'manual' })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'score');
+                if (x.d.profile) {
+                    var idx = vitalInfoRows.findIndex(function (r) { return normalizeVitalSteamLocal(r.steamId64) === sid; });
+                    if (idx >= 0) vitalInfoRows[idx] = x.d.profile;
+                }
+                updateVitalScoreTotalDisplay(x.d.balanceAfter);
+                renderVitalPlayerSummary();
+                renderVitalMemberStats();
+                renderVitalInfoList();
+                return loadVitalScoreEvents(sid);
+            })
+            .then(function () {
+                banner(vitalLabel('admin.vitalPointsApplied', 'Puntos actualizados.'), false);
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : vitalLabel('admin.vitalPointsError', 'Error al aplicar puntos.'), true);
+            });
     }
 
     function applyVitalTablePrefs() {
@@ -2272,7 +2524,11 @@
             displayName: (document.getElementById('vital-info-name') || {}).value || '',
             bmUrl: (document.getElementById('vital-info-bm') || {}).value || '',
             statusTag: (document.getElementById('vital-info-status') || {}).value || 'wipe_guest',
-            roleLabel: (document.getElementById('vital-info-role') || {}).value || '',
+            roleLabel: (function () {
+                var sel = document.getElementById('vital-info-role-select');
+                var hid = document.getElementById('vital-info-role');
+                return (sel && sel.value) ? sel.value : (hid ? hid.value : '');
+            })(),
             strikes: Number((document.getElementById('vital-info-strikes') || {}).value || 0),
             strikeNotes: (document.getElementById('vital-info-warning') || {}).value || '',
             entryDate: (document.getElementById('vital-info-entry') || {}).value || null,
@@ -2296,7 +2552,11 @@
         set('vital-info-name', p.displayName);
         set('vital-info-bm', p.bmUrl);
         set('vital-info-status', p.statusTag);
-        set('vital-info-role', p.roleLabel);
+        var roleVal = p.roleLabel || '';
+        set('vital-info-role', roleVal);
+        var roleSel = document.getElementById('vital-info-role-select');
+        if (roleSel) roleSel.value = roleVal;
+        updateVitalScoreTotalDisplay(p.performanceScore != null ? p.performanceScore : 0);
         set('vital-info-strikes', p.strikes);
         set('vital-info-entry', p.entryDate ? String(p.entryDate).slice(0, 10) : '');
         set('vital-info-vouch', p.vouchBy);
@@ -2360,6 +2620,11 @@
         var box = document.getElementById('vital-info-list');
         if (!box) return;
         var rows = getFilteredVitalRows();
+        if (vitalInfoQuick === 'points') {
+            rows = rows.slice().sort(function (a, b) {
+                return Number(b.performanceScore || 0) - Number(a.performanceScore || 0);
+            });
+        }
         if (!rows.length) {
             box.innerHTML = '<p class="empty-hint">Sin jugadores</p>';
             return;
@@ -2374,6 +2639,8 @@
             var sub = esc(wipe) + ' · ' + strikes + ' strikes';
             if (combats > 0) sub += ' · ' + combats + ' combats';
             if (minis > 0) sub += ' · ' + minis + ' minis';
+            var pts = Number(r.performanceScore || 0);
+            sub += ' · ' + pts + ' pts';
             return '<button type="button" class="vital-member-row' + active + '" data-steam="' + escAttr(r.steamId64) + '">' +
                 '<span class="vital-member-avatar">' + esc(initial) + '</span>' +
                 '<span class="vital-member-body">' +
@@ -2423,6 +2690,11 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'player-info');
                 vitalInfoRows = x.d.profiles || [];
+                if (!vitalRolesList.length) {
+                    loadVitalRolesManager().catch(function () {});
+                } else {
+                    renderVitalRoleSelect();
+                }
                 refreshInfoFilterOptions();
                 renderVitalMemberStats();
                 if (!vitalSelectedSteam && !vitalIsNewPlayer && vitalInfoRows.length) {
@@ -2563,18 +2835,34 @@
         }
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
-        if (rolePresets) {
-            rolePresets.addEventListener('click', function (ev) {
-                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-role]') : null;
+        var scorePresets = document.getElementById('vital-score-presets');
+        if (scorePresets) {
+            scorePresets.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('.vital-score-btn') : null;
                 if (!btn) return;
-                var role = String(btn.getAttribute('data-role') || '').trim();
-                var input = document.getElementById('vital-info-role');
-                if (!role || !input) return;
-                var current = String(input.value || '').split(',').map(function (x) { return String(x || '').trim(); }).filter(Boolean);
-                if (current.indexOf(role) === -1) current.push(role);
-                input.value = current.join(', ');
+                applyVitalScoreAdjust(
+                    Number(btn.getAttribute('data-delta')),
+                    btn.getAttribute('data-reason') || '',
+                    btn.getAttribute('data-cat') || 'manual'
+                ).catch(function () {});
             });
         }
+        var btnScoreApply = document.getElementById('btn-vital-score-apply');
+        if (btnScoreApply) {
+            btnScoreApply.addEventListener('click', function () {
+                var delta = Number((document.getElementById('vital-score-delta') || {}).value || 0);
+                var reason = String((document.getElementById('vital-score-reason') || {}).value || '').trim();
+                if (!delta) {
+                    banner(vitalLabel('admin.vitalPointsNeedDelta', 'Indicá un ajuste distinto de cero.'), true);
+                    return;
+                }
+                applyVitalScoreAdjust(delta, reason, 'manual').catch(function () {});
+            });
+        }
+        var btnRoleSave = document.getElementById('btn-vital-role-save');
+        var btnRoleCancel = document.getElementById('btn-vital-role-cancel');
+        if (btnRoleSave) btnRoleSave.addEventListener('click', saveVitalRole);
+        if (btnRoleCancel) btnRoleCancel.addEventListener('click', cancelVitalRoleEdit);
         if (btnNewPlayer) {
             btnNewPlayer.addEventListener('click', function () {
                 selectVitalPlayer('', { isNew: true });

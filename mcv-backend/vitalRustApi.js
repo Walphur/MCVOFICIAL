@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     hours_played INT,
     combats_lost INT NOT NULL DEFAULT 0 CHECK (combats_lost >= 0 AND combats_lost <= 9999),
     minis_lost INT NOT NULL DEFAULT 0 CHECK (minis_lost >= 0 AND minis_lost <= 9999),
+    performance_score INT NOT NULL DEFAULT 0,
     contribution TEXT,
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
@@ -730,11 +731,142 @@ async function ensurePlayerInfoTable(pool) {
         } catch (eMigrate) {
             /* broken_attacks puede no existir en instalaciones nuevas */
         }
+        await pool.query(
+            `ALTER TABLE player_info_profiles
+             ADD COLUMN IF NOT EXISTS performance_score INT NOT NULL DEFAULT 0`
+        );
         return true;
     } catch (e) {
         console.error("ensure player_info_profiles:", e.message);
         return false;
     }
+}
+
+const VITAL_ROLES_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS mcv_vital_roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_mcv_vital_roles_sort ON mcv_vital_roles (sort_order ASC, name ASC);
+`;
+
+const PLAYER_SCORE_EVENTS_SQL = `
+CREATE TABLE IF NOT EXISTS player_score_events (
+    id SERIAL PRIMARY KEY,
+    steam_id64 VARCHAR(17) NOT NULL,
+    delta INT NOT NULL,
+    reason TEXT,
+    category VARCHAR(32) NOT NULL DEFAULT 'manual',
+    balance_after INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_player_score_events_steam ON player_score_events (steam_id64, created_at DESC);
+`;
+
+const DEFAULT_VITAL_ROLES = [
+    "BUILDERS / RAID BASE",
+    "ELEC",
+    "HUERTO",
+    "OUTPOST/VENDING",
+    "BASE BITCH",
+    "MAIN COMPS",
+    "MAIN FARMERS",
+    "IGL RAIDS / WIPE",
+    "IGL FIGHTS",
+    "COMBAT"
+];
+
+function normalizePerformanceScore(raw) {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+        return 0;
+    }
+    return Math.max(-99999, Math.min(99999, Math.round(n)));
+}
+
+async function ensureVitalRolesTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(VITAL_ROLES_TABLE_SQL);
+        const c = await pool.query(`SELECT COUNT(*)::int AS n FROM mcv_vital_roles`);
+        if ((c.rows[0]?.n || 0) === 0) {
+            for (let i = 0; i < DEFAULT_VITAL_ROLES.length; i += 1) {
+                await pool.query(`INSERT INTO mcv_vital_roles (name, sort_order) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING`, [
+                    DEFAULT_VITAL_ROLES[i],
+                    i + 1
+                ]);
+            }
+        }
+        return true;
+    } catch (e) {
+        console.error("ensure mcv_vital_roles:", e.message);
+        return false;
+    }
+}
+
+async function ensureScoreEventsTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(PLAYER_SCORE_EVENTS_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure player_score_events:", e.message);
+        return false;
+    }
+}
+
+async function loadVitalRolesFromDb(pool) {
+    if (!pool) {
+        return [];
+    }
+    await ensureVitalRolesTable(pool);
+    const r = await pool.query(`SELECT id, name, sort_order, created_at FROM mcv_vital_roles ORDER BY sort_order ASC, name ASC`);
+    return r.rows.map((row) => ({
+        id: row.id,
+        name: String(row.name || "").trim(),
+        sortOrder: Number(row.sort_order) || 0,
+        createdAt: row.created_at
+    }));
+}
+
+async function applyPlayerScoreDelta(pool, steamId64, delta, reason, category) {
+    const d = Number(delta);
+    if (!Number.isFinite(d) || d === 0) {
+        throw new Error("El ajuste de puntos debe ser distinto de cero");
+    }
+    await ensurePlayerInfoTable(pool);
+    await ensureScoreEventsTable(pool);
+    const cur = await pool.query(`SELECT performance_score FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+    if (!cur.rowCount) {
+        throw new Error("Jugador no encontrado en Info jugadores");
+    }
+    const prev = normalizePerformanceScore(cur.rows[0].performance_score);
+    const next = normalizePerformanceScore(prev + d);
+    const cat = String(category || "manual").trim().slice(0, 32) || "manual";
+    const note = String(reason || "").trim().slice(0, 500);
+    await pool.query(`UPDATE player_info_profiles SET performance_score = $2, updated_at = NOW() WHERE steam_id64 = $1`, [
+        steamId64,
+        next
+    ]);
+    const ins = await pool.query(
+        `INSERT INTO player_score_events (steam_id64, delta, reason, category, balance_after)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, steam_id64, delta, reason, category, balance_after, created_at`,
+        [steamId64, Math.round(d), note || null, cat, next]
+    );
+    return {
+        steamId64,
+        delta: Math.round(d),
+        balanceBefore: prev,
+        balanceAfter: next,
+        event: ins.rows[0]
+    };
 }
 
 function normalizePlayerInfoRow(row) {
@@ -754,6 +886,7 @@ function normalizePlayerInfoRow(row) {
         hoursPlayed: Number.isFinite(Number(row.hours_played ?? row.hoursPlayed)) ? Number(row.hours_played ?? row.hoursPlayed) : null,
         combatsLost: normalizePlayerStatCount(row.combats_lost ?? row.combatsLost ?? row.broken_attacks ?? row.brokenAttacks),
         minisLost: normalizePlayerStatCount(row.minis_lost ?? row.minisLost),
+        performanceScore: normalizePerformanceScore(row.performance_score ?? row.performanceScore),
         contribution: String(row.contribution || "").trim(),
         warnings: String(row.warnings || "").trim(),
         mtTeam: Boolean(row.mt_team ?? row.mtTeam),
@@ -1291,6 +1424,172 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("vital extra delete:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo eliminar" });
+        }
+    });
+
+    app.get("/api/admin/vital/roles", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        try {
+            const roles = await loadVitalRolesFromDb(pool);
+            return res.json({ roles });
+        } catch (e) {
+            console.error("vital roles list:", e.message);
+            return res.status(500).json({ error: e.message || "Error al listar roles" });
+        }
+    });
+
+    app.post("/api/admin/vital/roles", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const name = String(body.name || "").trim().slice(0, 120);
+        if (!name) return res.status(400).json({ error: "Indicá el nombre del rol" });
+        const sortOrder = Number(body.sortOrder ?? body.sort_order);
+        try {
+            const ready = await ensureVitalRolesTable(pool);
+            if (!ready) return res.status(503).json({ error: "No se pudo preparar mcv_vital_roles" });
+            const r = await pool.query(
+                `INSERT INTO mcv_vital_roles (name, sort_order) VALUES ($1, $2)
+                 ON CONFLICT (name) DO UPDATE SET sort_order = EXCLUDED.sort_order
+                 RETURNING id, name, sort_order, created_at`,
+                [name, Number.isFinite(sortOrder) ? sortOrder : 999]
+            );
+            return res.json({ ok: true, role: { id: r.rows[0].id, name: r.rows[0].name, sortOrder: r.rows[0].sort_order } });
+        } catch (e) {
+            console.error("vital roles add:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo guardar el rol" });
+        }
+    });
+
+    app.patch("/api/admin/vital/roles/:id", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id) || id < 1) return res.status(400).json({ error: "ID de rol inválido" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const name = body.name != null ? String(body.name).trim().slice(0, 120) : null;
+        const sortOrder = body.sortOrder != null || body.sort_order != null ? Number(body.sortOrder ?? body.sort_order) : null;
+        try {
+            const sets = [];
+            const params = [];
+            if (name) {
+                params.push(name);
+                sets.push(`name = $${params.length}`);
+            }
+            if (sortOrder != null && Number.isFinite(sortOrder)) {
+                params.push(sortOrder);
+                sets.push(`sort_order = $${params.length}`);
+            }
+            if (!sets.length) return res.status(400).json({ error: "Nada que actualizar" });
+            params.push(id);
+            const r = await pool.query(
+                `UPDATE mcv_vital_roles SET ${sets.join(", ")} WHERE id = $${params.length}
+                 RETURNING id, name, sort_order`,
+                params
+            );
+            if (!r.rowCount) return res.status(404).json({ error: "Rol no encontrado" });
+            return res.json({ ok: true, role: { id: r.rows[0].id, name: r.rows[0].name, sortOrder: r.rows[0].sort_order } });
+        } catch (e) {
+            console.error("vital roles patch:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo editar el rol" });
+        }
+    });
+
+    app.delete("/api/admin/vital/roles/:id", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id) || id < 1) return res.status(400).json({ error: "ID de rol inválido" });
+        try {
+            const r = await pool.query(`DELETE FROM mcv_vital_roles WHERE id = $1 RETURNING id, name`, [id]);
+            if (!r.rowCount) return res.status(404).json({ error: "Rol no encontrado" });
+            return res.json({ ok: true, deleted: r.rows[0] });
+        } catch (e) {
+            console.error("vital roles delete:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo eliminar el rol" });
+        }
+    });
+
+    app.get("/api/admin/vital/scoreboard", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar player_info_profiles" });
+        try {
+            const r = await pool.query(
+                `SELECT steam_id64, display_name, role_label, performance_score, status_tag
+                 FROM player_info_profiles
+                 ORDER BY performance_score DESC, display_name ASC NULLS LAST
+                 LIMIT 200`
+            );
+            return res.json({
+                players: r.rows.map((row) => normalizePlayerInfoRow(row)).filter(Boolean)
+            });
+        } catch (e) {
+            console.error("vital scoreboard:", e.message);
+            return res.status(500).json({ error: e.message || "Error al cargar puntajes" });
+        }
+    });
+
+    app.get("/api/admin/vital/player-info/:steamId64/score-events", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 40));
+        try {
+            await ensureScoreEventsTable(pool);
+            const r = await pool.query(
+                `SELECT id, steam_id64, delta, reason, category, balance_after, created_at
+                 FROM player_score_events
+                 WHERE steam_id64 = $1
+                 ORDER BY created_at DESC
+                 LIMIT $2`,
+                [steamId64, limit]
+            );
+            const prof = await pool.query(`SELECT performance_score FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+            return res.json({
+                steamId64,
+                performanceScore: prof.rowCount ? normalizePerformanceScore(prof.rows[0].performance_score) : 0,
+                events: r.rows.map((row) => ({
+                    id: row.id,
+                    delta: row.delta,
+                    reason: row.reason,
+                    category: row.category,
+                    balanceAfter: row.balance_after,
+                    createdAt: row.created_at
+                }))
+            });
+        } catch (e) {
+            console.error("vital score events:", e.message);
+            return res.status(500).json({ error: e.message || "Error al listar movimientos" });
+        }
+    });
+
+    app.post("/api/admin/vital/player-info/:steamId64/score", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const delta = Number(body.delta);
+        if (!Number.isFinite(delta) || delta === 0) {
+            return res.status(400).json({ error: "Indicá un ajuste de puntos distinto de cero" });
+        }
+        try {
+            const result = await applyPlayerScoreDelta(pool, steamId64, delta, body.reason, body.category);
+            const profile = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+            return res.json({
+                ok: true,
+                ...result,
+                profile: profile.rowCount ? normalizePlayerInfoRow(profile.rows[0]) : null
+            });
+        } catch (e) {
+            console.error("vital score adjust:", e.message);
+            return res.status(e.message === "Jugador no encontrado en Info jugadores" ? 404 : 500).json({
+                error: e.message || "No se pudo ajustar puntos"
+            });
         }
     });
 
