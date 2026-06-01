@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=41">
-    <meta name="mcv-admin-build" content="2026-05-28-admin-ops-cleanup-v3">
+    <link rel="stylesheet" href="style-admin.css?v=44">
+    <meta name="mcv-admin-build" content="2026-05-28-admin-ops-polish-v6">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -303,6 +303,13 @@
                         <button type="button" class="vital-nav-item" data-vital-subtab="importacion">Importación</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="logs">Logs</button>
                     </nav>
+                    <div class="vital-sidebar-ranking">
+                        <div class="vital-sidebar-ranking__head">
+                            <span class="vital-sidebar-ranking__title">Ranking wipe</span>
+                            <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview" title="Actualizar ranking">↻</button>
+                        </div>
+                        <div id="vital-tier-preview" class="vital-tier-preview vital-tier-preview--sidebar is-open"></div>
+                    </div>
                     <div id="vital-member-stats" class="vital-sidebar-stats" aria-label="Resumen roster"></div>
                     <details class="vital-sidebar-tools">
                         <summary>Herramientas</summary>
@@ -311,8 +318,6 @@
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres Vital</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview">Ver ranking</button>
-                            <div id="vital-tier-preview" class="vital-tier-preview"></div>
                         </div>
                     </details>
                 </aside>
@@ -323,11 +328,11 @@
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
                                 <div class="vital-quick-inline" id="vital-quick-filters">
-                                    <button type="button" class="vital-qchip is-active" data-vital-quick="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-quick="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-quick="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-quick="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-quick="points"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
+                                    <button type="button" class="vital-qchip is-active" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↕</span></button>
                                 </div>
                                 <div class="vital-member-toolbar__actions">
                                     <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador">+</button>
@@ -1925,7 +1930,8 @@
     var vitalSelectedRoles = [];
     var vitalSelectedSteam = '';
     var vitalDetailTab = 'general';
-    var vitalInfoQuick = 'all';
+    var vitalListCohort = 'all';
+    var vitalPointsSort = null;
     var vitalIsNewPlayer = false;
     var vitalTierBySteam = {};
     var vitalTierMeta = {};
@@ -1976,6 +1982,18 @@
 
     function getPlayerRiskLabel(level) {
         return ({ critical: 'Crítico', risk: 'Riesgo', good: 'Bien', excellent: 'Excelente', info: 'Pausado' })[level] || '—';
+    }
+
+    function renderSteamAvatar(row, risk, className) {
+        var url = row && row.avatarUrl ? String(row.avatarUrl).trim() : '';
+        var label = row && (row.displayName || row.steamId64) ? String(row.displayName || row.steamId64) : '?';
+        var initial = label.trim().charAt(0).toUpperCase() || '?';
+        var cls = String(className || 'ops-member-avatar');
+        if (risk) cls += ' ops-risk-ring--' + escAttr(risk);
+        if (url) {
+            return '<img class="' + cls + ' ops-steam-avatar" src="' + escAttr(url) + '" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer" />';
+        }
+        return '<span class="' + cls + '">' + esc(initial) + '</span>';
     }
 
     function buildPlayerReasonsSummary(steamId) {
@@ -2084,26 +2102,11 @@
             ? (selected.displayName || 'Jugador')
             : (vitalIsNewPlayer ? 'Nuevo jugador' : String((document.getElementById('vital-info-name') || {}).value || '').trim() || 'Jugador');
         var steam = selected ? selected.steamId64 : String((document.getElementById('vital-info-steam') || {}).value || '');
-        var initial = String(name).trim().charAt(0).toUpperCase() || '?';
-        var strikes = selected ? Number(selected.strikes || 0) : 0;
-        var hours = selected && selected.hoursPlayed != null ? selected.hoursPlayed : '—';
-        var status = selected ? selected.statusTag : 'wipe_guest';
-        var pts = selected ? getPlayerPoints(selected) : 0;
         var risk = getPlayerRiskLevel(selected);
         var riskLabel = getPlayerRiskLabel(risk);
         var bmLink = selected && selected.bmUrl
             ? '<a class="ops-link" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BattleMetrics ↗</a>'
             : '';
-        var roles = selected && selected.roleLabels && selected.roleLabels.length
-            ? selected.roleLabels
-            : parseRoleLabelsLocal(selected ? selected.roleLabel : '');
-        var metaParts = [
-            esc(statusLabelShort(status)),
-            esc(wipePhaseLabel(selected ? selected.wipePhase : 'unknown')),
-            esc(hours) + 'h'
-        ];
-        if (roles.length) metaParts.push(esc(roles.join(' · ')));
-        if (strikes > 0) metaParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
         var reasons = selected ? buildPlayerReasonsSummary(selected.steamId64) : { gains: [], losses: [] };
         var insightHtml = '';
         if (selected && !isPlayerPaused(selected) && (reasons.gains.length || reasons.losses.length)) {
@@ -2124,13 +2127,13 @@
         } else if (selected && isPlayerPaused(selected)) {
             insightHtml = '<div class="ops-player-insight ops-player-insight--muted"><p>No participa en el wipe: puntos automáticos desactivados.</p></div>';
         }
+        var pts = selected ? getPlayerPoints(selected) : 0;
         box.innerHTML =
             '<div class="ops-player-header">' +
-            '<span class="ops-player-avatar ops-risk-ring--' + escAttr(risk) + '">' + esc(initial) + '</span>' +
+            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar') +
             '<div class="ops-player-main">' +
             '<div class="ops-player-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
             '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
-            '<p class="ops-player-meta">' + metaParts.join(' · ') + '</p>' +
             '</div>' +
             '<div class="ops-player-score-block">' +
             '<span class="ops-player-score">' + esc(String(pts)) + '</span>' +
@@ -3089,8 +3092,9 @@
         var box = document.getElementById('vital-tier-preview');
         if (!box) return;
         var tr = (data && data.tierResult) ? data.tierResult : null;
+        var isSidebar = box.classList.contains('vital-tier-preview--sidebar');
         if (!tr || !tr.players || !tr.players.length) {
-            if (box.classList.contains('is-open')) {
+            if (isSidebar || box.classList.contains('is-open')) {
                 box.innerHTML = '<p class="empty-hint">Sin datos Vital todavía.</p>';
             }
             return;
@@ -3196,8 +3200,14 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'tier sync');
                 ingestVitalTierPayload(x.d);
-                if (document.getElementById('vital-tier-preview') && document.getElementById('vital-tier-preview').classList.contains('is-open')) {
-                    renderVitalTierPreview(x.d);
+                var previewBox = document.getElementById('vital-tier-preview');
+                if (previewBox) {
+                    if (previewBox.classList.contains('vital-tier-preview--sidebar')) {
+                        previewBox.classList.add('is-open');
+                    }
+                    if (previewBox.classList.contains('is-open') || previewBox.classList.contains('vital-tier-preview--sidebar')) {
+                        renderVitalTierPreview(x.d);
+                    }
                 }
                 renderVitalTierPlayerBreakdown(vitalSelectedSteam);
                 renderVitalInfoList();
@@ -3292,9 +3302,15 @@
     }
 
     function applyVitalTablePrefs() {
-        document.querySelectorAll('.vital-qchip').forEach(function (btn) {
-            btn.classList.toggle('is-active', btn.getAttribute('data-vital-quick') === vitalInfoQuick);
+        document.querySelectorAll('[data-vital-cohort]').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-vital-cohort') === vitalListCohort);
         });
+        var sortBtn = document.querySelector('[data-vital-sort="points"]');
+        if (sortBtn) sortBtn.classList.toggle('is-active', !!vitalPointsSort);
+        var sortCount = document.querySelector('.vital-qchip-count[data-qcount="points"]');
+        if (sortCount) {
+            sortCount.textContent = vitalPointsSort === 'asc' ? '↑' : (vitalPointsSort === 'desc' ? '↓' : '↕');
+        }
     }
 
     function isVitalPaused() {
@@ -3395,35 +3411,36 @@
     function getFilteredVitalRows() {
         var q = String((document.getElementById('vital-info-search') || {}).value || '').toLowerCase().trim();
         return (vitalInfoRows || []).filter(function (r) {
-            if (vitalInfoQuick === 'active' && (r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
-            if (vitalInfoQuick === 'active' && !(r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late')) return false;
-            if (vitalInfoQuick === 'paused' && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
-            if (vitalInfoQuick === 'strikes' && Number(r.strikes || 0) <= 0) return false;
+            if (vitalListCohort === 'active' && (r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
+            if (vitalListCohort === 'active' && !(r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late')) return false;
+            if (vitalListCohort === 'paused' && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
+            if (vitalListCohort === 'strikes' && Number(r.strikes || 0) <= 0) return false;
             if (!q) return true;
             var hay = [r.displayName, r.steamId64, r.vouchBy, r.roleLabel].join(' ').toLowerCase();
             return hay.indexOf(q) !== -1;
         });
     }
 
+    function sortVitalRowsByPoints(rows) {
+        if (!vitalPointsSort) return rows;
+        return rows.slice().sort(function (a, b) {
+            var pa = Number(a.performanceScore != null ? a.performanceScore : (a.tierScore || 0));
+            var pb = Number(b.performanceScore != null ? b.performanceScore : (b.tierScore || 0));
+            return vitalPointsSort === 'asc' ? pa - pb : pb - pa;
+        });
+    }
+
     function renderVitalInfoList() {
         var box = document.getElementById('vital-info-list');
         if (!box) return;
-        var rows = getFilteredVitalRows();
+        var rows = sortVitalRowsByPoints(getFilteredVitalRows());
         renderVitalQuickFilterCounts();
-        if (vitalInfoQuick === 'points') {
-            rows = rows.slice().sort(function (a, b) {
-                var pa = Number(a.performanceScore != null ? a.performanceScore : (a.tierScore || 0));
-                var pb = Number(b.performanceScore != null ? b.performanceScore : (b.tierScore || 0));
-                return pb - pa;
-            });
-        }
         if (!rows.length) {
             box.innerHTML = '<p class="empty-hint">Sin jugadores</p>';
             return;
         }
         box.innerHTML = rows.map(function (r) {
             var active = normalizeVitalSteamLocal(r.steamId64) === normalizeVitalSteamLocal(vitalSelectedSteam) ? ' is-active' : '';
-            var initial = String(r.displayName || '?').trim().charAt(0).toUpperCase() || '?';
             var paused = isPlayerPaused(r);
             var strikes = Number(r.strikes || 0);
             var pts = getPlayerPoints(r);
@@ -3436,7 +3453,7 @@
             var ptsCls = pts > 0 ? ' is-positive' : (pts < 0 ? ' is-negative' : '');
             return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '">' +
                 '<span class="ops-member-rail" aria-hidden="true"></span>' +
-                '<span class="ops-member-avatar ops-risk-ring--' + escAttr(risk) + '">' + esc(initial) + '</span>' +
+                renderSteamAvatar(r, risk, 'ops-member-avatar') +
                 '<span class="ops-member-body">' +
                 '<span class="ops-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
                 '<span class="ops-member-sub">' + sub + '</span>' +
@@ -3741,9 +3758,17 @@
         }
         if (vitalQuickFilters) {
             vitalQuickFilters.addEventListener('click', function (ev) {
-                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vital-quick]') : null;
-                if (!btn) return;
-                vitalInfoQuick = String(btn.getAttribute('data-vital-quick') || 'all');
+                var sortBtn = ev.target && ev.target.closest ? ev.target.closest('[data-vital-sort]') : null;
+                var cohortBtn = ev.target && ev.target.closest ? ev.target.closest('[data-vital-cohort]') : null;
+                if (sortBtn) {
+                    if (vitalPointsSort === 'desc') vitalPointsSort = 'asc';
+                    else if (vitalPointsSort === 'asc') vitalPointsSort = null;
+                    else vitalPointsSort = 'desc';
+                } else if (cohortBtn) {
+                    vitalListCohort = String(cohortBtn.getAttribute('data-vital-cohort') || 'all');
+                } else {
+                    return;
+                }
                 applyVitalTablePrefs();
                 renderVitalInfoList();
             });

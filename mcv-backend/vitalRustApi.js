@@ -31,6 +31,30 @@ const ALL_VITAL_SERVERS = [
 ];
 
 const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-monthly").trim();
+const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
+
+async function fetchSteamAvatarsBatch(steamIds) {
+    const map = new Map();
+    const ids = [...new Set((steamIds || []).map((id) => normalizeSteamId64(id)).filter(Boolean))];
+    if (!STEAM_API_KEY || !ids.length) return map;
+    for (let i = 0; i < ids.length; i += 100) {
+        const chunk = ids.slice(i, i + 100);
+        try {
+            const { data } = await axios.get("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/", {
+                params: { key: STEAM_API_KEY, steamids: chunk.join(",") },
+                timeout: 12000
+            });
+            for (const p of data?.response?.players || []) {
+                const sid = normalizeSteamId64(p.steamid);
+                if (!sid) continue;
+                map.set(sid, p.avatarfull || p.avatarmedium || p.avatar || "");
+            }
+        } catch (e) {
+            console.warn("fetchSteamAvatarsBatch:", e.message);
+        }
+    }
+    return map;
+}
 
 const cache = new Map();
 let lastUpstreamAt = 0;
@@ -2106,6 +2130,10 @@ function registerVitalRustApi(app, { getPool }) {
                     p.roleLabel = extra.join(", ");
                 }
                 p.extraKeys = extraMap.get(p.steamId64) || [];
+            });
+            const avatarMap = await fetchSteamAvatarsBatch(profiles.map((p) => p.steamId64));
+            profiles.forEach((p) => {
+                p.avatarUrl = avatarMap.get(p.steamId64) || "";
             });
             return res.json({ profiles });
         } catch (e) {
