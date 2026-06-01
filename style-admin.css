@@ -2740,8 +2740,8 @@ details.vital-extra-panel > :not(summary) {
     display: grid;
     grid-template-columns: minmax(320px, 36%) minmax(0, 1fr);
     flex: 1;
-    min-height: calc(100vh - 220px);
-    height: auto;
+    min-height: 0;
+    height: 100%;
     gap: 0;
 }
 .vital-member-panel {
@@ -5356,8 +5356,8 @@ details.vital-extra-panel > :not(summary) {
 .vital-sidebar--compact {
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 220px);
-    height: auto;
+    min-height: 0;
+    height: 100%;
     padding-bottom: 8px;
 }
 .vital-sidebar-status {
@@ -5472,30 +5472,64 @@ img.ops-player-avatar {
     border-radius: 9px;
 }
 
-#vital-info-panel .vital-detail-body {
-    overflow: visible;
+#vital-info-panel > .data-area.vital-pro-panel {
     max-height: none;
-}
-#vital-info-panel .vital-detail-content {
-    grid-template-rows: auto auto auto auto;
-    height: auto;
-    min-height: calc(100vh - 220px);
-}
-#vital-info-panel .vital-detail-panel,
-#vital-info-panel .vital-detail-workspace {
-    height: auto;
-    min-height: calc(100vh - 220px);
     overflow: visible;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 220px);
+    min-height: 560px;
+    max-height: calc(100vh - 220px);
+}
+#vital-info-panel .vital-app-main,
+#vital-info-panel .vital-subpanel--jugadores {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#vital-info-panel .vital-split {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
 }
 #vital-info-panel .vital-member-panel {
-    min-height: calc(100vh - 220px);
-    height: auto;
+    min-height: 0;
+    height: 100%;
 }
 #vital-info-panel .vital-member-list {
     flex: 1 1 auto;
-    min-height: 320px;
+    min-height: 0;
     max-height: none;
     overflow-y: auto;
+    overscroll-behavior: contain;
+}
+#vital-info-panel .vital-detail-panel,
+#vital-info-panel .vital-detail-workspace {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+#vital-info-panel .vital-detail-content {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    height: 100%;
+    min-height: 0;
+}
+#vital-info-panel .vital-detail-body {
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"] {
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"].active {
+    display: grid;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"] .vital-timeline-wrap {
+    max-height: none;
 }
 
 @media (min-width: 1280px) {

@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=46">
-    <meta name="mcv-admin-build" content="2026-05-28-admin-ops-polish-v8">
+    <link rel="stylesheet" href="style-admin.css?v=47">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v9">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -347,7 +347,7 @@
                                     <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="wipe">Wipe</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="notes">Notas</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="logs">Actividad</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
                                 </div>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
@@ -447,15 +447,12 @@
                                                 <p class="vital-score-total"><span>Total guardado</span>: <strong id="vital-score-total">0</strong> pts</p>
                                                 <div class="vital-score-player-actions">
                                                     <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-score-player">Reiniciar puntos (este jugador)</button>
-                                                    <span class="admin-form-hint">El historial se puede borrar línea por línea con ×</span>
+                                                    <span class="admin-form-hint">El historial completo está en la pestaña Logs.</span>
                                                 </div>
                                                 <div class="vital-score-custom vital-form-grid">
                                                     <label class="vital-field"><span>Ajuste</span><input id="vital-score-delta" class="admin-input" type="number" step="1" placeholder="±10" /></label>
                                                     <label class="vital-field vital-field--wide"><span>Motivo</span><input id="vital-score-reason" class="admin-input" maxlength="200" /></label>
                                                     <button type="button" class="btn-primary-small" id="btn-vital-score-apply">Aplicar</button>
-                                                </div>
-                                                <div class="vital-timeline-wrap">
-                                                    <ul id="vital-score-history" class="vital-timeline vital-perf-history"></ul>
                                                 </div>
                                             </div>
                                         </section>
@@ -470,7 +467,26 @@
                                         </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="logs">
-                                        <ul id="vital-detail-player-logs" class="vital-activity-log vital-activity-log--compact"></ul>
+                                        <section class="vital-form-section vital-form-section--solo">
+                                            <header class="vital-form-section__head">
+                                                <h3 class="vital-form-section__title">Historial de puntos</h3>
+                                                <p class="vital-form-section__hint">Movimientos automáticos (Vital) y ajustes manuales de este wipe.</p>
+                                            </header>
+                                            <div class="vital-form-section__body">
+                                                <div class="vital-timeline-wrap">
+                                                    <ul id="vital-score-history" class="vital-timeline vital-perf-history"></ul>
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <section class="vital-form-section">
+                                            <header class="vital-form-section__head">
+                                                <h3 class="vital-form-section__title">Actividad admin</h3>
+                                                <p class="vital-form-section__hint">Cambios registrados en el panel para este jugador.</p>
+                                            </header>
+                                            <div class="vital-form-section__body">
+                                                <ul id="vital-detail-player-logs" class="vital-activity-log vital-activity-log--compact"></ul>
+                                            </div>
+                                        </section>
                                     </div>
                                 </div>
                                 <input type="checkbox" id="vital-info-paused" hidden tabindex="-1" aria-hidden="true" />
@@ -2355,6 +2371,10 @@
             renderVitalTierPlayerBreakdown(vitalSelectedSteam);
             loadVitalTierConfigView().catch(function () {});
             syncVitalTierFromVital({ apply: true, quiet: true }).catch(function () {});
+        }
+        if (vitalDetailTab === 'logs') {
+            loadVitalScoreEvents(vitalSelectedSteam).catch(function () {});
+            renderVitalDetailLogs();
         }
     }
 
