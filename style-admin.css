@@ -4324,7 +4324,16 @@ details.vital-extra-panel > :not(summary) {
     gap: 12px;
 }
 
-.admin-main .data-area {
+.admin-tournament-toolbar {
+    margin-bottom: 14px;
+    padding: 12px 16px;
+}
+.admin-tournament-toolbar .admin-summary-line {
+    margin: 0;
+}
+.admin-tagline-only {
+    margin: 0 0 4px;
+}
     overflow: auto;
     max-height: min(72vh, 700px);
     border-radius: 10px;

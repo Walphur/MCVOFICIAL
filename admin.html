@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=47">
-    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v9">
+    <link rel="stylesheet" href="style-admin.css?v=48">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v10">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -29,10 +29,8 @@
     <main class="admin-main">
         <header class="dashboard-header">
             <div>
-                <span class="tagline" data-i18n="admin.tagline">// PANEL ADMIN</span>
+                <p class="admin-tagline-only"><span class="tagline" data-i18n="admin.tagline">// PANEL ADMIN</span></p>
                 <h1><span data-i18n="admin.h1">CONTROL</span> <span data-i18n="admin.h1span">ROOM.</span></h1>
-                <p id="tournament-summary" class="admin-summary-line"><span data-i18n="admin.summary">Torneo seleccionado:</span> <strong id="slug-label">…</strong>
-                <select id="admin-tournament-select" class="admin-slug-select" data-i18n-title="admin.tournamentSelectTitle" title="Elegí qué torneo gestionás"></select></p>
             </div>
             <div class="dashboard-buttons">
                 <button type="button" class="btn-primary-small" id="export-csv"><span data-i18n="admin.exportCsv">📥 Exportar CSV</span></button>
@@ -43,29 +41,32 @@
 
         <p id="admin-banner" class="admin-banner"></p>
 
-        <section id="admin-site-status" class="admin-site-status" hidden>
-            <div class="admin-site-status-head">
-                <h2 class="admin-status-title" data-i18n="admin.statusTitle">Estado del sitio</h2>
-                <span id="admin-status-updated" class="admin-status-updated"></span>
-            </div>
-            <div id="admin-status-grid" class="admin-status-grid"></div>
-        </section>
-
         <div class="tabs admin-tabs" role="tablist" data-i18n-aria-label="admin.tabListLabel">
             <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">🏆 Torneos</span></button>
-            <button type="button" class="tab active" role="tab" data-tab="teams" aria-selected="true"><span data-i18n="admin.tabTeams">👑 Equipos</span></button>
+            <button type="button" class="tab" role="tab" data-tab="teams" aria-selected="false"><span data-i18n="admin.tabTeams">👑 Equipos</span></button>
             <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">⚔️ Bracket</span></button>
             <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><span data-i18n="admin.tabTeamWeb">🌐 Perfiles equipo</span></button>
             <button type="button" class="tab" role="tab" data-tab="tickets" aria-selected="false"><span data-i18n="admin.tabTickets">🎫 Tickets</span></button>
-            <button type="button" class="tab" role="tab" data-tab="vital-info" aria-selected="false"><span data-i18n="admin.tabVitalInfo">🗂️ Info jugadores</span></button>
+            <button type="button" class="tab active" role="tab" data-tab="vital-info" aria-selected="true"><span data-i18n="admin.tabVitalInfo">🗂️ Info jugadores</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">
+            <div class="data-area admin-tournament-toolbar">
+                <p id="tournament-summary" class="admin-summary-line"><span data-i18n="admin.summary">Torneo seleccionado:</span> <strong id="slug-label">…</strong>
+                <select id="admin-tournament-select" class="admin-slug-select" data-i18n-title="admin.tournamentSelectTitle" title="Elegí qué torneo gestionás"></select></p>
+            </div>
+            <section id="admin-site-status" class="admin-site-status" hidden>
+                <div class="admin-site-status-head">
+                    <h2 class="admin-status-title" data-i18n="admin.statusTitle">Estado del sitio</h2>
+                    <span id="admin-status-updated" class="admin-status-updated"></span>
+                </div>
+                <div id="admin-status-grid" class="admin-status-grid"></div>
+            </section>
             <p class="admin-tournaments-intro" data-i18n-html="admin.introTournaments"></p>
             <details class="admin-collapse admin-collapse-guide">
                 <summary data-i18n="admin.tournamentFlowToggle">Guía rápida (4 pasos)</summary>
                 <ol class="admin-tournament-flow" data-i18n-aria-label="admin.tournamentFlowAria">
-                    <li data-i18n="admin.tournamentFlow1">Elegí el torneo en el selector del encabezado.</li>
+                    <li data-i18n="admin.tournamentFlow1">Elegí el torneo en el selector de arriba.</li>
                     <li data-i18n="admin.tournamentFlow2">Columna izquierda: creá o editá título, fechas y estado.</li>
                     <li data-i18n="admin.tournamentFlow3">Columna derecha: finalizá con campeón y póster.</li>
                     <li data-i18n="admin.tournamentFlow4">Sección «Vista en la web»: slots, póster y roster JSON.</li>
@@ -191,7 +192,7 @@
             </details>
         </div>
 
-        <div id="teams-panel">
+        <div id="teams-panel" style="display:none;">
             <div class="data-area admin-manual-box">
                 <h3 class="admin-manual-title" data-i18n="admin.manualTitle">Agregar equipo (manual)</h3>
                 <p class="admin-form-hint admin-readable" data-i18n="admin.manualHint">Si no se inscribieron solos, cargalos acá. Mismos datos que el formulario público: 5 jugadores con Steam64 (17 dígitos) y Discord.</p>
@@ -277,7 +278,7 @@
             </div>
         </div>
 
-        <div id="vital-info-panel" class="admin-panel-anchor" style="display:none;">
+        <div id="vital-info-panel" class="admin-panel-anchor">
             <div class="data-area vital-pro-panel">
                 <div class="vital-app-shell">
                 <aside class="vital-sidebar vital-sidebar--compact">
@@ -624,7 +625,7 @@
     var state = {
         list: [],
         filter: 'all',
-        tab: 'teams',
+        tab: 'vital-info',
         slug: sessionStorage.getItem('mcv_admin_slug') || 'last-squad-standing'
     };
 
@@ -708,41 +709,6 @@
                         ok: true
                     });
                 }
-                function chartRow(label, value, maxVal) {
-                    var v = Number(value) || 0;
-                    var max = Math.max(1, Number(maxVal) || 1);
-                    var pct = Math.min(100, Math.round((v / max) * 100));
-                    return (
-                        '<div class="admin-chart-row">' +
-                        '<span class="admin-chart-label">' +
-                        esc(label) +
-                        '</span><div class="admin-chart-track" aria-hidden="true"><div class="admin-chart-fill" style="width:' +
-                        pct +
-                        '%"></div></div><strong class="admin-chart-value">' +
-                        esc(String(v)) +
-                        "</strong></div>"
-                    );
-                }
-                var chartsHtml = "";
-                if (dash) {
-                    var maxChart = Math.max(
-                        1,
-                        dash.registrationsPending || 0,
-                        dash.ticketsPending || 0,
-                        dash.tournamentsFinished || 0,
-                        dash.rosterPending || 0
-                    );
-                    chartsHtml =
-                        '<section class="admin-dash-charts">' +
-                        '<h3 class="admin-dash-charts-title">' +
-                        esc(T("admin.chartsTitle")) +
-                        "</h3>" +
-                        chartRow(T("admin.chartRegs"), dash.registrationsPending, maxChart) +
-                        chartRow(T("admin.chartTickets"), dash.ticketsPending, maxChart) +
-                        chartRow(T("admin.chartFinished"), dash.tournamentsFinished, maxChart) +
-                        chartRow(T("admin.chartRoster"), dash.rosterPending, maxChart) +
-                        "</section>";
-                }
                 var openList = dash && dash.activeTournaments ? dash.activeTournaments : [];
                 var openHtml = openList.length
                     ? '<ul class="admin-status-tournaments">' +
@@ -773,7 +739,6 @@
                             );
                         })
                         .join('') +
-                    chartsHtml +
                     '<div class="admin-status-wide"><span class="admin-status-label">' +
                     esc(T('admin.statusOpenTournaments')) +
                     '</span>' +
@@ -1483,8 +1448,7 @@
     }
 
     function activateTournamentsTab() {
-        var tab = document.querySelector('.tab[data-tab="tournaments"]');
-        if (tab) tab.click();
+        switchAdminTab('tournaments');
         requestAnimationFrame(function () {
             var panel = document.getElementById('tournaments-panel');
             if (panel && panel.scrollIntoView) {
@@ -3233,6 +3197,15 @@
         if (seg) seg.classList.toggle('is-paused', isPaused);
     }
 
+    function confirmWipeParticipationChange(targetPaused) {
+        if (!!targetPaused === isVitalPaused()) return false;
+        var name = String((document.getElementById('vital-info-name') || {}).value || '').trim() || 'este jugador';
+        if (targetPaused) {
+            return window.confirm('¿Estás seguro de marcar a «' + name + '» como Pausado? No participará en el wipe ni sumará puntos automáticos.');
+        }
+        return window.confirm('¿Estás seguro de marcar a «' + name + '» como En wipe? Volverá a participar en el cálculo de puntos.');
+    }
+
     function setWipeParticipationState(paused) {
         var pausedEl = document.getElementById('vital-info-paused');
         var wipeEl = document.getElementById('vital-info-wipe-phase');
@@ -3580,14 +3553,27 @@
             vitalWipeSegment.addEventListener('click', function (ev) {
                 var btn = ev.target && ev.target.closest ? ev.target.closest('[data-wipe-state]') : null;
                 if (!btn) return;
-                setWipeParticipationState(btn.getAttribute('data-wipe-state') === 'paused');
+                var wantPaused = btn.getAttribute('data-wipe-state') === 'paused';
+                if (!confirmWipeParticipationChange(wantPaused)) return;
+                setWipeParticipationState(wantPaused);
             });
         }
         var wipePhaseEl = document.getElementById('vital-info-wipe-phase');
         if (wipePhaseEl) {
             wipePhaseEl.addEventListener('change', function () {
-                if (wipePhaseEl.value === 'no_juega') setWipeParticipationState(true);
-                else if (isVitalPaused()) setWipeParticipationState(false);
+                if (wipePhaseEl.value === 'no_juega') {
+                    if (!confirmWipeParticipationChange(true)) {
+                        wipePhaseEl.value = isVitalPaused() ? 'no_juega' : 'unknown';
+                        return;
+                    }
+                    setWipeParticipationState(true);
+                } else if (isVitalPaused()) {
+                    if (!confirmWipeParticipationChange(false)) {
+                        wipePhaseEl.value = 'no_juega';
+                        return;
+                    }
+                    setWipeParticipationState(false);
+                }
             });
         }
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
@@ -3617,7 +3603,9 @@
         if (btnDelDetail) {
             btnDelDetail.addEventListener('click', function () {
                 var sid = vitalSelectedSteam;
-                if (!sid || !confirm('¿Borrar este jugador de info interna?')) return;
+                if (!sid) return;
+                var name = String((document.getElementById('vital-info-name') || {}).value || '').trim() || sid;
+                if (!window.confirm('¿Estás seguro de que querés eliminar a «' + name + '»? Esta acción no se puede deshacer.')) return;
                 fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid), {
                     method: 'DELETE',
                     headers: authHeaders()
@@ -3687,48 +3675,53 @@
     }
     initVitalPanel();
 
+    function switchAdminTab(tabName) {
+        var tab = document.querySelector('.tab[data-tab="' + tabName + '"]');
+        if (!tab) return;
+        document.querySelectorAll('.tab').forEach(function (x) {
+            x.classList.remove('active');
+            x.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        state.tab = tabName;
+        document.getElementById('teams-panel').style.display = state.tab === 'teams' ? 'block' : 'none';
+        document.getElementById('bracket-panel').style.display = state.tab === 'bracket' ? 'block' : 'none';
+        var twp = document.getElementById('team-web-panel');
+        if (twp) {
+            twp.style.display = state.tab === 'teamweb' ? 'block' : 'none';
+            if (state.tab === 'teamweb') {
+                loadTeamWebRoster();
+            }
+        }
+        var tp = document.getElementById('tournaments-panel');
+        if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
+        var tkp = document.getElementById('tickets-panel');
+        if (tkp) tkp.style.display = state.tab === 'tickets' ? 'block' : 'none';
+        var vip = document.getElementById('vital-info-panel');
+        if (vip) {
+            vip.style.display = state.tab === 'vital-info' ? 'block' : 'none';
+            if (state.tab === 'vital-info') {
+                loadVitalPlayerInfo().catch(function () {});
+                loadVitalHealth().catch(function () {});
+                if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
+                    window.mcvI18n.apply();
+                }
+                if (vitalInfoSubtab === 'extras') {
+                    loadVitalExtraPlayers().catch(function () {});
+                }
+            }
+        }
+        var dashBtns = document.querySelector('.dashboard-buttons');
+        if (dashBtns) dashBtns.style.display = (state.tab === 'tickets' || state.tab === 'vital-info') ? 'none' : '';
+        if (state.tab === 'tournaments') loadSiteStatus();
+        if (state.tab === 'bracket') loadBracketView();
+        if (state.tab === 'tickets') loadTicketsAdmin();
+    }
+
     document.querySelectorAll('.tab').forEach(function (t) {
         t.addEventListener('click', function () {
-            document.querySelectorAll('.tab').forEach(function (x) {
-                x.classList.remove('active');
-                x.setAttribute('aria-selected', 'false');
-            });
-            t.classList.add('active');
-            t.setAttribute('aria-selected', 'true');
-            state.tab = t.getAttribute('data-tab');
-            document.getElementById('teams-panel').style.display = state.tab === 'teams' ? 'block' : 'none';
-            document.getElementById('bracket-panel').style.display = state.tab === 'bracket' ? 'block' : 'none';
-            var twp = document.getElementById('team-web-panel');
-            if (twp) {
-                twp.style.display = state.tab === 'teamweb' ? 'block' : 'none';
-                if (state.tab === 'teamweb') {
-                    loadTeamWebRoster();
-                }
-            }
-            var tp = document.getElementById('tournaments-panel');
-            if (tp) tp.style.display = state.tab === 'tournaments' ? 'block' : 'none';
-            var tkp = document.getElementById('tickets-panel');
-            if (tkp) tkp.style.display = state.tab === 'tickets' ? 'block' : 'none';
-            var vip = document.getElementById('vital-info-panel');
-            if (vip) {
-                vip.style.display = state.tab === 'vital-info' ? 'block' : 'none';
-                if (state.tab === 'vital-info') {
-                    loadVitalPlayerInfo().catch(function () {});
-                    loadVitalHealth().catch(function () {});
-                    if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
-                        window.mcvI18n.apply();
-                    }
-                    if (vitalInfoSubtab === 'extras') {
-                        loadVitalExtraPlayers().catch(function () {});
-                    }
-                }
-            }
-            var dashBtns = document.querySelector('.dashboard-buttons');
-            if (dashBtns) dashBtns.style.display = (state.tab === 'tickets' || state.tab === 'vital-info') ? 'none' : '';
-            var slugLabel = document.getElementById('slug-label');
-            if (slugLabel) slugLabel.style.display = state.tab === 'tournaments' ? '' : 'none';
-            if (state.tab === 'bracket') loadBracketView();
-            if (state.tab === 'tickets') loadTicketsAdmin();
+            switchAdminTab(t.getAttribute('data-tab'));
         });
     });
 
@@ -3898,7 +3891,7 @@
     document.getElementById('refresh-btn').addEventListener('click', function () {
         refreshTournamentSelect().then(function () {
             loadAll();
-            loadSiteStatus();
+            if (state.tab === 'tournaments') loadSiteStatus();
             if (state.tab === 'bracket') loadBracketView();
         });
     });
@@ -3995,18 +3988,24 @@
     try {
         var qTab = new URLSearchParams(window.location.search).get('tab');
         if (qTab === 'torneos' || qTab === 'tournaments') {
-            activateTournamentsTab();
+            switchAdminTab('tournaments');
+        } else if (qTab === 'teams' || qTab === 'equipos') {
+            switchAdminTab('teams');
+        } else if (qTab === 'vital-info' || qTab === 'jugadores') {
+            switchAdminTab('vital-info');
+        } else {
+            switchAdminTab('vital-info');
         }
     } catch (e3) {}
 
     refreshTournamentSelect()
         .then(function () {
             loadAll();
-            loadSiteStatus();
+            if (state.tab === 'tournaments') loadSiteStatus();
         })
         .catch(function () {
             loadAll();
-            loadSiteStatus();
+            if (state.tab === 'tournaments') loadSiteStatus();
         });
 })();
 </script>
