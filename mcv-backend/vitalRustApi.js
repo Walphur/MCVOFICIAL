@@ -2,7 +2,14 @@
 
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
-const { computeTierScoresForRoster, getTierScoreConfig, listTierScoreConfigs } = require("./vitalScoreTiers");
+const {
+    computeTierScoresForRoster,
+    getTierScoreConfig,
+    listTierScoreConfigs,
+    listExtraPointCatalog,
+    resolveTierScoreConfig,
+    roundScore
+} = require("./vitalScoreTiers");
 
 /**
  * serverId según orden en vitalrust.com/statistics (EU 10x = 1 confirmado en DevTools).
@@ -763,6 +770,16 @@ CREATE TABLE IF NOT EXISTS player_info_role_links (
 CREATE INDEX IF NOT EXISTS idx_player_info_role_links_role ON player_info_role_links (role_name);
 `;
 
+const PLAYER_EXTRA_POINT_LINKS_SQL = `
+CREATE TABLE IF NOT EXISTS player_extra_point_links (
+    steam_id64 VARCHAR(17) NOT NULL,
+    extra_key VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (steam_id64, extra_key)
+);
+CREATE INDEX IF NOT EXISTS idx_player_extra_point_links_key ON player_extra_point_links (extra_key);
+`;
+
 const PLAYER_SCORE_EVENTS_SQL = `
 CREATE TABLE IF NOT EXISTS player_score_events (
     id SERIAL PRIMARY KEY,
@@ -794,7 +811,7 @@ function normalizePerformanceScore(raw) {
     if (!Number.isFinite(n)) {
         return 0;
     }
-    return Math.max(-99999, Math.min(99999, Math.round(n)));
+    return Math.max(-99999, Math.min(99999, roundScore(n)));
 }
 
 async function ensureVitalRolesTable(pool) {
@@ -825,6 +842,9 @@ async function ensureScoreEventsTable(pool) {
     }
     try {
         await pool.query(PLAYER_SCORE_EVENTS_SQL);
+        await pool.query(`ALTER TABLE player_score_events ALTER COLUMN delta TYPE NUMERIC(10,2) USING delta::numeric`).catch(() => {});
+        await pool.query(`ALTER TABLE player_score_events ALTER COLUMN balance_after TYPE NUMERIC(12,2) USING balance_after::numeric`).catch(() => {});
+        await pool.query(`ALTER TABLE player_info_profiles ALTER COLUMN performance_score TYPE NUMERIC(12,2) USING performance_score::numeric`).catch(() => {});
         return true;
     } catch (e) {
         console.error("ensure player_score_events:", e.message);
@@ -854,6 +874,63 @@ async function ensurePlayerRoleLinksTable(pool) {
         console.error("ensure player_info_role_links:", e.message);
         return false;
     }
+}
+
+async function ensurePlayerExtraPointLinksTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(PLAYER_EXTRA_POINT_LINKS_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure player_extra_point_links:", e.message);
+        return false;
+    }
+}
+
+async function loadExtraPointKeysMap(pool, steamIds) {
+    const map = new Map();
+    if (!pool || !steamIds.length) {
+        return map;
+    }
+    await ensurePlayerExtraPointLinksTable(pool);
+    try {
+        const r = await pool.query(
+            `SELECT steam_id64, extra_key FROM player_extra_point_links
+             WHERE steam_id64 = ANY($1::varchar[])
+             ORDER BY extra_key ASC`,
+            [steamIds]
+        );
+        for (const row of r.rows) {
+            const sid = normalizeSteamId64(row.steam_id64);
+            if (!sid) continue;
+            if (!map.has(sid)) {
+                map.set(sid, []);
+            }
+            map.get(sid).push(String(row.extra_key || "").trim());
+        }
+    } catch (e) {
+        console.warn("loadExtraPointKeysMap:", e.message);
+    }
+    return map;
+}
+
+async function syncPlayerExtraPointLinks(pool, steamId64, extraKeys) {
+    await ensurePlayerExtraPointLinksTable(pool);
+    const catalog = new Set(listExtraPointCatalog().map((e) => e.key));
+    const keys = [...new Set((Array.isArray(extraKeys) ? extraKeys : []).map((k) => String(k || "").trim()).filter(Boolean))].filter((k) =>
+        catalog.has(k)
+    );
+    await pool.query(`DELETE FROM player_extra_point_links WHERE steam_id64 = $1`, [steamId64]);
+    for (const key of keys) {
+        await pool.query(
+            `INSERT INTO player_extra_point_links (steam_id64, extra_key) VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [steamId64, key.slice(0, 64)]
+        );
+    }
+    return keys;
 }
 
 async function loadRoleLabelsMap(pool, steamIds) {
@@ -934,11 +1011,11 @@ async function applyPlayerScoreDelta(pool, steamId64, delta, reason, category) {
         `INSERT INTO player_score_events (steam_id64, delta, reason, category, balance_after)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id, steam_id64, delta, reason, category, balance_after, created_at`,
-        [steamId64, Math.round(d), note || null, cat, next]
+        [steamId64, roundScore(d), note || null, cat, next]
     );
     return {
         steamId64,
-        delta: Math.round(d),
+        delta: roundScore(d),
         balanceBefore: prev,
         balanceAfter: next,
         event: ins.rows[0]
@@ -947,7 +1024,7 @@ async function applyPlayerScoreDelta(pool, steamId64, delta, reason, category) {
 
 async function recalcPlayerPerformanceScore(pool, steamId64) {
     const sum = await pool.query(
-        `SELECT COALESCE(SUM(delta), 0)::int AS total FROM player_score_events WHERE steam_id64 = $1`,
+        `SELECT COALESCE(SUM(delta), 0)::numeric AS total FROM player_score_events WHERE steam_id64 = $1`,
         [steamId64]
     );
     const total = normalizePerformanceScore(sum.rows[0]?.total);
@@ -963,12 +1040,17 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
     await ensureScoreEventsTable(pool);
     let applied = 0;
     let skipped = 0;
-    const label = String(serverLabel || tierResult.serverLabel || "Vital").trim();
+    let skippedNoWipe = 0;
+    const label = String(serverLabel || tierResult.periodLabel || tierResult.configLabel || "Vital").trim();
 
     for (const player of tierResult.players || []) {
         const steamId64 = normalizeSteamId64(player.steamId64);
         if (!steamId64) {
             skipped += 1;
+            continue;
+        }
+        if (player.skipped) {
+            skippedNoWipe += 1;
             continue;
         }
         const exists = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
@@ -980,7 +1062,7 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
         await pool.query(`DELETE FROM player_score_events WHERE steam_id64 = $1 AND category LIKE 'tier_%'`, [steamId64]);
 
         const manualSum = await pool.query(
-            `SELECT COALESCE(SUM(delta), 0)::int AS total FROM player_score_events WHERE steam_id64 = $1`,
+            `SELECT COALESCE(SUM(delta), 0)::numeric AS total FROM player_score_events WHERE steam_id64 = $1`,
             [steamId64]
         );
         let balance = normalizePerformanceScore(manualSum.rows[0]?.total);
@@ -998,11 +1080,11 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
                       : "";
             const reason = `${line.label}${rawNote} · ${label}`;
             const category = `tier_${String(line.id || "misc").slice(0, 28)}`;
-            balance = normalizePerformanceScore(balance + Math.round(pts));
+            balance = normalizePerformanceScore(balance + pts);
             await pool.query(
                 `INSERT INTO player_score_events (steam_id64, delta, reason, category, balance_after)
                  VALUES ($1, $2, $3, $4, $5)`,
-                [steamId64, Math.round(pts), reason.slice(0, 500), category, balance]
+                [steamId64, roundScore(pts), reason.slice(0, 500), category, balance]
             );
         }
 
@@ -1013,7 +1095,14 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
         applied += 1;
     }
 
-    return { applied, skipped, serverKey: tierResult.serverKey, serverLabel: label };
+    return {
+        applied,
+        skipped,
+        skippedNoWipe,
+        serverKey: tierResult.serverKey,
+        configKey: tierResult.configKey,
+        serverLabel: label
+    };
 }
 
 async function resetPlayerScore(pool, steamId64) {
@@ -1799,7 +1888,7 @@ function registerVitalRustApi(app, { getPool }) {
             }
             const steamId64 = normalizeSteamId64(del.rows[0].steam_id64);
             const sum = await pool.query(
-                `SELECT COALESCE(SUM(delta), 0)::int AS total FROM player_score_events WHERE steam_id64 = $1`,
+                `SELECT COALESCE(SUM(delta), 0)::numeric AS total FROM player_score_events WHERE steam_id64 = $1`,
                 [steamId64]
             );
             const total = normalizePerformanceScore(sum.rows[0]?.total);
@@ -1865,13 +1954,63 @@ function registerVitalRustApi(app, { getPool }) {
     app.get("/api/admin/vital/tier-score-config", authAdmin, (req, res) => {
         const serverKey = String(req.query.server || "").trim();
         if (serverKey) {
-            const cfg = getTierScoreConfig(serverKey);
+            const resolved = resolveTierScoreConfig({ serverKey, at: new Date() });
+            const cfg = listTierScoreConfigs().find((c) => c.key === resolved.configKey);
             if (!cfg) {
                 return res.status(400).json({ error: "Servidor inválido (eu-medium o eu-monthly)" });
             }
-            return res.json({ config: listTierScoreConfigs().find((c) => c.key === cfg.key) });
+            return res.json({
+                config: cfg,
+                resolved: {
+                    serverKey: resolved.serverKey,
+                    configKey: resolved.configKey,
+                    configLabel: resolved.config.label,
+                    period: resolved.period,
+                    periodLabel: resolved.label,
+                    at: resolved.at
+                }
+            });
         }
         return res.json({ configs: listTierScoreConfigs() });
+    });
+
+    app.get("/api/admin/vital/extra-points-catalog", authAdmin, (req, res) => {
+        return res.json({ catalog: listExtraPointCatalog() });
+    });
+
+    app.get("/api/admin/vital/player-info/:steamId64/extra-points", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        try {
+            const map = await loadExtraPointKeysMap(pool, [steamId64]);
+            return res.json({ steamId64, extraKeys: map.get(steamId64) || [] });
+        } catch (e) {
+            console.error("extra-points get:", e.message);
+            return res.status(500).json({ error: e.message || "Error al leer extras" });
+        }
+    });
+
+    app.put("/api/admin/vital/player-info/:steamId64/extra-points", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const extraKeys = Array.isArray(body.extraKeys) ? body.extraKeys : [];
+        try {
+            await ensurePlayerInfoTable(pool);
+            const exists = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+            if (!exists.rowCount) {
+                return res.status(404).json({ error: "Jugador no encontrado en Info jugadores" });
+            }
+            const saved = await syncPlayerExtraPointLinks(pool, steamId64, extraKeys);
+            return res.json({ ok: true, steamId64, extraKeys: saved });
+        } catch (e) {
+            console.error("extra-points put:", e.message);
+            return res.status(500).json({ error: e.message || "Error al guardar extras" });
+        }
     });
 
     app.get("/api/admin/vital/player-info", authAdmin, async (req, res) => {
@@ -1904,12 +2043,17 @@ function registerVitalRustApi(app, { getPool }) {
                 pool,
                 profiles.map((p) => p.steamId64)
             );
+            const extraMap = await loadExtraPointKeysMap(
+                pool,
+                profiles.map((p) => p.steamId64)
+            );
             profiles.forEach((p) => {
                 const extra = roleMap.get(p.steamId64);
                 if (extra && extra.length) {
                     p.roleLabels = extra;
                     p.roleLabel = extra.join(", ");
                 }
+                p.extraKeys = extraMap.get(p.steamId64) || [];
             });
             return res.json({ profiles });
         } catch (e) {
@@ -2288,18 +2432,16 @@ function registerVitalRustApi(app, { getPool }) {
         }
     }
 
-    async function fetchTierScoresPayload({ serverKey, wipeIdRaw, refresh }) {
+    async function fetchTierScoresPayload({ serverKey, wipeIdRaw, refresh, at }) {
         if (!vitalEnabled()) {
             throw new Error("Vital API deshabilitada");
-        }
-        const tierConfig = getTierScoreConfig(serverKey);
-        if (!tierConfig) {
-            throw new Error("Servidor inválido para tiers (eu-medium o eu-monthly)");
         }
         const server = resolveServer(serverKey);
         if (!server?.configured) {
             throw new Error("Servidor Vital inválido o sin serverId");
         }
+        const scoredAt = at instanceof Date && !Number.isNaN(at.getTime()) ? at : new Date();
+        const resolved = resolveTierScoreConfig({ serverKey: server.key, at: scoredAt });
         const paths = apiPaths();
         if (!paths.playersOverviewPost) {
             throw new Error("Sin VITAL_API_PLAYERS_OVERVIEW_POST");
@@ -2317,7 +2459,7 @@ function registerVitalRustApi(app, { getPool }) {
                 rosterSize: 0,
                 vitalMatched: 0,
                 notFound: [],
-                tierResult: computeTierScoresForRoster({ serverKey, players: [] })
+                tierResult: computeTierScoresForRoster({ serverKey: server.key, players: [], at: scoredAt })
             };
         }
         if (refresh) {
@@ -2345,22 +2487,22 @@ function registerVitalRustApi(app, { getPool }) {
                 .filter(Boolean)
                 .map((p) => [p.steamId64, p])
         );
-        const roleMap = await loadRoleLabelsMap(pool, [...profileMap.keys()]);
+        const extraMap = await loadExtraPointKeysMap(pool, [...profileMap.keys()]);
 
         const playersForScoring = [...profileMap.keys()].map((sid) => {
             const profile = profileMap.get(sid);
             const vital = bySteam.get(sid) || {};
-            const roleLabels = roleMap.get(sid) || profile.roleLabels || [];
+            const extraKeys = extraMap.get(sid) || profile.extraKeys || [];
             return {
                 steamId64: sid,
                 name: profile.displayName || vital.name || "",
                 vital,
                 profile,
-                roleLabels
+                extraKeys
             };
         });
 
-        const tierResult = computeTierScoresForRoster({ serverKey, players: playersForScoring });
+        const tierResult = computeTierScoresForRoster({ serverKey: server.key, players: playersForScoring, at: scoredAt });
 
         return {
             server,
@@ -2370,6 +2512,13 @@ function registerVitalRustApi(app, { getPool }) {
             scoredPlayers: playersForScoring.length,
             notFound,
             tierResult,
+            resolved: {
+                serverKey: resolved.serverKey,
+                configKey: resolved.configKey,
+                configLabel: resolved.config.label,
+                period: resolved.period,
+                periodLabel: resolved.label
+            },
             vitalCache: buildVitalCacheMeta()
         };
     }
@@ -2406,12 +2555,14 @@ function registerVitalRustApi(app, { getPool }) {
                 ok: true,
                 applied: applyResult.applied,
                 skipped: applyResult.skipped,
+                skippedNoWipe: applyResult.skippedNoWipe,
                 server: payload.server,
                 wipeId: payload.wipeId,
                 rosterSize: payload.rosterSize,
                 vitalMatched: payload.vitalMatched,
                 scoredPlayers: payload.scoredPlayers,
                 notFound: payload.notFound,
+                resolved: payload.resolved,
                 tierResult: payload.tierResult,
                 vitalCache: payload.vitalCache
             });

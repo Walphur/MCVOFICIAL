@@ -1,164 +1,184 @@
 "use strict";
 
-/**
- * Sistema de puntos por tiers (referencia clan Medium).
- * EU Medium usa umbrales del wipe corto; EU Monthly escala umbrales y magnitud de puntos.
- */
+const { resolveTierConfigKey } = require("./vitalWipeCalendar");
 
-function tierRow(points, min) {
-    return { points, min };
-}
+const TIER_RANKS = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
 
-const MEDIUM_TIER_POINTS = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
-
-function buildThresholdTiers(thresholds, pointScale = 1) {
-    return thresholds.map((min, i) => ({
-        min,
-        points: Math.round(MEDIUM_TIER_POINTS[i] * pointScale)
+function tiersFromMins(mins, pointRanks = TIER_RANKS) {
+    return mins.map((min, i) => ({
+        min: min === undefined || min === null || min === "-" ? (i === 0 ? 0 : Infinity) : min,
+        points: pointRanks[i] ?? 0
     }));
 }
 
-function scaleThresholds(values, factor) {
-    return values.map((v) => (v <= 0 ? v : Math.round(v * factor)));
+function buildStandardTiers(mins) {
+    const normalized = mins.map((m) => (m === Infinity || m === "Leader" || m === "Builder" ? Infinity : Number(m)));
+    return tiersFromMins(normalized);
 }
 
-/** Madera: sin penalización bajo 300k; solo suma desde ahí (Medium). */
-const WOOD_POSITIVE_TIER_MINS = [0, 300000, 500000, 750000, 2000000, 10000000, Infinity];
-const WOOD_POSITIVE_TIER_POINTS = [0, 0, 1, 2, 3, 4, 5];
-
-function buildWoodPositiveTiers(thresholdFactor = 1, pointScale = 1) {
-    return WOOD_POSITIVE_TIER_MINS.map((min, i) => ({
-        min: min === Infinity ? Infinity : min === 0 ? 0 : Math.round(min * thresholdFactor),
-        points: Math.round(WOOD_POSITIVE_TIER_POINTS[i] * pointScale)
-    }));
+function buildWoodMediumTiers() {
+    return [
+        { points: 0, min: 0 },
+        { points: 1, min: 500000 },
+        { points: 2, min: 750000 },
+        { points: 3, min: 2000000 },
+        { points: 4, min: 10000000 },
+        { points: 5, min: Infinity }
+    ];
 }
+
+function buildWoodMonthlyTiers() {
+    return [
+        { points: 0, min: 0 },
+        { points: 0, min: 500000 },
+        { points: 1, min: 750000 },
+        { points: 2, min: 1500000 },
+        { points: 3, min: 4000000 },
+        { points: 4, min: 15000000 },
+        { points: 5, min: Infinity }
+    ];
+}
+
+function buildBuildingMediumTiers() {
+    return [
+        { points: 0, min: 0 },
+        { points: 1, min: 1000 },
+        { points: 2, min: 1500 },
+        { points: 3, min: 3000 },
+        { points: 4, min: 10000 },
+        { points: 5, min: Infinity }
+    ];
+}
+
+function buildBuildingMonthlyTiers() {
+    return [
+        { points: 0, min: 0 },
+        { points: -2, min: 1500 },
+        { points: -1, min: 3000 },
+        { points: 0, min: 6000 },
+        { points: 1, min: 15000 },
+        { points: 5, min: Infinity }
+    ];
+}
+
+/** Extras manuales (admin toggles) — no se infieren de roles. */
+const EXTRA_POINT_CATALOG = [
+    { key: "nothing", label: "NOTHING", points: 0 },
+    { key: "locker", label: "LOCKER", points: 2 },
+    { key: "externals_turret", label: "EXTERNALS+TURRET", points: 4 },
+    { key: "elec_windmill", label: "ELEC+WINDMILL", points: 4 },
+    { key: "furnace_cp", label: "FURNACE CP", points: 3 },
+    { key: "open_core", label: "OPEN CORE", points: 6 },
+    { key: "doors", label: "DOORS", points: 2 },
+    { key: "outpost_trade", label: "OUTPOST+TRADE", points: 2 },
+    { key: "autocrafter", label: "AUTOCRAFTER", points: 3 },
+    { key: "huerto", label: "HUERTERO", points: 6 },
+    { key: "crafter", label: "CRAFTER", points: 4 },
+    { key: "turret", label: "TURRET", points: 4 },
+    { key: "vending", label: "VENDING", points: 4 },
+    { key: "chupona", label: "CHUPONA", points: 2 },
+    { key: "romper_mini", label: "ROMPER MINI", points: -0.25 },
+    { key: "romper_combat", label: "ROMPER COMBAT", points: -0.5 },
+    { key: "volar_viajes", label: "VOLAR+VIAJES", points: 4 },
+    { key: "leeeech", label: "LEEEEECH", points: -3 }
+];
+
+const EXTRA_BY_KEY = Object.fromEntries(EXTRA_POINT_CATALOG.filter((e) => e.key !== "nothing").map((e) => [e.key, e]));
 
 const EU_MEDIUM_CONFIG = {
     key: "eu-medium",
     label: "EU Medium 2x",
-    pointScale: 1,
     categories: {
         killsT30: {
             label: "T3 Kills",
             leaderTier: true,
-            tiers: buildThresholdTiers([0, 10, 15, 20, 30, 40, 60, 80, Infinity])
+            tiers: buildStandardTiers([0, 10, 15, 20, 30, 40, 60, 80, Infinity])
         },
         kdr: {
             label: "K/D",
             leaderTier: false,
-            tiers: buildThresholdTiers([0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, Infinity])
+            tiers: buildStandardTiers([0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, Infinity])
         },
         hours: {
             label: "Horas",
             leaderTier: false,
-            tiers: buildThresholdTiers([0, 10, 15, 25, 30, 35, 45, 55, Infinity])
+            tiers: buildStandardTiers([0, 10, 15, 25, 30, 35, 45, 55, Infinity])
         },
         farmWood: {
             label: "Wood",
             leaderTier: true,
-            leaderMin: 300000,
-            tiers: buildWoodPositiveTiers(1, 1)
+            leaderMin: 500000,
+            tiers: buildWoodMediumTiers()
         },
         farmMetal: {
             label: "Metal",
             leaderTier: true,
-            tiers: buildThresholdTiers([0, 50000, 75000, 100000, 150000, 200000, 350000, 500000, Infinity])
+            tiers: buildStandardTiers([0, 100000, 150000, 200000, 300000, 400000, 600000, 800000, Infinity])
         },
         farmSulfur: {
             label: "Sulfur",
             leaderTier: true,
-            tiers: buildThresholdTiers([0, 50000, 75000, 100000, 150000, 200000, 350000, 500000, Infinity])
+            tiers: buildStandardTiers([0, 50000, 75000, 150000, 200000, 300000, 400000, 500000, Infinity])
         },
         scrapLooted: {
             label: "Scrap",
             leaderTier: true,
-            tiers: buildThresholdTiers([0, 25000, 50000, 75000, 100000, 150000, 250000, 500000, Infinity])
+            tiers: buildStandardTiers([0, 1000, 2000, 2500, 4000, 6000, 8000, 10000, Infinity])
         },
         building: {
             label: "Building",
             leaderTier: "builder",
-            tiers: [
-                { points: 0, min: 0 },
-                { points: 1, min: 1000 },
-                { points: 2, min: 1500 },
-                { points: 3, min: 3000 },
-                { points: 4, min: 10000 },
-                { points: 5, min: Infinity }
-            ]
+            tiers: buildBuildingMediumTiers()
         }
-    },
-    extraRoles: [
-        { label: "ELEC+WINDMILL", points: 6, patterns: [/elec/i, /windmill/i] },
-        { label: "OC", points: 6, patterns: [/huerto/i, /\boc\b/i, /outpost/i, /vending/i] },
-        { label: "FARMBASE", points: 6, patterns: [/main farmers/i, /farmbase/i, /farm base/i] },
-        { label: "TC SPAM", points: 4, patterns: [/tc spam/i, /builders/i, /raid base/i] },
-        { label: "TURRET/TCS", points: 4, patterns: [/turret/i, /tcs/i] },
-        { label: "CRAFTER", points: 4, patterns: [/\bcrafter\b/i], exclude: [/autocrafter/i] },
-        { label: "FURNACE CP", points: 3, patterns: [/furnace/i] },
-        { label: "AUTOCRAFTER", points: 3, patterns: [/autocrafter/i] },
-        { label: "LOCKER", points: 2, patterns: [/locker/i, /base bitch/i] },
-        { label: "DOORS", points: 2, patterns: [/doors/i, /door/i] },
-        { label: "TRADE", points: 2, patterns: [/trade/i] },
-        { label: "LEEECH", points: -3, patterns: [/leee?ch/i] }
-    ]
-};
-
-/**
- * Monthly: wipe más largo → umbrales más altos, mismos puntos por tier que Medium
- * (evita totales excesivos por escala 1.5× en negativos y extras).
- */
-const MONTHLY_THRESHOLD_FACTOR = 3;
-const MONTHLY_POINT_SCALE = 1;
-
-function cloneCategoryTiers(baseCats, thresholdFactor, pointScale) {
-    const out = {};
-    for (const [key, cat] of Object.entries(baseCats)) {
-        if (key === "kdr") {
-            out[key] = {
-                label: cat.label,
-                leaderTier: cat.leaderTier,
-                tiers: cat.tiers.map((t) => ({ ...t, points: Math.round(t.points * pointScale) }))
-            };
-            continue;
-        }
-        if (key === "building") {
-            out[key] = {
-                label: cat.label,
-                leaderTier: cat.leaderTier,
-                tiers: cat.tiers.map((t, i) => ({
-                    min: i === 0 ? 0 : Math.round(t.min * thresholdFactor),
-                    points: Math.round(t.points * pointScale)
-                }))
-            };
-            out[key].tiers[out[key].tiers.length - 1].min = Infinity;
-            continue;
-        }
-        if (key === "farmWood") {
-            out[key] = {
-                label: cat.label,
-                leaderTier: cat.leaderTier,
-                leaderMin: Math.round((cat.leaderMin ?? 300000) * thresholdFactor),
-                tiers: buildWoodPositiveTiers(thresholdFactor, pointScale)
-            };
-            continue;
-        }
-        const mins = cat.tiers.map((t) => t.min);
-        const scaled = scaleThresholds(mins.slice(0, -1), thresholdFactor).concat([Infinity]);
-        out[key] = {
-            label: cat.label,
-            leaderTier: cat.leaderTier,
-            tiers: buildThresholdTiers(scaled, pointScale)
-        };
     }
-    return out;
-}
+};
 
 const EU_MONTHLY_CONFIG = {
     key: "eu-monthly",
     label: "EU Monthly 2x",
-    pointScale: MONTHLY_POINT_SCALE,
-    categories: cloneCategoryTiers(EU_MEDIUM_CONFIG.categories, MONTHLY_THRESHOLD_FACTOR, MONTHLY_POINT_SCALE),
-    extraRoles: EU_MEDIUM_CONFIG.extraRoles.map((r) => ({ ...r }))
+    categories: {
+        killsT30: {
+            label: "T3 Kills",
+            leaderTier: true,
+            tiers: buildStandardTiers([0, 20, 30, 40, 60, 80, 120, 160, Infinity])
+        },
+        kdr: {
+            label: "K/D",
+            leaderTier: false,
+            tiers: buildStandardTiers([0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, Infinity])
+        },
+        hours: {
+            label: "Horas",
+            leaderTier: false,
+            tiers: buildStandardTiers([0, 20, 30, 50, 60, 70, 85, 100, Infinity])
+        },
+        farmWood: {
+            label: "Wood",
+            leaderTier: true,
+            leaderMin: 500000,
+            tiers: buildWoodMonthlyTiers()
+        },
+        farmMetal: {
+            label: "Metal",
+            leaderTier: true,
+            tiers: buildStandardTiers([0, 150000, 350000, 650000, 850000, 1000000, 1300000, 1700000, Infinity])
+        },
+        farmSulfur: {
+            label: "Sulfur",
+            leaderTier: true,
+            tiers: buildStandardTiers([0, 100000, 250000, 400000, 600000, 700000, 900000, 1100000, Infinity])
+        },
+        scrapLooted: {
+            label: "Scrap",
+            leaderTier: true,
+            tiers: buildStandardTiers([0, 2000, 3500, 5000, 7000, 8500, 10000, 15000, Infinity])
+        },
+        building: {
+            label: "Building",
+            leaderTier: "builder",
+            tiers: buildBuildingMonthlyTiers()
+        }
+    }
 };
 
 const CONFIG_BY_KEY = {
@@ -166,29 +186,45 @@ const CONFIG_BY_KEY = {
     "eu-monthly": EU_MONTHLY_CONFIG
 };
 
-function getTierScoreConfig(serverKey) {
-    const key = String(serverKey || "eu-medium").trim();
+function getTierScoreConfig(configKey) {
+    const key = String(configKey || "eu-medium").trim();
     return CONFIG_BY_KEY[key] || null;
+}
+
+function resolveTierScoreConfig({ serverKey, at = new Date() }) {
+    const resolved = resolveTierConfigKey({ serverKey, at });
+    const config = getTierScoreConfig(resolved.configKey);
+    if (!config) {
+        throw new Error("Config de tiers inválida");
+    }
+    return { ...resolved, config };
 }
 
 function listTierScoreConfigs() {
     return Object.values(CONFIG_BY_KEY).map((c) => ({
         key: c.key,
         label: c.label,
-        pointScale: c.pointScale,
         categories: Object.entries(c.categories).map(([id, cat]) => ({
             id,
             label: cat.label,
             leaderTier: cat.leaderTier,
             tiers: cat.tiers.filter((t) => Number.isFinite(t.min) && t.min !== Infinity)
         })),
-        extraRoles: c.extraRoles.map((r) => ({ label: r.label, points: r.points }))
+        extraPoints: EXTRA_POINT_CATALOG.filter((e) => e.key !== "nothing")
     }));
+}
+
+function listExtraPointCatalog() {
+    return EXTRA_POINT_CATALOG.filter((e) => e.key !== "nothing");
 }
 
 function num(raw) {
     const n = Number(raw);
     return Number.isFinite(n) ? n : 0;
+}
+
+function roundScore(n) {
+    return Math.round(num(n) * 100) / 100;
 }
 
 function scoreFromTiers(value, tiers) {
@@ -240,12 +276,12 @@ function buildRosterLeaders(entries, config) {
     return leaders;
 }
 
-function leaderPointsForCategory(cat, config) {
+function leaderPointsForCategory(cat) {
     const topTier = cat.tiers[cat.tiers.length - 1];
-    return topTier ? topTier.points : Math.round(5 * (config.pointScale || 1));
+    return topTier ? topTier.points : 5;
 }
 
-function scoreCategory(catKey, cat, value, steamId64, leaders, config) {
+function scoreCategory(catKey, cat, value, steamId64, leaders) {
     const base = scoreFromTiers(value, cat.tiers);
     const leaderMin = Number(cat.leaderMin);
     const v = num(value);
@@ -253,36 +289,25 @@ function scoreCategory(catKey, cat, value, steamId64, leaders, config) {
         return base;
     }
     if (cat.leaderTier && leaders[catKey]?.has(steamId64)) {
-        const leaderPts = leaderPointsForCategory(cat, config);
-        return Math.max(base, leaderPts);
+        return Math.max(base, leaderPointsForCategory(cat));
     }
     return base;
 }
 
-function matchExtraRoleBonus(roleText, rule) {
-    const text = String(roleText || "");
-    if (!text) {
-        return false;
-    }
-    if (rule.exclude && rule.exclude.some((re) => re.test(text))) {
-        return false;
-    }
-    return rule.patterns.some((re) => re.test(text));
-}
-
-function computeExtraPoints(roleLabels, config) {
-    const roles = Array.isArray(roleLabels) ? roleLabels : [];
-    const combined = roles.join(" | ");
+function computeManualExtraPoints(extraKeys) {
+    const keys = Array.isArray(extraKeys) ? extraKeys : [];
     const hits = [];
     let total = 0;
-    for (const rule of config.extraRoles) {
-        const matched = roles.some((r) => matchExtraRoleBonus(r, rule)) || matchExtraRoleBonus(combined, rule);
-        if (matched) {
-            hits.push({ label: rule.label, points: rule.points });
-            total += rule.points;
+    for (const raw of keys) {
+        const key = String(raw || "").trim();
+        const item = EXTRA_BY_KEY[key];
+        if (!item || item.points === 0) {
+            continue;
         }
+        hits.push({ key: item.key, label: item.label, points: item.points });
+        total += item.points;
     }
-    return { total, hits };
+    return { total: roundScore(total), hits };
 }
 
 function extractPlayerValues(vitalPlayer, profile) {
@@ -298,92 +323,120 @@ function extractPlayerValues(vitalPlayer, profile) {
     };
 }
 
-/**
- * Calcula puntos por tiers para todo el roster.
- * @param {object} opts
- * @param {string} opts.serverKey
- * @param {Array<{steamId64:string,vital?:object,profile?:object,roleLabels?:string[]}>} opts.players
- */
-function computeTierScoresForRoster({ serverKey, players }) {
-    const config = getTierScoreConfig(serverKey);
-    if (!config) {
-        throw new Error("Servidor de tiers inválido (usá eu-medium o eu-monthly)");
+function shouldScorePlayerProfile(profile) {
+    if (!profile) {
+        return false;
     }
+    const paused = Boolean(profile.pausedOutsideWipe ?? profile.paused_outside_wipe);
+    const phase = String(profile.wipePhase ?? profile.wipe_phase ?? "").trim();
+    if (paused || phase === "no_juega") {
+        return false;
+    }
+    return true;
+}
+
+function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
+    const resolved = resolveTierScoreConfig({ serverKey, at });
+    const config = resolved.config;
     const entries = (players || [])
         .map((p) => {
             const steamId64 = String(p.steamId64 || "").trim();
             if (!steamId64) {
                 return null;
             }
+            const profile = p.profile || p;
+            const participates = p.participatesWipe != null ? Boolean(p.participatesWipe) : shouldScorePlayerProfile(profile);
             return {
                 steamId64,
-                name: String(p.name || p.displayName || p.profile?.displayName || "").trim(),
-                values: extractPlayerValues(p.vital || p, p.profile || p),
-                roleLabels: p.roleLabels || p.profile?.roleLabels || []
+                name: String(p.name || p.displayName || profile?.displayName || "").trim(),
+                values: extractPlayerValues(p.vital || p, profile),
+                extraKeys: p.extraKeys || profile?.extraKeys || [],
+                participatesWipe: participates
             };
         })
         .filter(Boolean);
 
-    const leaders = buildRosterLeaders(entries, config);
+    const scoringEntries = entries.filter((e) => e.participatesWipe);
+    const leaders = buildRosterLeaders(scoringEntries, config);
+
     const results = entries.map((entry) => {
+        if (!entry.participatesWipe) {
+            return {
+                steamId64: entry.steamId64,
+                name: entry.name,
+                total: 0,
+                statTotal: 0,
+                extraTotal: 0,
+                skipped: true,
+                skipReason: "no_juega_wipe",
+                breakdown: [],
+                values: entry.values,
+                extraKeys: entry.extraKeys
+            };
+        }
+
         const breakdown = [];
         let statTotal = 0;
         for (const [catKey, cat] of Object.entries(config.categories)) {
             const raw = entry.values[catKey];
-            const pts = scoreCategory(catKey, cat, raw, entry.steamId64, leaders, config);
+            const pts = scoreCategory(catKey, cat, raw, entry.steamId64, leaders);
             const isLeader = Boolean(cat.leaderTier && leaders[catKey]?.has(entry.steamId64));
-            breakdown.push({
-                id: catKey,
-                label: cat.label,
-                raw,
-                points: pts,
-                isLeader
-            });
+            breakdown.push({ id: catKey, label: cat.label, raw, points: pts, isLeader });
             statTotal += pts;
         }
-        const extra = computeExtraPoints(entry.roleLabels, config);
-        if (extra.hits.length) {
-            for (const hit of extra.hits) {
-                breakdown.push({
-                    id: "extra_" + hit.label.replace(/\W+/g, "_").toLowerCase(),
-                    label: "Extra: " + hit.label,
-                    raw: null,
-                    points: hit.points,
-                    isLeader: false
-                });
-            }
+        const extra = computeManualExtraPoints(entry.extraKeys);
+        for (const hit of extra.hits) {
+            breakdown.push({
+                id: "extra_" + hit.key,
+                label: "Extra: " + hit.label,
+                raw: null,
+                points: hit.points,
+                isLeader: false
+            });
         }
-        const total = statTotal + extra.total;
+        const total = roundScore(statTotal + extra.total);
         return {
             steamId64: entry.steamId64,
             name: entry.name,
             total,
             statTotal,
             extraTotal: extra.total,
+            skipped: false,
             breakdown,
             values: entry.values,
-            roleLabels: entry.roleLabels
+            extraKeys: entry.extraKeys
         };
     });
 
     results.sort((a, b) => b.total - a.total || b.statTotal - a.statTotal || a.name.localeCompare(b.name));
 
     return {
-        serverKey: config.key,
-        serverLabel: config.label,
-        pointScale: config.pointScale,
+        serverKey: resolved.serverKey,
+        configKey: resolved.configKey,
+        configLabel: config.label,
+        period: resolved.period,
+        periodLabel: resolved.label,
+        serverLabel: resolved.label,
+        scoredAt: at.toISOString(),
         players: results
     };
 }
 
 module.exports = {
     getTierScoreConfig,
+    resolveTierScoreConfig,
+    resolveTierConfigKey,
     listTierScoreConfigs,
+    listExtraPointCatalog,
+    EXTRA_POINT_CATALOG,
+    EXTRA_BY_KEY,
     computeTierScoresForRoster,
+    computeManualExtraPoints,
     scoreFromTiers,
     buildRosterLeaders,
-    computeExtraPoints,
     extractPlayerValues,
+    shouldScorePlayerProfile,
+    roundScore,
     EU_MEDIUM_CONFIG,
     EU_MONTHLY_CONFIG
 };

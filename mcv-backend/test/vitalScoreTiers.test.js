@@ -4,9 +4,10 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
     computeTierScoresForRoster,
+    computeManualExtraPoints,
     getTierScoreConfig,
     scoreFromTiers,
-    computeExtraPoints
+    shouldScorePlayerProfile
 } = require("../vitalScoreTiers");
 
 test("scoreFromTiers asigna el tier más alto alcanzado", () => {
@@ -31,19 +32,19 @@ test("computeTierScoresForRoster marca líder en T3 kills (Medium)", () => {
                 name: "Alpha",
                 vital: { killsT30: 80, kdr: 2, farmWood: 500000 },
                 profile: { hoursPlayed: 40 },
-                roleLabels: ["ELEC"]
+                extraKeys: ["locker"]
             },
             {
                 steamId64: "76561198000000002",
                 name: "Beta",
                 vital: { killsT30: 30, kdr: 1, farmWood: 100000 },
                 profile: { hoursPlayed: 30 },
-                roleLabels: []
+                extraKeys: []
             }
         ]
     });
 
-    assert.equal(result.serverKey, "eu-medium");
+    assert.equal(result.configKey, "eu-medium");
     const alpha = result.players.find((p) => p.steamId64.endsWith("001"));
     const beta = result.players.find((p) => p.steamId64.endsWith("002"));
     assert.ok(alpha.total > beta.total);
@@ -52,46 +53,43 @@ test("computeTierScoresForRoster marca líder en T3 kills (Medium)", () => {
     assert.equal(alphaKills.isLeader, true);
 });
 
-test("computeExtraPoints suma bonos por rol", () => {
-    const cfg = getTierScoreConfig("eu-medium");
-    const extra = computeExtraPoints(["ELEC", "MAIN FARMERS"], cfg);
-    assert.ok(extra.total >= 12);
-    assert.ok(extra.hits.some((h) => h.label === "ELEC+WINDMILL"));
+test("computeManualExtraPoints suma extras marcados por admin", () => {
+    const extra = computeManualExtraPoints(["locker", "open_core", "romper_mini"]);
+    assert.equal(extra.total, 7.75);
+    assert.ok(extra.hits.some((h) => h.label === "LOCKER"));
+    assert.ok(extra.hits.some((h) => h.label === "OPEN CORE"));
 });
 
-test("Monthly escala umbrales sin inflar puntos", () => {
-    const monthlyCfg = getTierScoreConfig("eu-monthly");
-    assert.equal(monthlyCfg.pointScale, 1);
-    const medium = computeTierScoresForRoster({
+test("jugador no_juega no recibe puntos", () => {
+    const result = computeTierScoresForRoster({
         serverKey: "eu-medium",
         players: [
             {
-                steamId64: "76561198000000003",
-                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000, scrapLooted: 120000 },
-                profile: { hoursPlayed: 35 }
+                steamId64: "76561198000000005",
+                vital: { killsT30: 80, farmMetal: 500000 },
+                profile: { wipePhase: "no_juega", pausedOutsideWipe: true },
+                extraKeys: ["locker"]
             }
         ]
     });
-    const monthly = computeTierScoresForRoster({
-        serverKey: "eu-monthly",
-        players: [
-            {
-                steamId64: "76561198000000003",
-                vital: { killsT30: 40, kdr: 1.5, farmMetal: 200000, scrapLooted: 120000 },
-                profile: { hoursPlayed: 35 }
-            }
-        ]
-    });
-    assert.ok(monthly.players[0].breakdown.some((b) => b.id === "scrapLooted"));
-    assert.ok(Math.abs(monthly.players[0].total) <= Math.abs(medium.players[0].total) + 15);
+    const p = result.players[0];
+    assert.equal(p.skipped, true);
+    assert.equal(p.total, 0);
+    assert.equal(p.skipReason, "no_juega_wipe");
 });
 
-test("madera no resta puntos bajo 300k (Medium)", () => {
+test("shouldScorePlayerProfile respeta pausa y no_juega", () => {
+    assert.equal(shouldScorePlayerProfile({ wipePhase: "inicio" }), true);
+    assert.equal(shouldScorePlayerProfile({ wipePhase: "no_juega" }), false);
+    assert.equal(shouldScorePlayerProfile({ pausedOutsideWipe: true }), false);
+});
+
+test("madera no resta puntos bajo 500k (Medium)", () => {
     const cfg = getTierScoreConfig("eu-medium");
     const woodTiers = cfg.categories.farmWood.tiers;
     assert.equal(scoreFromTiers(0, woodTiers), 0);
     assert.equal(scoreFromTiers(150000, woodTiers), 0);
-    assert.equal(scoreFromTiers(299999, woodTiers), 0);
+    assert.equal(scoreFromTiers(499999, woodTiers), 0);
     assert.equal(scoreFromTiers(500000, woodTiers), 1);
     assert.equal(scoreFromTiers(10000000, woodTiers), 4);
 
@@ -107,4 +105,20 @@ test("madera no resta puntos bajo 300k (Medium)", () => {
     });
     const wood = result.players[0].breakdown.find((b) => b.id === "farmWood");
     assert.equal(wood.points, 0);
+});
+
+test("Monthly en rewipe usa tabla Medium", () => {
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-monthly",
+        at: new Date(2026, 4, 29, 12, 0, 0),
+        players: [
+            {
+                steamId64: "76561198000000006",
+                vital: { killsT30: 40, farmMetal: 200000 },
+                profile: { hoursPlayed: 35 }
+            }
+        ]
+    });
+    assert.equal(result.configKey, "eu-medium");
+    assert.equal(result.period, "monthly-rewipe");
 });
