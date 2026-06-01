@@ -25,6 +25,22 @@ ORDER BY
     LOWER(COALESCE(w.persona_name, w.discord_username, w.steam_id64)) ASC
 `;
 
+const PLAYER_STATS_SQL = `
+SELECT
+    w.discord_user_id,
+    w.discord_username,
+    w.persona_name,
+    w.steam_id64,
+    w.updated_at AS linked_at,
+    p.hours_played,
+    p.performance_score,
+    p.display_name AS info_name
+FROM wipe_list_members w
+LEFT JOIN player_info_profiles p ON p.steam_id64 = w.steam_id64
+WHERE w.discord_user_id = $1
+LIMIT 1
+`;
+
 function displayName(row) {
     const name =
         row.personaName ||
@@ -60,12 +76,8 @@ function formatPointsSuffix(row) {
     return ` · **${score} pts**`;
 }
 
-async function loadWipeHoursReport(pool) {
-    if (!pool) {
-        throw new Error("Base de datos no disponible");
-    }
-    const r = await pool.query(WIPE_REPORT_SQL, [`${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]);
-    const rows = (r.rows || []).map((row) => ({
+function mapWipePlayerRow(row) {
+    return {
         discordUserId: String(row.discord_user_id || ""),
         discordUsername: String(row.discord_username || ""),
         personaName: String(row.persona_name || ""),
@@ -74,7 +86,30 @@ async function loadWipeHoursReport(pool) {
         hoursPlayed: normalizeHours(row.hours_played),
         performanceScore: normalizeScore(row.performance_score),
         infoName: String(row.info_name || "")
-    }));
+    };
+}
+
+async function loadPlayerStatsForDiscord(pool, discordUserId) {
+    if (!pool) {
+        throw new Error("Base de datos no disponible");
+    }
+    const id = String(discordUserId || "").trim();
+    if (!id) {
+        return null;
+    }
+    const r = await pool.query(PLAYER_STATS_SQL, [id]);
+    if (!r.rows.length) {
+        return null;
+    }
+    return mapWipePlayerRow(r.rows[0]);
+}
+
+async function loadWipeHoursReport(pool) {
+    if (!pool) {
+        throw new Error("Base de datos no disponible");
+    }
+    const r = await pool.query(WIPE_REPORT_SQL, [`${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]);
+    const rows = (r.rows || []).map(mapWipePlayerRow);
     const withHours = rows.filter((row) => row.hoursPlayed != null && row.hoursPlayed > 0);
     const pendingHours = rows.filter((row) => row.hoursPlayed == null || row.hoursPlayed <= 0);
     const withPoints = rows.filter((row) => row.performanceScore !== 0);
@@ -263,6 +298,8 @@ function attachWipeReportDiscord(client, { getPool }) {
 
 module.exports = {
     loadWipeHoursReport,
+    loadPlayerStatsForDiscord,
+    displayName,
     buildWipeReportEmbeds,
     formatPlayerLine,
     buildMcReporteSlashCommand,
