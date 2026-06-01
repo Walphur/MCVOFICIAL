@@ -2800,6 +2800,42 @@ details.vital-extra-panel > :not(summary) {
     gap: 8px;
     margin-top: 8px;
 }
+.btn-danger-outline {
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    color: #fecaca !important;
+}
+.btn-danger-outline:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+}
+.vital-score-player-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.vital-score-player-actions .admin-form-hint {
+    margin: 0;
+    font-size: 0.78rem;
+}
+.vital-score-ev {
+    grid-template-columns: auto 1fr auto auto;
+}
+.vital-score-ev__del {
+    border: none;
+    background: transparent;
+    color: #fecaca;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 4px;
+}
+.vital-score-ev__del:hover {
+    color: #fff;
+}
+.vital-score-ev.is-reset .vital-score-ev__delta {
+    color: #93c5fd;
+}
 .vital-cache-meta {
     margin-top: 4px;
     color: rgba(255, 255, 255, 0.55);

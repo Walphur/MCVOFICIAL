@@ -944,6 +944,20 @@ async function applyPlayerScoreDelta(pool, steamId64, delta, reason, category) {
     };
 }
 
+async function resetPlayerScore(pool, steamId64) {
+    await ensurePlayerInfoTable(pool);
+    await ensureScoreEventsTable(pool);
+    const cur = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+    if (!cur.rowCount) {
+        throw new Error("Jugador no encontrado en Info jugadores");
+    }
+    await pool.query(`DELETE FROM player_score_events WHERE steam_id64 = $1`, [steamId64]);
+    await pool.query(`UPDATE player_info_profiles SET performance_score = 0, updated_at = NOW() WHERE steam_id64 = $1`, [
+        steamId64
+    ]);
+    return { steamId64, performanceScore: 0 };
+}
+
 function normalizePlayerInfoRow(row) {
     const steamId64 = normalizeSteamId64(row.steam_id64 || row.steamId64 || row.steamId);
     if (!steamId64) return null;
@@ -1669,6 +1683,110 @@ function registerVitalRustApi(app, { getPool }) {
             return res.status(e.message === "Jugador no encontrado en Info jugadores" ? 404 : 500).json({
                 error: e.message || "No se pudo ajustar puntos"
             });
+        }
+    });
+
+    app.post("/api/admin/vital/player-info/:steamId64/reset-score", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        try {
+            await resetPlayerScore(pool, steamId64);
+            const profile = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+            return res.json({
+                ok: true,
+                steamId64,
+                performanceScore: 0,
+                profile: profile.rowCount ? normalizePlayerInfoRow(profile.rows[0]) : null
+            });
+        } catch (e) {
+            console.error("vital reset player score:", e.message);
+            return res.status(e.message === "Jugador no encontrado en Info jugadores" ? 404 : 500).json({
+                error: e.message || "No se pudo reiniciar puntos"
+            });
+        }
+    });
+
+    app.delete("/api/admin/vital/score-events/:eventId", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const eventId = Number(req.params.eventId);
+        if (!Number.isFinite(eventId) || eventId < 1) {
+            return res.status(400).json({ error: "ID de movimiento inválido" });
+        }
+        try {
+            await ensureScoreEventsTable(pool);
+            const del = await pool.query(
+                `DELETE FROM player_score_events WHERE id = $1 RETURNING steam_id64`,
+                [eventId]
+            );
+            if (!del.rowCount) {
+                return res.status(404).json({ error: "Movimiento no encontrado" });
+            }
+            const steamId64 = normalizeSteamId64(del.rows[0].steam_id64);
+            const sum = await pool.query(
+                `SELECT COALESCE(SUM(delta), 0)::int AS total FROM player_score_events WHERE steam_id64 = $1`,
+                [steamId64]
+            );
+            const total = normalizePerformanceScore(sum.rows[0]?.total);
+            await pool.query(`UPDATE player_info_profiles SET performance_score = $2, updated_at = NOW() WHERE steam_id64 = $1`, [
+                steamId64,
+                total
+            ]);
+            const profile = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
+            return res.json({
+                ok: true,
+                steamId64,
+                performanceScore: total,
+                profile: profile.rowCount ? normalizePlayerInfoRow(profile.rows[0]) : null
+            });
+        } catch (e) {
+            console.error("vital delete score event:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo borrar el movimiento" });
+        }
+    });
+
+    app.post("/api/admin/vital/reset-all-scores", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar player_info_profiles" });
+        try {
+            await ensureScoreEventsTable(pool);
+            const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM player_info_profiles`);
+            await pool.query(`UPDATE player_info_profiles SET performance_score = 0, updated_at = NOW()`);
+            await pool.query(`DELETE FROM player_score_events`);
+            return res.json({
+                ok: true,
+                playersReset: countRes.rows[0]?.n || 0,
+                message: "Puntos reiniciados para todo el roster (nuevo wipe)."
+            });
+        } catch (e) {
+            console.error("vital reset all scores:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudieron reiniciar los puntos" });
+        }
+    });
+
+    app.post("/api/admin/vital/reset-all-hours", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const ready = await ensurePlayerInfoTable(pool);
+        if (!ready) return res.status(503).json({ error: "No se pudo preparar player_info_profiles" });
+        try {
+            const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM player_info_profiles`);
+            const r = await pool.query(
+                `UPDATE player_info_profiles SET hours_played = NULL, updated_at = NOW() RETURNING steam_id64`
+            );
+            return res.json({
+                ok: true,
+                playersReset: r.rowCount || countRes.rows[0]?.n || 0,
+                message: "Horas borradas para todo el roster (nuevo wipe)."
+            });
+        } catch (e) {
+            console.error("vital reset all hours:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudieron reiniciar las horas" });
         }
     });
 

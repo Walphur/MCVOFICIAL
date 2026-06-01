@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=36">
-    <meta name="mcv-admin-build" content="2026-05-28-multi-roles-layout-v1">
+    <meta name="mcv-admin-build" content="2026-05-28-wipe-reset-points-hours-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -304,6 +304,8 @@
                                     <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar CSV</button>
                                     <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
                                     <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
+                                    <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" title="Nuevo wipe: todos a 0 pts">Reiniciar puntos (todos)</button>
+                                    <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-hours-all" title="Nuevo wipe: borrar horas BM">Reiniciar horas (todos)</button>
                                 </div>
                             </div>
                             <div class="vital-member-toolbar">
@@ -434,6 +436,10 @@
                                             </header>
                                             <div class="vital-form-section__body">
                                                 <p class="vital-score-total"><span>Total</span>: <strong id="vital-score-total">0</strong> pts</p>
+                                                <div class="vital-score-player-actions">
+                                                    <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-score-player">Reiniciar puntos (este jugador)</button>
+                                                    <span class="admin-form-hint">El historial se puede borrar línea por línea con ×</span>
+                                                </div>
                                                 <div class="vital-score-presets" id="vital-score-presets">
                                                     <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="farm" data-reason="Farm bien">+10 Farm</button>
                                                     <button type="button" class="vital-score-btn is-plus" data-delta="10" data-cat="role" data-reason="Rol cumplido">+10 Rol</button>
@@ -2491,8 +2497,119 @@
                 '<span class="vital-score-ev__delta">' + esc(sign + String(ev.delta)) + '</span>' +
                 '<span class="vital-score-ev__body">' + esc(ev.reason || ev.category || '—') +
                 ' · <strong>' + esc(String(ev.balanceAfter)) + ' pts</strong></span>' +
-                '<time class="vital-score-ev__time">' + esc(String(ev.createdAt || '').slice(0, 16).replace('T', ' ')) + '</time></li>';
+                '<time class="vital-score-ev__time">' + esc(String(ev.createdAt || '').slice(0, 16).replace('T', ' ')) + '</time>' +
+                '<button type="button" class="vital-score-ev__del" data-score-del="' + escAttr(String(ev.id)) + '" title="Borrar movimiento">×</button>' +
+                '</li>';
         }).join('');
+        box.querySelectorAll('[data-score-del]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = btn.getAttribute('data-score-del');
+                if (!id || !confirm('¿Borrar este movimiento del historial? El total se recalcula solo.')) return;
+                deleteVitalScoreEvent(id).catch(function () {});
+            });
+        });
+    }
+
+    function deleteVitalScoreEvent(eventId) {
+        var sid = normalizeVitalSteamLocal(vitalSelectedSteam);
+        return fetch(API + '/api/admin/vital/score-events/' + encodeURIComponent(eventId), {
+            method: 'DELETE',
+            headers: authHeaders()
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'delete');
+                if (x.d.profile) {
+                    var idx = vitalInfoRows.findIndex(function (r) { return normalizeVitalSteamLocal(r.steamId64) === sid; });
+                    if (idx >= 0) vitalInfoRows[idx] = x.d.profile;
+                }
+                updateVitalScoreTotalDisplay(x.d.performanceScore);
+                renderVitalPlayerSummary();
+                renderVitalMemberStats();
+                renderVitalInfoList();
+                return loadVitalScoreEvents(sid);
+            })
+            .then(function () {
+                banner('Movimiento eliminado; puntos recalculados.', false);
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'No se pudo borrar', true);
+            });
+    }
+
+    function resetVitalScoreForPlayer() {
+        var sid = normalizeVitalSteamLocal(vitalSelectedSteam);
+        if (!sid) {
+            banner('Seleccioná un jugador.', true);
+            return Promise.resolve();
+        }
+        if (!confirm('¿Reiniciar puntos de este jugador a 0 y vaciar todo su historial?')) {
+            return Promise.resolve();
+        }
+        return fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid) + '/reset-score', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({ reason: 'Reinicio puntos — jugador' })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                if (x.d.profile) {
+                    var idx = vitalInfoRows.findIndex(function (r) { return normalizeVitalSteamLocal(r.steamId64) === sid; });
+                    if (idx >= 0) vitalInfoRows[idx] = x.d.profile;
+                }
+                updateVitalScoreTotalDisplay(0);
+                renderVitalPlayerSummary();
+                renderVitalMemberStats();
+                renderVitalInfoList();
+                return loadVitalScoreEvents(sid);
+            })
+            .then(function () {
+                banner('Puntos del jugador reiniciados.', false);
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'Error', true);
+            });
+    }
+
+    function resetAllVitalScores() {
+        if (!confirm('¿Reiniciar los PUNTOS de TODOS los jugadores a 0? Se borra todo el historial de movimientos. (Nuevo wipe)')) {
+            return Promise.resolve();
+        }
+        return fetch(API + '/api/admin/vital/reset-all-scores', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({})
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                banner('Puntos reiniciados: ' + String(x.d.playersReset || 0) + ' jugadores.', false);
+                return loadVitalPlayerInfo();
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'Error', true);
+            });
+    }
+
+    function resetAllVitalHours() {
+        if (!confirm('¿Borrar las HORAS de TODOS los jugadores? (Nuevo wipe — después podés traerlas de BM de nuevo.)')) {
+            return Promise.resolve();
+        }
+        return fetch(API + '/api/admin/vital/reset-all-hours', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({})
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                banner('Horas reiniciadas: ' + String(x.d.playersReset || 0) + ' jugadores.', false);
+                return loadVitalPlayerInfo();
+            })
+            .catch(function (e) {
+                banner((e && e.message) ? e.message : 'Error', true);
+            });
     }
 
     function loadVitalScoreEvents(steamId) {
@@ -2897,6 +3014,12 @@
         if (btnDashExport) btnDashExport.addEventListener('click', exportVitalDashboardCsv);
         if (btnDashCopy) btnDashCopy.addEventListener('click', copyVitalDashboardSummary);
         if (btnSyncNames) btnSyncNames.addEventListener('click', function () { syncVitalDisplayNames().catch(function () {}); });
+        var btnResetScoresAll = document.getElementById('btn-vital-reset-scores-all');
+        var btnResetHoursAll = document.getElementById('btn-vital-reset-hours-all');
+        var btnResetScorePlayer = document.getElementById('btn-vital-reset-score-player');
+        if (btnResetScoresAll) btnResetScoresAll.addEventListener('click', function () { resetAllVitalScores().catch(function () {}); });
+        if (btnResetHoursAll) btnResetHoursAll.addEventListener('click', function () { resetAllVitalHours().catch(function () {}); });
+        if (btnResetScorePlayer) btnResetScorePlayer.addEventListener('click', function () { resetVitalScoreForPlayer().catch(function () {}); });
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
         if (vitalWipeSegment) {
             vitalWipeSegment.addEventListener('click', function (ev) {
