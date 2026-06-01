@@ -3185,6 +3185,14 @@ details.vital-extra-panel > :not(summary) {
     color: #f3f4f6;
     min-width: 0;
 }
+select.vital-input-compact {
+    color-scheme: dark;
+    cursor: pointer;
+}
+select.vital-input-compact option {
+    background: #1a2230;
+    color: #f3f4f6;
+}
 .vital-input-compact::placeholder {
     color: #a8b4c4;
 }

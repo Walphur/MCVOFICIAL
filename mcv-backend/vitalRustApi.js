@@ -565,10 +565,17 @@ function normalizeWipe(row) {
     if (!label) {
         label = id;
     }
+    const startRaw = row.startTime || row.startedAt || row.startDate || row.wipeStart || null;
+    let startMs = null;
+    if (startRaw) {
+        const d = new Date(startRaw);
+        if (!Number.isNaN(d.getTime())) startMs = d.getTime();
+    }
     return {
         id,
         label,
-        current: Boolean(row.current || row.isCurrent || row.active || row.isActive)
+        current: Boolean(row.current || row.isCurrent || row.active || row.isActive),
+        startMs
     };
 }
 
@@ -1639,7 +1646,10 @@ function registerVitalRustApi(app, { getPool }) {
             } catch (e) {
                 console.warn("vital wipes/current:", e.message);
             }
-            wipes.sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+            wipes.sort(function (a, b) {
+                if (a.current !== b.current) return a.current ? -1 : 1;
+                return (b.startMs || 0) - (a.startMs || 0);
+            });
             return res.json({ server, wipes, cached });
         } catch (e) {
             console.error("vital wipes:", e.message);
@@ -2865,7 +2875,10 @@ function registerVitalRustApi(app, { getPool }) {
             } catch (e) {
                 console.warn("vital wipes/current:", e.message);
             }
-            wipes.sort((a, b) => (b.current ? 1 : 0) - (a.current ? 1 : 0));
+            wipes.sort(function (a, b) {
+                if (a.current !== b.current) return a.current ? -1 : 1;
+                return (b.startMs || 0) - (a.startMs || 0);
+            });
             return res.json({ server, wipes, cached });
         } catch (e) {
             console.error("vital public wipes:", e.message);

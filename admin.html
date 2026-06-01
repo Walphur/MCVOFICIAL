@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=48">
-    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v10">
+    <link rel="stylesheet" href="style-admin.css?v=49">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v11">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -292,6 +292,9 @@
                             <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
                                 <option value="eu-medium">EU Medium 2x</option>
                                 <option value="eu-monthly">EU Monthly 2x</option>
+                            </select>
+                            <select id="vital-tier-wipe" class="vital-input-compact" title="Wipe Vital">
+                                <option value="">Cargando wipes…</option>
                             </select>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-recalc">Recalcular</button>
                         </div>
@@ -1912,6 +1915,7 @@
     var vitalTierSkipSync = false;
     var vitalTierLastPayload = null;
     var VITAL_TIER_SERVER_LS = 'mcv_vital_tier_server_v1';
+    var VITAL_TIER_WIPE_LS = 'mcv_vital_tier_wipe_v1';
     var vitalExtraCatalog = [];
     var vitalSelectedExtraKeys = [];
     var vitalExtraSaveTimer = null;
@@ -2658,6 +2662,136 @@
         if (el) el.value = key;
     }
 
+    function vitalTierWipeStorageKey(serverKey) {
+        return VITAL_TIER_WIPE_LS + ':' + (serverKey || vitalTierServerKey());
+    }
+
+    function vitalTierWipeId() {
+        var el = document.getElementById('vital-tier-wipe');
+        var val = el ? String(el.value || '').trim() : '';
+        return val || 'current';
+    }
+
+    function setVitalTierWipeId(wipeId, serverKey) {
+        var el = document.getElementById('vital-tier-wipe');
+        if (el && wipeId) el.value = wipeId;
+        try { localStorage.setItem(vitalTierWipeStorageKey(serverKey), String(wipeId || '')); } catch (e) {}
+    }
+
+    function pickPreferredVitalWipe(wipes, opts) {
+        opts = opts || {};
+        wipes = wipes || [];
+        if (!wipes.length) return 'current';
+        if (opts.preferredWipeId && wipes.some(function (w) { return w.id === opts.preferredWipeId; })) {
+            return opts.preferredWipeId;
+        }
+        var saved = '';
+        try { saved = localStorage.getItem(vitalTierWipeStorageKey(opts.serverKey || vitalTierServerKey())) || ''; } catch (e) {}
+        if (!opts.preferLatest && saved && wipes.some(function (w) { return w.id === saved; })) {
+            return saved;
+        }
+        var current = wipes.find(function (w) { return w.current; });
+        if (current) return current.id;
+        return wipes[0].id;
+    }
+
+    function loadVitalTierWipes(opts) {
+        opts = opts || {};
+        var wipeSel = document.getElementById('vital-tier-wipe');
+        if (!wipeSel) return Promise.resolve(null);
+        var serverKey = opts.serverKey || vitalTierServerKey();
+        wipeSel.innerHTML = '<option value="">Cargando wipes…</option>';
+        return fetch(API + '/api/admin/vital/wipes?server=' + encodeURIComponent(serverKey), {
+            headers: authHeaders(),
+            cache: 'no-store'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'wipes');
+                var wipes = x.d.wipes || [];
+                if (!wipes.length) {
+                    wipeSel.innerHTML = '<option value="current">Wipe actual</option>';
+                    setVitalTierWipeId('current', serverKey);
+                    return { serverKey: serverKey, wipeId: 'current', wipes: [] };
+                }
+                wipeSel.innerHTML = wipes.map(function (w) {
+                    return '<option value="' + escAttr(w.id) + '">' + esc(w.label) + (w.current ? ' ★ actual' : '') + '</option>';
+                }).join('');
+                var pick = pickPreferredVitalWipe(wipes, {
+                    serverKey: serverKey,
+                    preferredWipeId: opts.preferredWipeId,
+                    preferLatest: !!opts.preferLatest
+                });
+                setVitalTierWipeId(pick, serverKey);
+                return { serverKey: serverKey, wipeId: pick, wipes: wipes };
+            })
+            .catch(function (e) {
+                wipeSel.innerHTML = '<option value="current">Wipe actual</option>';
+                setVitalTierWipeId('current', serverKey);
+                if (!opts.quiet) {
+                    setVitalTierSyncStatus((e && e.message) ? e.message : 'No se pudieron cargar wipes', true);
+                }
+                return { serverKey: serverKey, wipeId: 'current', wipes: [], error: e };
+            });
+    }
+
+    function pickLatestVitalTierContext() {
+        return Promise.all(['eu-medium', 'eu-monthly'].map(function (serverKey) {
+            return fetch(API + '/api/admin/vital/wipes?server=' + encodeURIComponent(serverKey), {
+                headers: authHeaders(),
+                cache: 'no-store'
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d, serverKey: serverKey }; }); })
+                .then(function (x) {
+                    return {
+                        serverKey: serverKey,
+                        wipes: x.ok ? (x.d.wipes || []) : []
+                    };
+                })
+                .catch(function () {
+                    return { serverKey: serverKey, wipes: [] };
+                });
+        })).then(function (results) {
+            var withCurrent = results.filter(function (r) {
+                return (r.wipes || []).some(function (w) { return w.current; });
+            });
+            var pick = withCurrent[0];
+            if (!pick) {
+                pick = results.slice().sort(function (a, b) {
+                    return (b.wipes || []).length - (a.wipes || []).length;
+                })[0] || { serverKey: vitalTierServerKey(), wipes: [] };
+            }
+            setVitalTierServerKey(pick.serverKey);
+            syncVitalTierServerSelects();
+            var preferred = pickPreferredVitalWipe(pick.wipes, {
+                serverKey: pick.serverKey,
+                preferLatest: true
+            });
+            return loadVitalTierWipes({
+                serverKey: pick.serverKey,
+                preferredWipeId: preferred,
+                preferLatest: true,
+                quiet: true
+            });
+        });
+    }
+
+    function enterVitalInfoPanel() {
+        return pickLatestVitalTierContext()
+            .then(function () {
+                return loadVitalPlayerInfo().catch(function () {});
+            })
+            .then(function () {
+                loadVitalHealth().catch(function () {});
+                if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
+                    window.mcvI18n.apply();
+                }
+                if (vitalInfoSubtab === 'extras') {
+                    loadVitalExtraPlayers().catch(function () {});
+                }
+            });
+    }
+
     function getVitalTierForSteam(steamId) {
         var sid = normalizeVitalSteamLocal(steamId);
         return vitalTierBySteam[sid] || { total: 0, breakdown: [], values: {} };
@@ -3079,7 +3213,7 @@
         return fetch(API + endpoint, {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
-            body: JSON.stringify({ server: vitalTierServerKey(), wipeId: 'current', refresh: opts.refresh ? 1 : 0 })
+            body: JSON.stringify({ server: vitalTierServerKey(), wipeId: vitalTierWipeId(), refresh: opts.refresh ? 1 : 0 })
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
@@ -3543,17 +3677,26 @@
             });
         }
         loadVitalExtraPointsCatalog().catch(function () {});
+        syncVitalTierServerSelects();
         var tierServerEl = document.getElementById('vital-tier-server');
+        var tierWipeEl = document.getElementById('vital-tier-wipe');
         if (tierServerEl) {
             tierServerEl.addEventListener('change', function () {
                 setVitalTierServerKey(tierServerEl.value);
-                ensureVitalTierConfigCache(vitalTierServerKey()).then(function () {
-                    renderVitalTierPlayerBreakdown(vitalSelectedSteam);
+                loadVitalTierWipes({ preferLatest: true, quiet: true }).then(function () {
+                    ensureVitalTierConfigCache(vitalTierServerKey()).then(function () {
+                        renderVitalTierPlayerBreakdown(vitalSelectedSteam);
+                    }).catch(function () {});
+                    syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {});
                 }).catch(function () {});
+            });
+        }
+        if (tierWipeEl) {
+            tierWipeEl.addEventListener('change', function () {
+                setVitalTierWipeId(tierWipeEl.value);
                 syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {});
             });
         }
-        syncVitalTierServerSelects();
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
         if (vitalWipeSegment) {
             vitalWipeSegment.addEventListener('click', function (ev) {
@@ -3673,10 +3816,8 @@
                 if (steam != null && steam !== '') selectVitalPlayer(steam);
             });
         }
-        loadVitalPlayerInfo().catch(function () {});
-        loadVitalHealth().catch(function () {});
-        if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
-            window.mcvI18n.apply();
+        if (state.tab === 'vital-info') {
+            enterVitalInfoPanel().catch(function () {});
         }
     }
     initVitalPanel();
@@ -3708,14 +3849,7 @@
         if (vip) {
             vip.style.display = state.tab === 'vital-info' ? 'block' : 'none';
             if (state.tab === 'vital-info') {
-                loadVitalPlayerInfo().catch(function () {});
-                loadVitalHealth().catch(function () {});
-                if (window.mcvI18n && typeof window.mcvI18n.apply === 'function') {
-                    window.mcvI18n.apply();
-                }
-                if (vitalInfoSubtab === 'extras') {
-                    loadVitalExtraPlayers().catch(function () {});
-                }
+                enterVitalInfoPanel().catch(function () {});
             }
         }
         var dashBtns = document.querySelector('.dashboard-buttons');
