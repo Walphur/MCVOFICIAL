@@ -3,6 +3,7 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
+const { buildMcHorasSlashCommand } = require("./playtimeSync");
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();
@@ -274,7 +275,7 @@ async function registerSlashCommands(client, guildId) {
     }
     const cmd = new SlashCommandBuilder()
         .setName("mcv-wipe")
-        .setDescription("Vinculá tu SteamID64 (17 dígitos) al roster interno del wipe MCV.")
+        .setDescription("Vinculá tu SteamID64 para el wipe MCV (roster interno; la ficha pública se solicita en mcvoficial.com/equipo/solicitud/)")
         .addStringOption((o) =>
             o
                 .setName("steam64")
