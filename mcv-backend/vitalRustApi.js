@@ -1195,6 +1195,25 @@ async function resetPlayerScore(pool, steamId64) {
     return { steamId64, performanceScore: 0 };
 }
 
+function resolvePlayerInfoHoursInput(body, fallbackHours = null) {
+    const src = body && typeof body === "object" ? body : {};
+    const hasHoursPlayed = Object.prototype.hasOwnProperty.call(src, "hoursPlayed");
+    const hasHoursSnake = Object.prototype.hasOwnProperty.call(src, "hours_played");
+    const hasField = hasHoursPlayed || hasHoursSnake;
+    if (!hasField) {
+        return { hasField: false, hoursPlayed: fallbackHours != null ? fallbackHours : null };
+    }
+    const raw = hasHoursPlayed ? src.hoursPlayed : src.hours_played;
+    if (raw === null || raw === "") {
+        return { hasField: true, hoursPlayed: null };
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+        return { hasField: true, hoursPlayed: fallbackHours != null ? fallbackHours : null };
+    }
+    return { hasField: true, hoursPlayed: Math.max(0, Math.round(n)) };
+}
+
 function normalizePlayerInfoRow(row) {
     const steamId64 = normalizeSteamId64(row.steam_id64 || row.steamId64 || row.steamId);
     if (!steamId64) return null;
@@ -2213,6 +2232,7 @@ function registerVitalRustApi(app, { getPool }) {
         const incomingWipe = normalizeWipePhase(body.wipePhase);
         const pausedOutsideWipe = Boolean(body.pausedOutsideWipe) || incomingWipe === "no_juega";
         const roleLabels = parseRoleLabelsInput(body.roleLabels || body.roleLabel);
+        const hoursResolved = resolvePlayerInfoHoursInput(body, null);
         const row = normalizePlayerInfoRow({
             steam_id64: steamId64,
             display_name: body.displayName,
@@ -2225,7 +2245,7 @@ function registerVitalRustApi(app, { getPool }) {
             entry_date: body.entryDate || null,
             vouch_by: body.vouchBy,
             wipe_phase: pausedOutsideWipe ? "no_juega" : incomingWipe,
-            hours_played: body.hoursPlayed,
+            hours_played: hoursResolved.hasField ? hoursResolved.hoursPlayed : null,
             combats_lost: body.combatsLost,
             minis_lost: body.minisLost,
             contribution: body.contribution,
@@ -2251,7 +2271,7 @@ function registerVitalRustApi(app, { getPool }) {
                     entry_date = EXCLUDED.entry_date,
                     vouch_by = EXCLUDED.vouch_by,
                     wipe_phase = EXCLUDED.wipe_phase,
-                    hours_played = EXCLUDED.hours_played,
+                    hours_played = CASE WHEN $18 THEN EXCLUDED.hours_played ELSE player_info_profiles.hours_played END,
                     combats_lost = EXCLUDED.combats_lost,
                     minis_lost = EXCLUDED.minis_lost,
                     contribution = EXCLUDED.contribution,
@@ -2277,7 +2297,8 @@ function registerVitalRustApi(app, { getPool }) {
                     row.contribution || null,
                     row.warnings || null,
                     row.mtTeam,
-                    row.pausedOutsideWipe
+                    row.pausedOutsideWipe,
+                    hoursResolved.hasField
                 ]
             );
             const savedRoles = await syncPlayerRoleLinks(pool, steamId64, roleLabels);
@@ -2934,6 +2955,7 @@ module.exports = {
     loadClanSteamIds,
     normalizeSteamId64,
     normalizePlayerStatCount,
+    resolvePlayerInfoHoursInput,
     buildVitalCacheMeta,
     buildingTotalFromVital
 };
