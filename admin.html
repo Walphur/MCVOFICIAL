@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
     <link rel="stylesheet" href="style-admin.css?v=39">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-ui-simple-v1">
+    <meta name="mcv-admin-build" content="2026-05-28-vital-points-revert-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -306,38 +306,23 @@
                         <div class="vital-member-panel">
                             <div id="vital-health-bar" class="vital-health-bar" hidden aria-live="polite"></div>
                             <div class="vital-wipe-dashboard">
-                                <div class="vital-wipe-checklist" id="vital-wipe-checklist" aria-label="Pasos del wipe">
-                                    <p class="vital-wipe-checklist__title">Checklist del wipe</p>
-                                    <ol class="vital-wipe-checklist__steps">
-                                        <li><span class="vital-check-step" data-step="players">1. Revisá quién juega</span></li>
-                                        <li><span class="vital-check-step" data-step="points">2. Actualizá puntos desde Vital</span></li>
-                                        <li><span class="vital-check-step" data-step="extras">3. Marcá extras de rol cumplidos</span></li>
-                                        <li><span class="vital-check-step" data-step="ranking">4. Revisá el ranking</span></li>
-                                    </ol>
-                                </div>
                                 <div id="vital-member-stats" class="vital-member-stats" aria-label="Resumen roster"></div>
-                                <div class="vital-dashboard-primary">
-                                    <button type="button" class="btn-primary vital-btn-update-all" id="btn-vital-update-all-points">Actualizar todos los puntos</button>
-                                    <p id="vital-global-period-label" class="vital-global-period-label" aria-live="polite"></p>
+                                <div class="vital-dashboard-actions">
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar CSV</button>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas desde Discord</button>
                                 </div>
-                                <details class="vital-dashboard-more vital-advanced-only">
-                                    <summary>Más acciones (exportar, sync, ranking…)</summary>
-                                    <div class="vital-dashboard-actions">
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Descargar CSV</button>
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas desde Discord</button>
-                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview">Ver ranking</button>
-                                    </div>
-                                </details>
-                                <div class="vital-tier-score-bar vital-advanced-only" id="vital-tier-score-bar">
-                                    <span class="vital-tier-score-bar__label">Servidor Vital</span>
+                                <div class="vital-tier-score-bar" id="vital-tier-score-bar">
+                                    <span class="vital-tier-score-bar__label">Puntos Vital</span>
                                     <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
                                         <option value="eu-medium">EU Medium 2x</option>
                                         <option value="eu-monthly">EU Monthly 2x</option>
                                     </select>
                                     <span id="vital-tier-dash-status" class="vital-tier-sync-status">Sync al abrir pestaña Puntos</span>
+                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview">Ver ranking</button>
                                 </div>
+                                <p id="vital-global-period-label" class="vital-global-period-label" aria-live="polite"></p>
                                 <div id="vital-tier-preview" class="vital-tier-preview"></div>
                             </div>
                             <div class="vital-member-toolbar">
@@ -461,56 +446,37 @@
                                         </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="puntos">
-                                        <section class="vital-form-section vital-wipe-hero-section">
-                                            <header class="vital-form-section__head">
-                                                <h3 class="vital-form-section__title">¿Juega este wipe?</h3>
-                                                <p class="vital-form-section__hint">Si está pausado, no se suman ni restan puntos automáticos de Vital.</p>
-                                            </header>
-                                            <div class="vital-form-section__body">
-                                                <div class="vital-wipe-hero" id="vital-wipe-hero">
-                                                    <button type="button" class="vital-wipe-hero__btn vital-wipe-hero__btn--yes" data-wipe-hero="active">
-                                                        <span class="vital-wipe-hero__icon">✓</span>
-                                                        <span class="vital-wipe-hero__text">Sí, juega</span>
-                                                    </button>
-                                                    <button type="button" class="vital-wipe-hero__btn vital-wipe-hero__btn--no" data-wipe-hero="paused">
-                                                        <span class="vital-wipe-hero__icon">⏸</span>
-                                                        <span class="vital-wipe-hero__text">No juega (pausado)</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </section>
-                                        <div id="vital-points-summary-card" class="vital-points-card" aria-live="polite"></div>
                                         <section class="vital-form-section" id="vital-tier-auto-section">
                                             <header class="vital-form-section__head">
-                                                <h3 class="vital-form-section__title">Puntos automáticos (Vital)</h3>
-                                                <p class="vital-form-section__hint">Se calculan solos con las stats del wipe. T3, K/D, horas, farm, scrap y building.</p>
+                                                <h3 class="vital-form-section__title">Puntos desde Vital (automático)</h3>
+                                                <p class="vital-form-section__hint">Stats del wipe en Vital: T3 kills, K/D, horas, farm, scrap y building (suma de piezas + deployables). En EU Monthly: 1.er–2.º jueves = Monthly; 2.º–4.º jueves = Medium.</p>
                                             </header>
                                             <div class="vital-form-section__body">
                                                 <p id="vital-tier-period-label" class="vital-tier-period-label" aria-live="polite"></p>
                                                 <div class="vital-tier-auto-controls">
-                                                    <label class="vital-field vital-advanced-only"><span>Servidor</span>
+                                                    <label class="vital-field"><span>Servidor</span>
                                                         <select id="vital-tier-server-puntos" class="admin-input">
                                                             <option value="eu-medium">EU Medium 2x</option>
                                                             <option value="eu-monthly">EU Monthly 2x</option>
                                                         </select>
                                                     </label>
-                                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-recalc">Actualizar este jugador</button>
+                                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-recalc">Recalcular desde Vital</button>
                                                     <span id="vital-tier-sync-status" class="vital-tier-sync-status" aria-live="polite"></span>
                                                 </div>
-                                                <p class="vital-tier-auto-total vital-advanced-only">Total calculado: <strong id="vital-tier-auto-total">—</strong> pts</p>
+                                                <p class="vital-tier-auto-total">Total calculado: <strong id="vital-tier-auto-total">—</strong> pts</p>
                                                 <div id="vital-tier-player-breakdown" class="vital-tier-player-breakdown">
-                                                    <p class="empty-hint">Seleccioná un jugador para ver el desglose.</p>
+                                                    <p class="empty-hint">Abrí esta pestaña o recalculá para ver el desglose por stat.</p>
                                                 </div>
-                                                <details class="vital-tier-config-help vital-advanced-only" id="vital-tier-config-help">
-                                                    <summary>Umbrales Medium / Monthly (avanzado)</summary>
+                                                <details class="vital-tier-config-help" id="vital-tier-config-help">
+                                                    <summary>Umbrales Medium / Monthly (tiers)</summary>
                                                     <div id="vital-tier-config-view" class="vital-tier-config-view"></div>
                                                 </details>
                                             </div>
                                         </section>
                                         <section class="vital-form-section" id="vital-extra-points-section">
                                             <header class="vital-form-section__head">
-                                                <h3 class="vital-form-section__title">Extras de rol</h3>
-                                                <p class="vital-form-section__hint">Tocá solo lo que cumplió. <span id="vital-extra-points-summary" class="vital-extra-points-summary"></span></p>
+                                                <h3 class="vital-form-section__title">Extras de rol (manual)</h3>
+                                                <p class="vital-form-section__hint">Marcá solo lo que cumplió este wipe. No se infieren de los roles del roster.</p>
                                             </header>
                                             <div class="vital-form-section__body">
                                                 <div id="vital-extra-points-toggles" class="vital-extra-points-grid">
@@ -556,7 +522,7 @@
                                 <footer class="vital-detail-footer">
                                     <button type="button" class="btn-ghost-danger" id="btn-vital-info-del-detail">Eliminar</button>
                                     <div class="vital-detail-footer__cluster">
-                                        <div class="vital-wipe-control vital-advanced-only" role="group" aria-label="Participación wipe" id="vital-wipe-segment">
+                                        <div class="vital-wipe-control" role="group" aria-label="Participación wipe" id="vital-wipe-segment">
                                             <span class="vital-wipe-control__label">Wipe</span>
                                             <div class="vital-segment">
                                                 <button type="button" class="vital-segment__btn is-active" data-wipe-state="active" aria-pressed="true">
@@ -2026,17 +1992,6 @@
         building: 'Building'
     };
 
-    var VITAL_TIER_STAT_ICONS = {
-        killsT30: '⚔️',
-        kdr: '🎯',
-        hours: '⏱',
-        farmWood: '🌲',
-        farmMetal: '⛏',
-        farmSulfur: '💛',
-        scrapLooted: '🔩',
-        building: '🏗'
-    };
-
     function escAttr(s) {
         return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
     }
@@ -2425,68 +2380,6 @@
         });
     }
 
-    function syncWipeHeroUI() {
-        var hero = document.getElementById('vital-wipe-hero');
-        if (!hero) return;
-        var paused = isVitalPaused();
-        hero.querySelectorAll('[data-wipe-hero]').forEach(function (btn) {
-            var st = btn.getAttribute('data-wipe-hero');
-            var on = st === (paused ? 'paused' : 'active');
-            btn.classList.toggle('is-active', on);
-            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-    }
-
-    function renderVitalPointsSummaryCard(steamId) {
-        var box = document.getElementById('vital-points-summary-card');
-        if (!box) return;
-        var sid = normalizeVitalSteamLocal(steamId);
-        if (!sid) {
-            box.innerHTML = '<p class="empty-hint">Seleccioná un jugador para ver sus puntos.</p>';
-            return;
-        }
-        var row = findVitalRow(sid);
-        var tier = getVitalTierForSteam(sid);
-        var savedTotal = Number(row && row.performanceScore != null ? row.performanceScore : (tier.total || 0));
-        var autoPts = tier.skipped ? 0 : Number(tier.total || 0);
-        var manualPts = Math.round((savedTotal - autoPts) * 100) / 100;
-        var maxBar = Math.max(savedTotal, autoPts, Math.abs(manualPts), 1);
-        var pct = function (n) { return Math.min(100, Math.round((Math.abs(n) / maxBar) * 100)); };
-        var period = vitalTierMeta.serverLabel || '';
-        var paused = row && (row.pausedOutsideWipe || row.wipePhase === 'no_juega');
-        var statusHtml = paused
-            ? '<span class="vital-points-card__badge is-paused">No juega este wipe</span>'
-            : '<span class="vital-points-card__badge is-active">Juega el wipe</span>';
-
-        box.innerHTML =
-            '<div class="vital-points-card__head">' +
-            '<div><p class="vital-points-card__label">Total de puntos</p>' +
-            '<p class="vital-points-card__total">' + esc(String(savedTotal)) + ' <small>pts</small></p></div>' +
-            statusHtml +
-            '</div>' +
-            (period ? '<p class="vital-points-card__period">📅 ' + esc(period) + '</p>' : '') +
-            '<div class="vital-points-card__bars">' +
-            '<div class="vital-points-card__bar-row"><span>Automático Vital</span><div class="vital-points-bar"><i style="width:' + pct(autoPts) + '%"></i></div><strong>' + esc(String(autoPts)) + '</strong></div>' +
-            '<div class="vital-points-card__bar-row"><span>Ajustes manuales</span><div class="vital-points-bar vital-points-bar--manual"><i style="width:' + pct(manualPts) + '%"></i></div><strong>' + esc((manualPts > 0 ? '+' : '') + String(manualPts)) + '</strong></div>' +
-            '</div>';
-    }
-
-    function updateVitalExtraPointsSummary() {
-        var el = document.getElementById('vital-extra-points-summary');
-        if (!el) return;
-        if (!vitalSelectedExtraKeys.length) {
-            el.textContent = 'Ninguno marcado todavía.';
-            return;
-        }
-        var pts = 0;
-        vitalExtraCatalog.forEach(function (item) {
-            if (vitalSelectedExtraKeys.indexOf(item.key) >= 0) {
-                pts += Number(item.points || 0);
-            }
-        });
-        el.textContent = vitalSelectedExtraKeys.length + ' marcados (' + (pts > 0 ? '+' : '') + pts + ' pts en auto).';
-    }
-
     function updateVitalGlobalPeriodLabel() {
         var el = document.getElementById('vital-global-period-label');
         if (!el) return;
@@ -2504,8 +2397,6 @@
         });
         if (vitalDetailTab === 'puntos') {
             renderVitalTierPlayerBreakdown(vitalSelectedSteam);
-            renderVitalPointsSummaryCard(vitalSelectedSteam);
-            syncWipeHeroUI();
             loadVitalTierConfigView().catch(function () {});
             syncVitalTierFromVital({ apply: true, quiet: true }).catch(function () {});
         }
@@ -2544,8 +2435,6 @@
         loadVitalScoreEvents(vitalSelectedSteam).catch(function () {});
         renderVitalTierPlayerBreakdown(vitalSelectedSteam);
         renderVitalExtraPointToggles();
-        renderVitalPointsSummaryCard(vitalSelectedSteam);
-        syncWipeHeroUI();
     }
 
     function renderVitalDetailLogs() {
@@ -2780,7 +2669,6 @@
     function updateVitalScoreTotalDisplay(score) {
         var el = document.getElementById('vital-score-total');
         if (el) el.textContent = String(score != null ? score : 0);
-        renderVitalPointsSummaryCard(vitalSelectedSteam);
     }
 
     function renderVitalScoreHistory(events) {
@@ -2921,7 +2809,6 @@
                 '<span class="vital-extra-toggle__pts">' + esc(sign + String(pts)) + '</span>' +
                 '</button>';
         }).join('');
-        updateVitalExtraPointsSummary();
     }
 
     function setVitalExtraPointsStatus(msg, isError) {
@@ -2987,7 +2874,6 @@
     function renderVitalTierPlayerBreakdown(steamId) {
         var box = document.getElementById('vital-tier-player-breakdown');
         var totalEl = document.getElementById('vital-tier-auto-total');
-        renderVitalPointsSummaryCard(steamId);
         if (!box) return;
         var sid = normalizeVitalSteamLocal(steamId);
         var tier = getVitalTierForSteam(sid);
@@ -2997,31 +2883,35 @@
             return;
         }
         if (tier.skipped) {
-            box.innerHTML = '<p class="vital-breakdown-skipped">⏸ Este jugador no juega el wipe: sin puntos automáticos.</p>';
+            box.innerHTML = '<p class="empty-hint">Este jugador está pausado / no juega el wipe: no se suman ni restan puntos automáticos.</p>';
             return;
         }
         if (!tier.breakdown || !tier.breakdown.length) {
-            box.innerHTML = '<p class="empty-hint">Sin stats en Vital todavía. Tocá «Actualizar todos los puntos» arriba o «Actualizar este jugador».</p>';
+            box.innerHTML = '<p class="empty-hint">Sin stats Vital para este jugador en el wipe actual. Probá Recalcular o revisá que tenga SteamID en Info jugadores.</p>';
             return;
         }
-        var rows = tier.breakdown.filter(function (b) { return Number(b.points) !== 0; }).map(function (b) {
-            var isExtra = String(b.id || '').indexOf('extra_') === 0;
-            var icon = isExtra ? '⭐' : (VITAL_TIER_STAT_ICONS[b.id] || '•');
-            var statLabel = isExtra ? b.label : (VITAL_TIER_STAT_LABELS[b.id] || b.label);
-            var val = !isExtra && tier.values && tier.values[b.id] != null
-                ? formatVitalTierStatValue(b.id, tier.values[b.id])
-                : (isExtra ? 'marcado' : '—');
+        var statRows = tier.breakdown.filter(function (b) {
+            return String(b.id || '').indexOf('extra_') !== 0;
+        }).map(function (b) {
+            var statLabel = VITAL_TIER_STAT_LABELS[b.id] || b.label;
+            var val = tier.values && tier.values[b.id] != null ? formatVitalTierStatValue(b.id, tier.values[b.id]) : '—';
+            var pts = Number(b.points || 0);
+            var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
+            var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
+            return '<tr><td>' + esc(statLabel) + leader + '</td><td class="vital-tier-stat-val">' + esc(val) + '</td><td class="vital-tier-stat-pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + '</td></tr>';
+        }).join('');
+        var extraRows = tier.breakdown.filter(function (b) {
+            return String(b.id || '').indexOf('extra_') === 0 && Number(b.points) !== 0;
+        }).map(function (b) {
             var pts = Number(b.points || 0);
             var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
-            var leader = b.isLeader ? '<span class="vital-tier-leader">líder</span>' : '';
-            return '<div class="vital-breakdown-row">' +
-                '<span class="vital-breakdown-icon">' + icon + '</span>' +
-                '<span class="vital-breakdown-label">' + esc(statLabel) + leader + '</span>' +
-                '<span class="vital-breakdown-val">' + esc(String(val)) + '</span>' +
-                '<span class="vital-breakdown-pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + '</span>' +
-                '</div>';
+            return '<tr><td>' + esc(b.label) + '</td><td class="vital-tier-stat-val">manual</td><td class="vital-tier-stat-pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + '</td></tr>';
         }).join('');
-        box.innerHTML = '<div class="vital-breakdown-list">' + rows + '</div>';
+        var meta = vitalTierMeta.serverLabel ? '<p class="vital-tier-preview__meta">' + esc(vitalTierMeta.serverLabel) + ' · wipe ' + esc(String(vitalTierMeta.wipeId || '—')) + '</p>' : '';
+        box.innerHTML = meta +
+            '<table class="vital-tier-player-table"><thead><tr><th>Stat Vital</th><th>Valor</th><th>Pts</th></tr></thead><tbody>' +
+            statRows + extraRows +
+            '</tbody><tfoot><tr><td colspan="2"><strong>Total auto</strong></td><td class="vital-tier-stat-pts is-plus"><strong>' + esc(String(tier.total)) + '</strong></td></tr></tfoot></table>';
     }
 
     function renderVitalTierPreview(data) {
@@ -3142,9 +3032,9 @@
                 renderVitalPlayerSummary();
                 renderVitalMemberStats();
                 var n = (x.d.tierResult && x.d.tierResult.players) ? x.d.tierResult.players.length : 0;
-                var msg = '✓ Listo — ' + n + ' jugadores actualizados';
-                if (x.d.applied != null) msg += ' · guardado en el servidor';
-                if (x.d.skippedNoWipe) msg += ' · ' + x.d.skippedNoWipe + ' pausados (sin puntos auto)';
+                var msg = 'Actualizado · ' + n + ' jugadores';
+                if (x.d.applied != null) msg += ' · guardado';
+                if (x.d.skippedNoWipe) msg += ' · ' + x.d.skippedNoWipe + ' no juegan';
                 if (x.d.notFound && x.d.notFound.length) msg += ' · ' + x.d.notFound.length + ' sin Vital';
                 setVitalTierSyncStatus(msg, false);
                 if (opts.apply !== false && x.d.applied > 0) {
@@ -3250,7 +3140,6 @@
         });
         var seg = document.querySelector('#vital-wipe-segment .vital-segment');
         if (seg) seg.classList.toggle('is-paused', isPaused);
-        syncWipeHeroUI();
     }
 
     function setWipeParticipationState(paused) {
@@ -3266,7 +3155,6 @@
         }
         syncWipeSegmentUI();
         renderVitalPlayerSummary();
-        renderVitalPointsSummaryCard(vitalSelectedSteam);
     }
 
     function gatherVitalInfoPayload() {
@@ -3318,7 +3206,6 @@
         var paused = document.getElementById('vital-info-paused');
         if (paused) paused.checked = !!p.pausedOutsideWipe || String(p.wipePhase || '') === 'no_juega';
         syncWipeSegmentUI();
-        syncWipeHeroUI();
     }
 
     function parseRoleLabelsLocal(raw) {
@@ -3564,30 +3451,6 @@
                 setVitalUiMode(btn.getAttribute('data-vital-ui-mode'));
             });
         });
-        var btnUpdateAll = document.getElementById('btn-vital-update-all-points');
-        if (btnUpdateAll) {
-            btnUpdateAll.addEventListener('click', function () {
-                btnUpdateAll.disabled = true;
-                btnUpdateAll.textContent = 'Actualizando…';
-                syncVitalTierFromVital({ apply: true, refresh: true, quiet: false })
-                    .then(function () {
-                        document.getElementById('vital-tier-preview') && toggleVitalTierRanking(true);
-                    })
-                    .catch(function () {})
-                    .finally(function () {
-                        btnUpdateAll.disabled = false;
-                        btnUpdateAll.textContent = 'Actualizar todos los puntos';
-                    });
-            });
-        }
-        var wipeHero = document.getElementById('vital-wipe-hero');
-        if (wipeHero) {
-            wipeHero.addEventListener('click', function (ev) {
-                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-wipe-hero]') : null;
-                if (!btn) return;
-                setWipeParticipationState(btn.getAttribute('data-wipe-hero') === 'paused');
-            });
-        }
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
