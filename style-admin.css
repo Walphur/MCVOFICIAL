@@ -2791,10 +2791,11 @@ details.vital-extra-panel > :not(summary) {
     font-size: 0.78rem;
     color: rgba(255, 255, 255, 0.55);
 }
-.vital-wipe-dashboard {
+.vital-wipe-dashboard,
+.vital-ops-dashboard {
     margin-bottom: 10px;
     flex-shrink: 0;
-    max-height: min(240px, 32vh);
+    max-height: min(280px, 36vh);
     overflow-y: auto;
 }
 .vital-dashboard-actions {
