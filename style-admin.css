@@ -1553,6 +1553,50 @@ details.vital-extra-panel .vital-extra-list {
     margin-top: 16px;
     justify-content: flex-end;
 }
+.admin-confirm-dialog .admin-dialog-box {
+    text-align: center;
+    max-width: 420px;
+}
+.admin-confirm-dialog__icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+}
+.admin-confirm-dialog__icon.is-danger {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.admin-confirm-dialog__title {
+    margin: 0 0 10px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+.admin-confirm-dialog__message {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--muted);
+}
+.admin-confirm-dialog.is-danger .admin-confirm-dialog__title {
+    color: #fecaca;
+}
+.admin-confirm-dialog .admin-dialog-actions {
+    justify-content: center;
+    margin-top: 22px;
+}
 #team-roster-edit-fields label {
     display: flex;
     flex-direction: column;

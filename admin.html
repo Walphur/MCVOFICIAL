@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=50">
-    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v12">
+    <link rel="stylesheet" href="style-admin.css?v=51">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v13">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -329,6 +329,7 @@
                                     <button type="button" class="vital-qchip" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
                                     <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
                                     <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Jugadores sin horas de playtime Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
                                     <button type="button" class="vital-qchip" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↕</span></button>
                                 </div>
                                 <div class="vital-member-toolbar__actions">
@@ -584,6 +585,18 @@
             </div>
         </div>
     </main>
+
+    <dialog id="vital-confirm-dlg" class="admin-dialog admin-confirm-dialog">
+        <div class="admin-dialog-box">
+            <div class="admin-confirm-dialog__icon" id="vital-confirm-icon" aria-hidden="true">?</div>
+            <h3 class="admin-confirm-dialog__title" id="vital-confirm-title">Confirmar</h3>
+            <p class="admin-confirm-dialog__message" id="vital-confirm-message"></p>
+            <div class="admin-dialog-actions">
+                <button type="button" class="btn-outline" id="vital-confirm-cancel">Cancelar</button>
+                <button type="button" class="btn-primary-small" id="vital-confirm-ok">Confirmar</button>
+            </div>
+        </div>
+    </dialog>
 
     <dialog id="team-roster-edit-dlg" class="admin-dialog">
         <div class="admin-dialog-box">
@@ -1909,6 +1922,47 @@
     var vitalDetailTab = 'general';
     var vitalListCohort = 'all';
     var vitalPointsSort = null;
+    var vitalConfirmResolve = null;
+
+    function playerMissingPlaytimeHours(row) {
+        if (!row) return true;
+        var h = row.hoursPlayed;
+        if (h == null || h === '') return true;
+        var n = Number(h);
+        return !Number.isFinite(n) || n <= 0;
+    }
+
+    function showVitalConfirm(opts) {
+        opts = opts || {};
+        var dlg = document.getElementById('vital-confirm-dlg');
+        var titleEl = document.getElementById('vital-confirm-title');
+        var msgEl = document.getElementById('vital-confirm-message');
+        var okBtn = document.getElementById('vital-confirm-ok');
+        var iconEl = document.getElementById('vital-confirm-icon');
+        if (!dlg || !titleEl || !msgEl || !okBtn) return Promise.resolve(false);
+        titleEl.textContent = opts.title || 'Confirmar';
+        msgEl.textContent = opts.message || '';
+        okBtn.textContent = opts.confirmLabel || 'Confirmar';
+        okBtn.className = opts.danger ? 'btn-danger-outline admin-confirm-dialog__confirm' : 'btn-primary-small admin-confirm-dialog__confirm';
+        if (iconEl) {
+            iconEl.textContent = opts.danger ? '!' : '?';
+            iconEl.classList.toggle('is-danger', !!opts.danger);
+        }
+        dlg.classList.toggle('is-danger', !!opts.danger);
+        return new Promise(function (resolve) {
+            vitalConfirmResolve = resolve;
+            dlg.showModal();
+        });
+    }
+
+    function closeVitalConfirm(confirmed) {
+        var dlg = document.getElementById('vital-confirm-dlg');
+        if (dlg && dlg.open) dlg.close();
+        if (vitalConfirmResolve) {
+            vitalConfirmResolve(!!confirmed);
+            vitalConfirmResolve = null;
+        }
+    }
     var vitalIsNewPlayer = false;
     var vitalTierBySteam = {};
     var vitalTierMeta = {};
@@ -2307,7 +2361,10 @@
                     (r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late');
             }).length,
             paused: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length,
-            strikes: rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length
+            strikes: rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length,
+            'no-hours': rows.filter(function (r) {
+                return playerMissingPlaytimeHours(r) && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega');
+            }).length
         };
         document.querySelectorAll('.vital-qchip-count').forEach(function (el) {
             var key = el.getAttribute('data-qcount');
@@ -3367,12 +3424,20 @@
     }
 
     function confirmWipeParticipationChange(targetPaused) {
-        if (!!targetPaused === isVitalPaused()) return false;
+        if (!!targetPaused === isVitalPaused()) return Promise.resolve(false);
         var name = String((document.getElementById('vital-info-name') || {}).value || '').trim() || 'este jugador';
         if (targetPaused) {
-            return window.confirm('¿Estás seguro de marcar a «' + name + '» como Pausado? No participará en el wipe ni sumará puntos automáticos.');
+            return showVitalConfirm({
+                title: 'Marcar como pausado',
+                message: '¿Estás seguro de marcar a «' + name + '» como Pausado? No participará en el wipe ni sumará puntos automáticos.',
+                confirmLabel: 'Pausar'
+            });
         }
-        return window.confirm('¿Estás seguro de marcar a «' + name + '» como En wipe? Volverá a participar en el cálculo de puntos.');
+        return showVitalConfirm({
+            title: 'Marcar en wipe',
+            message: '¿Estás seguro de marcar a «' + name + '» como En wipe? Volverá a participar en el cálculo de puntos.',
+            confirmLabel: 'En wipe'
+        });
     }
 
     function setWipeParticipationState(paused) {
@@ -3465,6 +3530,10 @@
             if (vitalListCohort === 'active' && !(r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late')) return false;
             if (vitalListCohort === 'paused' && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
             if (vitalListCohort === 'strikes' && Number(r.strikes || 0) <= 0) return false;
+            if (vitalListCohort === 'no-hours') {
+                if (r.pausedOutsideWipe || r.wipePhase === 'no_juega') return false;
+                if (!playerMissingPlaytimeHours(r)) return false;
+            }
             if (!q) return true;
             var hay = [r.displayName, r.steamId64, r.vouchBy, r.roleLabel].join(' ').toLowerCase();
             return hay.indexOf(q) !== -1;
@@ -3499,6 +3568,7 @@
             if (paused) subParts.push('Pausado');
             else subParts.push(esc(wipePhaseLabel(r.wipePhase)));
             if (strikes > 0) subParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
+            if (playerMissingPlaytimeHours(r) && !paused) subParts.push('Sin horas Steam');
             var sub = subParts.join(' · ');
             var ptsCls = pts > 0 ? ' is-positive' : (pts < 0 ? ' is-negative' : '');
             return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '">' +
@@ -3658,6 +3728,20 @@
         document.querySelectorAll('[data-vital-ui-mode]').forEach(function (btn) {
             btn.remove();
         });
+        var vitalConfirmDlg = document.getElementById('vital-confirm-dlg');
+        var vitalConfirmCancel = document.getElementById('vital-confirm-cancel');
+        var vitalConfirmOk = document.getElementById('vital-confirm-ok');
+        if (vitalConfirmCancel) vitalConfirmCancel.addEventListener('click', function () { closeVitalConfirm(false); });
+        if (vitalConfirmOk) vitalConfirmOk.addEventListener('click', function () { closeVitalConfirm(true); });
+        if (vitalConfirmDlg) {
+            vitalConfirmDlg.addEventListener('cancel', function (e) {
+                e.preventDefault();
+                closeVitalConfirm(false);
+            });
+            vitalConfirmDlg.addEventListener('click', function (e) {
+                if (e.target === vitalConfirmDlg) closeVitalConfirm(false);
+            });
+        }
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
@@ -3737,25 +3821,31 @@
                 var btn = ev.target && ev.target.closest ? ev.target.closest('[data-wipe-state]') : null;
                 if (!btn) return;
                 var wantPaused = btn.getAttribute('data-wipe-state') === 'paused';
-                if (!confirmWipeParticipationChange(wantPaused)) return;
-                setWipeParticipationState(wantPaused);
+                confirmWipeParticipationChange(wantPaused).then(function (ok) {
+                    if (!ok) return;
+                    setWipeParticipationState(wantPaused);
+                });
             });
         }
         var wipePhaseEl = document.getElementById('vital-info-wipe-phase');
         if (wipePhaseEl) {
             wipePhaseEl.addEventListener('change', function () {
                 if (wipePhaseEl.value === 'no_juega') {
-                    if (!confirmWipeParticipationChange(true)) {
-                        wipePhaseEl.value = isVitalPaused() ? 'no_juega' : 'unknown';
-                        return;
-                    }
-                    setWipeParticipationState(true);
+                    confirmWipeParticipationChange(true).then(function (ok) {
+                        if (!ok) {
+                            wipePhaseEl.value = isVitalPaused() ? 'no_juega' : 'unknown';
+                            return;
+                        }
+                        setWipeParticipationState(true);
+                    });
                 } else if (isVitalPaused()) {
-                    if (!confirmWipeParticipationChange(false)) {
-                        wipePhaseEl.value = 'no_juega';
-                        return;
-                    }
-                    setWipeParticipationState(false);
+                    confirmWipeParticipationChange(false).then(function (ok) {
+                        if (!ok) {
+                            wipePhaseEl.value = 'no_juega';
+                            return;
+                        }
+                        setWipeParticipationState(false);
+                    });
                 }
             });
         }
@@ -3788,19 +3878,26 @@
                 var sid = vitalSelectedSteam;
                 if (!sid) return;
                 var name = String((document.getElementById('vital-info-name') || {}).value || '').trim() || sid;
-                if (!window.confirm('¿Estás seguro de que querés eliminar a «' + name + '»? Esta acción no se puede deshacer.')) return;
-                fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid), {
-                    method: 'DELETE',
-                    headers: authHeaders()
-                })
-                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-                    .then(function (x) {
-                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'delete');
-                        vitalSelectedSteam = '';
-                        addVitalInfoLog('Jugador eliminado.', 'warn');
-                        loadVitalPlayerInfo().catch(function () {});
+                showVitalConfirm({
+                    title: 'Eliminar jugador',
+                    message: '¿Estás seguro de que querés eliminar a «' + name + '»? Esta acción no se puede deshacer.',
+                    confirmLabel: 'Eliminar',
+                    danger: true
+                }).then(function (ok) {
+                    if (!ok) return;
+                    fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid), {
+                        method: 'DELETE',
+                        headers: authHeaders()
                     })
-                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                        .then(function (x) {
+                            if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'delete');
+                            vitalSelectedSteam = '';
+                            addVitalInfoLog('Jugador eliminado.', 'warn');
+                            loadVitalPlayerInfo().catch(function () {});
+                        })
+                        .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+                });
             });
         }
         if (vitalDetailTabs) {
