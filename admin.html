@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=51">
-    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v13">
+    <link rel="stylesheet" href="style-admin.css?v=52">
+    <meta name="mcv-admin-build" content="2026-06-01-admin-ops-polish-v14">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -324,7 +324,7 @@
                         <div class="vital-member-panel">
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
-                                <div class="vital-quick-inline" id="vital-quick-filters">
+                                <div class="vital-quick-inline" id="vital-quick-filters" title="Podés combinar varios filtros a la vez">
                                     <button type="button" class="vital-qchip is-active" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
                                     <button type="button" class="vital-qchip" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
                                     <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
@@ -1920,9 +1920,28 @@
     var vitalSelectedRoles = [];
     var vitalSelectedSteam = '';
     var vitalDetailTab = 'general';
-    var vitalListCohort = 'all';
+    var vitalListCohorts = {};
     var vitalPointsSort = null;
     var vitalConfirmResolve = null;
+
+    function getActiveVitalCohorts() {
+        return Object.keys(vitalListCohorts);
+    }
+
+    function isVitalCohortActive(key) {
+        if (key === 'all') return !getActiveVitalCohorts().length;
+        return !!vitalListCohorts[key];
+    }
+
+    function toggleVitalCohort(key) {
+        key = String(key || 'all');
+        if (key === 'all') {
+            vitalListCohorts = {};
+            return;
+        }
+        if (vitalListCohorts[key]) delete vitalListCohorts[key];
+        else vitalListCohorts[key] = true;
+    }
 
     function playerMissingPlaytimeHours(row) {
         if (!row) return true;
@@ -3396,7 +3415,7 @@
 
     function applyVitalTablePrefs() {
         document.querySelectorAll('[data-vital-cohort]').forEach(function (btn) {
-            btn.classList.toggle('is-active', btn.getAttribute('data-vital-cohort') === vitalListCohort);
+            btn.classList.toggle('is-active', isVitalCohortActive(btn.getAttribute('data-vital-cohort')));
         });
         var sortBtn = document.querySelector('[data-vital-sort="points"]');
         if (sortBtn) sortBtn.classList.toggle('is-active', !!vitalPointsSort);
@@ -3525,12 +3544,15 @@
 
     function getFilteredVitalRows() {
         var q = String((document.getElementById('vital-info-search') || {}).value || '').toLowerCase().trim();
+        var cohorts = getActiveVitalCohorts();
         return (vitalInfoRows || []).filter(function (r) {
-            if (vitalListCohort === 'active' && (r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
-            if (vitalListCohort === 'active' && !(r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late')) return false;
-            if (vitalListCohort === 'paused' && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
-            if (vitalListCohort === 'strikes' && Number(r.strikes || 0) <= 0) return false;
-            if (vitalListCohort === 'no-hours') {
+            if (cohorts.indexOf('active') !== -1) {
+                if (r.pausedOutsideWipe || r.wipePhase === 'no_juega') return false;
+                if (!(r.statusTag === 'mcv_active' || r.statusTag === 'admin' || r.wipePhase === 'inicio' || r.wipePhase === 'late')) return false;
+            }
+            if (cohorts.indexOf('paused') !== -1 && !(r.pausedOutsideWipe || r.wipePhase === 'no_juega')) return false;
+            if (cohorts.indexOf('strikes') !== -1 && Number(r.strikes || 0) <= 0) return false;
+            if (cohorts.indexOf('no-hours') !== -1) {
                 if (r.pausedOutsideWipe || r.wipePhase === 'no_juega') return false;
                 if (!playerMissingPlaytimeHours(r)) return false;
             }
@@ -3924,7 +3946,7 @@
                     else if (vitalPointsSort === 'asc') vitalPointsSort = null;
                     else vitalPointsSort = 'desc';
                 } else if (cohortBtn) {
-                    vitalListCohort = String(cohortBtn.getAttribute('data-vital-cohort') || 'all');
+                    toggleVitalCohort(cohortBtn.getAttribute('data-vital-cohort'));
                 } else {
                     return;
                 }
