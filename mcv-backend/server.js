@@ -22,6 +22,7 @@ const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
+const { attachWipeReportDiscord } = require("./wipeReport");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -506,6 +507,7 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
         channelId: DISCORD_PLAYTIME_CHANNEL_ID,
         onSlashGuildIds: wipeGuildIds.length ? wipeGuildIds : DISCORD_GUILD_ID ? [DISCORD_GUILD_ID] : []
     });
+    attachWipeReportDiscord(discordClient, { getPool });
     discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
         console.warn("Discord bot login falló:", e.message);
     });
