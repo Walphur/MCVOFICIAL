@@ -4,6 +4,7 @@ const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
 const { buildMcHorasSlashCommand } = require("./playtimeSync");
+const { buildMcHorasSlashCommand } = require("./playtimeSync");
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();
@@ -273,9 +274,9 @@ async function registerSlashCommands(client, guildId) {
     if (!appId) {
         return;
     }
-    const cmd = new SlashCommandBuilder()
+    const cmdWipe = new SlashCommandBuilder()
         .setName("mcv-wipe")
-        .setDescription("Vinculá tu SteamID64 para el wipe MCV (roster interno; la ficha pública se solicita en mcvoficial.com/equipo/solicitud/)")
+        .setDescription("Vinculá tu SteamID64 (17 dígitos) al roster interno del wipe MCV.")
         .addStringOption((o) =>
             o
                 .setName("steam64")
@@ -285,10 +286,11 @@ async function registerSlashCommands(client, guildId) {
                 .setMaxLength(22)
         )
         .toJSON();
+    const cmdHoras = buildMcHorasSlashCommand();
 
     const rest = new REST({ version: "10" }).setToken(token);
-    await rest.put(Routes.applicationGuildCommands(appId, guildId), { body: [cmd] });
-    console.log(`Discord: /mcv-wipe registrado en guild ${guildId}.`);
+    await rest.put(Routes.applicationGuildCommands(appId, guildId), { body: [cmdWipe, cmdHoras] });
+    console.log(`Discord: /mcv-wipe y /mcv-horas registrados en guild ${guildId}.`);
 }
 
 /** Si DISCORD_WIPE_GUILD_ID está definido, el slash solo (o también) va a ese servidor — ej. clan privado. Si no, usa el guild principal. */
