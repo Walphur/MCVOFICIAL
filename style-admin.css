@@ -2856,6 +2856,63 @@ details.vital-extra-panel > :not(summary) {
     color: rgba(255, 255, 255, 0.72);
     max-width: 420px;
 }
+.vital-tier-sync-status {
+    font-size: 0.76rem;
+    color: rgba(134, 239, 172, 0.85);
+}
+.vital-tier-sync-status.is-error {
+    color: #fecaca;
+}
+.vital-tier-auto-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.vital-tier-auto-total {
+    margin: 0 0 12px;
+    font-size: 1rem;
+}
+.vital-tier-auto-total strong {
+    color: #86efac;
+    font-size: 1.35rem;
+}
+.vital-tier-player-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.vital-tier-player-table th,
+.vital-tier-player-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+}
+.vital-tier-stat-pts.is-plus { color: #86efac; }
+.vital-tier-stat-pts.is-minus { color: #fecaca; }
+.vital-tier-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    color: rgba(255, 255, 255, 0.75);
+}
+.vital-tier-leader {
+    font-size: 0.72rem;
+    color: #fde68a;
+    margin-left: 4px;
+}
+.vital-member-pts-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    min-width: 2.5rem;
+    text-align: right;
+    font-weight: 700;
+    color: #86efac;
+    font-size: 0.85rem;
+    align-self: center;
+}
+.vital-member-pts {
+    color: #86efac;
+}
 .btn-danger-outline {
     border-color: rgba(239, 68, 68, 0.45) !important;
     color: #fecaca !important;
