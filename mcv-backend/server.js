@@ -517,6 +517,7 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
     });
     attachWipeReportDiscord(discordClient, { getPool });
     attachWipeYoTopDiscord(discordClient, { getPool });
+    attachWipeAttendanceDiscord(discordClient, { getPool });
     discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
         console.warn("Discord bot login falló:", e.message);
     });

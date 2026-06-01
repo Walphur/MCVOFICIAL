@@ -317,8 +317,7 @@ async function resolvePollForRemind(pool, guildId, channelId, pollIdOpt) {
 function buildMcAsistenciaSlashCommand() {
     return new SlashCommandBuilder()
         .setName("mcv-asistencia")
-        .setDescription("Encuesta de asistencia al wipe (staff)")
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+        .setDescription("Encuesta Accept/Decline/Late — crear y recordar pendientes (staff)")
         .addSubcommand((sc) =>
             sc
                 .setName("crear")
