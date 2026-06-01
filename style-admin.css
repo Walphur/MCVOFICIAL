@@ -4876,3 +4876,505 @@ details.vital-extra-panel > :not(summary) {
         grid-template-columns: 1fr;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MCV OPS — Admin UX redesign (Linear / Discord / Vercel)
+   ═══════════════════════════════════════════════════════════ */
+.vital-app-shell {
+    --ops-bg: #0a0c10;
+    --ops-surface: #111318;
+    --ops-surface-2: #161920;
+    --ops-border: rgba(255, 255, 255, 0.08);
+    --ops-text: #eceef2;
+    --ops-text-muted: #8b939e;
+    --ops-text-subtle: #5c6570;
+    --ops-green: #3ecf8e;
+    --ops-green-dim: rgba(62, 207, 142, 0.14);
+    --ops-yellow: #f5c542;
+    --ops-yellow-dim: rgba(245, 197, 66, 0.14);
+    --ops-red: #f87171;
+    --ops-red-dim: rgba(248, 113, 113, 0.14);
+    --ops-blue: #5b9cf5;
+    --ops-blue-dim: rgba(91, 156, 245, 0.14);
+    --ops-gold: #d4a437;
+    --ops-radius: 10px;
+    --ops-radius-lg: 14px;
+    --ops-transition: 150ms ease;
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* Dashboard superior */
+.vital-ops-dashboard {
+    padding: 12px 12px 8px;
+    border-bottom: 1px solid var(--ops-border);
+    flex-shrink: 0;
+}
+.vital-ops-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.ops-kpi {
+    padding: 10px 12px;
+    border-radius: var(--ops-radius);
+    background: var(--ops-surface);
+    border: 1px solid var(--ops-border);
+    transition: border-color var(--ops-transition), background var(--ops-transition);
+}
+.ops-kpi:hover {
+    background: var(--ops-surface-2);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.ops-kpi__label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ops-text-subtle);
+    margin-bottom: 4px;
+}
+.ops-kpi__value {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ops-text);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+.ops-kpi--good .ops-kpi__value { color: var(--ops-green); }
+.ops-kpi--risk .ops-kpi__value { color: var(--ops-red); }
+.ops-kpi--info .ops-kpi__value { color: var(--ops-blue); }
+
+.vital-ops-spotlight {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.ops-spotlight {
+    padding: 10px 12px;
+    border-radius: var(--ops-radius);
+    border: 1px solid var(--ops-border);
+    background: var(--ops-surface);
+    transition: transform var(--ops-transition), border-color var(--ops-transition);
+}
+.ops-spotlight:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+.ops-spotlight__tag {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ops-text-subtle);
+    margin-bottom: 4px;
+}
+.ops-spotlight strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ops-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.ops-spotlight__pts {
+    font-size: 13px;
+    font-weight: 700;
+}
+.ops-spotlight__pts.is-positive { color: var(--ops-green); }
+.ops-spotlight__pts.is-negative { color: var(--ops-red); }
+.ops-spotlight--top { border-left: 3px solid var(--ops-green); }
+.ops-spotlight--low { border-left: 3px solid var(--ops-red); }
+
+.vital-ops-actions-drawer {
+    margin-top: 4px;
+}
+.vital-ops-actions-drawer > summary {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ops-text-muted);
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color var(--ops-transition);
+}
+.vital-ops-actions-drawer > summary:hover { color: var(--ops-text); }
+.vital-ops-actions-drawer[open] .vital-dashboard-actions {
+    margin-top: 8px;
+}
+
+/* Listado lateral */
+.ops-member-row {
+    display: grid;
+    grid-template-columns: 3px auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 10px 10px 6px;
+    border: 1px solid transparent;
+    border-radius: var(--ops-radius);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--ops-transition), border-color var(--ops-transition), transform var(--ops-transition);
+}
+.ops-member-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.ops-member-row.is-active {
+    background: var(--ops-blue-dim);
+    border-color: rgba(91, 156, 245, 0.25);
+}
+.ops-member-rail {
+    width: 3px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--ops-text-subtle);
+}
+.ops-risk--excellent .ops-member-rail { background: var(--ops-green); }
+.ops-risk--good .ops-member-rail { background: var(--ops-blue); }
+.ops-risk--risk .ops-member-rail { background: var(--ops-yellow); }
+.ops-risk--critical .ops-member-rail { background: var(--ops-red); }
+.ops-risk--info .ops-member-rail { background: var(--ops-text-subtle); opacity: 0.5; }
+
+.ops-member-avatar,
+.ops-player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--ops-surface-2);
+    color: var(--ops-text);
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    transition: border-color var(--ops-transition);
+}
+.ops-risk-ring--excellent { border-color: rgba(62, 207, 142, 0.55); }
+.ops-risk-ring--good { border-color: rgba(91, 156, 245, 0.45); }
+.ops-risk-ring--risk { border-color: rgba(245, 197, 66, 0.55); }
+.ops-risk-ring--critical { border-color: rgba(248, 113, 113, 0.6); }
+.ops-risk-ring--info { border-color: rgba(139, 147, 158, 0.35); opacity: 0.75; }
+
+.ops-member-body { min-width: 0; }
+.ops-member-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ops-text);
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ops-member-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--ops-text-muted);
+    line-height: 1.4;
+}
+.ops-member-score {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ops-text);
+    min-width: 2.5rem;
+    text-align: right;
+}
+.ops-member-score.is-positive { color: var(--ops-green); }
+.ops-member-score.is-negative { color: var(--ops-red); }
+.ops-member-score.is-muted { opacity: 0.45; }
+.ops-member-row.is-paused-row { opacity: 0.72; }
+
+/* Header jugador */
+.ops-player-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ops-border);
+}
+.ops-player-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+.ops-player-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.ops-player-title-row h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ops-text);
+    line-height: 1.25;
+}
+.ops-link {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ops-blue);
+    text-decoration: none;
+    transition: color var(--ops-transition);
+}
+.ops-link:hover { color: #7eb4ff; }
+.ops-player-steam {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ops-text-subtle);
+}
+.ops-player-meta {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--ops-text-muted);
+    line-height: 1.45;
+}
+.ops-player-score-block {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+.ops-player-score {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ops-text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* Pills de estado */
+.ops-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.ops-pill--excellent { background: var(--ops-green-dim); color: var(--ops-green); }
+.ops-pill--good { background: var(--ops-blue-dim); color: var(--ops-blue); }
+.ops-pill--risk { background: var(--ops-yellow-dim); color: var(--ops-yellow); }
+.ops-pill--critical { background: var(--ops-red-dim); color: var(--ops-red); }
+.ops-pill--info { background: rgba(255,255,255,0.06); color: var(--ops-text-muted); }
+
+/* Resumen automático jugador */
+.ops-player-insight {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 0 20px 12px;
+    padding: 12px 14px;
+    border-radius: var(--ops-radius);
+    background: var(--ops-surface);
+    border: 1px solid var(--ops-border);
+}
+.ops-player-insight--muted p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ops-text-muted);
+}
+.ops-player-insight__label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+.ops-player-insight__label.is-positive { color: var(--ops-green); }
+.ops-player-insight__label.is-negative { color: var(--ops-red); }
+.ops-player-insight p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ops-text);
+    line-height: 1.45;
+}
+
+/* Timeline historial */
+.vital-timeline-wrap {
+    margin-top: 12px;
+}
+.vital-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 18px;
+    border-left: 2px solid var(--ops-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.vital-timeline-item {
+    position: relative;
+    padding: 0 0 14px 16px;
+}
+.vital-timeline-dot {
+    position: absolute;
+    left: -23px;
+    top: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ops-text-subtle);
+    border: 2px solid var(--ops-bg);
+    transition: background var(--ops-transition);
+}
+.vital-timeline-item.is-plus .vital-timeline-dot { background: var(--ops-green); }
+.vital-timeline-item.is-minus .vital-timeline-dot { background: var(--ops-red); }
+.vital-timeline-card {
+    padding: 12px 14px;
+    border-radius: var(--ops-radius);
+    background: var(--ops-surface);
+    border: 1px solid var(--ops-border);
+    transition: border-color var(--ops-transition), background var(--ops-transition);
+}
+.vital-timeline-card:hover {
+    background: var(--ops-surface-2);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.vital-timeline-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.vital-timeline-card__head time {
+    font-size: 11px;
+    color: var(--ops-text-subtle);
+}
+.vital-timeline-card__delta {
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.vital-timeline-item.is-plus .vital-timeline-card__delta { color: var(--ops-green); }
+.vital-timeline-item.is-minus .vital-timeline-card__delta { color: var(--ops-red); }
+.vital-timeline-card__body {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.vital-timeline-card__body strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ops-text);
+    margin-bottom: 2px;
+}
+.vital-timeline-card__body p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ops-text-muted);
+    line-height: 1.4;
+}
+
+/* Status hero puntos — nuevos estados */
+.vital-perf-hero__status.is-critical { background: var(--ops-red-dim); color: var(--ops-red); border: 1px solid rgba(248,113,113,0.3); }
+.vital-perf-hero__status.is-risk { background: var(--ops-yellow-dim); color: var(--ops-yellow); border: 1px solid rgba(245,197,66,0.3); }
+.vital-perf-hero__status.is-good { background: var(--ops-blue-dim); color: var(--ops-blue); border: 1px solid rgba(91,156,245,0.3); }
+.vital-perf-hero__status.is-excellent { background: var(--ops-green-dim); color: var(--ops-green); border: 1px solid rgba(62,207,142,0.3); }
+.vital-perf-hero__status.is-info { background: rgba(255,255,255,0.06); color: var(--ops-text-muted); border: 1px solid var(--ops-border); }
+.vital-perf-hero__score.is-critical { color: var(--ops-red); }
+.vital-perf-hero__score.is-risk { color: var(--ops-yellow); }
+.vital-perf-hero__score.is-good { color: var(--ops-blue); }
+.vital-perf-hero__score.is-excellent { color: var(--ops-green); }
+
+/* Sticky footer + save feedback */
+.vital-detail-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+}
+.vital-save-btn {
+    transition: background var(--ops-transition), transform var(--ops-transition), box-shadow var(--ops-transition);
+}
+.vital-save-btn.is-saved {
+    background: var(--ops-green) !important;
+    box-shadow: 0 0 0 3px var(--ops-green-dim);
+    transform: scale(1.02);
+}
+.vital-save-btn.is-error {
+    background: var(--ops-red) !important;
+    box-shadow: 0 0 0 3px var(--ops-red-dim);
+}
+
+/* Tabs — menos naranja, más neutro */
+.vital-dtab {
+    transition: color var(--ops-transition), background var(--ops-transition), border-color var(--ops-transition);
+}
+.vital-dtab.active {
+    color: var(--ops-text) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+.vital-qchip.is-active {
+    background: var(--ops-blue-dim) !important;
+    border-color: rgba(91, 156, 245, 0.4) !important;
+    color: #c8ddff !important;
+}
+
+/* Microinteracciones globales ops */
+.vital-app-shell .btn-outline,
+.vital-app-shell .btn-primary-small,
+.vital-app-shell .vital-perf-stat-card,
+.vital-app-shell .ops-kpi {
+    transition: background var(--ops-transition), border-color var(--ops-transition), color var(--ops-transition), transform var(--ops-transition);
+}
+.vital-perf-stat-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Responsive 1366x768 y 1920x1080 */
+@media (min-width: 1280px) {
+    .vital-split {
+        grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
+    }
+    .vital-ops-kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1600px) {
+    .vital-split {
+        grid-template-columns: minmax(340px, 380px) minmax(0, 1fr);
+    }
+    .ops-player-score { font-size: 32px; }
+    .vital-detail-body { padding: 0 24px 16px; }
+}
+@media (max-width: 1100px) {
+    .vital-ops-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .vital-ops-spotlight { grid-template-columns: 1fr; }
+    .ops-player-insight { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+    .ops-player-header {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+    }
+    .ops-player-score-block {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+}

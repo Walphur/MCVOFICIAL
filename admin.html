@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=39">
-    <meta name="mcv-admin-build" content="2026-05-28-vital-perf-dashboard-v1">
+    <link rel="stylesheet" href="style-admin.css?v=40">
+    <meta name="mcv-admin-build" content="2026-05-28-admin-ops-ux-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -305,25 +305,29 @@
                     <div class="vital-split">
                         <div class="vital-member-panel">
                             <div id="vital-health-bar" class="vital-health-bar" hidden aria-live="polite"></div>
-                            <div class="vital-wipe-dashboard">
-                                <div id="vital-member-stats" class="vital-member-stats" aria-label="Resumen roster"></div>
-                                <div class="vital-dashboard-actions">
-                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar CSV</button>
-                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
-                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
-                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas desde Discord</button>
-                                </div>
-                                <div class="vital-tier-score-bar" id="vital-tier-score-bar">
-                                    <span class="vital-tier-score-bar__label">Puntos Vital</span>
-                                    <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
-                                        <option value="eu-medium">EU Medium 2x</option>
-                                        <option value="eu-monthly">EU Monthly 2x</option>
-                                    </select>
-                                    <span id="vital-tier-dash-status" class="vital-tier-sync-status">Sync al abrir pestaña Puntos</span>
-                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview">Ver ranking</button>
-                                </div>
-                                <p id="vital-global-period-label" class="vital-global-period-label" aria-live="polite"></p>
-                                <div id="vital-tier-preview" class="vital-tier-preview"></div>
+                            <div class="vital-ops-dashboard">
+                                <div id="vital-member-stats" class="vital-ops-kpi-grid" aria-label="Resumen roster"></div>
+                                <div id="vital-ops-spotlight" class="vital-ops-spotlight" aria-label="Destacados del roster"></div>
+                                <details class="vital-ops-actions-drawer">
+                                    <summary>Herramientas del roster</summary>
+                                    <div class="vital-dashboard-actions">
+                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar CSV</button>
+                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
+                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres desde Vital</button>
+                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas desde Discord</button>
+                                    </div>
+                                    <div class="vital-tier-score-bar" id="vital-tier-score-bar">
+                                        <span class="vital-tier-score-bar__label">Servidor wipe</span>
+                                        <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
+                                            <option value="eu-medium">EU Medium 2x</option>
+                                            <option value="eu-monthly">EU Monthly 2x</option>
+                                        </select>
+                                        <span id="vital-tier-dash-status" class="vital-tier-sync-status">Sync al abrir Puntos</span>
+                                        <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-preview">Ver ranking</button>
+                                    </div>
+                                    <p id="vital-global-period-label" class="vital-global-period-label" aria-live="polite"></p>
+                                    <div id="vital-tier-preview" class="vital-tier-preview"></div>
+                                </details>
                             </div>
                             <div class="vital-member-toolbar">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar..." />
@@ -356,14 +360,14 @@
                             <div id="vital-detail-content" class="vital-detail-content" hidden>
                                 <header id="vital-player-summary" class="vital-detail-header"></header>
                                 <div class="vital-detail-tabs" id="vital-detail-tabs">
-                                    <button type="button" class="vital-dtab active" data-detail-tab="general">Datos</button>
+                                    <button type="button" class="vital-dtab active" data-detail-tab="general">Perfil</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="puntos">Puntos</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
                                     <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="wipe">Wipe</button>
                                     <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="combats">Combats</button>
                                     <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="minis">Minis</button>
                                     <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="notes">Notas</button>
-                                    <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="logs">Logs</button>
+                                    <button type="button" class="vital-dtab vital-advanced-only" data-detail-tab="logs">Actividad</button>
                                 </div>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
@@ -536,7 +540,9 @@
                                                     <label class="vital-field vital-field--wide"><span>Motivo</span><input id="vital-score-reason" class="admin-input" maxlength="200" /></label>
                                                     <button type="button" class="btn-primary-small" id="btn-vital-score-apply">Aplicar</button>
                                                 </div>
-                                                <ul id="vital-score-history" class="vital-score-history vital-perf-history"></ul>
+                                                <div class="vital-timeline-wrap">
+                                                    <ul id="vital-score-history" class="vital-timeline vital-perf-history"></ul>
+                                                </div>
                                             </div>
                                         </section>
                                     </div>
@@ -570,7 +576,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <button type="button" class="btn-primary-small" id="btn-vital-info-save">Guardar cambios</button>
+                                        <button type="button" class="btn-primary-small vital-save-btn" id="btn-vital-info-save">Guardar cambios</button>
                                     </div>
                                 </footer>
                             </div>
@@ -2034,6 +2040,60 @@
         building: 'Building'
     };
 
+    function getPlayerPoints(row) {
+        if (!row) return 0;
+        return Number(row.performanceScore != null ? row.performanceScore : (row.tierScore != null ? row.tierScore : (getVitalTierForSteam(row.steamId64).total || 0)));
+    }
+
+    function isPlayerPaused(row) {
+        return !!(row && (row.pausedOutsideWipe || row.wipePhase === 'no_juega'));
+    }
+
+    function getPlayerRiskLevel(row) {
+        if (!row) return 'info';
+        if (isPlayerPaused(row)) return 'info';
+        var pts = getPlayerPoints(row);
+        var strikes = Number(row.strikes || 0);
+        if (pts <= -10 || strikes >= 2) return 'critical';
+        if (pts < 0 || strikes >= 1) return 'risk';
+        if (pts >= 15) return 'excellent';
+        return 'good';
+    }
+
+    function getPlayerRiskLabel(level) {
+        return ({ critical: 'Crítico', risk: 'Riesgo', good: 'Bien', excellent: 'Excelente', info: 'Pausado' })[level] || '—';
+    }
+
+    function buildPlayerReasonsSummary(steamId) {
+        var tier = getVitalTierForSteam(steamId);
+        var gains = [];
+        var losses = [];
+        (tier.breakdown || []).forEach(function (b) {
+            var pts = Number(b.points || 0);
+            if (!pts) return;
+            var label = VITAL_TIER_STAT_LABELS[b.id] || b.label;
+            if (pts > 0) gains.push({ label: label, pts: pts });
+            else losses.push({ label: label, pts: pts });
+        });
+        gains.sort(function (a, b) { return b.pts - a.pts; });
+        losses.sort(function (a, b) { return a.pts - b.pts; });
+        return { gains: gains.slice(0, 3), losses: losses.slice(0, 3) };
+    }
+
+    function flashVitalSaveButton(success) {
+        var btn = document.getElementById('btn-vital-info-save');
+        if (!btn) return;
+        btn.classList.remove('is-saved', 'is-error');
+        btn.classList.add(success ? 'is-saved' : 'is-error');
+        var prev = btn.getAttribute('data-label') || btn.textContent;
+        if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', prev);
+        btn.textContent = success ? '✓ Guardado' : 'Error al guardar';
+        setTimeout(function () {
+            btn.classList.remove('is-saved', 'is-error');
+            btn.textContent = btn.getAttribute('data-label') || 'Guardar cambios';
+        }, 1800);
+    }
+
     function escAttr(s) {
         return esc(String(s == null ? '' : s)).replace(/"/g, '&quot;');
     }
@@ -2111,64 +2171,102 @@
             : (vitalIsNewPlayer ? 'Nuevo jugador' : String((document.getElementById('vital-info-name') || {}).value || '').trim() || 'Jugador');
         var steam = selected ? selected.steamId64 : String((document.getElementById('vital-info-steam') || {}).value || '');
         var initial = String(name).trim().charAt(0).toUpperCase() || '?';
-        var wipe = selected ? String(selected.wipePhase || 'unknown').replace('_', ' ') : '—';
         var strikes = selected ? Number(selected.strikes || 0) : 0;
         var hours = selected && selected.hoursPlayed != null ? selected.hoursPlayed : '—';
-        var role = selected ? (selected.roleLabel || '—') : '—';
         var status = selected ? selected.statusTag : 'wipe_guest';
+        var pts = selected ? getPlayerPoints(selected) : 0;
+        var risk = getPlayerRiskLevel(selected);
+        var riskLabel = getPlayerRiskLabel(risk);
         var bmLink = selected && selected.bmUrl
-            ? '<a class="vital-workspace-bm" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BM ↗</a>'
+            ? '<a class="ops-link" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BattleMetrics ↗</a>'
             : '';
+        var roles = selected && selected.roleLabels && selected.roleLabels.length
+            ? selected.roleLabels
+            : parseRoleLabelsLocal(selected ? selected.roleLabel : '');
+        var metaParts = [
+            esc(statusLabelShort(status)),
+            esc(wipePhaseLabel(selected ? selected.wipePhase : 'unknown')),
+            esc(hours) + 'h'
+        ];
+        if (roles.length) metaParts.push(esc(roles.join(' · ')));
+        if (strikes > 0) metaParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
+        var reasons = selected ? buildPlayerReasonsSummary(selected.steamId64) : { gains: [], losses: [] };
+        var insightHtml = '';
+        if (selected && !isPlayerPaused(selected) && (reasons.gains.length || reasons.losses.length)) {
+            var gainTxt = reasons.gains.length
+                ? reasons.gains.map(function (g) { return '+' + g.pts + ' ' + g.label; }).join(' · ')
+                : '—';
+            var lossTxt = reasons.losses.length
+                ? reasons.losses.map(function (l) { return String(l.pts) + ' ' + l.label; }).join(' · ')
+                : '—';
+            insightHtml =
+                '<div class="ops-player-insight">' +
+                '<div class="ops-player-insight__col">' +
+                '<span class="ops-player-insight__label is-positive">Ganancias</span>' +
+                '<p>' + esc(gainTxt) + '</p></div>' +
+                '<div class="ops-player-insight__col">' +
+                '<span class="ops-player-insight__label is-negative">Pérdidas</span>' +
+                '<p>' + esc(lossTxt) + '</p></div></div>';
+        } else if (selected && isPlayerPaused(selected)) {
+            insightHtml = '<div class="ops-player-insight ops-player-insight--muted"><p>No participa en el wipe: puntos automáticos desactivados.</p></div>';
+        }
         box.innerHTML =
-            '<div class="vital-workspace-header">' +
-            '<span class="vital-workspace-avatar">' + esc(initial) + '</span>' +
-            '<div class="vital-workspace-title">' +
-            '<div class="vital-workspace-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
-            '<code class="vital-workspace-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
-            '<div class="vital-workspace-badges">' +
-            '<span class="ws-badge ws-badge--status ws-badge--' + escAttr(status) + '">' + esc(statusLabelShort(status)) + '</span>' +
-            (selected && selected.pausedOutsideWipe ? '<span class="ws-badge ws-badge--status ws-badge--pause">Pausado</span>' : '') +
-            '<span class="ws-badge ws-badge--meta">' + esc(wipePhaseLabel(selected ? selected.wipePhase : 'unknown')) + '</span>' +
-            '<span class="ws-badge ws-badge--strike">' + esc(strikes) + ' strike' + (strikes === 1 ? '' : 's') + '</span>' +
-            (selected && Number(selected.combatsLost || 0) > 0
-                ? '<span class="ws-badge ws-badge--meta">' + esc(selected.combatsLost) + ' combats</span>'
-                : '') +
-            (selected && Number(selected.minisLost || 0) > 0
-                ? '<span class="ws-badge ws-badge--meta">' + esc(selected.minisLost) + ' minis</span>'
-                : '') +
-            '<span class="ws-badge ws-badge--hi">' + esc(selected ? Number(selected.performanceScore != null ? selected.performanceScore : (getVitalTierForSteam(selected.steamId64).total || 0)) : 0) + ' pts</span>' +
-            '<span class="ws-badge ws-badge--meta">' + esc(hours) + 'h</span>' +
-            (function () {
-                var roles = selected && selected.roleLabels && selected.roleLabels.length
-                    ? selected.roleLabels
-                    : parseRoleLabelsLocal(selected ? selected.roleLabel : '');
-                if (!roles.length) return '';
-                return roles.map(function (rn) {
-                    return '<span class="ws-badge ws-badge--role">' + esc(rn) + '</span>';
-                }).join('');
-            })() +
-            '</div></div></div>';
+            '<div class="ops-player-header">' +
+            '<span class="ops-player-avatar ops-risk-ring--' + escAttr(risk) + '">' + esc(initial) + '</span>' +
+            '<div class="ops-player-main">' +
+            '<div class="ops-player-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
+            '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
+            '<p class="ops-player-meta">' + metaParts.join(' · ') + '</p>' +
+            '</div>' +
+            '<div class="ops-player-score-block">' +
+            '<span class="ops-player-score">' + esc(String(pts)) + '</span>' +
+            '<span class="ops-pill ops-pill--' + escAttr(risk) + '">' + esc(riskLabel) + '</span>' +
+            '</div></div>' +
+            insightHtml;
         syncWipeSegmentUI();
         renderVitalDetailLogs();
     }
 
     function renderVitalMemberStats() {
-        var box = document.getElementById('vital-member-stats');
-        if (!box) return;
+        var kpiBox = document.getElementById('vital-member-stats');
+        var spotBox = document.getElementById('vital-ops-spotlight');
+        if (!kpiBox) return;
         var rows = vitalInfoRows || [];
-        var stats = [
-            { key: 'admin.vitalDashTotal', fallback: 'Total', value: rows.length },
-            { key: 'admin.vitalDashActive', fallback: 'Activos', value: rows.filter(function (r) { return r.statusTag === 'mcv_active' || r.statusTag === 'admin'; }).length },
-            { key: 'admin.vitalDashPaused', fallback: 'Pausados', value: rows.filter(function (r) { return r.pausedOutsideWipe || r.wipePhase === 'no_juega'; }).length },
-            { key: 'admin.vitalDashInWipe', fallback: 'En wipe', value: rows.filter(function (r) { return r.wipePhase === 'inicio' || r.wipePhase === 'late'; }).length },
-            { key: 'admin.vitalDashStrikes', fallback: 'Con strikes', value: rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length },
-            { key: 'admin.vitalDashCombats', fallback: 'Combats perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.combatsLost || 0); }, 0) },
-            { key: 'admin.vitalDashMinis', fallback: 'Minis perd.', value: rows.reduce(function (sum, r) { return sum + Number(r.minisLost || 0); }, 0) },
-            { key: 'admin.vitalDashPoints', fallback: 'Pts totales', value: rows.reduce(function (sum, r) { return sum + Number(r.performanceScore != null ? r.performanceScore : (r.tierScore || 0)); }, 0) }
+        var active = rows.filter(function (r) { return r.statusTag === 'mcv_active' || r.statusTag === 'admin'; }).length;
+        var paused = rows.filter(function (r) { return isPlayerPaused(r); }).length;
+        var strikes = rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length;
+        var kpis = [
+            { label: 'Total', value: rows.length, tone: 'info' },
+            { label: 'Activos', value: active, tone: 'good' },
+            { label: 'Pausados', value: paused, tone: 'info' },
+            { label: 'Strikes', value: strikes, tone: strikes > 0 ? 'risk' : 'neutral' }
         ];
-        box.innerHTML = stats.map(function (s) {
-            return '<div class="vital-member-stat"><span>' + esc(vitalLabel(s.key, s.fallback)) + '</span><strong>' + esc(s.value) + '</strong></div>';
+        kpiBox.innerHTML = kpis.map(function (k) {
+            return '<div class="ops-kpi ops-kpi--' + escAttr(k.tone) + '">' +
+                '<span class="ops-kpi__label">' + esc(k.label) + '</span>' +
+                '<strong class="ops-kpi__value">' + esc(String(k.value)) + '</strong></div>';
         }).join('');
+
+        if (!spotBox) return;
+        var playing = rows.filter(function (r) { return !isPlayerPaused(r); });
+        if (!playing.length) {
+            spotBox.innerHTML = '';
+            spotBox.hidden = true;
+            return;
+        }
+        var sorted = playing.slice().sort(function (a, b) { return getPlayerPoints(b) - getPlayerPoints(a); });
+        var top = sorted[0];
+        var worst = sorted[sorted.length - 1];
+        spotBox.hidden = false;
+        spotBox.innerHTML =
+            '<article class="ops-spotlight ops-spotlight--top">' +
+            '<span class="ops-spotlight__tag">Top jugador</span>' +
+            '<strong>' + esc(top.displayName || top.steamId64) + '</strong>' +
+            '<span class="ops-spotlight__pts is-positive">' + esc(String(getPlayerPoints(top))) + ' pts</span></article>' +
+            '<article class="ops-spotlight ops-spotlight--low">' +
+            '<span class="ops-spotlight__tag">Peor rendimiento</span>' +
+            '<strong>' + esc(worst.displayName || worst.steamId64) + '</strong>' +
+            '<span class="ops-spotlight__pts is-negative">' + esc(String(getPlayerPoints(worst))) + ' pts</span></article>';
     }
 
     function buildVitalDashboardRows() {
@@ -2722,20 +2820,22 @@
             box.innerHTML = '<li class="empty-hint">' + esc(vitalLabel('admin.vitalPointsHistoryEmpty', 'Sin movimientos aún.')) + '</li>';
             return;
         }
-        box.innerHTML = events.map(function (ev) {
+        box.innerHTML = events.map(function (ev, idx) {
             var parsed = parseVitalScoreEvent(ev);
             var signCls = parsed.delta < 0 ? ' is-minus' : (parsed.delta > 0 ? ' is-plus' : '');
-            return '<li class="vital-perf-history-item' + signCls + '">' +
-                '<div class="vital-perf-history-item__head">' +
-                '<time class="vital-perf-history-item__time">' + esc(parsed.timeLabel || '—') + '</time>' +
-                '</div>' +
-                '<div class="vital-perf-history-item__body">' +
+            return '<li class="vital-timeline-item' + signCls + '">' +
+                '<span class="vital-timeline-dot" aria-hidden="true"></span>' +
+                '<article class="vital-timeline-card">' +
+                '<header class="vital-timeline-card__head">' +
+                '<time datetime="' + escAttr(String(ev.createdAt || '')) + '">' + esc(parsed.timeLabel || '—') + '</time>' +
+                '<span class="vital-timeline-card__delta">' + esc(parsed.penalty) + '</span>' +
+                '</header>' +
+                '<div class="vital-timeline-card__body">' +
                 '<span class="vital-perf-stat-icon ' + escAttr(parsed.iconCls) + '" aria-hidden="true">' + vitalStatIconChar(parsed.iconCls) + '</span>' +
-                '<div class="vital-perf-history-item__text">' +
+                '<div>' +
                 '<strong>' + esc(parsed.title) + '</strong>' +
-                (parsed.detail ? '<span>' + esc(parsed.detail) + '</span>' : '') +
-                '<span class="vital-perf-history-item__penalty">' + esc(parsed.delta >= 0 ? 'Bonificación' : 'Penalización') + ': ' + esc(parsed.penalty.replace(' pts', '')) + '</span>' +
-                '</div></div></li>';
+                (parsed.detail ? '<p>' + esc(parsed.detail) + '</p>' : '') +
+                '</div></div></article></li>';
         }).join('');
     }
 
@@ -2836,22 +2936,34 @@
         };
     }
 
-    function vitalPerfStatusLabel(total) {
+    function vitalPerfStatusLabel(total, row) {
+        var level = row ? getPlayerRiskLevel(Object.assign({}, row, { performanceScore: total })) : null;
+        if (level === 'critical') return 'Crítico';
+        if (level === 'risk') return 'Riesgo';
+        if (level === 'excellent') return 'Excelente';
+        if (level === 'good') return 'Bien';
+        if (level === 'info') return 'Pausado';
         var n = Number(total);
         if (!Number.isFinite(n)) return '';
-        if (n <= -10) return 'Bajo rendimiento';
-        if (n < 0) return 'Por debajo del objetivo';
-        if (n < 8) return 'Rendimiento regular';
-        if (n < 18) return 'Buen rendimiento';
-        return 'Excelente rendimiento';
+        if (n <= -10) return 'Crítico';
+        if (n < 0) return 'Riesgo';
+        if (n >= 15) return 'Excelente';
+        return 'Bien';
     }
 
-    function vitalPerfStatusClass(total) {
+    function vitalPerfStatusClass(total, row) {
+        var level = row ? getPlayerRiskLevel(Object.assign({}, row, { performanceScore: total })) : null;
+        if (level === 'critical') return 'is-critical';
+        if (level === 'risk') return 'is-risk';
+        if (level === 'excellent') return 'is-excellent';
+        if (level === 'good') return 'is-good';
+        if (level === 'info') return 'is-info';
         var n = Number(total);
         if (!Number.isFinite(n)) return '';
-        if (n < 0) return 'is-low';
-        if (n < 8) return 'is-mid';
-        return 'is-high';
+        if (n <= -10) return 'is-critical';
+        if (n < 0) return 'is-risk';
+        if (n >= 15) return 'is-excellent';
+        return 'is-good';
     }
 
     function vitalStatIconClass(pts, isLeader) {
@@ -3072,8 +3184,9 @@
         var hasTotal = Number.isFinite(n);
 
         if (statusEl) {
-            statusEl.textContent = hasTotal ? vitalPerfStatusLabel(n) : '';
-            statusEl.className = 'vital-perf-hero__status ' + (hasTotal ? vitalPerfStatusClass(n) : '');
+            var row = findVitalRow(vitalSelectedSteam);
+            statusEl.textContent = hasTotal ? vitalPerfStatusLabel(n, row) : '';
+            statusEl.className = 'vital-perf-hero__status ' + (hasTotal ? vitalPerfStatusClass(n, row) : '');
         }
         var pct = hasTotal ? vitalScoreToPercent(n) : 0;
         var cpct = hasTotal ? vitalContribPercent(n) : 0;
@@ -3128,7 +3241,7 @@
                 totalEl.className = 'vital-perf-hero__score is-paused';
             } else if (tier.total != null) {
                 totalEl.textContent = String(tier.total) + ' pts';
-                totalEl.className = 'vital-perf-hero__score ' + vitalPerfStatusClass(tier.total);
+                totalEl.className = 'vital-perf-hero__score ' + vitalPerfStatusClass(tier.total, findVitalRow(sid));
             } else {
                 totalEl.textContent = '—';
                 totalEl.className = 'vital-perf-hero__score';
@@ -3571,23 +3684,24 @@
         box.innerHTML = rows.map(function (r) {
             var active = normalizeVitalSteamLocal(r.steamId64) === normalizeVitalSteamLocal(vitalSelectedSteam) ? ' is-active' : '';
             var initial = String(r.displayName || '?').trim().charAt(0).toUpperCase() || '?';
-            var paused = r.pausedOutsideWipe || r.wipePhase === 'no_juega';
+            var paused = isPlayerPaused(r);
             var strikes = Number(r.strikes || 0);
-            var pts = Number(r.performanceScore != null ? r.performanceScore : (r.tierScore || getVitalTierForSteam(r.steamId64).total || 0));
-            var statusCls = paused ? 'is-paused' : ('ws-badge--' + String(r.statusTag || 'wipe_guest'));
+            var pts = getPlayerPoints(r);
+            var risk = getPlayerRiskLevel(r);
             var subParts = [esc(statusLabelShort(r.statusTag))];
-            if (paused) subParts.push('No juega');
+            if (paused) subParts.push('Pausado');
             else subParts.push(esc(wipePhaseLabel(r.wipePhase)));
             if (strikes > 0) subParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
             var sub = subParts.join(' · ');
-            return '<button type="button" class="vital-member-row' + active + (paused ? ' is-paused-row' : '') + '" data-steam="' + escAttr(r.steamId64) + '">' +
-                '<span class="vital-member-avatar">' + esc(initial) + '</span>' +
-                '<span class="vital-member-body">' +
-                '<span class="vital-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
-                '<span class="vital-member-sub">' + sub + '</span>' +
-                '<span class="vital-member-status-dot ' + escAttr(statusCls) + '" aria-hidden="true"></span>' +
+            var ptsCls = pts > 0 ? ' is-positive' : (pts < 0 ? ' is-negative' : '');
+            return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '">' +
+                '<span class="ops-member-rail" aria-hidden="true"></span>' +
+                '<span class="ops-member-avatar ops-risk-ring--' + escAttr(risk) + '">' + esc(initial) + '</span>' +
+                '<span class="ops-member-body">' +
+                '<span class="ops-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
+                '<span class="ops-member-sub">' + sub + '</span>' +
                 '</span>' +
-                '<span class="vital-member-pts-badge' + (paused ? ' is-muted' : '') + '">' + esc(String(pts)) + '</span>' +
+                '<span class="ops-member-score' + ptsCls + (paused ? ' is-muted' : '') + '">' + esc(String(pts)) + '</span>' +
                 '</button>';
         }).join('');
     }
@@ -3670,6 +3784,7 @@
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'save');
+                flashVitalSaveButton(true);
                 banner('Info jugador guardada.', false);
                 addVitalInfoLog('Perfil guardado/actualizado.', 'ok');
                 if (x.d && x.d.profile && x.d.profile.steamId64) {
@@ -3679,6 +3794,7 @@
                 loadVitalPlayerInfo().catch(function () {});
             })
             .catch(function (e) {
+                flashVitalSaveButton(false);
                 banner((e && e.message) ? e.message : 'Error guardando info', true);
             });
     }
@@ -3912,7 +4028,7 @@
         if (infoList && !infoList.dataset.delegateBound) {
             infoList.dataset.delegateBound = '1';
             infoList.addEventListener('click', function (ev) {
-                var btn = ev.target && ev.target.closest ? ev.target.closest('.vital-member-row') : null;
+                var btn = ev.target && ev.target.closest ? ev.target.closest('.ops-member-row, .vital-member-row') : null;
                 if (!btn) return;
                 var steam = btn.getAttribute('data-steam');
                 if (steam != null && steam !== '') selectVitalPlayer(steam);
