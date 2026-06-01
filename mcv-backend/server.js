@@ -23,6 +23,7 @@ const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
+const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -431,6 +432,11 @@ async function syncWipeRegisterChannelHistory() {
 discordClient.on("ready", () => {
     console.log(`Discord bot conectado como ${discordClient.user.tag}`);
     syncWipeRegisterChannelHistory().catch((e) => console.warn("sync wipe canal:", e.message));
+    startWipeReminderScheduler(discordClient, {
+        getPool,
+        getChannelId: () =>
+            String(process.env.DISCORD_WIPE_REMINDER_CHANNEL_ID || DISCORD_PLAYTIME_CHANNEL_ID || "").trim()
+    });
 });
 
 async function handleBotMessage(message) {
@@ -508,6 +514,7 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
         onSlashGuildIds: wipeGuildIds.length ? wipeGuildIds : DISCORD_GUILD_ID ? [DISCORD_GUILD_ID] : []
     });
     attachWipeReportDiscord(discordClient, { getPool });
+    attachWipeYoTopDiscord(discordClient, { getPool });
     discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
         console.warn("Discord bot login falló:", e.message);
     });
