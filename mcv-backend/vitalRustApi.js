@@ -752,6 +752,16 @@ CREATE TABLE IF NOT EXISTS mcv_vital_roles (
 CREATE INDEX IF NOT EXISTS idx_mcv_vital_roles_sort ON mcv_vital_roles (sort_order ASC, name ASC);
 `;
 
+const PLAYER_INFO_ROLE_LINKS_SQL = `
+CREATE TABLE IF NOT EXISTS player_info_role_links (
+    steam_id64 VARCHAR(17) NOT NULL,
+    role_name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (steam_id64, role_name)
+);
+CREATE INDEX IF NOT EXISTS idx_player_info_role_links_role ON player_info_role_links (role_name);
+`;
+
 const PLAYER_SCORE_EVENTS_SQL = `
 CREATE TABLE IF NOT EXISTS player_score_events (
     id SERIAL PRIMARY KEY,
@@ -821,6 +831,71 @@ async function ensureScoreEventsTable(pool) {
     }
 }
 
+function parseRoleLabelsInput(raw) {
+    if (Array.isArray(raw)) {
+        return [...new Set(raw.map((s) => String(s || "").trim()).filter(Boolean))].slice(0, 12);
+    }
+    const text = String(raw || "").trim();
+    if (!text) {
+        return [];
+    }
+    return [...new Set(text.split(/[,;|/]+/).map((s) => s.trim()).filter(Boolean))].slice(0, 12);
+}
+
+async function ensurePlayerRoleLinksTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(PLAYER_INFO_ROLE_LINKS_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure player_info_role_links:", e.message);
+        return false;
+    }
+}
+
+async function loadRoleLabelsMap(pool, steamIds) {
+    const map = new Map();
+    if (!pool || !steamIds.length) {
+        return map;
+    }
+    await ensurePlayerRoleLinksTable(pool);
+    try {
+        const r = await pool.query(
+            `SELECT steam_id64, role_name FROM player_info_role_links
+             WHERE steam_id64 = ANY($1::varchar[])
+             ORDER BY role_name ASC`,
+            [steamIds]
+        );
+        for (const row of r.rows) {
+            const sid = normalizeSteamId64(row.steam_id64);
+            if (!sid) continue;
+            if (!map.has(sid)) {
+                map.set(sid, []);
+            }
+            map.get(sid).push(String(row.role_name || "").trim());
+        }
+    } catch (e) {
+        console.warn("loadRoleLabelsMap:", e.message);
+    }
+    return map;
+}
+
+async function syncPlayerRoleLinks(pool, steamId64, roleLabels) {
+    await ensurePlayerRoleLinksTable(pool);
+    const labels = parseRoleLabelsInput(roleLabels);
+    await pool.query(`DELETE FROM player_info_role_links WHERE steam_id64 = $1`, [steamId64]);
+    for (const name of labels) {
+        await pool.query(
+            `INSERT INTO player_info_role_links (steam_id64, role_name) VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [steamId64, name.slice(0, 120)]
+        );
+    }
+    return labels;
+}
+
 async function loadVitalRolesFromDb(pool) {
     if (!pool) {
         return [];
@@ -878,6 +953,9 @@ function normalizePlayerInfoRow(row) {
         bmUrl: String(row.bm_url || row.bmUrl || "").trim(),
         statusTag: normalizeStatusTag(row.status_tag || row.statusTag),
         roleLabel: String(row.role_label || row.roleLabel || "").trim(),
+        roleLabels: Array.isArray(row.roleLabels)
+            ? row.roleLabels.map((s) => String(s || "").trim()).filter(Boolean)
+            : parseRoleLabelsInput(row.role_label || row.roleLabel || ""),
         strikes: Math.max(0, Math.min(3, num(row.strikes))),
         strikeNotes: String(row.strike_notes || row.strikeNotes || "").trim(),
         entryDate: row.entry_date || row.entryDate || null,
@@ -999,6 +1077,7 @@ function parsePlayerInfoImportText(raw) {
                 bm_url: cBm >= 0 ? cols[cBm] : "",
                 status_tag: cStatus >= 0 ? mapStatus(cols[cStatus]) : "wipe_guest",
                 role_label: cRole >= 0 ? cols[cRole] : "",
+                roleLabels: parseRoleLabelsInput(cRole >= 0 ? cols[cRole] : ""),
                 strikes: cStrikes >= 0 ? cols[cStrikes] : 0,
                 strike_notes: cNotes >= 0 ? cols[cNotes] : "",
                 entry_date: entryDate,
@@ -1618,7 +1697,19 @@ function registerVitalRustApi(app, { getPool }) {
                 (where.length ? ` WHERE ${where.join(" AND ")}` : "") +
                 ` ORDER BY updated_at DESC NULLS LAST, created_at DESC`;
             const r = await pool.query(sql, params);
-            return res.json({ profiles: r.rows.map(normalizePlayerInfoRow).filter(Boolean) });
+            const profiles = r.rows.map(normalizePlayerInfoRow).filter(Boolean);
+            const roleMap = await loadRoleLabelsMap(
+                pool,
+                profiles.map((p) => p.steamId64)
+            );
+            profiles.forEach((p) => {
+                const extra = roleMap.get(p.steamId64);
+                if (extra && extra.length) {
+                    p.roleLabels = extra;
+                    p.roleLabel = extra.join(", ");
+                }
+            });
+            return res.json({ profiles });
         } catch (e) {
             console.error("player-info list:", e.message);
             return res.status(500).json({ error: e.message || "Error listando player-info" });
@@ -1695,12 +1786,14 @@ function registerVitalRustApi(app, { getPool }) {
         if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
         const incomingWipe = normalizeWipePhase(body.wipePhase);
         const pausedOutsideWipe = Boolean(body.pausedOutsideWipe) || incomingWipe === "no_juega";
+        const roleLabels = parseRoleLabelsInput(body.roleLabels || body.roleLabel);
         const row = normalizePlayerInfoRow({
             steam_id64: steamId64,
             display_name: body.displayName,
             bm_url: body.bmUrl,
             status_tag: body.statusTag,
-            role_label: body.roleLabel,
+            role_label: roleLabels.length ? roleLabels.join(", ") : body.roleLabel,
+            roleLabels,
             strikes: body.strikes,
             strike_notes: body.strikeNotes,
             entry_date: body.entryDate || null,
@@ -1761,7 +1854,11 @@ function registerVitalRustApi(app, { getPool }) {
                     row.pausedOutsideWipe
                 ]
             );
-            return res.json({ ok: true, profile: normalizePlayerInfoRow(r.rows[0]) });
+            const savedRoles = await syncPlayerRoleLinks(pool, steamId64, roleLabels);
+            const profile = normalizePlayerInfoRow(r.rows[0]);
+            profile.roleLabels = savedRoles;
+            profile.roleLabel = savedRoles.join(", ");
+            return res.json({ ok: true, profile });
         } catch (e) {
             console.error("player-info upsert:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo guardar player-info" });
@@ -1779,6 +1876,10 @@ function registerVitalRustApi(app, { getPool }) {
         try {
             let saved = 0;
             for (const row of rows) {
+                const importRoles = row.roleLabels && row.roleLabels.length ? row.roleLabels : parseRoleLabelsInput(row.roleLabel);
+                if (importRoles.length) {
+                    row.roleLabel = importRoles.join(", ");
+                }
                 await pool.query(
                     `INSERT INTO player_info_profiles (
                         steam_id64, display_name, bm_url, status_tag, role_label, strikes, strike_notes, entry_date, vouch_by, wipe_phase,
@@ -1824,6 +1925,7 @@ function registerVitalRustApi(app, { getPool }) {
                         row.pausedOutsideWipe
                     ]
                 );
+                await syncPlayerRoleLinks(pool, row.steamId64, importRoles);
                 saved += 1;
             }
             return res.json({ ok: true, imported: saved });
@@ -1839,6 +1941,7 @@ function registerVitalRustApi(app, { getPool }) {
         const steamId64 = normalizeSteamId64(req.params.steamId64);
         if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
         try {
+            await pool.query(`DELETE FROM player_info_role_links WHERE steam_id64 = $1`, [steamId64]).catch(() => {});
             const r = await pool.query(`DELETE FROM player_info_profiles WHERE steam_id64 = $1 RETURNING steam_id64`, [steamId64]);
             if (!r.rowCount) return res.status(404).json({ error: "No existe ese SteamID en player-info" });
             return res.json({ ok: true, steamId64 });

@@ -264,6 +264,17 @@ CREATE TABLE IF NOT EXISTS mcv_vital_roles (
 CREATE INDEX IF NOT EXISTS idx_mcv_vital_roles_sort ON mcv_vital_roles (sort_order ASC, name ASC);
 
 -- split
+CREATE TABLE IF NOT EXISTS player_info_role_links (
+    steam_id64 VARCHAR(17) NOT NULL,
+    role_name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (steam_id64, role_name)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_info_role_links_role ON player_info_role_links (role_name);
+
+-- split
 CREATE TABLE IF NOT EXISTS player_score_events (
     id SERIAL PRIMARY KEY,
     steam_id64 VARCHAR(17) NOT NULL,

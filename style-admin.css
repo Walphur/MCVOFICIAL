@@ -2738,7 +2738,7 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-split {
     display: grid;
-    grid-template-columns: minmax(300px, 38%) minmax(0, 62%);
+    grid-template-columns: minmax(280px, 30%) minmax(0, 1fr);
     flex: 1;
     min-height: 0;
     height: 100%;
@@ -3206,18 +3206,19 @@ details.vital-extra-panel > :not(summary) {
 .ws-badge--pause { color: #d1d5db; background: rgba(107, 114, 128, 0.25); }
 .vital-detail-tabs {
     display: flex;
-    gap: 4px;
-    padding: 0 20px;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    padding: 8px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     background: rgba(0, 0, 0, 0.12);
 }
 .vital-dtab {
-    padding: 12px 18px;
+    padding: 8px 12px;
     border: none;
     background: transparent;
     color: #a8b4c4;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     border-bottom: 2px solid transparent;
@@ -3225,7 +3226,9 @@ details.vital-extra-panel > :not(summary) {
     transition: color 0.12s ease, border-color 0.12s ease;
     letter-spacing: -0.01em;
     text-transform: none;
-    line-height: 1.35;
+    line-height: 1.3;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .vital-dtab:hover {
     color: #e8edf4;
@@ -3252,8 +3255,57 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-detail-pane[data-detail-pane="strikes"],
 .vital-detail-pane[data-detail-pane="notes"],
-.vital-detail-pane[data-detail-pane="logs"] {
+.vital-detail-pane[data-detail-pane="logs"],
+.vital-detail-pane[data-detail-pane="puntos"],
+.vital-detail-pane[data-detail-pane="combats"],
+.vital-detail-pane[data-detail-pane="minis"] {
     grid-template-columns: 1fr;
+}
+.vital-roles-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+    margin-bottom: 8px;
+    padding: 6px 0;
+}
+.vital-roles-empty {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 122, 0, 0.15);
+    border: 1px solid rgba(255, 122, 0, 0.35);
+    color: #fde68a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    max-width: 100%;
+}
+.vital-role-tag__rm {
+    border: none;
+    background: transparent;
+    color: #fecaca;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+}
+.vital-role-chip.is-on {
+    background: rgba(255, 122, 0, 0.22);
+    border-color: rgba(255, 122, 0, 0.55);
+    color: #fde68a;
+}
+.vital-detail-content {
+    min-width: 0;
+    width: 100%;
+}
+.vital-detail-workspace {
+    min-width: 0;
 }
 .vital-field {
     display: flex;
