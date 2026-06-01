@@ -3,6 +3,7 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const { REST, Routes, SlashCommandBuilder } = require("discord.js");
+const { buildMcHorasSlashCommand } = require("./playtimeSync");
 
 function jwtSecret() {
     const s = String(process.env.JWT_SECRET || "").trim();

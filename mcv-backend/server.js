@@ -8,7 +8,7 @@ const express = require("express");
 const axios = require("axios");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
-const { registerTournamentApi } = require("./tournamentApi");
+const { registerTournamentApi, authAdmin } = require("./tournamentApi");
 const {
     registerWipeListApi,
     attachWipeListDiscord,
@@ -21,6 +21,7 @@ const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi } = require("./vitalRustApi");
+const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -119,6 +120,7 @@ const DISCORD_LOOKUP_CHANNEL_ID = process.env.DISCORD_LOOKUP_CHANNEL_ID || "";
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "";
 const HEXAYTRON_BOT_ID = process.env.HEXAYTRON_BOT_ID || "";
 const DISCORD_WIPE_REGISTER_CHANNEL_ID = String(process.env.DISCORD_WIPE_REGISTER_CHANNEL_ID || "").trim();
+const DISCORD_PLAYTIME_CHANNEL_ID = String(process.env.DISCORD_PLAYTIME_CHANNEL_ID || "").trim();
 const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
 
 /** BattleMetrics JSON API: el token JWT mejora límites y acceso; sin token algunos endpoints siguen públicos limitados. */
@@ -357,6 +359,13 @@ const discordClient = new Client({
     partials: [Partials.Message, Partials.Channel]
 });
 
+registerPlaytimeAdminApi(app, {
+    getPool,
+    authAdmin,
+    getDiscordClient: () => discordClient,
+    getPlaytimeChannelId: () => DISCORD_PLAYTIME_CHANNEL_ID
+});
+
 async function syncWipeRegisterChannelHistory() {
     const cid = DISCORD_WIPE_REGISTER_CHANNEL_ID;
     if (!cid || !discordClient.isReady()) {
@@ -487,6 +496,15 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
         getPool,
         steamApiKey: STEAM_API_KEY,
         channelId: DISCORD_WIPE_REGISTER_CHANNEL_ID
+    });
+    const wipeGuildIds = String(process.env.DISCORD_WIPE_GUILD_ID || DISCORD_GUILD_ID || "")
+        .split(/[\s,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    attachPlaytimeDiscord(discordClient, {
+        getPool,
+        channelId: DISCORD_PLAYTIME_CHANNEL_ID,
+        onSlashGuildIds: wipeGuildIds.length ? wipeGuildIds : DISCORD_GUILD_ID ? [DISCORD_GUILD_ID] : []
     });
     discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
         console.warn("Discord bot login falló:", e.message);
