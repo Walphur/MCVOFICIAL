@@ -85,3 +85,26 @@ test("Monthly escala umbrales sin inflar puntos", () => {
     assert.ok(monthly.players[0].breakdown.some((b) => b.id === "scrapLooted"));
     assert.ok(Math.abs(monthly.players[0].total) <= Math.abs(medium.players[0].total) + 15);
 });
+
+test("madera no resta puntos bajo 300k (Medium)", () => {
+    const cfg = getTierScoreConfig("eu-medium");
+    const woodTiers = cfg.categories.farmWood.tiers;
+    assert.equal(scoreFromTiers(0, woodTiers), 0);
+    assert.equal(scoreFromTiers(150000, woodTiers), 0);
+    assert.equal(scoreFromTiers(299999, woodTiers), 0);
+    assert.equal(scoreFromTiers(500000, woodTiers), 1);
+    assert.equal(scoreFromTiers(10000000, woodTiers), 4);
+
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-medium",
+        players: [
+            {
+                steamId64: "76561198000000004",
+                vital: { farmWood: 100000 },
+                profile: {}
+            }
+        ]
+    });
+    const wood = result.players[0].breakdown.find((b) => b.id === "farmWood");
+    assert.equal(wood.points, 0);
+});

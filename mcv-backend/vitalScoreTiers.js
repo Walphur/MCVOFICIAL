@@ -22,6 +22,17 @@ function scaleThresholds(values, factor) {
     return values.map((v) => (v <= 0 ? v : Math.round(v * factor)));
 }
 
+/** Madera: sin penalización bajo 300k; solo suma desde ahí (Medium). */
+const WOOD_POSITIVE_TIER_MINS = [0, 300000, 500000, 750000, 2000000, 10000000, Infinity];
+const WOOD_POSITIVE_TIER_POINTS = [0, 0, 1, 2, 3, 4, 5];
+
+function buildWoodPositiveTiers(thresholdFactor = 1, pointScale = 1) {
+    return WOOD_POSITIVE_TIER_MINS.map((min, i) => ({
+        min: min === Infinity ? Infinity : min === 0 ? 0 : Math.round(min * thresholdFactor),
+        points: Math.round(WOOD_POSITIVE_TIER_POINTS[i] * pointScale)
+    }));
+}
+
 const EU_MEDIUM_CONFIG = {
     key: "eu-medium",
     label: "EU Medium 2x",
@@ -45,7 +56,8 @@ const EU_MEDIUM_CONFIG = {
         farmWood: {
             label: "Wood",
             leaderTier: true,
-            tiers: buildThresholdTiers([0, 100000, 200000, 300000, 500000, 750000, 2000000, 10000000, Infinity])
+            leaderMin: 300000,
+            tiers: buildWoodPositiveTiers(1, 1)
         },
         farmMetal: {
             label: "Metal",
@@ -121,6 +133,15 @@ function cloneCategoryTiers(baseCats, thresholdFactor, pointScale) {
             out[key].tiers[out[key].tiers.length - 1].min = Infinity;
             continue;
         }
+        if (key === "farmWood") {
+            out[key] = {
+                label: cat.label,
+                leaderTier: cat.leaderTier,
+                leaderMin: Math.round((cat.leaderMin ?? 300000) * thresholdFactor),
+                tiers: buildWoodPositiveTiers(thresholdFactor, pointScale)
+            };
+            continue;
+        }
         const mins = cat.tiers.map((t) => t.min);
         const scaled = scaleThresholds(mins.slice(0, -1), thresholdFactor).concat([Infinity]);
         out[key] = {
@@ -190,8 +211,12 @@ function buildRosterLeaders(entries, config) {
             continue;
         }
         let maxVal = -Infinity;
+        const leaderMin = Number(cat.leaderMin);
         for (const e of entries) {
             const val = num(e.values[catKey]);
+            if (Number.isFinite(leaderMin) && leaderMin > 0 && val < leaderMin) {
+                continue;
+            }
             if (val > maxVal) {
                 maxVal = val;
             }
@@ -202,7 +227,11 @@ function buildRosterLeaders(entries, config) {
         }
         const set = new Set();
         for (const e of entries) {
-            if (num(e.values[catKey]) >= maxVal) {
+            const val = num(e.values[catKey]);
+            if (Number.isFinite(leaderMin) && leaderMin > 0 && val < leaderMin) {
+                continue;
+            }
+            if (val >= maxVal) {
                 set.add(e.steamId64);
             }
         }
@@ -218,6 +247,11 @@ function leaderPointsForCategory(cat, config) {
 
 function scoreCategory(catKey, cat, value, steamId64, leaders, config) {
     const base = scoreFromTiers(value, cat.tiers);
+    const leaderMin = Number(cat.leaderMin);
+    const v = num(value);
+    if (Number.isFinite(leaderMin) && leaderMin > 0 && v < leaderMin) {
+        return base;
+    }
     if (cat.leaderTier && leaders[catKey]?.has(steamId64)) {
         const leaderPts = leaderPointsForCategory(cat, config);
         return Math.max(base, leaderPts);
