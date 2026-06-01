@@ -5180,38 +5180,7 @@ details.vital-extra-panel > :not(summary) {
 .ops-pill--critical { background: var(--ops-red-dim); color: var(--ops-red); }
 .ops-pill--info { background: rgba(255,255,255,0.06); color: var(--ops-text-muted); }
 
-/* Resumen automático jugador */
-.ops-player-insight {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 0 20px 12px;
-    padding: 12px 14px;
-    border-radius: var(--ops-radius);
-    background: var(--ops-surface);
-    border: 1px solid var(--ops-border);
-}
-.ops-player-insight--muted p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--ops-text-muted);
-}
-.ops-player-insight__label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-}
-.ops-player-insight__label.is-positive { color: var(--ops-green); }
-.ops-player-insight__label.is-negative { color: var(--ops-red); }
-.ops-player-insight p {
-    margin: 0;
-    font-size: 13px;
-    color: var(--ops-text);
-    line-height: 1.45;
-}
+/* Resumen automático jugador — removido */
 
 /* Timeline historial */
 .vital-timeline-wrap {
@@ -5368,7 +5337,6 @@ details.vital-extra-panel > :not(summary) {
 @media (max-width: 1100px) {
     .vital-ops-kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .vital-ops-spotlight { grid-template-columns: 1fr; }
-    .ops-player-insight { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
     .ops-player-header {
@@ -5443,6 +5411,7 @@ details.vital-extra-panel > :not(summary) {
     grid-template-columns: 1fr 1fr;
     gap: 4px;
     padding: 8px 10px;
+    margin-top: auto;
     border-top: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
     flex-shrink: 0;
 }
@@ -5491,61 +5460,6 @@ details.vital-extra-panel > :not(summary) {
 .vital-sidebar-tools .vital-tier-preview {
     max-height: none;
     margin-top: 4px;
-}
-
-/* ── Vital OPS polish v6: sidebar ranking, avatares, layout ── */
-.vital-sidebar-ranking {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 200px;
-    padding: 8px 10px;
-    border-top: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
-    overflow: hidden;
-}
-.vital-sidebar-ranking__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
-    flex-shrink: 0;
-}
-.vital-sidebar-ranking__title {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ops-text-subtle, #5c6570);
-}
-.vital-sidebar-ranking__head .btn-outline.btn-sm {
-    min-height: 26px;
-    padding: 2px 8px;
-    font-size: 12px;
-}
-.vital-tier-preview--sidebar {
-    display: flex !important;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 160px;
-    max-height: none;
-    margin-top: 0;
-    overflow: auto;
-}
-.vital-tier-preview--sidebar .vital-tier-preview__meta {
-    font-size: 9px;
-    line-height: 1.35;
-}
-.vital-tier-preview--sidebar .vital-tier-preview__table {
-    font-size: 10px;
-}
-.vital-tier-preview--sidebar .vital-tier-preview__table th,
-.vital-tier-preview--sidebar .vital-tier-preview__table td {
-    padding: 4px 6px;
-}
-.vital-tier-preview--sidebar .vital-tier-preview__detail {
-    max-width: none;
-    font-size: 9px;
 }
 
 .ops-steam-avatar {
