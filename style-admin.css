@@ -3417,10 +3417,28 @@ select.vital-input-compact option {
     width: 30px;
     height: 30px;
     border-radius: 7px;
-    border: none;
+    border: 1px solid rgba(250, 166, 26, 0.22);
     background: rgba(255, 255, 255, 0.05);
-    color: #d1d5db;
+    color: #f4f4f5;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+}
+.vital-icon-only:hover {
+    background: rgba(250, 166, 26, 0.12);
+    border-color: rgba(250, 166, 26, 0.45);
+    color: var(--primary);
+}
+.vital-icon-glyph {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
 }
 .vital-member-list {
     flex: 1 1 220px;
@@ -5920,11 +5938,9 @@ img.ops-player-avatar {
 }
 
 /* —— Admin polish: no emojis + UX ajustes solicitados —— */
-.btn-primary-small .admin-btn-icon,
-.vital-icon-only .admin-btn-icon {
+.btn-primary-small .admin-btn-icon {
     margin-right: 6px;
 }
-.vital-icon-only .admin-btn-icon { margin-right: 0; width: 14px; height: 14px; }
 
 .vital-app-shell {
     --ops-blue: #f59e0b;
