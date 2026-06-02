@@ -1,5 +1,5 @@
 /* MCV — service worker mínimo (estáticos + offline básico) */
-const CACHE = "mcv-static-v46";
+const CACHE = "mcv-static-v47";
 const PRECACHE = [
     "./",
     "./index.html",
@@ -42,7 +42,7 @@ self.addEventListener("fetch", function (event) {
     if (url.pathname.indexOf("/api/") !== -1) return;
     if (url.origin !== self.location.origin) return;
   /* Admin/login/cuenta/tickets siempre red: evita HTML OAuth viejo en caché */
-    if (/^\/(admin|login|vital-rust|cuenta|tickets)\.html$/i.test(url.pathname)) {
+    if (/^\/(admin|login|vital-rust|cuenta|tickets|index)\.html$/i.test(url.pathname) || url.pathname === "/" || url.pathname === "") {
         event.respondWith(fetch(new Request(req, { cache: "no-store" })));
         return;
     }

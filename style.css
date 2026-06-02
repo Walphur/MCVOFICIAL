@@ -672,6 +672,48 @@ body.home-page {
     border-radius: 7px;
 }
 .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Botones OAuth — contraste legible */
+.oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    text-transform: none;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.oauth-btn--steam {
+    background: linear-gradient(180deg, #ffb52d, var(--primary));
+    color: #111 !important;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(250, 166, 26, 0.2);
+}
+.oauth-btn--steam:hover {
+    background: linear-gradient(180deg, #ffc04f, #e89a15);
+    color: #000 !important;
+    transform: translateY(-1px);
+}
+.oauth-btn--google {
+    background: rgba(8, 8, 8, 0.85);
+    color: var(--foreground) !important;
+    border: 1px solid var(--border);
+}
+.oauth-btn--google:hover {
+    border-color: var(--primary);
+    color: var(--primary) !important;
+}
+.oauth-btn[hidden] { display: none !important; }
+
 .cuenta-oauth,
 .tickets-auth-oauth {
     display: flex;
@@ -700,9 +742,93 @@ body.home-page {
 .tickets-auth-gate__title { margin: 0 0 6px; font-weight: 600; }
 .tickets-auth-gate__hint { margin: 0 0 14px; font-size: 0.9rem; color: var(--muted); }
 .tickets-auth-gate__alt { margin: 12px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
-.tickets-auth-gate a { color: var(--primary); font-weight: 600; }
+.tickets-auth-gate__alt a { color: var(--primary); font-weight: 600; }
 .cuenta-card { max-width: 420px; }
 .cuenta-hint { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+
+/* Panel flotante login (index) */
+.mcv-auth-float {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 850;
+    width: min(272px, calc(100vw - 32px));
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(250, 166, 26, 0.35);
+    background: linear-gradient(165deg, rgba(18, 18, 18, 0.96), rgba(8, 8, 8, 0.98));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+}
+.mcv-auth-float__tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    color: var(--primary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+}
+.mcv-auth-float__title {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+.mcv-auth-float__hint {
+    margin: 0 0 12px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.45;
+}
+.mcv-auth-float__oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.mcv-auth-float__user {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.mcv-auth-float__name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.mcv-auth-float__meta {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: -4px 0 0;
+}
+.mcv-auth-float__link {
+    color: var(--primary);
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 600;
+}
+.mcv-auth-float__link:hover { text-decoration: underline; }
+.mcv-auth-float__logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+.mcv-auth-float__logout:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+@media (max-width: 900px) {
+    .mcv-auth-float {
+        top: auto;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        right: max(12px, env(safe-area-inset-right));
+        left: max(12px, env(safe-area-inset-left));
+        transform: none;
+        width: auto;
+    }
+}
 
 .home-stats {
     max-width: 1180px;
