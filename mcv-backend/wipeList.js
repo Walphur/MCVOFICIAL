@@ -436,89 +436,101 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
     }
 
     client.on("interactionCreate", async (interaction) => {
-        if (interaction.isModalSubmit() && interaction.customId === PLAYER_INFO_MODAL_ID) {
+        try {
+            if (interaction.isModalSubmit() && interaction.customId === PLAYER_INFO_MODAL_ID) {
+                const pool = getPool();
+                if (!pool) {
+                    await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
+                    return;
+                }
+                await interaction.deferReply({ ephemeral: true });
+                try {
+                    const result = await upsertPlayerInfoFromDiscord(pool, steamApiKey, {
+                        steamId64: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.steamId64),
+                        displayName: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.displayName),
+                        bmUrl: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.bmUrl),
+                        entryDate: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.entryDate),
+                        vouchBy: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.vouchBy)
+                    });
+                    if (!result.ok) {
+                        await interaction.editReply({ content: result.error || "No se pudo crear la solicitud." });
+                        return;
+                    }
+                    const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
+                    await upsertMember(pool, {
+                        discordUserId: interaction.user.id,
+                        steamId64: result.steamId64,
+                        discordLabel,
+                        steamApiKey
+                    });
+                    await interaction.editReply({
+                        content:
+                            `Listo: te agregamos a **Info jugadores** y al roster del wipe.\n` +
+                            `Steam guardado: \`${result.steamId64}\`\n` +
+                            `Los campos internos (estado/strikes/notas) los completa staff desde admin.`
+                    });
+                } catch (e) {
+                    console.error("mcv-crear-usuario modal:", e.message);
+                    await interaction.editReply({ content: "No se pudo guardar en Info jugadores. Probá de nuevo." });
+                }
+                return;
+            }
+            if (!interaction.isChatInputCommand()) {
+                return;
+            }
+            if (interaction.commandName === "mcv-crear-usuario") {
+                await interaction.showModal(buildCreatePlayerInfoModal());
+                return;
+            }
+            if (interaction.commandName !== "mcv-wipe") {
+                return;
+            }
             const pool = getPool();
             if (!pool) {
                 await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
                 return;
             }
+            const steamInput = interaction.options.getString("steam64");
+            const raw = String(steamInput || "").replace(/\D/g, "");
+            if (!steamInput || raw.length !== 17) {
+                await interaction.reply({
+                    content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID).",
+                    ephemeral: true
+                });
+                return;
+            }
             await interaction.deferReply({ ephemeral: true });
             try {
-                const result = await upsertPlayerInfoFromDiscord(pool, steamApiKey, {
-                    steamId64: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.steamId64),
-                    displayName: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.displayName),
-                    bmUrl: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.bmUrl),
-                    entryDate: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.entryDate),
-                    vouchBy: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.vouchBy)
-                });
-                if (!result.ok) {
-                    await interaction.editReply({ content: result.error || "No se pudo crear la solicitud." });
-                    return;
-                }
                 const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
-                await upsertMember(pool, {
+                const { persona } = await upsertMember(pool, {
                     discordUserId: interaction.user.id,
-                    steamId64: result.steamId64,
+                    steamId64: raw,
                     discordLabel,
                     steamApiKey
                 });
+                const roleOk = await assignWipeLinkedRole(interaction);
+                const roleNote = roleOk ? "\n\n✅ Rol de wipe asignado." : "";
                 await interaction.editReply({
                     content:
-                        `Listo: te agregamos a **Info jugadores** y al roster del wipe.\n` +
-                        `Steam guardado: \`${result.steamId64}\`\n` +
-                        `Los campos internos (estado/strikes/notas) los completa staff desde admin.`
+                        `Listo: **${persona}** quedó vinculado a tu Discord.${roleNote}\n\n` +
+                        `Cargá horas con **\`/mcv-horas\`** o en #playtime. Mirá tu resumen con **\`/mcv-yo\`**. ` +
+                        `Para alta en Info jugadores usá **\`/mcv-crear-usuario\`**.`
                 });
             } catch (e) {
-                console.error("mcv-crear-usuario modal:", e.message);
-                await interaction.editReply({ content: "No se pudo guardar en Info jugadores. Probá de nuevo." });
+                console.error(e);
+                await interaction.editReply({
+                    content: "No se pudo guardar. Probá de nuevo o avisá a staff si sigue fallando."
+                });
             }
             return;
-        }
-        if (!interaction.isChatInputCommand()) {
-            return;
-        }
-        if (interaction.commandName === "mcv-crear-usuario") {
-            await interaction.showModal(buildCreatePlayerInfoModal());
-            return;
-        }
-        if (interaction.commandName !== "mcv-wipe") {
-            return;
-        }
-        const pool = getPool();
-        if (!pool) {
-            await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
-            return;
-        }
-        const raw = String(interaction.options.getString("steam64", true) || "").replace(/\D/g, "");
-        if (raw.length !== 17) {
-            await interaction.reply({
-                content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID).",
-                ephemeral: true
-            });
-            return;
-        }
-        const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
-        await interaction.deferReply({ ephemeral: true });
-        try {
-            const { persona } = await upsertMember(pool, {
-                discordUserId: interaction.user.id,
-                steamId64: raw,
-                discordLabel,
-                steamApiKey
-            });
-            const roleOk = await assignWipeLinkedRole(interaction);
-            const roleNote = roleOk ? "\n\n✅ Rol de wipe asignado." : "";
-            await interaction.editReply({
-                content:
-                    `Listo: **${persona}** quedó vinculado a tu Discord.${roleNote}\n\n` +
-                    `Cargá horas con **\`/mcv-horas\`** o en #playtime. Mirá tu resumen con **\`/mcv-yo\`**. ` +
-                    `Para la ficha pública con redes: **mcvoficial.com/equipo/solicitud/**`
-            });
-        } catch (e) {
-            console.error(e);
-            await interaction.editReply({
-                content: "No se pudo guardar. Probá de nuevo o avisá a staff si sigue fallando."
-            });
+        } catch (err) {
+            console.error("interactionCreate wipe:", err?.message || err);
+            if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+                await interaction.reply({
+                    content: "Hubo un error procesando el comando. Probá de nuevo en unos segundos.",
+                    ephemeral: true
+                }).catch(() => {});
+            }
         }
     });
 }
