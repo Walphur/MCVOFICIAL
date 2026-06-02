@@ -654,6 +654,56 @@ body.home-page {
 .btn-primary:hover { background: linear-gradient(180deg, #ffc04f, #e89a15); transform: translateY(-2px); }
 .btn-secondary { margin-left: 0; background: rgba(8,8,8,0.62); backdrop-filter: blur(8px); }
 
+/* OAuth público (cuenta, tickets) */
+.w-100 { width: 100%; box-sizing: border-box; }
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 7px;
+}
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.cuenta-oauth,
+.tickets-auth-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cuenta-oauth__btn,
+.tickets-auth-oauth__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.cuenta-oauth__btn[hidden],
+.tickets-auth-oauth__btn[hidden] {
+    display: none !important;
+}
+.tickets-auth-gate {
+    padding: 18px 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(250, 166, 26, 0.35);
+    border-radius: 8px;
+    background: rgba(250, 166, 26, 0.08);
+}
+.tickets-auth-gate__title { margin: 0 0 6px; font-weight: 600; }
+.tickets-auth-gate__hint { margin: 0 0 14px; font-size: 0.9rem; color: var(--muted); }
+.tickets-auth-gate__alt { margin: 12px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
+.tickets-auth-gate a { color: var(--primary); font-weight: 600; }
+.cuenta-card { max-width: 420px; }
+.cuenta-hint { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+
 .home-stats {
     max-width: 1180px;
     margin: -42px auto 0;

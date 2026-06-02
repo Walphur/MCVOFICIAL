@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=30">
-    <link rel="stylesheet" href="style-admin.css?v=54">
+    <link rel="stylesheet" href="style-admin.css?v=55">
     <link rel="stylesheet" href="style-ux.css?v=1">
 </head>
 <body class="login-body" data-mcv-page="login">
@@ -42,9 +42,9 @@
             <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
         </form>
 
-        <div id="login-oauth" class="login-oauth" hidden>
+        <div id="login-oauth" class="login-oauth">
             <span class="login-oauth__sep">o</span>
-            <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Steam</a>
+            <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#" hidden>Continuar con Steam</a>
             <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Google</a>
         </div>
 
@@ -64,6 +64,7 @@
     <!-- <script src="mcv-local-api.js"></script> -->
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
+<script src="mcv-oauth-ui.js?v=1"></script>
 <script src="mcv-i18n.js?v=26"></script>
 <script>
 (function () {
@@ -136,24 +137,18 @@
     }
 
     function setupOAuthButtons(API, cfg) {
-        var wrap = document.getElementById('login-oauth');
-        var steamBtn = document.getElementById('login-steam-btn');
-        var googleBtn = document.getElementById('login-google-btn');
+        if (typeof mcvBindAdminOAuthButtons === "function") {
+            mcvBindAdminOAuthButtons({
+                api: API,
+                wrapEl: "login-oauth",
+                steamEl: "login-steam-btn",
+                googleEl: "login-google-btn",
+                opts: cfg || { googleLoginEnabled: true, steamLoginEnabled: false }
+            });
+        }
         var googleSetup = document.getElementById('login-google-setup');
         var googleUri = document.getElementById('login-google-uri');
-        if (!wrap || !steamBtn || !googleBtn) return;
-        var steamOn = cfg && cfg.steamLoginEnabled;
         var googleOn = cfg && cfg.googleLoginEnabled;
-        if (!steamOn && !googleOn) {
-            wrap.hidden = true;
-            if (googleSetup) googleSetup.hidden = true;
-            return;
-        }
-        wrap.hidden = false;
-        steamBtn.hidden = !steamOn;
-        googleBtn.hidden = !googleOn;
-        if (steamOn) steamBtn.href = API + '/api/auth/steam/start';
-        if (googleOn) googleBtn.href = API + '/api/auth/google/start';
         if (googleOn && googleSetup && googleUri) {
             var uri = (cfg && cfg.googleAdminRedirectUri) ? cfg.googleAdminRedirectUri : (API + '/api/auth/google/callback');
             googleUri.textContent = uri;
@@ -165,6 +160,11 @@
             diag.hidden = false;
             diag.textContent = 'Aviso: falta OAUTH_PUBLIC_BASE_URL en Render. Configurá https://mcvoficial.com para evitar redirect_uri_mismatch.';
         }
+    }
+
+    var API_BOOT = apiBase();
+    if (API_BOOT) {
+        setupOAuthButtons(API_BOOT, { googleLoginEnabled: true, steamLoginEnabled: false });
     }
 
     function initTurnstile(API) {

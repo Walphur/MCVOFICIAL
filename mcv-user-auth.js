@@ -76,11 +76,21 @@
         if (!API || !tok) {
             return Promise.resolve(null);
         }
+        var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var timer = ctrl
+            ? w.setTimeout(function () {
+                  try {
+                      ctrl.abort();
+                  } catch (e) {}
+              }, 8000)
+            : null;
         return fetch(API + "/api/auth/user/me", {
             headers: w.mcvUserAuthHeaders(),
-            cache: "no-store"
+            cache: "no-store",
+            signal: ctrl ? ctrl.signal : undefined
         })
             .then(function (r) {
+                if (timer) w.clearTimeout(timer);
                 if (r.status === 401) {
                     w.mcvUserLogout();
                     return null;
@@ -90,6 +100,7 @@
                 });
             })
             .catch(function () {
+                if (timer) w.clearTimeout(timer);
                 return null;
             });
     };

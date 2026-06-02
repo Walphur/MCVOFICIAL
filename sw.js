@@ -1,5 +1,5 @@
 /* MCV — service worker mínimo (estáticos + offline básico) */
-const CACHE = "mcv-static-v45";
+const CACHE = "mcv-static-v46";
 const PRECACHE = [
     "./",
     "./index.html",
@@ -41,8 +41,8 @@ self.addEventListener("fetch", function (event) {
     var url = new URL(req.url);
     if (url.pathname.indexOf("/api/") !== -1) return;
     if (url.origin !== self.location.origin) return;
-  /* Admin/login siempre red: evita quedar sin pestaña Vital tras deploy */
-    if (/^\/(admin|login|vital-rust)\.html$/i.test(url.pathname)) {
+  /* Admin/login/cuenta/tickets siempre red: evita HTML OAuth viejo en caché */
+    if (/^\/(admin|login|vital-rust|cuenta|tickets)\.html$/i.test(url.pathname)) {
         event.respondWith(fetch(new Request(req, { cache: "no-store" })));
         return;
     }

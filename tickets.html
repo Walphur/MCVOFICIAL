@@ -8,14 +8,15 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=53">
+    <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style-admin.css?v=55">
     <meta name="description" content="Tickets de soporte y reclutamiento MCV.">
     <meta property="og:title" content="MCV — Tickets">
     <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
-    <script src="mcv-user-auth.js?v=1"></script>
+    <script src="mcv-user-auth.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=1"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="mcv-layout.js?v=6" defer></script>
 </head>
@@ -41,17 +42,17 @@
             <p data-i18n="tickets.introP">Completá el formulario: tu solicitud queda registrada en el panel del staff. También podés abrir un ticket en Discord para seguimiento en vivo.</p>
         </div>
 
-        <div id="tickets-auth-gate" class="tickets-auth-gate" hidden>
+        <div id="tickets-auth-gate" class="tickets-auth-gate">
             <p class="tickets-auth-gate__title">Para enviar un ticket iniciá sesión</p>
             <p class="tickets-auth-gate__hint">Usá Steam o Google — no pedimos contraseña.</p>
             <div class="tickets-auth-oauth">
-                <a id="tickets-steam" class="btn-primary w-100 tickets-auth-oauth__btn" href="#" hidden>Continuar con Steam</a>
-                <a id="tickets-google" class="btn-outline w-100 tickets-auth-oauth__btn" href="#" hidden>Continuar con Google</a>
+                <a id="tickets-steam" class="btn-primary w-100 tickets-auth-oauth__btn" href="#">Continuar con Steam</a>
+                <a id="tickets-google" class="btn-outline w-100 tickets-auth-oauth__btn" href="#">Continuar con Google</a>
             </div>
             <p class="tickets-auth-gate__alt">También podés ir a <a href="cuenta.html?next=tickets.html">Mi cuenta</a>.</p>
         </div>
 
-        <form id="tickets-form">
+        <form id="tickets-form" hidden>
             <div class="input-group">
                 <label><i data-lucide="tag"></i> <span data-i18n="tickets.typeLabel">Tipo de ticket</span></label>
                 <select name="ticketType" required>
@@ -130,49 +131,50 @@
         if (authGate) authGate.hidden = show;
     }
 
-    function bindTicketOAuth(opts) {
-        var steamBtn = document.getElementById("tickets-steam");
-        var googleBtn = document.getElementById("tickets-google");
-        var q = "?next=tickets.html";
-        if (steamBtn) {
-            steamBtn.hidden = !(opts && opts.steamEnabled);
-            if (opts && opts.steamEnabled) steamBtn.href = API + "/api/auth/user/steam/start" + q;
-        }
-        if (googleBtn) {
-            googleBtn.hidden = !(opts && opts.googleEnabled);
-            if (opts && opts.googleEnabled) googleBtn.href = API + "/api/auth/user/google/start" + q;
-        }
+    if (typeof mcvBindPublicOAuthButtons === "function") {
+        mcvBindPublicOAuthButtons({
+            api: API,
+            next: "tickets.html",
+            steamEl: "tickets-steam",
+            googleEl: "tickets-google"
+        });
     }
 
     function ensureTicketAuth() {
-        return fetch(API + "/api/auth/user/options", { cache: "no-store" })
-            .then(function (r) { return r.json(); })
-            .then(function (opts) {
-                bindTicketOAuth(opts || {});
-                var needAuth = opts && opts.ticketsRequireAuth;
-                if (!needAuth) {
-                    showTicketForm(true);
-                    return true;
-                }
-                if (typeof mcvFetchUserMe === "function") {
-                    return mcvFetchUserMe().then(function (user) {
-                        if (user) {
-                            showTicketForm(true);
-                            return true;
-                        }
-                        if (typeof mcvUserLogout === "function") mcvUserLogout();
-                        showTicketForm(false);
-                        return false;
-                    });
-                }
-                showTicketForm(false);
-                return false;
-            })
-            .catch(function () {
-                bindTicketOAuth({});
-                showTicketForm(false);
-                return false;
-            });
+        var loadOpts =
+            typeof mcvFetchPublicOAuthOptions === "function"
+                ? mcvFetchPublicOAuthOptions(API)
+                : Promise.resolve(typeof mcvDefaultOAuthOpts === "function" ? mcvDefaultOAuthOpts() : { ticketsRequireAuth: true });
+
+        return loadOpts.then(function (opts) {
+            if (typeof mcvBindPublicOAuthButtons === "function") {
+                mcvBindPublicOAuthButtons({
+                    api: API,
+                    next: "tickets.html",
+                    steamEl: "tickets-steam",
+                    googleEl: "tickets-google",
+                    opts: opts
+                });
+            }
+            var needAuth = !!(opts && opts.ticketsRequireAuth);
+            if (!needAuth) {
+                showTicketForm(true);
+                return true;
+            }
+            if (typeof mcvFetchUserMe === "function") {
+                return mcvFetchUserMe().then(function (user) {
+                    if (user) {
+                        showTicketForm(true);
+                        return true;
+                    }
+                    if (typeof mcvUserLogout === "function") mcvUserLogout();
+                    showTicketForm(false);
+                    return false;
+                });
+            }
+            showTicketForm(false);
+            return false;
+        });
     }
 
     ensureTicketAuth();

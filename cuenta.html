@@ -8,11 +8,12 @@
     <meta name="theme-color" content="#FAA61A">
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="style.css?v=31">
-    <link rel="stylesheet" href="style-admin.css?v=53">
+    <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style-admin.css?v=55">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
-    <script src="mcv-user-auth.js?v=1"></script>
+    <script src="mcv-user-auth.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=1"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="mcv-layout.js?v=8" defer></script>
 </head>
@@ -27,7 +28,7 @@
     <h2>Tu <span>cuenta</span></h2>
     <p class="cuenta-intro">Iniciá sesión con Steam o Google para enviar tickets y acceder a funciones del sitio con más seguridad.</p>
 
-    <div id="cuenta-guest" class="form-container cuenta-card" hidden>
+    <div id="cuenta-guest" class="form-container cuenta-card">
         <p id="cuenta-error" class="tickets-form-msg err" hidden></p>
         <div class="cuenta-oauth">
             <a id="cuenta-steam" class="btn-primary w-100 cuenta-oauth__btn" href="#">Continuar con Steam</a>
@@ -47,7 +48,7 @@
         <button type="button" class="btn-outline" id="cuenta-logout">Cerrar sesión</button>
     </div>
 
-    <p id="cuenta-loading" class="empty-hint">Cargando…</p>
+    <p id="cuenta-loading" class="empty-hint" hidden>Cargando…</p>
 </section>
 
 <script>
@@ -103,27 +104,30 @@
     }
 
     function bindOAuthLinks(opts) {
-        var steamBtn = document.getElementById("cuenta-steam");
-        var googleBtn = document.getElementById("cuenta-google");
-        var q = "?next=" + encodeURIComponent(nextPath);
-        if (steamBtn) {
-            steamBtn.hidden = !(opts && opts.steamEnabled);
-            if (opts && opts.steamEnabled) steamBtn.href = API + "/api/auth/user/steam/start" + q;
-        }
-        if (googleBtn) {
-            googleBtn.hidden = !(opts && opts.googleEnabled);
-            if (opts && opts.googleEnabled) googleBtn.href = API + "/api/auth/user/google/start" + q;
+        if (typeof mcvBindPublicOAuthButtons === "function") {
+            mcvBindPublicOAuthButtons({
+                api: API,
+                next: nextPath,
+                steamEl: "cuenta-steam",
+                googleEl: "cuenta-google",
+                opts: opts
+            });
         }
     }
 
-    fetch(API + "/api/auth/user/options", { cache: "no-store" })
-        .then(function (r) { return r.json(); })
-        .then(function (opts) {
-            bindOAuthLinks(opts);
-        })
-        .catch(function () {});
+    bindOAuthLinks(typeof mcvDefaultOAuthOpts === "function" ? mcvDefaultOAuthOpts() : null);
+
+    var optsPromise =
+        typeof mcvFetchPublicOAuthOptions === "function"
+            ? mcvFetchPublicOAuthOptions(API)
+            : Promise.resolve(null);
+    optsPromise.then(function (opts) {
+        bindOAuthLinks(opts);
+    });
 
     if (typeof mcvFetchUserMe === "function" && mcvUserToken()) {
+        if (loading) loading.hidden = false;
+        if (guest) guest.hidden = true;
         mcvFetchUserMe().then(function (user) {
             if (user) {
                 showProfile(user);
