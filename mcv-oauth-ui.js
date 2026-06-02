@@ -27,7 +27,13 @@
         if (steamEl) {
             var steamOn = opts.steamEnabled !== false;
             steamEl.hidden = !steamOn;
-            if (steamOn && API) steamEl.href = API + "/api/auth/user/steam/start" + q;
+            if (steamOn && API) {
+                var steamUrl = API + "/api/auth/user/steam/start" + q;
+                if (cfg.linkJwt) {
+                    steamUrl += "&linkJwt=" + encodeURIComponent(String(cfg.linkJwt));
+                }
+                steamEl.href = steamUrl;
+            }
         }
         if (googleEl) {
             var googleOn = opts.googleEnabled !== false;

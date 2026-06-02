@@ -52,6 +52,42 @@ async function upsertUserFromGoogle(pool, googleSub, email, profile) {
     return r.rows[0];
 }
 
+async function linkSteamToUser(pool, userId, steamId64, profile) {
+    const id = Number.parseInt(String(userId || ""), 10);
+    if (!Number.isFinite(id) || id < 1) {
+        throw new Error("invalid_user");
+    }
+    const steam = String(steamId64 || "").trim();
+    if (!/^\d{17}$/.test(steam)) {
+        throw new Error("invalid_steam");
+    }
+    const taken = await pool.query(`SELECT id FROM site_users WHERE steam_id64 = $1 AND id <> $2 LIMIT 1`, [
+        steam,
+        id
+    ]);
+    if (taken.rows.length) {
+        const err = new Error("steam_taken");
+        err.code = "steam_taken";
+        throw err;
+    }
+    const displayName = String(profile?.personaname || "").slice(0, 120);
+    const avatarUrl = String(profile?.avatarfull || profile?.avatarmedium || "").slice(0, 512) || null;
+    const r = await pool.query(
+        `UPDATE site_users
+         SET steam_id64 = $2,
+             display_name = CASE WHEN $3 <> '' THEN $3 ELSE display_name END,
+             avatar_url = COALESCE($4, avatar_url),
+             last_login_at = NOW()
+         WHERE id = $1
+         RETURNING id, steam_id64, google_email, display_name, avatar_url, auth_provider, created_at, last_login_at`,
+        [id, steam, displayName, avatarUrl]
+    );
+    if (!r.rows.length) {
+        throw new Error("user_not_found");
+    }
+    return r.rows[0];
+}
+
 async function getSiteUserById(pool, userId) {
     const id = Number.parseInt(String(userId || ""), 10);
     if (!Number.isFinite(id) || id < 1) {
@@ -61,6 +97,19 @@ async function getSiteUserById(pool, userId) {
         `SELECT id, steam_id64, google_email, display_name, avatar_url, auth_provider, created_at, last_login_at
          FROM site_users WHERE id = $1`,
         [id]
+    );
+    return r.rows[0] || null;
+}
+
+async function getSiteUserBySteamId(pool, steamId64) {
+    const steam = String(steamId64 || "").trim();
+    if (!/^\d{17}$/.test(steam)) {
+        return null;
+    }
+    const r = await pool.query(
+        `SELECT id, steam_id64, google_email, display_name, avatar_url, auth_provider, created_at, last_login_at
+         FROM site_users WHERE steam_id64 = $1`,
+        [steam]
     );
     return r.rows[0] || null;
 }
@@ -85,6 +134,8 @@ module.exports = {
     fetchSteamProfile,
     upsertUserFromSteam,
     upsertUserFromGoogle,
+    linkSteamToUser,
     getSiteUserById,
+    getSiteUserBySteamId,
     serializeSiteUser
 };

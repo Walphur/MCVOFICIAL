@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 const openid = require("openid");
-const { clientIp, signUserJwt, authUser } = require("./auth");
+const { clientIp, signUserJwt, authUser, verifyUserJwt } = require("./auth");
 const {
     oauthPublicBase,
     signOAuthState,
@@ -16,6 +16,7 @@ const {
     fetchSteamProfile,
     upsertUserFromSteam,
     upsertUserFromGoogle,
+    linkSteamToUser,
     getSiteUserById,
     serializeSiteUser
 } = require("./siteUsers");
@@ -179,6 +180,9 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
             return res.status(503).json({ error: "Login con Steam no disponible" });
         }
         const nextPath = String(req.query.next || "cuenta.html").slice(0, 120);
+        const linkJwt = String(req.query.linkJwt || "").trim();
+        const linkAuth = linkJwt ? verifyUserJwt(linkJwt) : null;
+        const linkUserId = linkAuth && linkAuth.userId ? Number(linkAuth.userId) : null;
         const realm = steamRealm() || base;
         const returnTo = `${base}/api/auth/user/steam/callback`;
         const relyingParty = new openid.RelyingParty(returnTo, realm, true, false, []);
@@ -187,7 +191,12 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
                 console.error("user steam openid start:", err?.message);
                 return res.status(502).json({ error: "No se pudo iniciar Steam" });
             }
-            const state = signOAuthState({ provider: "user-steam", ip: clientIp(req), next: nextPath });
+            const state = signOAuthState({
+                provider: "user-steam",
+                ip: clientIp(req),
+                next: nextPath,
+                linkUserId: linkUserId || undefined
+            });
             if (!state) {
                 return res.status(503).json({ error: "JWT_SECRET no configurado" });
             }
@@ -224,12 +233,25 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
             }
             try {
                 const profile = await fetchSteamProfile(steamApiKey, steamId);
-                const userRow = await upsertUserFromSteam(pool, steamId, profile);
+                let userRow;
+                if (state.linkUserId) {
+                    try {
+                        userRow = await linkSteamToUser(pool, state.linkUserId, steamId, profile);
+                        console.log("public user steam linked:", userRow.id, steamId);
+                    } catch (linkErr) {
+                        if (linkErr.code === "steam_taken") {
+                            return redirectUserError(res, base, "steam_taken");
+                        }
+                        throw linkErr;
+                    }
+                } else {
+                    userRow = await upsertUserFromSteam(pool, steamId, profile);
+                    console.log("public user steam login:", userRow.id, steamId);
+                }
                 const token = signUserJwt(userRow);
                 if (!token) {
                     return redirectUserError(res, base, "jwt");
                 }
-                console.log("public user steam login:", userRow.id, steamId);
                 return redirectUserSuccess(res, base, token, state.next);
             } catch (e) {
                 console.error("user steam upsert:", e.message);

@@ -114,6 +114,22 @@ function authUser(req, res, next) {
     }
 }
 
+function verifyUserJwt(token) {
+    const secret = jwtSecret();
+    if (!secret || !token) {
+        return null;
+    }
+    try {
+        const decoded = jwt.verify(String(token), secret);
+        if (!decoded || decoded.role !== "user" || !decoded.userId) {
+            return null;
+        }
+        return decoded;
+    } catch {
+        return null;
+    }
+}
+
 module.exports = {
     jwtSecret,
     timingSafeEqualStr,
@@ -121,5 +137,6 @@ module.exports = {
     authAdmin,
     authAdminIpAllowlist,
     authUser,
-    signUserJwt
+    signUserJwt,
+    verifyUserJwt
 };

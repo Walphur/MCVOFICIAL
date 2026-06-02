@@ -2966,7 +2966,9 @@ function registerVitalRustApi(app, { getPool }) {
                 });
             }
             const preferred = String(req.query.server || DEFAULT_SERVER_KEY).trim();
-            const serverKeys = [...new Set([preferred, "eu-monthly", "eu-medium"].filter(Boolean))];
+            const serverKeys = [
+                ...new Set([preferred, ...parseServers().map((s) => s.key).filter(Boolean)])
+            ];
             let found = null;
             for (const sk of serverKeys) {
                 const srv = resolveServer(sk);
@@ -3001,6 +3003,7 @@ function registerVitalRustApi(app, { getPool }) {
                 return res.json({
                     configured: true,
                     steamLinked: true,
+                    steamId64: steamId,
                     server: { key: found.server.key, label: found.server.label, serverId: found.server.serverId },
                     wipeId: found.wipeId,
                     player: found.player,
@@ -3013,6 +3016,7 @@ function registerVitalRustApi(app, { getPool }) {
             return res.json({
                 configured: true,
                 steamLinked: true,
+                steamId64: steamId,
                 server: fallbackServer
                     ? { key: fallbackServer.key, label: fallbackServer.label, serverId: fallbackServer.serverId }
                     : null,

@@ -13,7 +13,7 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
-    <script src="mcv-oauth-ui.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=3"></script>
     <script src="mcv-i18n.js?v=27"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="mcv-layout.js?v=9" defer></script>
@@ -76,6 +76,7 @@
 
             <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vital-panel">
                 <h3 class="cuenta-panel__title"><i data-lucide="bar-chart-3"></i> Stats Vital Rust</h3>
+                <p class="cuenta-panel__hint" id="cuenta-vital-hint">Consultamos tu Steam ID en la API de Vital (servidores MCV). Si jugaste en wipe activo, aparecen tus stats.</p>
                 <p id="cuenta-vital-loading" class="cuenta-panel__empty">Cargando stats…</p>
                 <p id="cuenta-vital-empty" class="cuenta-panel__empty" hidden></p>
                 <div id="cuenta-vital-stats" class="cuenta-vital-stats" hidden>
@@ -110,6 +111,7 @@
             google_failed: "No se pudo completar el login con Google.",
             steam_failed: "No se pudo completar el login con Steam.",
             steam_verify: "Steam no verificó la sesión. Intentá de nuevo.",
+            steam_taken: "Ese Steam ya está vinculado a otra cuenta MCV.",
             invalid_state: "La sesión expiró. Volvé a intentar."
         };
         errBox.textContent = msgs[oauthErr] || "Error al iniciar sesión.";
@@ -173,7 +175,8 @@
                 next: "cuenta.html",
                 steamEl: "cuenta-steam-link-btn",
                 googleEl: null,
-                opts: { steamEnabled: true, googleEnabled: false }
+                opts: { steamEnabled: true, googleEnabled: false },
+                linkJwt: typeof mcvUserToken === "function" ? mcvUserToken() : ""
             });
         }
         loadDashboard();
@@ -275,7 +278,9 @@
         var p = data.player;
         var srv = data.server ? data.server.label : "Vital";
         if (meta) {
+            var steamLine = data.steamId64 ? "Steam " + data.steamId64 + " · " : "";
             meta.textContent =
+                steamLine +
                 (p.name ? p.name + " · " : "") +
                 srv +
                 (data.inClanRoster ? " · En roster MCV" : " · Fuera del roster del clan");
