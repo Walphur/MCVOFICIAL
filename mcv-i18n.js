@@ -561,7 +561,7 @@
             "admin.vitalDashboardExport": "Exportar Excel",
             "admin.vitalDashboardCopy": "Copiar resumen",
             "admin.vitalDashboardEmpty": "No hay jugadores para exportar.",
-            "admin.vitalDashboardExported": "Excel descargado con formato.",
+            "admin.vitalDashboardExported": "Excel descargado (filtros, pestañas y guía incluidos).",
             "admin.vitalDashboardExportedCsv": "CSV descargado (Excel no disponible).",
             "admin.vitalDashboardExportError": "No se pudo exportar.",
             "admin.vitalDashboardCopied": "Resumen copiado al portapapeles.",

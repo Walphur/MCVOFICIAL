@@ -16,6 +16,23 @@
         unknown: "—"
     };
 
+    var COLUMNS = [
+        { header: "Nombre", key: "displayName" },
+        { header: "SteamID64", key: "steamId64" },
+        { header: "Estado", key: "statusTag" },
+        { header: "Fase wipe", key: "wipePhase" },
+        { header: "Strikes", key: "strikes" },
+        { header: "Combats perd.", key: "combatsLost" },
+        { header: "Minis perd.", key: "minisLost" },
+        { header: "Horas", key: "hoursPlayed" },
+        { header: "Roles", key: "roleLabel" },
+        { header: "Vouch", key: "vouchBy" },
+        { header: "Entrada", key: "entryDate" },
+        { header: "Pausado", key: "paused" },
+        { header: "Puntos", key: "performanceScore" },
+        { header: "Nivel", key: "nivel" }
+    ];
+
     var COLORS = {
         headerBg: "FFFAA61A",
         headerFg: "FF000000",
@@ -23,6 +40,7 @@
         titleFg: "FFFFFFFF",
         metaBg: "FF141414",
         metaFg: "FFB0B0B0",
+        guideBg: "FF111111",
         zebra: "FF101010",
         border: "FF2A2A2A",
         puntos: {
@@ -72,6 +90,21 @@
                 info: "Pausado"
             }[level] || "—"
         );
+    }
+
+    function isPausedPlayer(row) {
+        return Boolean(row && (row.pausedOutsideWipe || row.wipePhase === "no_juega"));
+    }
+
+    function colLetter(n) {
+        var s = "";
+        var num = n;
+        while (num > 0) {
+            var rem = (num - 1) % 26;
+            s = String.fromCharCode(65 + rem) + s;
+            num = Math.floor((num - 1) / 26);
+        }
+        return s;
     }
 
     function thinBorder() {
@@ -131,8 +164,7 @@
                     maxLen = len;
                 }
             });
-            var width = Math.max(minWidth, Math.min(maxLen + padding, maxWidth));
-            ws.getColumn(colIdx + 1).width = width;
+            ws.getColumn(colIdx + 1).width = Math.max(minWidth, Math.min(maxLen + padding, maxWidth));
         });
 
         for (var r = headerRowNum + 1; r <= headerRowNum + mapped.length; r += 1) {
@@ -140,6 +172,7 @@
         }
     }
 
+    function mapPlayerRow(row) {
         var level = riskLevel(row);
         return {
             displayName: String(row.displayName || "").trim(),
@@ -153,51 +186,26 @@
             roleLabel: (row.roleLabels && row.roleLabels.length ? row.roleLabels.join("; ") : row.roleLabel) || "",
             vouchBy: String(row.vouchBy || "").trim(),
             entryDate: row.entryDate ? String(row.entryDate).slice(0, 10) : "",
-            paused: row.pausedOutsideWipe || row.wipePhase === "no_juega" ? "Sí" : "No",
+            paused: isPausedPlayer(row) ? "Sí" : "No",
             performanceScore: Number(row.performanceScore || 0),
             nivel: riskLabel(level),
-            _riskLevel: level
+            _riskLevel: level,
+            _isPaused: isPausedPlayer(row)
         };
     }
 
-    async function exportPlayerInfoXlsx(players, opts) {
-        var Excel = global.ExcelJS;
-        if (!Excel) {
-            throw new Error("ExcelJS no cargado");
-        }
-        var list = Array.isArray(players) ? players : [];
-        if (!list.length) {
-            throw new Error("Sin filas para exportar");
-        }
-
-        var options = opts && typeof opts === "object" ? opts : {};
-        var columns = [
-            { header: "Nombre", key: "displayName" },
-            { header: "SteamID64", key: "steamId64" },
-            { header: "Estado", key: "statusTag" },
-            { header: "Fase wipe", key: "wipePhase" },
-            { header: "Strikes", key: "strikes" },
-            { header: "Combats perd.", key: "combatsLost" },
-            { header: "Minis perd.", key: "minisLost" },
-            { header: "Horas", key: "hoursPlayed" },
-            { header: "Roles", key: "roleLabel" },
-            { header: "Vouch", key: "vouchBy" },
-            { header: "Entrada", key: "entryDate" },
-            { header: "Pausado", key: "paused" },
-            { header: "Puntos", key: "performanceScore" },
-            { header: "Nivel", key: "nivel" }
-        ];
-        var lastColLetter = String.fromCharCode(64 + columns.length);
-
-        var wb = new Excel.Workbook();
-        wb.creator = "MCV";
-        wb.created = new Date();
-
-        var ws = wb.addWorksheet("Info jugadores", {
-            views: [{ state: "frozen", ySplit: 4, activeCell: "A5" }]
+    function sortForMainSheet(mapped) {
+        return mapped.slice().sort(function (a, b) {
+            if (a._isPaused !== b._isPaused) {
+                return a._isPaused ? 1 : -1;
+            }
+            return String(a.displayName || "").localeCompare(String(b.displayName || ""), "es", { sensitivity: "base" });
         });
+    }
 
-        ws.mergeCells("A1:" + lastColLetter + "1");
+    function writeSheetBanner(ws, columns, options, subtitleExtra) {
+        var lastCol = colLetter(columns.length);
+        ws.mergeCells("A1:" + lastCol + "1");
         styleCell(ws.getCell("A1"), {
             font: { bold: true, size: 14, color: { argb: COLORS.titleFg } },
             fill: { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.titleBg } },
@@ -206,13 +214,12 @@
         ws.getCell("A1").value = options.title || "MCV — Info jugadores (wipe)";
         ws.getRow(1).height = 28;
 
-        ws.mergeCells("A2:" + lastColLetter + "2");
+        ws.mergeCells("A2:" + lastCol + "2");
         var exportedAt = new Date().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
         ws.getCell("A2").value =
             "Exportado: " +
             exportedAt +
-            " · Jugadores: " +
-            list.length +
+            (subtitleExtra ? " · " + subtitleExtra : "") +
             (options.serverLabel ? " · Servidor: " + options.serverLabel : "");
         styleCell(ws.getCell("A2"), {
             font: { size: 10, color: { argb: COLORS.metaFg } },
@@ -220,8 +227,10 @@
             alignment: { vertical: "middle", horizontal: "left", indent: 1 }
         });
         ws.getRow(2).height = 20;
+    }
 
-        var headerRowNum = 4;
+    function writeDataTable(ws, columns, headerRowNum, mapped, sheetOpts) {
+        var opts = sheetOpts || {};
         var headerRow = ws.getRow(headerRowNum);
         columns.forEach(function (col, idx) {
             var cell = headerRow.getCell(idx + 1);
@@ -234,9 +243,9 @@
         });
         headerRow.height = 24;
 
-        var mapped = list.map(mapPlayerRow);
         mapped.forEach(function (row, idx) {
-            var excelRow = ws.getRow(headerRowNum + 1 + idx);
+            var excelRowNum = headerRowNum + 1 + idx;
+            var excelRow = ws.getRow(excelRowNum);
             columns.forEach(function (col, colIdx) {
                 excelRow.getCell(colIdx + 1).value = row[col.key];
             });
@@ -257,6 +266,8 @@
                     font = { bold: true, color: { argb: "FFFFFFFF" } };
                 } else if (col.key === "steamId64") {
                     font = { name: "JetBrains Mono", size: 10, color: { argb: "FFD4D4D8" } };
+                } else if (col.key === "paused" && row.paused === "Sí") {
+                    font = { bold: true, color: { argb: "FF9CA3AF" } };
                 }
 
                 styleCell(cell, {
@@ -270,6 +281,10 @@
                     }
                 });
             });
+
+            if (opts.groupPausedRows && row._isPaused) {
+                excelRow.outlineLevel = 1;
+            }
         });
 
         autoFitColumns(ws, columns, headerRowNum, mapped);
@@ -279,6 +294,118 @@
             from: { row: headerRowNum, column: 1 },
             to: { row: lastDataRow, column: columns.length }
         };
+
+        if (opts.groupPausedRows) {
+            ws.properties.outlineProperties = {
+                summaryBelow: false,
+                summaryAbove: true
+            };
+        }
+
+        return lastDataRow;
+    }
+
+    function buildPlayerSheet(wb, sheetName, mapped, options, sheetOpts) {
+        var ws = wb.addWorksheet(sheetName, {
+            views: [{ state: "frozen", ySplit: 4, activeCell: "A5" }]
+        });
+        var subtitle = mapped.length + " jugador(es)";
+        if (sheetOpts && sheetOpts.subtitleHint) {
+            subtitle = sheetOpts.subtitleHint + " · " + subtitle;
+        }
+        writeSheetBanner(ws, COLUMNS, options, subtitle);
+        writeDataTable(ws, COLUMNS, 4, mapped, sheetOpts);
+        return ws;
+    }
+
+    function buildGuideSheet(wb, stats) {
+        var ws = wb.addWorksheet("Guía filtros", {
+            views: [{ showGridLines: false }]
+        });
+        ws.getColumn(1).width = 92;
+        var lines = [
+            "Cómo filtrar y ocultar jugadores en este Excel",
+            "",
+            "1) Filtros por columna (embudo ▼ en cada título)",
+            "   · Columna «Pausado» → desmarcá «Sí» para ocultar pausados.",
+            "   · Columna «Estado» → Admin / MCV activo / Strikes / etc.",
+            "   · Columna «Nivel» → Crítico / Riesgo / Bien / Excelente / Pausado.",
+            "",
+            "2) Pestañas listas",
+            "   · «Todos» — activos arriba; pausados abajo (grupo colapsable con +/-).",
+            "   · «Juegan» — solo quienes no están pausados (" + stats.active + ").",
+            "   · «Pausados» — solo pausados / no juegan (" + stats.paused + ").",
+            "",
+            "3) Colapsar pausados en «Todos»",
+            "   · Usá el botón «−» a la izquierda de las filas pausadas para ocultarlas.",
+            "",
+            "Resumen exportado: " + stats.total + " total · " + stats.active + " juegan · " + stats.paused + " pausados"
+        ];
+        lines.forEach(function (line, idx) {
+            var row = ws.getRow(idx + 1);
+            row.getCell(1).value = line;
+            row.height = line === "" ? 8 : 20;
+            styleCell(row.getCell(1), {
+                font: {
+                    bold: idx === 0,
+                    size: idx === 0 ? 13 : 11,
+                    color: { argb: idx === 0 ? "FFFFFFFF" : "FFE4E4E7" }
+                },
+                fill: { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.guideBg } },
+                alignment: { vertical: "middle", horizontal: "left", wrapText: false }
+            });
+        });
+    }
+
+    async function exportPlayerInfoXlsx(players, opts) {
+        var Excel = global.ExcelJS;
+        if (!Excel) {
+            throw new Error("ExcelJS no cargado");
+        }
+        var list = Array.isArray(players) ? players : [];
+        if (!list.length) {
+            throw new Error("Sin filas para exportar");
+        }
+
+        var options = opts && typeof opts === "object" ? opts : {};
+        var mappedAll = list.map(mapPlayerRow);
+        var mappedActive = mappedAll.filter(function (r) {
+            return !r._isPaused;
+        });
+        var mappedPaused = mappedAll.filter(function (r) {
+            return r._isPaused;
+        });
+        var mappedSorted = sortForMainSheet(mappedAll);
+
+        var wb = new Excel.Workbook();
+        wb.creator = "MCV";
+        wb.created = new Date();
+
+        buildGuideSheet(wb, {
+            total: mappedAll.length,
+            active: mappedActive.length,
+            paused: mappedPaused.length
+        });
+
+        buildPlayerSheet(wb, "Todos", mappedSorted, options, {
+            tableName: "McVPlayersTodos",
+            groupPausedRows: mappedPaused.length > 0 && mappedActive.length > 0,
+            subtitleHint: "Activos arriba · pausados abajo (colapsables)"
+        });
+
+        if (mappedActive.length) {
+            buildPlayerSheet(wb, "Juegan", mappedActive, options, {
+                tableName: "McVPlayersActivos",
+                subtitleHint: "Solo jugadores activos"
+            });
+        }
+
+        if (mappedPaused.length) {
+            buildPlayerSheet(wb, "Pausados", mappedPaused, options, {
+                tableName: "McVPlayersPausados",
+                subtitleHint: "Solo pausados / no juegan"
+            });
+        }
 
         var buffer = await wb.xlsx.writeBuffer();
         var blob = new Blob([buffer], {
