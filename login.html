@@ -38,6 +38,7 @@
                 <label for="login-password" data-i18n="login.passwordLabel">Contraseña</label>
                 <input id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="login.passwordPh" placeholder="••••••••••">
             </div>
+            <div id="login-turnstile" class="login-turnstile" hidden></div>
             <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
         </form>
 
@@ -84,6 +85,65 @@
         err.style.display = 'block';
     }
 
+    var turnstileSiteKey = '';
+    var turnstileWidgetId = null;
+    var turnstileToken = '';
+
+    function resetTurnstile() {
+        turnstileToken = '';
+        if (turnstileWidgetId != null && window.turnstile && typeof window.turnstile.reset === 'function') {
+            try { window.turnstile.reset(turnstileWidgetId); } catch (ignore) {}
+        }
+    }
+
+    function loadTurnstileScript() {
+        return new Promise(function (resolve, reject) {
+            if (window.turnstile) {
+                resolve();
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+            s.async = true;
+            s.defer = true;
+            s.onload = function () { resolve(); };
+            s.onerror = function () { reject(new Error('turnstile-script')); };
+            document.head.appendChild(s);
+        });
+    }
+
+    function initTurnstile(API) {
+        var box = document.getElementById('login-turnstile');
+        if (!box) return Promise.resolve();
+        return fetchRetry(API + '/api/auth/login-config', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (cfg) {
+                turnstileSiteKey = cfg && cfg.turnstileSiteKey ? String(cfg.turnstileSiteKey).trim() : '';
+                if (!turnstileSiteKey) {
+                    box.hidden = true;
+                    return;
+                }
+                return loadTurnstileScript().then(function () {
+                    box.hidden = false;
+                    turnstileWidgetId = window.turnstile.render(box, {
+                        sitekey: turnstileSiteKey,
+                        theme: 'dark',
+                        callback: function (token) { turnstileToken = token; },
+                        'expired-callback': function () { turnstileToken = ''; },
+                        'error-callback': function () { turnstileToken = ''; }
+                    });
+                });
+            })
+            .catch(function () {
+                box.hidden = true;
+            });
+    }
+
+    var API_INIT = apiBase();
+    if (API_INIT) {
+        initTurnstile(API_INIT).catch(function () {});
+    }
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         err.style.display = 'none';
@@ -95,12 +155,19 @@
             return;
         }
         var pw = form.password.value;
+        if (turnstileSiteKey && !turnstileToken) {
+            err.textContent = 'Completá la verificación anti-bot antes de ingresar.';
+            err.style.display = 'block';
+            return;
+        }
         var btn = form.querySelector('button[type="submit"]');
         btn.disabled = true;
+        var payload = { password: pw };
+        if (turnstileToken) payload.turnstileToken = turnstileToken;
         fetchRetry(API + '/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pw }),
+            body: JSON.stringify(payload),
             cache: 'no-store'
         })
             .then(function (r) {
@@ -125,6 +192,7 @@
                 if (!x.ok || !x.d.token) {
                     err.textContent = (x.d && x.d.error) ? x.d.error : T('login.errLoginFailed');
                     err.style.display = 'block';
+                    resetTurnstile();
                     return;
                 }
                 var tok = String(x.d.token).trim();
@@ -136,6 +204,7 @@
                 if (e && (e.message === 'parse' || e.message === 'bad-route')) return;
                 err.textContent = T('login.errNoConnectRetry');
                 err.style.display = 'block';
+                resetTurnstile();
             })
             .finally(function () {
                 btn.disabled = false;

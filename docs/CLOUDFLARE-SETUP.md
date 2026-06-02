@@ -195,3 +195,38 @@ Lo ideal para seguridad y simplicidad: **un solo dominio** (`mcvoficial.com`) ap
 - [ ] Contraseñas fuertes `ADMIN_PASSWORD` + `JWT_SECRET`
 
 Cuando termines, redeploy en Render para aplicar env vars nuevas.
+
+---
+
+## 13. Turnstile (Site key + Secret key)
+
+Si en Cloudflare creaste un widget **Turnstile** (anti-bot en el login), las claves van así:
+
+| Clave | Dónde va | ¿Pública? |
+|-------|----------|-----------|
+| **Site key** | Render → `TURNSTILE_SITE_KEY` | Sí (el login la pide al API y muestra el widget) |
+| **Secret key** | Render → `TURNSTILE_SECRET_KEY` | **No** — solo servidor |
+
+### En Cloudflare
+
+1. **Turnstile** → Add widget.
+2. Dominio: `mcvoficial.com` (y `www` si aplica).
+3. Copiá **Site Key** y **Secret Key**.
+
+### En Render (Environment del Web Service)
+
+```env
+TURNSTILE_SITE_KEY=0x4AAAAAAA...
+TURNSTILE_SECRET_KEY=0x4AAAAAAA...
+```
+
+Redeploy. En `login.html` aparece el checkbox/captcha de Cloudflare antes de **Ingresar**.
+
+**No pegues la Secret key** en `login.html`, GitHub, Discord ni capturas.
+
+Si no definís las dos variables, el login sigue funcionando **sin** Turnstile (como antes).
+
+### Crear el widget
+
+- Tipo: **Managed** (recomendado) o Non-interactive.
+- Hostnames: `mcvoficial.com`, `www.mcvoficial.com`, y si probás en Render: `mcvoficial.onrender.com`.

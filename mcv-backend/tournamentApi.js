@@ -6,8 +6,9 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const axios = require("axios");
-const { authAdmin, jwtSecret, timingSafeEqualStr, authAdminIpAllowlist } = require("./auth");
+const { authAdmin, jwtSecret, timingSafeEqualStr, authAdminIpAllowlist, clientIp } = require("./auth");
 const { loginRateLimit } = require("./rateLimits");
+const { turnstileSiteKey, isTurnstileEnabled, verifyTurnstileToken } = require("./turnstile");
 
 function makePosterUpload(uploadRoot) {
     if (!uploadRoot) {
@@ -208,6 +209,14 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         }
     });
 
+    app.get("/api/auth/login-config", (req, res) => {
+        const siteKey = turnstileSiteKey();
+        return res.json({
+            turnstileSiteKey: siteKey || null,
+            turnstileEnabled: isTurnstileEnabled()
+        });
+    });
+
     app.get("/api/auth/status", (req, res) => {
         const rawJwt = String(process.env.JWT_SECRET || "");
         const jwtTrim = rawJwt.trim();
@@ -227,15 +236,19 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         });
     });
 
-    app.post("/api/auth/login", loginRateLimit, authAdminIpAllowlist, (req, res) => {
+    app.post("/api/auth/login", loginRateLimit, authAdminIpAllowlist, async (req, res) => {
         const adminPw = String(process.env.ADMIN_PASSWORD || "").trim();
         const secret = jwtSecret();
         if (!adminPw || !secret) {
             return res.status(503).json({ error: "ADMIN_PASSWORD o JWT_SECRET no configurados" });
         }
+        const turnstile = await verifyTurnstileToken(req, req.body?.turnstileToken);
+        if (!turnstile.ok) {
+            return res.status(400).json({ error: turnstile.error || "Verificación requerida" });
+        }
         const given = String(req.body?.password || "").trim();
         if (!timingSafeEqualStr(given, adminPw)) {
-            console.warn("login failed from", req.ip || "unknown");
+            console.warn("login failed from", clientIp(req));
             return res.status(401).json({ error: "Contraseña incorrecta" });
         }
         const token = jwt.sign({ role: "admin" }, secret, { expiresIn: "12h" });
