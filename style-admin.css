@@ -5918,3 +5918,137 @@ img.ops-player-avatar {
     background: rgba(245, 158, 11, 0.2);
     color: #fde68a;
 }
+
+/* —— Admin polish: no emojis + UX ajustes solicitados —— */
+.btn-primary-small .admin-btn-icon,
+.vital-icon-only .admin-btn-icon {
+    margin-right: 6px;
+}
+.vital-icon-only .admin-btn-icon { margin-right: 0; width: 14px; height: 14px; }
+
+.vital-app-shell {
+    --ops-blue: #f59e0b;
+    --ops-blue-dim: rgba(245, 158, 11, 0.16);
+}
+.ops-link {
+    color: #fbbf24;
+}
+.ops-link:hover {
+    color: #fcd34d;
+}
+.ops-member-row.is-active {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.34);
+}
+.ops-risk--good .ops-member-rail {
+    background: #fbbf24;
+}
+.ops-pill--good {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+}
+
+.vital-sidebar--compact {
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 12px;
+}
+.vital-sidebar-tools {
+    margin-top: auto;
+    padding-top: 12px;
+}
+.vital-sidebar-tools > summary {
+    font-size: 0.78rem;
+    color: #e4e4e7;
+    border: 1px solid rgba(250, 166, 26, 0.24);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.35);
+}
+.vital-sidebar-tools__body {
+    margin-top: 8px;
+    display: grid;
+    gap: 8px;
+}
+
+.vital-input-compact {
+    padding-right: 36px;
+}
+select.vital-input-compact {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.vital-subpanel {
+    height: 100%;
+    min-height: 0;
+}
+.vital-page-simple {
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 18px;
+}
+[data-vital-section="roles"] .vital-page-simple,
+[data-vital-section="extras"] .vital-page-simple {
+    padding-bottom: 20px;
+}
+.vital-roles-list {
+    max-height: min(58vh, 520px);
+    overflow: auto;
+    padding-right: 6px;
+}
+.vital-extra-list {
+    max-height: min(54vh, 500px);
+    overflow: auto;
+    padding-right: 6px;
+}
+.vital-extra-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+.vital-extra-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+.vital-extra-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.vital-extra-name {
+    font-size: 0.9rem;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-extra-steam-link {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.77rem;
+    color: #fbbf24;
+    text-decoration: none;
+}
+.vital-extra-steam-link:hover { text-decoration: underline; }
+.vital-extra-note {
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.vital-detail-footer {
+    gap: 10px;
+}
+.vital-inactive-toggle.is-active {
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.14);
+}
