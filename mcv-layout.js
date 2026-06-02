@@ -19,13 +19,13 @@
     var base = basePath();
 
     var NAV_ITEMS = [
-        { id: "index", href: "index.html", i18n: "nav.clan" },
-        { id: "events", href: "events.html", i18n: "nav.torneos" },
-        { id: "team", href: "equipo/", i18n: "nav.team", also: ["teamForm"] },
-        { id: "bot", href: "bot.html", i18n: "nav.bot" },
-        { id: "tickets", href: "tickets.html", i18n: "nav.tickets" },
-        { id: "cuenta", href: "cuenta.html", i18n: "nav.account" },
-        { id: "live", href: "live.html", i18n: "nav.streams", live: true }
+        { id: "index", href: "index.html", i18n: "nav.clan", label: "Clan" },
+        { id: "events", href: "events.html", i18n: "nav.torneos", label: "Torneos" },
+        { id: "team", href: "equipo/", i18n: "nav.team", label: "Equipo", also: ["teamForm"] },
+        { id: "bot", href: "bot.html", i18n: "nav.bot", label: "Bot" },
+        { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
+        { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
+        { id: "live", href: "live.html", i18n: "nav.streams", label: "Streams", live: true }
     ];
 
     function isActive(item) {
@@ -70,8 +70,8 @@
             var inner = item.live
                 ? '<span class="live-dot pulse-red"></span><span data-i18n="' +
                   item.i18n +
-                  '">Streams</span>'
-                : '<span data-i18n="' + item.i18n + '"></span>';
+                  '">' + (item.label || "Streams") + "</span>"
+                : '<span data-i18n="' + item.i18n + '">' + (item.label || "") + "</span>";
             links +=
                 '<li><a href="' +
                 base +

@@ -2956,10 +2956,6 @@ function registerVitalRustApi(app, { getPool }) {
                     message: "Iniciá sesión con Steam para ver tus stats en Vital."
                 });
             }
-            const server = resolveServer(req.query.server || DEFAULT_SERVER_KEY);
-            if (!server?.configured) {
-                return res.status(503).json({ error: "Servidor Vital no configurado" });
-            }
             const paths = apiPaths();
             if (!paths.playersOverviewPost) {
                 return res.json({
@@ -2969,25 +2965,63 @@ function registerVitalRustApi(app, { getPool }) {
                     message: "API de Vital sin configurar en el servidor."
                 });
             }
-            let wipeId = String(req.query.wipeId || "current").trim();
-            if (!wipeId || wipeId === "current") {
-                wipeId = (await resolveCurrentWipeId(paths, server.serverId)) || "null";
+            const preferred = String(req.query.server || DEFAULT_SERVER_KEY).trim();
+            const serverKeys = [...new Set([preferred, "eu-monthly", "eu-medium"].filter(Boolean))];
+            let found = null;
+            for (const sk of serverKeys) {
+                const srv = resolveServer(sk);
+                if (!srv?.configured) {
+                    continue;
+                }
+                const wipeCandidates = [];
+                let currentWipe = null;
+                if (String(req.query.wipeId || "").trim() && String(req.query.wipeId).trim() !== "current") {
+                    wipeCandidates.push(String(req.query.wipeId).trim());
+                } else {
+                    currentWipe = (await resolveCurrentWipeId(paths, srv.serverId)) || null;
+                    if (currentWipe) {
+                        wipeCandidates.push(currentWipe);
+                    }
+                    wipeCandidates.push("null");
+                }
+                for (const wipeId of wipeCandidates) {
+                    const matched = await fetchClanPlayersPost(paths, srv.serverId, wipeId, [steamId], {});
+                    if (matched[0]) {
+                        found = { server: srv, wipeId, player: matched[0] };
+                        break;
+                    }
+                }
+                if (found) {
+                    break;
+                }
             }
-            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, [steamId], {});
-            const player = matched[0] || null;
             const roster = await loadClanSteamIds(pool);
             const inClanRoster = roster.ids.includes(steamId);
+            if (found) {
+                return res.json({
+                    configured: true,
+                    steamLinked: true,
+                    server: { key: found.server.key, label: found.server.label, serverId: found.server.serverId },
+                    wipeId: found.wipeId,
+                    player: found.player,
+                    inClanRoster,
+                    vitalPublicConfigured: isVitalPublicConfigured(),
+                    message: null
+                });
+            }
+            const fallbackServer = resolveServer(preferred) || resolveServer(DEFAULT_SERVER_KEY);
             return res.json({
                 configured: true,
                 steamLinked: true,
-                server: { key: server.key, label: server.label, serverId: server.serverId },
-                wipeId,
-                player,
+                server: fallbackServer
+                    ? { key: fallbackServer.key, label: fallbackServer.label, serverId: fallbackServer.serverId }
+                    : null,
+                wipeId: null,
+                player: null,
                 inClanRoster,
                 vitalPublicConfigured: isVitalPublicConfigured(),
-                message: player
-                    ? null
-                    : "No hay stats de Vital para este wipe/servidor. Probá otro wipe o servidor del clan."
+                message:
+                    "No hay stats de Vital para tu Steam en los servidores MCV (EU Monthly / EU Medium). Jugá en wipe activo o revisá más tarde."
             });
         } catch (e) {
             console.error("GET /api/auth/user/vital-stats:", e.message);

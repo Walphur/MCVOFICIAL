@@ -744,11 +744,37 @@ body.home-page {
 .tickets-auth-gate__alt { margin: 12px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
 .tickets-auth-gate__alt a { color: var(--primary); font-weight: 600; }
 .cuenta-card { max-width: 420px; }
-.cuenta-hint { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+#cuenta-guest.cuenta-card { max-width: 420px; margin-left: auto; margin-right: auto; }
 
 /* Dashboard cuenta */
-.cuenta-dashboard { max-width: 960px; margin: 0 auto; }
+.cuenta-section.page-section {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+.cuenta-dashboard {
+    max-width: none;
+    width: 100%;
+}
+.cuenta-dashboard .form-container,
+.cuenta-dashboard .cuenta-card {
+    max-width: none !important;
+    width: 100%;
+    margin: 0;
+    padding: 22px 24px;
+    box-sizing: border-box;
+}
 .cuenta-dashboard__head { margin-bottom: 16px; }
+.cuenta-dashboard__head .cuenta-profile-head { margin-bottom: 0; }
+.cuenta-dashboard__head-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
 .cuenta-dashboard__actions {
     display: flex;
     flex-wrap: wrap;
@@ -771,7 +797,9 @@ body.home-page {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+    align-items: start;
 }
+.cuenta-hint { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
 .cuenta-panel--wide { grid-column: 1 / -1; }
 .cuenta-panel__title {
     display: flex;

@@ -48,6 +48,9 @@
 .cuenta-card {
     max-width: 420px;
 }
+.cuenta-dashboard .cuenta-card {
+    max-width: none;
+}
 .cuenta-oauth {
     display: flex;
     flex-direction: column;
