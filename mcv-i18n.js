@@ -1193,7 +1193,7 @@
             "admin.vitalDashboardExport": "Export Excel",
             "admin.vitalDashboardCopy": "Copy summary",
             "admin.vitalDashboardEmpty": "No players to export.",
-            "admin.vitalDashboardExported": "Formatted Excel downloaded.",
+            "admin.vitalDashboardExported": "Excel downloaded (filters, tabs and guide included).",
             "admin.vitalDashboardExportedCsv": "CSV downloaded (Excel unavailable).",
             "admin.vitalDashboardExportError": "Export failed.",
             "admin.vitalDashboardCopied": "Summary copied to clipboard.",

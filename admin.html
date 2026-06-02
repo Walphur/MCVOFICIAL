@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=58">
+    <link rel="stylesheet" href="style-admin.css?v=59">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -379,6 +379,14 @@
                                                     <option value="admin">Admin</option>
                                                     <option value="mcv_active">Activo en MCV</option>
                                                 </select></label>
+                                                <div class="vital-field vital-field--wide vital-inactive-field" id="vital-inactive-field">
+                                                    <span>Inactivo MCV</span>
+                                                    <label class="vital-inactive-check">
+                                                        <input type="checkbox" id="vital-info-inactive" />
+                                                        <span class="vital-inactive-check__text">Fuera del clan permanentemente</span>
+                                                    </label>
+                                                    <p class="admin-form-hint vital-inactive-hint">Distinto de <strong>Pausado</strong> (abajo): pausado = no juega este wipe; inactivo = ya no pertenece al clan MCV.</p>
+                                                </div>
                                                 <div class="vital-field vital-field--wide vital-roles-field">
                                                     <span>Roles (varios)</span>
                                                     <div id="vital-info-roles-selected" class="vital-roles-selected" aria-live="polite"></div>
@@ -501,10 +509,9 @@
                                     </div>
                                 </div>
                                 <input type="checkbox" id="vital-info-paused" hidden tabindex="-1" aria-hidden="true" />
-                                <input type="checkbox" id="vital-info-inactive" hidden tabindex="-1" aria-hidden="true" />
                                 <footer class="vital-detail-footer">
-                                    <button type="button" class="btn-ghost-danger" id="btn-vital-info-del-detail">Eliminar</button>
-                                    <div class="vital-detail-footer__cluster">
+                                    <button type="button" class="btn-outline btn-sm btn-danger-outline vital-detail-footer__delete" id="btn-vital-info-del-detail">Eliminar</button>
+                                    <div class="vital-detail-footer__actions">
                                         <div class="vital-wipe-control" role="group" aria-label="Participación wipe" id="vital-wipe-segment">
                                             <span class="vital-wipe-control__label">Wipe</span>
                                             <div class="vital-segment">
@@ -518,7 +525,6 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <button type="button" class="btn-outline btn-sm vital-inactive-toggle" id="btn-vital-inactive-toggle" aria-pressed="false">Inactivo</button>
                                         <button type="button" class="btn-primary-small vital-save-btn" id="btn-vital-info-save">Guardar cambios</button>
                                     </div>
                                 </footer>
@@ -1987,7 +1993,7 @@
         titleEl.textContent = opts.title || 'Confirmar';
         msgEl.textContent = opts.message || '';
         okBtn.textContent = opts.confirmLabel || 'Confirmar';
-        okBtn.className = opts.danger ? 'btn-danger-outline admin-confirm-dialog__confirm' : 'btn-primary-small admin-confirm-dialog__confirm';
+        okBtn.className = opts.danger ? 'btn-outline btn-danger-outline btn-danger-solid admin-confirm-dialog__confirm' : 'btn-primary-small admin-confirm-dialog__confirm';
         if (iconEl) {
             iconEl.textContent = opts.danger ? '!' : '?';
             iconEl.classList.toggle('is-danger', !!opts.danger);
@@ -3485,12 +3491,10 @@
         return !!(inactive && inactive.checked);
     }
 
-    function syncInactiveToggleUI() {
-        var btn = document.getElementById('btn-vital-inactive-toggle');
-        if (!btn) return;
-        var on = isVitalInactive();
-        btn.classList.toggle('is-active', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    function syncInactiveFieldUI() {
+        var field = document.getElementById('vital-inactive-field');
+        if (!field) return;
+        field.classList.toggle('is-inactive-on', isVitalInactive());
     }
 
     function syncWipeSegmentUI() {
@@ -3595,7 +3599,7 @@
         if (inactive) inactive.checked = String(p.statusTag || '') === 'mcv_inactive';
         var statusSel = document.getElementById('vital-info-status');
         if (statusSel && !statusSel.value) statusSel.value = 'mcv_active';
-        syncInactiveToggleUI();
+        syncInactiveFieldUI();
         syncWipeSegmentUI();
     }
 
@@ -3839,7 +3843,7 @@
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
         var vitalWipeSegment = document.getElementById('vital-wipe-segment');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
-        var btnInactiveToggle = document.getElementById('btn-vital-inactive-toggle');
+        var inactiveCheck = document.getElementById('vital-info-inactive');
         var rolePresets = document.getElementById('vital-role-presets');
         var vitalQuickFilters = document.getElementById('vital-quick-filters');
         var vitalDetailTabs = document.getElementById('vital-detail-tabs');
@@ -3908,12 +3912,9 @@
             });
         }
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
-        if (btnInactiveToggle) {
-            btnInactiveToggle.addEventListener('click', function () {
-                var inactive = document.getElementById('vital-info-inactive');
-                if (!inactive) return;
-                inactive.checked = !inactive.checked;
-                syncInactiveToggleUI();
+        if (inactiveCheck) {
+            inactiveCheck.addEventListener('change', function () {
+                syncInactiveFieldUI();
                 renderVitalPlayerSummary();
             });
         }
@@ -3972,7 +3973,7 @@
             btnNewPlayer.addEventListener('click', function () {
                 setVitalPlayerRoles([]);
                 selectVitalPlayer('', { isNew: true });
-                syncInactiveToggleUI();
+                syncInactiveFieldUI();
             });
         }
         if (btnDelDetail) {

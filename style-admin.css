@@ -3209,6 +3209,20 @@ details.vital-extra-panel > :not(summary) {
 .btn-danger-outline:hover {
     background: rgba(239, 68, 68, 0.12) !important;
 }
+.btn-danger-solid,
+.admin-confirm-dialog .admin-confirm-dialog__confirm.btn-danger-outline {
+    background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
+    border-color: rgba(248, 113, 113, 0.65) !important;
+    color: #fff !important;
+    font-weight: 600;
+    min-width: 120px;
+}
+.btn-danger-solid:hover,
+.admin-confirm-dialog .admin-confirm-dialog__confirm.btn-danger-outline:hover {
+    background: linear-gradient(180deg, #ef4444, #dc2626) !important;
+    color: #fff !important;
+    filter: none;
+}
 .vital-score-player-actions {
     display: flex;
     flex-wrap: wrap;
@@ -3841,9 +3855,10 @@ select.vital-input-compact option {
 }
 .vital-detail-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
+    flex-wrap: nowrap;
     padding: 14px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(8, 12, 18, 0.92);
@@ -3852,6 +3867,16 @@ select.vital-input-compact option {
     position: sticky;
     bottom: 0;
     z-index: 3;
+}
+.vital-detail-footer__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.vital-detail-footer__delete {
+    flex-shrink: 0;
 }
 .vital-detail-footer .btn-primary-small,
 .vital-detail-footer .btn-outline {
@@ -3864,21 +3889,15 @@ select.vital-input-compact option {
 }
 .vital-detail-footer .btn-primary-small {
     min-width: 108px;
+    flex-shrink: 0;
 }
-.btn-ghost-danger {
-    margin-right: auto;
-    background: transparent;
-    border: none;
-    color: #f87171;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 6px;
-    letter-spacing: 0;
-    text-transform: none;
+.vital-detail-footer__delete.btn-danger-outline {
+    color: #fecaca !important;
 }
-.btn-ghost-danger:hover {
-    color: #fca5a5;
+.vital-detail-footer__delete.btn-danger-outline:hover {
+    background: rgba(239, 68, 68, 0.14) !important;
+    border-color: rgba(248, 113, 113, 0.55) !important;
+    color: #fff !important;
 }
 .btn-sm {
     padding: 6px 10px;
@@ -4142,12 +4161,12 @@ select.vital-input-compact option {
         0 -1px 0 rgba(255, 255, 255, 0.04) inset,
         0 -12px 32px -16px rgba(0, 0, 0, 0.5);
 }
-.vital-detail-footer__cluster {
+.vital-detail-footer__actions {
     display: flex;
     align-items: center;
     gap: 14px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 .vital-wipe-control {
     display: flex;
@@ -6119,8 +6138,41 @@ select.vital-input-compact {
 .vital-detail-footer {
     gap: 10px;
 }
-.vital-inactive-toggle.is-active {
-    border-color: rgba(239, 68, 68, 0.5);
-    color: #fca5a5;
-    background: rgba(239, 68, 68, 0.14);
+.vital-inactive-field.is-inactive-on {
+    border-left: 3px solid rgba(239, 68, 68, 0.45);
+    padding-left: 12px;
+    margin-left: -12px;
+}
+.vital-inactive-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+.vital-inactive-check input {
+    margin-top: 3px;
+    accent-color: #ef4444;
+    flex-shrink: 0;
+}
+.vital-inactive-check__text {
+    font-size: 14px;
+    line-height: 1.45;
+    color: #e8edf4;
+}
+.vital-inactive-hint {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+.vital-inactive-hint strong {
+    color: #fde68a;
+    font-weight: 600;
+}
+.admin-confirm-dialog .admin-dialog-actions .btn-outline:not(.btn-danger-outline) {
+    min-width: 120px;
 }
