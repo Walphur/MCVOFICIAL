@@ -99,7 +99,47 @@
         cell.border = thinBorder();
     }
 
-    function mapPlayerRow(row) {
+    function cellText(val) {
+        if (val == null || val === "") {
+            return "";
+        }
+        return String(val);
+    }
+
+    function measureText(val, colKey) {
+        var text = cellText(val);
+        var len = text.length;
+        if (colKey === "steamId64") {
+            return Math.ceil(len * 1.08);
+        }
+        if (colKey === "displayName") {
+            return Math.ceil(len * 1.05);
+        }
+        return len;
+    }
+
+    function autoFitColumns(ws, columns, headerRowNum, mapped) {
+        var minWidth = 8;
+        var maxWidth = 200;
+        var padding = 2.5;
+
+        columns.forEach(function (col, colIdx) {
+            var maxLen = measureText(col.header, col.key);
+            mapped.forEach(function (row) {
+                var len = measureText(row[col.key], col.key);
+                if (len > maxLen) {
+                    maxLen = len;
+                }
+            });
+            var width = Math.max(minWidth, Math.min(maxLen + padding, maxWidth));
+            ws.getColumn(colIdx + 1).width = width;
+        });
+
+        for (var r = headerRowNum + 1; r <= headerRowNum + mapped.length; r += 1) {
+            ws.getRow(r).height = 20;
+        }
+    }
+
         var level = riskLevel(row);
         return {
             displayName: String(row.displayName || "").trim(),
@@ -132,20 +172,20 @@
 
         var options = opts && typeof opts === "object" ? opts : {};
         var columns = [
-            { header: "Nombre", key: "displayName", width: 20 },
-            { header: "SteamID64", key: "steamId64", width: 20 },
-            { header: "Estado", key: "statusTag", width: 14 },
-            { header: "Fase wipe", key: "wipePhase", width: 14 },
-            { header: "Strikes", key: "strikes", width: 9 },
-            { header: "Combats perd.", key: "combatsLost", width: 12 },
-            { header: "Minis perd.", key: "minisLost", width: 11 },
-            { header: "Horas", key: "hoursPlayed", width: 8 },
-            { header: "Roles", key: "roleLabel", width: 28 },
-            { header: "Vouch", key: "vouchBy", width: 16 },
-            { header: "Entrada", key: "entryDate", width: 12 },
-            { header: "Pausado", key: "paused", width: 9 },
-            { header: "Puntos", key: "performanceScore", width: 9 },
-            { header: "Nivel", key: "nivel", width: 12 }
+            { header: "Nombre", key: "displayName" },
+            { header: "SteamID64", key: "steamId64" },
+            { header: "Estado", key: "statusTag" },
+            { header: "Fase wipe", key: "wipePhase" },
+            { header: "Strikes", key: "strikes" },
+            { header: "Combats perd.", key: "combatsLost" },
+            { header: "Minis perd.", key: "minisLost" },
+            { header: "Horas", key: "hoursPlayed" },
+            { header: "Roles", key: "roleLabel" },
+            { header: "Vouch", key: "vouchBy" },
+            { header: "Entrada", key: "entryDate" },
+            { header: "Pausado", key: "paused" },
+            { header: "Puntos", key: "performanceScore" },
+            { header: "Nivel", key: "nivel" }
         ];
         var lastColLetter = String.fromCharCode(64 + columns.length);
 
@@ -189,9 +229,8 @@
             styleCell(cell, {
                 font: { bold: true, color: { argb: COLORS.headerFg } },
                 fill: { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.headerBg } },
-                alignment: { vertical: "middle", horizontal: "center", wrapText: true }
+                alignment: { vertical: "middle", horizontal: "center", wrapText: false }
             });
-            ws.getColumn(idx + 1).width = col.width;
         });
         headerRow.height = 24;
 
@@ -226,12 +265,14 @@
                     alignment: {
                         vertical: "middle",
                         horizontal: col.key === "performanceScore" || col.key === "strikes" ? "center" : "left",
-                        wrapText: col.key === "roleLabel"
+                        wrapText: false,
+                        shrinkToFit: false
                     }
                 });
             });
-            excelRow.height = 20;
         });
+
+        autoFitColumns(ws, columns, headerRowNum, mapped);
 
         var lastDataRow = headerRowNum + mapped.length;
         ws.autoFilter = {
