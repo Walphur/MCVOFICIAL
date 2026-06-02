@@ -2,7 +2,15 @@
 
 const axios = require("axios");
 const { authAdmin } = require("./auth");
-const { REST, Routes, SlashCommandBuilder } = require("discord.js");
+const {
+    REST,
+    Routes,
+    SlashCommandBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder
+} = require("discord.js");
 const { buildMcHorasSlashCommand } = require("./playtimeSync");
 const { buildMcReporteSlashCommand } = require("./wipeReport");
 const { buildMcYoSlashCommand, buildMcTopSlashCommand, assignWipeLinkedRole } = require("./wipeDiscordExtras");
@@ -39,6 +47,117 @@ async function fetchSteamProfile(steamApiKey, steamId64) {
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
 /** Importación manual: panel admin o variable MCV_WIPE_IMPORT_STEAMS. */
 const PASTE_WIPE_DISCORD_PREFIX = "paste:";
+const TEAM_SUBMIT_MODAL_ID = "mcv-create-user-modal";
+const TEAM_SUBMIT_INPUTS = {
+    displayName: "mcv_create_display_name",
+    steamId64: "mcv_create_steam_id64",
+    roleLabel: "mcv_create_role_label",
+    twitchUrl: "mcv_create_twitch_url",
+    xUrl: "mcv_create_x_url"
+};
+
+function normalizeOptionalUrl(raw) {
+    const s = String(raw == null ? "" : raw).trim();
+    if (!s) {
+        return null;
+    }
+    if (s.length > 512) {
+        return null;
+    }
+    const lower = s.toLowerCase();
+    if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+        return null;
+    }
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        return null;
+    }
+    return s;
+}
+
+function buildCreateUserModal() {
+    return new ModalBuilder()
+        .setCustomId(TEAM_SUBMIT_MODAL_ID)
+        .setTitle("Crear perfil MCV")
+        .addComponents(
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(TEAM_SUBMIT_INPUTS.displayName)
+                    .setLabel("Nombre visible")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true)
+                    .setMaxLength(120)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(TEAM_SUBMIT_INPUTS.steamId64)
+                    .setLabel("SteamID64 (17 dígitos)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true)
+                    .setMaxLength(22)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(TEAM_SUBMIT_INPUTS.roleLabel)
+                    .setLabel("Rol (opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(120)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(TEAM_SUBMIT_INPUTS.twitchUrl)
+                    .setLabel("Twitch URL (opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(200)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(TEAM_SUBMIT_INPUTS.xUrl)
+                    .setLabel("X/Twitter URL (opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(200)
+            )
+        );
+}
+
+async function createTeamSubmissionFromDiscord(pool, steamApiKey, fields) {
+    const displayName = String(fields.displayName || "").trim();
+    if (!displayName || displayName.length > 120) {
+        return { error: "Nombre visible obligatorio (máx. 120)." };
+    }
+    const steamId64 = String(fields.steamId64 || "").replace(/\D/g, "");
+    if (steamId64.length !== 17) {
+        return { error: "SteamID64 inválido: usá 17 dígitos." };
+    }
+    let roleLabel = String(fields.roleLabel || "").trim();
+    if (roleLabel.length > 120) {
+        roleLabel = roleLabel.slice(0, 120);
+    }
+    const twitchUrl = normalizeOptionalUrl(fields.twitchUrl);
+    const xUrl = normalizeOptionalUrl(fields.xUrl);
+
+    let personaName = null;
+    let avatarUrl = null;
+    if (steamApiKey) {
+        const sp = await fetchSteamProfile(steamApiKey, steamId64);
+        if (sp) {
+            personaName = sp.persona;
+            avatarUrl = sp.avatar || null;
+        }
+    }
+
+    const ins = await pool.query(
+        `INSERT INTO team_roster_submissions (
+            display_name, role_label, steam_id64,
+            twitch_url, x_url, persona_name, avatar_url, status, updated_at
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,'pending', NOW())
+        RETURNING id`,
+        [displayName, roleLabel || null, steamId64, twitchUrl, xUrl, personaName, avatarUrl]
+    );
+    return { ok: true, id: ins.rows[0]?.id ?? null, steamId64 };
+}
 
 function isAutoImportDiscordId(discordUserId) {
     const id = String(discordUserId || "");
@@ -260,6 +379,10 @@ async function registerSlashCommands(client, guildId) {
                 .setMaxLength(22)
         )
         .toJSON();
+    const cmdCreateUser = new SlashCommandBuilder()
+        .setName("mcv-crear-usuario")
+        .setDescription("Abrí un formulario para enviar tu perfil del equipo (queda pendiente de aprobación).")
+        .toJSON();
     const cmdHoras = buildMcHorasSlashCommand();
     const cmdReporte = buildMcReporteSlashCommand();
     const cmdYo = buildMcYoSlashCommand();
@@ -268,9 +391,9 @@ async function registerSlashCommands(client, guildId) {
 
     const rest = new REST({ version: "10" }).setToken(token);
     await rest.put(Routes.applicationGuildCommands(appId, guildId), {
-        body: [cmdWipe, cmdHoras, cmdReporte, cmdYo, cmdTop, cmdAsistencia]
+        body: [cmdWipe, cmdCreateUser, cmdHoras, cmdReporte, cmdYo, cmdTop, cmdAsistencia]
     });
-    console.log(`Discord: wipe + asistencia registrados en guild ${guildId}.`);
+    console.log(`Discord: comandos wipe/perfil/asistencia registrados en guild ${guildId}.`);
 }
 
 /** Si DISCORD_WIPE_GUILD_ID está definido, el slash solo (o también) va a ese servidor — ej. clan privado. Si no, usa el guild principal. */
@@ -302,7 +425,41 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
     }
 
     client.on("interactionCreate", async (interaction) => {
+        if (interaction.isModalSubmit() && interaction.customId === TEAM_SUBMIT_MODAL_ID) {
+            const pool = getPool();
+            if (!pool) {
+                await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
+                return;
+            }
+            await interaction.deferReply({ ephemeral: true });
+            try {
+                const result = await createTeamSubmissionFromDiscord(pool, steamApiKey, {
+                    displayName: interaction.fields.getTextInputValue(TEAM_SUBMIT_INPUTS.displayName),
+                    steamId64: interaction.fields.getTextInputValue(TEAM_SUBMIT_INPUTS.steamId64),
+                    roleLabel: interaction.fields.getTextInputValue(TEAM_SUBMIT_INPUTS.roleLabel),
+                    twitchUrl: interaction.fields.getTextInputValue(TEAM_SUBMIT_INPUTS.twitchUrl),
+                    xUrl: interaction.fields.getTextInputValue(TEAM_SUBMIT_INPUTS.xUrl)
+                });
+                if (!result.ok) {
+                    await interaction.editReply({ content: result.error || "No se pudo crear la solicitud." });
+                    return;
+                }
+                await interaction.editReply({
+                    content:
+                        `Solicitud creada (ID #${result.id || "?"}) y marcada como **pending** para revisión del staff.\n` +
+                        `Steam guardado: \`${result.steamId64}\``
+                });
+            } catch (e) {
+                console.error("mcv-crear-usuario modal:", e.message);
+                await interaction.editReply({ content: "No se pudo crear la solicitud. Probá de nuevo." });
+            }
+            return;
+        }
         if (!interaction.isChatInputCommand()) {
+            return;
+        }
+        if (interaction.commandName === "mcv-crear-usuario") {
+            await interaction.showModal(buildCreateUserModal());
             return;
         }
         if (interaction.commandName !== "mcv-wipe") {
