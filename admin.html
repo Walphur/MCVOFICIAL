@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=59">
+    <link rel="stylesheet" href="style-admin.css?v=60">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -379,14 +379,6 @@
                                                     <option value="admin">Admin</option>
                                                     <option value="mcv_active">Activo en MCV</option>
                                                 </select></label>
-                                                <div class="vital-field vital-field--wide vital-inactive-field" id="vital-inactive-field">
-                                                    <span>Inactivo MCV</span>
-                                                    <label class="vital-inactive-check">
-                                                        <input type="checkbox" id="vital-info-inactive" />
-                                                        <span class="vital-inactive-check__text">Fuera del clan permanentemente</span>
-                                                    </label>
-                                                    <p class="admin-form-hint vital-inactive-hint">Distinto de <strong>Pausado</strong> (abajo): pausado = no juega este wipe; inactivo = ya no pertenece al clan MCV.</p>
-                                                </div>
                                                 <div class="vital-field vital-field--wide vital-roles-field">
                                                     <span>Roles (varios)</span>
                                                     <div id="vital-info-roles-selected" class="vital-roles-selected" aria-live="polite"></div>
@@ -3486,17 +3478,6 @@
         return !!(paused && paused.checked);
     }
 
-    function isVitalInactive() {
-        var inactive = document.getElementById('vital-info-inactive');
-        return !!(inactive && inactive.checked);
-    }
-
-    function syncInactiveFieldUI() {
-        var field = document.getElementById('vital-inactive-field');
-        if (!field) return;
-        field.classList.toggle('is-inactive-on', isVitalInactive());
-    }
-
     function syncWipeSegmentUI() {
         var isPaused = isVitalPaused();
         document.querySelectorAll('#vital-wipe-segment [data-wipe-state]').forEach(function (btn) {
@@ -3552,7 +3533,7 @@
             steamId64: (document.getElementById('vital-info-steam') || {}).value || '',
             displayName: (document.getElementById('vital-info-name') || {}).value || '',
             bmUrl: (document.getElementById('vital-info-bm') || {}).value || '',
-            statusTag: isVitalInactive() ? 'mcv_inactive' : ((document.getElementById('vital-info-status') || {}).value || 'wipe_guest'),
+            statusTag: (document.getElementById('vital-info-status') || {}).value || 'wipe_guest',
             roleLabel: vitalSelectedRoles.join(', '),
             roleLabels: vitalSelectedRoles.slice(),
             strikes: Number((document.getElementById('vital-info-strikes') || {}).value || 0),
@@ -3577,7 +3558,9 @@
         set('vital-info-steam', p.steamId64);
         set('vital-info-name', p.displayName);
         set('vital-info-bm', p.bmUrl);
-        var mappedStatus = (p.statusTag === 'mcv_inactive' || p.statusTag === 'mcv_strikes') ? 'mcv_active' : p.statusTag;
+        var mappedStatus = p.statusTag === 'mcv_inactive'
+            ? 'wipe_guest'
+            : (p.statusTag === 'mcv_strikes' ? 'mcv_active' : p.statusTag);
         set('vital-info-status', mappedStatus);
         var roles = (p.roleLabels && p.roleLabels.length) ? p.roleLabels : parseRoleLabelsLocal(p.roleLabel);
         setVitalPlayerRoles(roles);
@@ -3595,11 +3578,8 @@
         set('vital-info-notes-extra', p.notesExtra || '');
         var paused = document.getElementById('vital-info-paused');
         if (paused) paused.checked = !!p.pausedOutsideWipe || String(p.wipePhase || '') === 'no_juega';
-        var inactive = document.getElementById('vital-info-inactive');
-        if (inactive) inactive.checked = String(p.statusTag || '') === 'mcv_inactive';
         var statusSel = document.getElementById('vital-info-status');
         if (statusSel && !statusSel.value) statusSel.value = 'mcv_active';
-        syncInactiveFieldUI();
         syncWipeSegmentUI();
     }
 
@@ -3843,7 +3823,6 @@
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
         var vitalWipeSegment = document.getElementById('vital-wipe-segment');
         var btnInfoImport = document.getElementById('btn-vital-info-import');
-        var inactiveCheck = document.getElementById('vital-info-inactive');
         var rolePresets = document.getElementById('vital-role-presets');
         var vitalQuickFilters = document.getElementById('vital-quick-filters');
         var vitalDetailTabs = document.getElementById('vital-detail-tabs');
@@ -3912,12 +3891,6 @@
             });
         }
         if (btnInfoSave) btnInfoSave.addEventListener('click', saveVitalPlayerInfo);
-        if (inactiveCheck) {
-            inactiveCheck.addEventListener('change', function () {
-                syncInactiveFieldUI();
-                renderVitalPlayerSummary();
-            });
-        }
         if (vitalWipeSegment) {
             vitalWipeSegment.addEventListener('click', function (ev) {
                 var btn = ev.target && ev.target.closest ? ev.target.closest('[data-wipe-state]') : null;
@@ -3973,7 +3946,6 @@
             btnNewPlayer.addEventListener('click', function () {
                 setVitalPlayerRoles([]);
                 selectVitalPlayer('', { isNew: true });
-                syncInactiveFieldUI();
             });
         }
         if (btnDelDetail) {

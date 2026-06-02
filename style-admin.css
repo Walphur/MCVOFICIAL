@@ -6138,41 +6138,6 @@ select.vital-input-compact {
 .vital-detail-footer {
     gap: 10px;
 }
-.vital-inactive-field.is-inactive-on {
-    border-left: 3px solid rgba(239, 68, 68, 0.45);
-    padding-left: 12px;
-    margin-left: -12px;
-}
-.vital-inactive-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-    margin: 0;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.03);
-}
-.vital-inactive-check input {
-    margin-top: 3px;
-    accent-color: #ef4444;
-    flex-shrink: 0;
-}
-.vital-inactive-check__text {
-    font-size: 14px;
-    line-height: 1.45;
-    color: #e8edf4;
-}
-.vital-inactive-hint {
-    margin: 8px 0 0;
-    font-size: 0.82rem;
-    line-height: 1.5;
-}
-.vital-inactive-hint strong {
-    color: #fde68a;
-    font-weight: 600;
-}
 .admin-confirm-dialog .admin-dialog-actions .btn-outline:not(.btn-danger-outline) {
     min-width: 120px;
 }
