@@ -5824,20 +5824,55 @@ img.ops-player-avatar {
 /* —— Admin palette hard-lock: black + yellow/red only —— */
 .admin-btn-icon,
 .admin-tab-icon {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+    overflow: visible;
+    pointer-events: none;
+}
+.admin-tab-icon {
+    width: 17px;
+    height: 17px;
+    opacity: 0.92;
+}
+.admin-btn-icon path,
+.admin-btn-icon circle,
+.admin-btn-icon rect,
+.admin-btn-icon line,
+.admin-btn-icon polyline,
+.admin-tab-icon path,
+.admin-tab-icon circle,
+.admin-tab-icon rect,
+.admin-tab-icon line,
+.admin-tab-icon polyline {
     stroke: currentColor;
-    stroke-width: 2;
     fill: none;
+    stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
-    flex-shrink: 0;
+    vector-effect: non-scaling-stroke;
 }
 .admin-actions .btn-outline,
 .admin-tabs .tab {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+}
+.admin-tabs .tab .admin-tab-icon {
+    color: #e4e4e7;
+}
+.admin-tabs .tab:hover .admin-tab-icon,
+.admin-tabs .tab.active .admin-tab-icon {
+    color: var(--primary);
+    opacity: 1;
+}
+.btn-primary-small .admin-btn-icon path,
+.btn-primary-small .admin-btn-icon circle,
+.btn-primary-small .admin-btn-icon rect,
+.btn-primary-small .admin-btn-icon line,
+.btn-primary-small .admin-btn-icon polyline {
+    stroke: currentColor;
 }
 
 .admin-body {
