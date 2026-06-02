@@ -746,6 +746,108 @@ body.home-page {
 .cuenta-card { max-width: 420px; }
 .cuenta-hint { font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
 
+/* Dashboard cuenta */
+.cuenta-dashboard { max-width: 960px; margin: 0 auto; }
+.cuenta-dashboard__head { margin-bottom: 16px; }
+.cuenta-dashboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+.cuenta-dash-link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    font-size: 1rem;
+}
+.cuenta-dash-logout {
+    padding: 10px 18px;
+    font-size: 0.9rem;
+}
+.cuenta-dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+.cuenta-panel--wide { grid-column: 1 / -1; }
+.cuenta-panel__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.cuenta-panel__title svg { width: 18px; height: 18px; color: var(--primary); }
+.cuenta-panel__hint { margin: 0 0 12px; font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+.cuenta-panel__empty { margin: 0; font-size: 0.88rem; color: var(--muted); }
+.cuenta-panel__empty a { color: var(--primary); font-weight: 600; }
+.cuenta-steam-link { margin-bottom: 16px; border-color: rgba(250, 166, 26, 0.35); }
+.cuenta-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.cuenta-list__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.cuenta-list__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cuenta-list__main a { color: var(--foreground); text-decoration: none; }
+.cuenta-list__main a:hover { color: var(--primary); }
+.cuenta-list__sub { font-size: 0.78rem; color: var(--muted); }
+.cuenta-status {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+.cuenta-status--pending { color: #fbbf24; background: rgba(251, 191, 36, 0.12); }
+.cuenta-status--ok { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
+.cuenta-status--bad { color: #f87171; background: rgba(248, 113, 113, 0.12); }
+.cuenta-vital-meta { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); }
+.cuenta-vital-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.cuenta-vital-cell {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+}
+.cuenta-vital-cell__label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+.cuenta-vital-cell__val { font-size: 1.2rem; font-family: "Bebas Neue", sans-serif; letter-spacing: 0.02em; }
+.cuenta-vital-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+}
+.cuenta-vital-link:hover { text-decoration: underline; }
+@media (max-width: 720px) {
+    .cuenta-dashboard__grid { grid-template-columns: 1fr; }
+    .cuenta-vital-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Panel flotante login (index) */
 .mcv-auth-float {
     position: fixed;

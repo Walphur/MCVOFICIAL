@@ -1,7 +1,8 @@
 "use strict";
 
 const axios = require("axios");
-const { authAdmin, timingSafeEqualStr } = require("./auth");
+const { authAdmin, timingSafeEqualStr, authUser } = require("./auth");
+const { getSiteUserById } = require("./siteUsers");
 const {
     computeTierScoresForRoster,
     getTierScoreConfig,
@@ -2928,6 +2929,69 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("vital public clan:", e.message);
             return res.status(502).json({ error: e.message || "Error Vital" });
+        }
+    });
+
+    app.get("/api/auth/user/vital-stats", authUser, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        if (!vitalEnabled()) {
+            return res.json({
+                configured: false,
+                steamLinked: false,
+                player: null,
+                message: "Stats de Vital no disponibles en este momento."
+            });
+        }
+        try {
+            const userRow = await getSiteUserById(pool, req.userAuth.userId);
+            const steamId = normalizeSteamId64(userRow?.steam_id64);
+            if (!steamId) {
+                return res.json({
+                    configured: true,
+                    steamLinked: false,
+                    player: null,
+                    message: "Iniciá sesión con Steam para ver tus stats en Vital."
+                });
+            }
+            const server = resolveServer(req.query.server || DEFAULT_SERVER_KEY);
+            if (!server?.configured) {
+                return res.status(503).json({ error: "Servidor Vital no configurado" });
+            }
+            const paths = apiPaths();
+            if (!paths.playersOverviewPost) {
+                return res.json({
+                    configured: false,
+                    steamLinked: true,
+                    player: null,
+                    message: "API de Vital sin configurar en el servidor."
+                });
+            }
+            let wipeId = String(req.query.wipeId || "current").trim();
+            if (!wipeId || wipeId === "current") {
+                wipeId = (await resolveCurrentWipeId(paths, server.serverId)) || "null";
+            }
+            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, [steamId], {});
+            const player = matched[0] || null;
+            const roster = await loadClanSteamIds(pool);
+            const inClanRoster = roster.ids.includes(steamId);
+            return res.json({
+                configured: true,
+                steamLinked: true,
+                server: { key: server.key, label: server.label, serverId: server.serverId },
+                wipeId,
+                player,
+                inClanRoster,
+                vitalPublicConfigured: isVitalPublicConfigured(),
+                message: player
+                    ? null
+                    : "No hay stats de Vital para este wipe/servidor. Probá otro wipe o servidor del clan."
+            });
+        } catch (e) {
+            console.error("GET /api/auth/user/vital-stats:", e.message);
+            return res.status(502).json({ error: e.message || "Error al cargar stats Vital" });
         }
     });
 }

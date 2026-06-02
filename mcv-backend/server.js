@@ -34,6 +34,7 @@ const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDi
 const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
 const { logOAuthSetupHints } = require("./oauthShared");
 const { registerPublicUserAuthRoutes } = require("./userOAuth");
+const { registerUserDashboardRoutes } = require("./userDashboard");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -174,6 +175,8 @@ registerPublicUserAuthRoutes(app, {
     getPool,
     steamApiKey: STEAM_API_KEY
 });
+
+registerUserDashboardRoutes(app, { getPool });
 
 registerWipeListApi(app, {
     getPool,
