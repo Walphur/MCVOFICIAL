@@ -40,21 +40,21 @@
                 <h1><span data-i18n="admin.h1">CONTROL</span> <span data-i18n="admin.h1span">ROOM.</span></h1>
             </div>
             <div class="dashboard-buttons">
-                <button type="button" class="btn-primary-small" id="export-csv"><svg class="admin-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="admin.exportCsv">Exportar CSV</span></button>
-                <button type="button" class="btn-primary-small" id="gen-bracket"><svg class="admin-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/><path d="m9 9 6 6"/><path d="m15 9-6 6"/></svg><span data-i18n="admin.genBracket">Generar bracket</span></button>
-                <button type="button" class="btn-primary-small" id="next-round"><svg class="admin-btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m13 5 7 7-7 7"/></svg><span data-i18n="admin.nextRound">Siguiente ronda</span></button>
+                <button type="button" class="btn-primary-small" id="export-csv"><span data-i18n="admin.exportCsv">📥 Exportar CSV</span></button>
+                <button type="button" class="btn-primary-small" id="gen-bracket"><span data-i18n="admin.genBracket">Generar bracket</span></button>
+                <button type="button" class="btn-primary-small" id="next-round"><span data-i18n="admin.nextRound">➡️ Siguiente ronda</span></button>
             </div>
         </header>
 
         <p id="admin-banner" class="admin-banner"></p>
 
         <div class="tabs admin-tabs" role="tablist" data-i18n-aria-label="admin.tabListLabel">
-            <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v6a5 5 0 0 1-10 0V4"/></svg><span data-i18n="admin.tabTournaments">Torneos</span></button>
-            <button type="button" class="tab" role="tab" data-tab="teams" aria-selected="false"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span data-i18n="admin.tabTeams">Equipos</span></button>
-            <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h4v4H6z"/><path d="M14 17h4v4h-4z"/><path d="M6 17h4v4H6z"/><path d="M10 5h4a2 2 0 0 1 2 2v10"/><path d="M10 19h4"/></svg><span data-i18n="admin.tabBracket">Bracket</span></button>
-            <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20"/><path d="M12 2a15 15 0 0 0 0 20"/></svg><span data-i18n="admin.tabTeamWeb">Perfiles equipo</span></button>
-            <button type="button" class="tab" role="tab" data-tab="tickets" aria-selected="false"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/><path d="M13 6v12"/></svg><span data-i18n="admin.tabTickets">Tickets</span></button>
-            <button type="button" class="tab active" role="tab" data-tab="vital-info" aria-selected="true"><svg class="admin-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span data-i18n="admin.tabVitalInfo">Info jugadores</span></button>
+            <button type="button" class="tab" role="tab" data-tab="tournaments" aria-selected="false"><span data-i18n="admin.tabTournaments">Torneos</span></button>
+            <button type="button" class="tab" role="tab" data-tab="teams" aria-selected="false"><span data-i18n="admin.tabTeams">Equipos</span></button>
+            <button type="button" class="tab" role="tab" data-tab="bracket" aria-selected="false"><span data-i18n="admin.tabBracket">Bracket</span></button>
+            <button type="button" class="tab" role="tab" data-tab="teamweb" aria-selected="false"><span data-i18n="admin.tabTeamWeb">Perfiles equipo</span></button>
+            <button type="button" class="tab" role="tab" data-tab="tickets" aria-selected="false"><span data-i18n="admin.tabTickets">Tickets</span></button>
+            <button type="button" class="tab active" role="tab" data-tab="vital-info" aria-selected="true"><span data-i18n="admin.tabVitalInfo">Info jugadores</span></button>
         </div>
 
         <div id="tournaments-panel" class="admin-panel-anchor" style="display:none;">

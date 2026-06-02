@@ -485,21 +485,21 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
             if (interaction.commandName !== "mcv-wipe") {
                 return;
             }
+            const startedAt = Date.now();
+            await interaction.deferReply({ ephemeral: true });
             const pool = getPool();
             if (!pool) {
-                await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
+                await interaction.editReply({ content: "El servidor no tiene base de datos configurada." });
                 return;
             }
             const steamInput = interaction.options.getString("steam64");
             const raw = String(steamInput || "").replace(/\D/g, "");
             if (!steamInput || raw.length !== 17) {
-                await interaction.reply({
-                    content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID).",
-                    ephemeral: true
+                await interaction.editReply({
+                    content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID)."
                 });
                 return;
             }
-            await interaction.deferReply({ ephemeral: true });
             try {
                 const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
                 const { persona } = await upsertMember(pool, {
@@ -516,8 +516,9 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
                         `Cargá horas con **\`/mcv-horas\`** o en #playtime. Mirá tu resumen con **\`/mcv-yo\`**. ` +
                         `Para alta en Info jugadores usá **\`/mcv-crear-usuario\`**.`
                 });
+                console.log(`mcv-wipe OK user=${interaction.user?.id || "?"} ms=${Date.now() - startedAt}`);
             } catch (e) {
-                console.error(e);
+                console.error("mcv-wipe error:", e.message);
                 await interaction.editReply({
                     content: "No se pudo guardar. Probá de nuevo o avisá a staff si sigue fallando."
                 });
