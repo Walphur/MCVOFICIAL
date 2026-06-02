@@ -15,6 +15,7 @@
 # 6) Stats públicas Vital Rust (vital-rust.html): en Environment del Web Service definí VITAL_PUBLIC_ACCESS_KEY (mín. 12 caracteres, aleatoria)
 #    y redeploy. El link del team es https://tu-dominio/vital-rust.html?key=<esa-clave>. Los SteamID extra se guardan en admin → Extras roster.
 # 7) Seguridad producción (Render → Environment): ADMIN_PASSWORD + JWT_SECRET fuertes, CORS_STRICT=1, NODE_ENV=production.
+#    Con Cloudflare proxy: TRUST_PROXY_HOPS=2 (ver docs/CLOUDFLARE-SETUP.md).
 #    Opcional ADMIN_IP_ALLOWLIST si solo querés admin desde IPs conocidas.
 
 services:

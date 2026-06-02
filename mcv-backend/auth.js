@@ -24,6 +24,10 @@ function timingSafeEqualStr(a, b) {
 }
 
 function clientIp(req) {
+    const cf = String(req.headers["cf-connecting-ip"] || "").trim();
+    if (cf) {
+        return cf;
+    }
     const raw = String(req.headers["x-forwarded-for"] || req.ip || req.socket?.remoteAddress || "")
         .split(",")[0]
         .trim();
