@@ -40,6 +40,11 @@
             </div>
             <div id="login-turnstile" class="login-turnstile" hidden></div>
             <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
+            <div id="login-oauth" class="login-oauth" hidden>
+                <span class="login-oauth__sep">o</span>
+                <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#">Steam</a>
+                <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Google</a>
+            </div>
         </form>
 
         <div class="login-footer-links">
@@ -84,6 +89,17 @@
         err.textContent = T('login.errExpired');
         err.style.display = 'block';
     }
+    var oauthErr = qs.get('oauth_error');
+    if (oauthErr) {
+        var oauthMsgs = {
+            not_allowed: 'Tu cuenta Steam o Google no está autorizada para el panel admin.',
+            invalid_state: 'Sesión OAuth expirada. Intentá de nuevo.',
+            steam_verify: 'No se pudo verificar Steam. Intentá de nuevo.',
+            google_failed: 'Error con Google. Intentá de nuevo.'
+        };
+        err.textContent = oauthMsgs[oauthErr] || ('Error de acceso (' + oauthErr + ').');
+        err.style.display = 'block';
+    }
 
     var turnstileSiteKey = '';
     var turnstileWidgetId = null;
@@ -112,12 +128,31 @@
         });
     }
 
+    function setupOAuthButtons(API, cfg) {
+        var wrap = document.getElementById('login-oauth');
+        var steamBtn = document.getElementById('login-steam-btn');
+        var googleBtn = document.getElementById('login-google-btn');
+        if (!wrap || !steamBtn || !googleBtn) return;
+        var steamOn = cfg && cfg.steamLoginEnabled;
+        var googleOn = cfg && cfg.googleLoginEnabled;
+        if (!steamOn && !googleOn) {
+            wrap.hidden = true;
+            return;
+        }
+        wrap.hidden = false;
+        steamBtn.hidden = !steamOn;
+        googleBtn.hidden = !googleOn;
+        if (steamOn) steamBtn.href = API + '/api/auth/steam/start';
+        if (googleOn) googleBtn.href = API + '/api/auth/google/start';
+    }
+
     function initTurnstile(API) {
         var box = document.getElementById('login-turnstile');
         if (!box) return Promise.resolve();
         return fetchRetry(API + '/api/auth/login-config', { cache: 'no-store' })
             .then(function (r) { return r.json(); })
             .then(function (cfg) {
+                setupOAuthButtons(API, cfg);
                 turnstileSiteKey = cfg && cfg.turnstileSiteKey ? String(cfg.turnstileSiteKey).trim() : '';
                 if (!turnstileSiteKey) {
                     box.hidden = true;

@@ -9,6 +9,13 @@ const axios = require("axios");
 const { authAdmin, jwtSecret, timingSafeEqualStr, authAdminIpAllowlist, clientIp } = require("./auth");
 const { loginRateLimit } = require("./rateLimits");
 const { turnstileSiteKey, isTurnstileEnabled, verifyTurnstileToken } = require("./turnstile");
+const {
+    registerAdminOAuthRoutes,
+    isGoogleOAuthEnabled,
+    isSteamOAuthEnabled,
+    googleAllowlist,
+    steamAllowlist
+} = require("./adminOAuth");
 
 function makePosterUpload(uploadRoot) {
     if (!uploadRoot) {
@@ -140,6 +147,7 @@ async function rosterBansCheck(steamIds, steamApiKey) {
 }
 
 function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
+    registerAdminOAuthRoutes(app);
     const posterUpload = makePosterUpload(uploadRoot || null);
 
     function optionalPosterMultipart(req, res, next) {
@@ -213,7 +221,9 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
         const siteKey = turnstileSiteKey();
         return res.json({
             turnstileSiteKey: siteKey || null,
-            turnstileEnabled: isTurnstileEnabled()
+            turnstileEnabled: isTurnstileEnabled(),
+            googleLoginEnabled: isGoogleOAuthEnabled() && googleAllowlist().length > 0,
+            steamLoginEnabled: isSteamOAuthEnabled()
         });
     });
 

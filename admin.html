@@ -634,6 +634,13 @@
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var oauthQs = new URLSearchParams(window.location.search || "");
+    var oauthTok = String(oauthQs.get("token") || "").trim();
+    if (oauthTok) {
+        sessionStorage.setItem("mcv_admin_jwt", oauthTok);
+        try { localStorage.removeItem("mcv_admin_jwt"); } catch (e) {}
+        try { history.replaceState(null, "", "admin.html"); } catch (e2) {}
+    }
     var token = (sessionStorage.getItem("mcv_admin_jwt") || localStorage.getItem("mcv_admin_jwt") || "").trim();
     if (!token) {
         window.location.href = "login.html";
