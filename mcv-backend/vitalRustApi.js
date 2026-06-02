@@ -2997,7 +2997,7 @@ function registerVitalRustApi(app, { getPool }) {
                     break;
                 }
             }
-            const roster = await loadClanSteamIds(pool);
+            const roster = await loadClanSteamIds(getPool);
             const inClanRoster = roster.ids.includes(steamId);
             if (found) {
                 return res.json({
