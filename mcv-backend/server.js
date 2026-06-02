@@ -31,6 +31,7 @@ const { registerVitalRustApi } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
+const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
 const { registerPublicUserAuthRoutes } = require("./userOAuth");
 
 const app = express();
