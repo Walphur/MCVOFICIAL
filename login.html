@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=30">
-    <link rel="stylesheet" href="style-admin.css?v=33">
+    <link rel="stylesheet" href="style-admin.css?v=53">
     <link rel="stylesheet" href="style-ux.css?v=1">
 </head>
 <body class="login-body" data-mcv-page="login">
@@ -40,12 +40,13 @@
             </div>
             <div id="login-turnstile" class="login-turnstile" hidden></div>
             <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
-            <div id="login-oauth" class="login-oauth" hidden>
-                <span class="login-oauth__sep">o</span>
-                <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#">Steam</a>
-                <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Google</a>
-            </div>
         </form>
+
+        <div id="login-oauth" class="login-oauth" hidden>
+            <span class="login-oauth__sep">o</span>
+            <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Steam</a>
+            <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Google</a>
+        </div>
 
         <div class="login-footer-links">
             <a href="index.html" class="back-link" data-i18n="login.backSite">← Sitio público</a>
@@ -148,14 +149,13 @@
 
     function initTurnstile(API) {
         var box = document.getElementById('login-turnstile');
-        if (!box) return Promise.resolve();
         return fetchRetry(API + '/api/auth/login-config', { cache: 'no-store' })
             .then(function (r) { return r.json(); })
             .then(function (cfg) {
                 setupOAuthButtons(API, cfg);
                 turnstileSiteKey = cfg && cfg.turnstileSiteKey ? String(cfg.turnstileSiteKey).trim() : '';
-                if (!turnstileSiteKey) {
-                    box.hidden = true;
+                if (!turnstileSiteKey || !box) {
+                    if (box) box.hidden = true;
                     return;
                 }
                 return loadTurnstileScript().then(function () {
@@ -167,10 +167,12 @@
                         'expired-callback': function () { turnstileToken = ''; },
                         'error-callback': function () { turnstileToken = ''; }
                     });
+                }).catch(function () {
+                    if (box) box.hidden = true;
                 });
             })
             .catch(function () {
-                box.hidden = true;
+                if (box) box.hidden = true;
             });
     }
 

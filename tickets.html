@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
     <link rel="stylesheet" href="style.css?v=29">
+    <link rel="stylesheet" href="style-admin.css?v=53">
     <meta name="description" content="Tickets de soporte y reclutamiento MCV.">
     <meta property="og:title" content="MCV — Tickets">
     <meta property="og:image" content="banner.png">
@@ -41,7 +42,13 @@
         </div>
 
         <div id="tickets-auth-gate" class="tickets-auth-gate" hidden>
-            <p>Para enviar un ticket tenés que <a href="cuenta.html?next=tickets.html">iniciar sesión con Steam o Google</a>.</p>
+            <p class="tickets-auth-gate__title">Para enviar un ticket iniciá sesión</p>
+            <p class="tickets-auth-gate__hint">Usá Steam o Google — no pedimos contraseña.</p>
+            <div class="tickets-auth-oauth">
+                <a id="tickets-steam" class="btn-primary w-100 tickets-auth-oauth__btn" href="#" hidden>Continuar con Steam</a>
+                <a id="tickets-google" class="btn-outline w-100 tickets-auth-oauth__btn" href="#" hidden>Continuar con Google</a>
+            </div>
+            <p class="tickets-auth-gate__alt">También podés ir a <a href="cuenta.html?next=tickets.html">Mi cuenta</a>.</p>
         </div>
 
         <form id="tickets-form">
@@ -105,22 +112,66 @@
         mcvCaptureUserTokenFromUrl();
     }
 
+    var oauthErr = new URLSearchParams(window.location.search || "").get("oauth_error");
+    if (oauthErr && msg) {
+        var oauthMsgs = {
+            google_failed: "No se pudo completar el login con Google.",
+            steam_failed: "No se pudo completar el login con Steam.",
+            steam_verify: "Steam no verificó la sesión. Intentá de nuevo.",
+            invalid_state: "La sesión expiró. Volvé a intentar."
+        };
+        msg.textContent = oauthMsgs[oauthErr] || "Error al iniciar sesión.";
+        msg.className = "tickets-form-msg err";
+        msg.hidden = false;
+    }
+
+    function showTicketForm(show) {
+        if (form) form.hidden = !show;
+        if (authGate) authGate.hidden = show;
+    }
+
+    function bindTicketOAuth(opts) {
+        var steamBtn = document.getElementById("tickets-steam");
+        var googleBtn = document.getElementById("tickets-google");
+        var q = "?next=tickets.html";
+        if (steamBtn) {
+            steamBtn.hidden = !(opts && opts.steamEnabled);
+            if (opts && opts.steamEnabled) steamBtn.href = API + "/api/auth/user/steam/start" + q;
+        }
+        if (googleBtn) {
+            googleBtn.hidden = !(opts && opts.googleEnabled);
+            if (opts && opts.googleEnabled) googleBtn.href = API + "/api/auth/user/google/start" + q;
+        }
+    }
+
     function ensureTicketAuth() {
         return fetch(API + "/api/auth/user/options", { cache: "no-store" })
             .then(function (r) { return r.json(); })
             .then(function (opts) {
-                if (!opts || !opts.enabled) {
+                bindTicketOAuth(opts || {});
+                var needAuth = opts && opts.ticketsRequireAuth;
+                if (!needAuth) {
+                    showTicketForm(true);
                     return true;
                 }
-                if (typeof mcvUserToken === "function" && mcvUserToken()) {
-                    return true;
+                if (typeof mcvFetchUserMe === "function") {
+                    return mcvFetchUserMe().then(function (user) {
+                        if (user) {
+                            showTicketForm(true);
+                            return true;
+                        }
+                        if (typeof mcvUserLogout === "function") mcvUserLogout();
+                        showTicketForm(false);
+                        return false;
+                    });
                 }
-                if (authGate) authGate.hidden = false;
-                if (form) form.hidden = true;
+                showTicketForm(false);
                 return false;
             })
             .catch(function () {
-                return true;
+                bindTicketOAuth({});
+                showTicketForm(false);
+                return false;
             });
     }
 
@@ -198,10 +249,10 @@
             })
             .catch(function (err) {
                 var em = (err && err.message) ? err.message : T("tickets.error");
-                if (/sesión|login|autorizado/i.test(em)) {
-                    em = "Iniciá sesión en Mi cuenta (Steam o Google) para enviar tickets.";
-                    if (authGate) authGate.hidden = false;
-                    if (form) form.hidden = true;
+                if (/sesión|login|autorizado|expirada/i.test(em)) {
+                    em = "Iniciá sesión con Steam o Google para enviar tickets.";
+                    if (typeof mcvUserLogout === "function") mcvUserLogout();
+                    showTicketForm(false);
                 }
                 msg.textContent = em;
                 msg.className = "tickets-form-msg err";

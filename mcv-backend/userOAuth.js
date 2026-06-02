@@ -53,10 +53,13 @@ function redirectUserError(res, base, code) {
 
 function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
     app.get("/api/auth/user/options", (req, res) => {
+        const ticketsRequireAuth =
+            String(process.env.REQUIRE_USER_AUTH_TICKETS || "1").trim() !== "0" && isPublicUserAuthEnabled();
         return res.json({
             enabled: isPublicUserAuthEnabled(),
             googleEnabled: isPublicGoogleEnabled(),
-            steamEnabled: isPublicSteamEnabled()
+            steamEnabled: isPublicSteamEnabled(),
+            ticketsRequireAuth
         });
     });
 

@@ -15,24 +15,30 @@
 }
 .login-oauth {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 18px;
+    width: 100%;
 }
 .login-oauth__sep {
     width: 100%;
     text-align: center;
     font-size: 0.8rem;
     color: var(--muted);
-    margin: 4px 0;
+    margin: 2px 0 4px;
 }
 .login-oauth__btn {
-    flex: 1 1 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
     text-align: center;
     text-decoration: none;
-    justify-content: center;
+}
+.login-oauth__btn[hidden] {
+    display: none !important;
 }
 .cuenta-section .cuenta-intro {
     color: var(--muted);
@@ -77,15 +83,45 @@
     margin: 4px 0 0;
 }
 .tickets-auth-gate {
-    padding: 14px 16px;
+    padding: 18px 16px;
     margin-bottom: 16px;
     border: 1px solid rgba(250, 166, 26, 0.35);
     border-radius: 8px;
     background: rgba(250, 166, 26, 0.08);
 }
+.tickets-auth-gate__title {
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+.tickets-auth-gate__hint {
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+.tickets-auth-gate__alt {
+    margin: 12px 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+}
 .tickets-auth-gate a {
     color: var(--primary);
     font-weight: 600;
+}
+.tickets-auth-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.tickets-auth-oauth__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.tickets-auth-oauth__btn[hidden] {
+    display: none !important;
 }
 
 .login-container {
