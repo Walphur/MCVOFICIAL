@@ -842,10 +842,24 @@ body.home-page {
 .cuenta-status--ok { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
 .cuenta-status--bad { color: #f87171; background: rgba(248, 113, 113, 0.12); }
 .cuenta-vital-meta { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); }
-.cuenta-vital-grid {
+.cuenta-vital-stats { display: flex; flex-direction: column; gap: 16px; }
+.cuenta-vital-group__title {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--primary);
+}
+.cuenta-vital-group__grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 10px;
+}
+.cuenta-vital-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 .cuenta-vital-cell {
     padding: 12px;

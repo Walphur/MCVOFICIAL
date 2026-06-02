@@ -286,22 +286,59 @@
                 (data.inClanRoster ? " · En roster MCV" : " · Fuera del roster del clan");
         }
         if (grid) {
-            var cells = [
-                { label: "Kills (30d)", val: fmtNum(p.killsT30) },
-                { label: "Kills wipe", val: fmtNum(p.kills) },
-                { label: "Deaths", val: fmtNum(p.deaths) },
-                { label: "K/D", val: p.kdr != null ? String(p.kdr) : "—" },
-                { label: "Rockets", val: fmtNum(p.rocketsFired) },
-                { label: "Azufre farm", val: fmtNum(p.farmSulfur) }
+            var groups = [
+                {
+                    title: "Combate",
+                    cells: [
+                        { label: "K/D", val: p.kdr != null ? String(p.kdr) : "—" },
+                        { label: "Kills wipe", val: fmtNum(p.kills) },
+                        { label: "Deaths", val: fmtNum(p.deaths) },
+                        { label: "Kills T3", val: fmtNum(p.killsT30) },
+                        { label: "Rockets", val: fmtNum(p.rocketsFired) }
+                    ]
+                },
+                {
+                    title: "Farming",
+                    cells: [
+                        { label: "Azufre", val: fmtNum(p.farmSulfur) },
+                        { label: "Metal", val: fmtNum(p.farmMetal) },
+                        { label: "HQ", val: fmtNum(p.farmHqMetal) },
+                        { label: "Madera", val: fmtNum(p.farmWood) }
+                    ]
+                },
+                {
+                    title: "Scrap",
+                    cells: [
+                        { label: "Loteado", val: fmtNum(p.scrapLooted) },
+                        { label: "Reciclado", val: fmtNum(p.scrapRecycled) }
+                    ]
+                }
             ];
-            grid.innerHTML = cells
-                .map(function (c) {
+            if (p.building != null && Number(p.building) > 0) {
+                groups.push({
+                    title: "Building",
+                    cells: [{ label: "Piezas", val: fmtNum(p.building) }]
+                });
+            }
+            grid.innerHTML = groups
+                .map(function (g) {
+                    var cards = g.cells
+                        .map(function (c) {
+                            return (
+                                '<div class="cuenta-vital-cell"><span class="cuenta-vital-cell__label">' +
+                                esc(c.label) +
+                                '</span><strong class="cuenta-vital-cell__val">' +
+                                esc(c.val) +
+                                "</strong></div>"
+                            );
+                        })
+                        .join("");
                     return (
-                        '<div class="cuenta-vital-cell"><span class="cuenta-vital-cell__label">' +
-                        esc(c.label) +
-                        '</span><strong class="cuenta-vital-cell__val">' +
-                        esc(c.val) +
-                        "</strong></div>"
+                        '<section class="cuenta-vital-group"><h4 class="cuenta-vital-group__title">' +
+                        esc(g.title) +
+                        '</h4><div class="cuenta-vital-group__grid">' +
+                        cards +
+                        "</div></section>"
                     );
                 })
                 .join("");
