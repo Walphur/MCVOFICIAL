@@ -9,6 +9,7 @@ const axios = require("axios");
 const { authAdmin, jwtSecret, timingSafeEqualStr, authAdminIpAllowlist, clientIp } = require("./auth");
 const { loginRateLimit } = require("./rateLimits");
 const { turnstileSiteKey, isTurnstileEnabled, verifyTurnstileToken } = require("./turnstile");
+const { oauthPublicBase, oauthSetupPayload } = require("./oauthShared");
 const {
     registerAdminOAuthRoutes,
     isGoogleOAuthEnabled,
@@ -219,11 +220,17 @@ function registerTournamentApi(app, { getPool, steamApiKey, uploadRoot }) {
 
     app.get("/api/auth/login-config", (req, res) => {
         const siteKey = turnstileSiteKey();
+        const setup = oauthSetupPayload(req);
         return res.json({
             turnstileSiteKey: siteKey || null,
             turnstileEnabled: isTurnstileEnabled(),
             googleLoginEnabled: isGoogleOAuthEnabled() && googleAllowlist().length > 0,
-            steamLoginEnabled: isSteamOAuthEnabled()
+            steamLoginEnabled: isSteamOAuthEnabled(),
+            oauthBaseUrl: setup.oauthBaseUrl,
+            googleAdminRedirectUri: setup.googleAdminRedirectUri,
+            googleUserRedirectUri: setup.googleUserRedirectUri,
+            recommendedGoogleRedirectUris: setup.recommendedInGoogleConsole,
+            oauthPublicBaseConfigured: setup.oauthPublicBaseConfigured
         });
     });
 

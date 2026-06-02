@@ -61,11 +61,22 @@ Mismas keys en Render; en el front otro `<div>` + enviar `turnstileToken` en el 
 
 1. [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → **Credentials**  
 2. **OAuth client ID** → Web application  
-3. **Authorized redirect URIs** (exacto):
+3. **Authorized redirect URIs** (exacto, una por línea):
 
+   **Admin:**
    `https://mcvoficial.com/api/auth/google/callback`
 
-   (y si probás en Render: `https://mcvoficial.onrender.com/api/auth/google/callback`)
+   **Cuenta pública / tickets:**
+   `https://mcvoficial.com/api/auth/user/google/callback`
+
+   **Recomendado también** (evita `redirect_uri_mismatch` con www o Render):
+   `https://www.mcvoficial.com/api/auth/google/callback`
+   `https://www.mcvoficial.com/api/auth/user/google/callback`
+   `https://mcvoficial.onrender.com/api/auth/google/callback`
+   `https://mcvoficial.onrender.com/api/auth/user/google/callback`
+
+   Podés ver las URIs que usa tu servidor en producción:  
+   `https://mcvoficial.com/api/auth/oauth-redirects`
 
 4. Copiá **Client ID** y **Client secret**.
 
@@ -123,8 +134,9 @@ Podés usar **contraseña + Turnstile**, **Google**, o **Steam**. Lo más seguro
 
 ## Errores OAuth en login
 
-| Código en URL | Significado |
-|---------------|-------------|
+| Código / pantalla | Significado |
+|-------------------|-------------|
+| Google **redirect_uri_mismatch** | Falta la URI exacta en Google Cloud Console. Agregá las de `/api/auth/oauth-redirects` |
 | `not_allowed` | SteamID o Gmail no está en la lista del servidor |
 | `invalid_state` | Tardaste mucho o recargaste mal; reintentá |
 | `steam_verify` / `google_failed` | Fallo técnico; revisá logs en Render |

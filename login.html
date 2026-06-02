@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=30">
-    <link rel="stylesheet" href="style-admin.css?v=53">
+    <link rel="stylesheet" href="style-admin.css?v=54">
     <link rel="stylesheet" href="style-ux.css?v=1">
 </head>
 <body class="login-body" data-mcv-page="login">
@@ -47,6 +47,12 @@
             <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Steam</a>
             <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Google</a>
         </div>
+
+        <p id="login-google-setup" class="login-hint login-hint-oauth" hidden>
+            Si Google muestra <strong>redirect_uri_mismatch</strong>, agregá esta URI en
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>:
+            <code id="login-google-uri"></code>
+        </p>
 
         <div class="login-footer-links">
             <a href="index.html" class="back-link" data-i18n="login.backSite">← Sitio público</a>
@@ -133,11 +139,14 @@
         var wrap = document.getElementById('login-oauth');
         var steamBtn = document.getElementById('login-steam-btn');
         var googleBtn = document.getElementById('login-google-btn');
+        var googleSetup = document.getElementById('login-google-setup');
+        var googleUri = document.getElementById('login-google-uri');
         if (!wrap || !steamBtn || !googleBtn) return;
         var steamOn = cfg && cfg.steamLoginEnabled;
         var googleOn = cfg && cfg.googleLoginEnabled;
         if (!steamOn && !googleOn) {
             wrap.hidden = true;
+            if (googleSetup) googleSetup.hidden = true;
             return;
         }
         wrap.hidden = false;
@@ -145,6 +154,17 @@
         googleBtn.hidden = !googleOn;
         if (steamOn) steamBtn.href = API + '/api/auth/steam/start';
         if (googleOn) googleBtn.href = API + '/api/auth/google/start';
+        if (googleOn && googleSetup && googleUri) {
+            var uri = (cfg && cfg.googleAdminRedirectUri) ? cfg.googleAdminRedirectUri : (API + '/api/auth/google/callback');
+            googleUri.textContent = uri;
+            googleSetup.hidden = false;
+        } else if (googleSetup) {
+            googleSetup.hidden = true;
+        }
+        if (googleOn && cfg && cfg.oauthPublicBaseConfigured === false && diag) {
+            diag.hidden = false;
+            diag.textContent = 'Aviso: falta OAUTH_PUBLIC_BASE_URL en Render. Configurá https://mcvoficial.com para evitar redirect_uri_mismatch.';
+        }
     }
 
     function initTurnstile(API) {

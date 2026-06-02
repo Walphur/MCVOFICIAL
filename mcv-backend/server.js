@@ -32,6 +32,7 @@ const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeS
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
 const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
+const { logOAuthSetupHints } = require("./oauthShared");
 const { registerPublicUserAuthRoutes } = require("./userOAuth");
 
 const app = express();
@@ -950,6 +951,7 @@ async function boot() {
     );
     app.listen(PORT, () => {
         console.log(`MCV backend en http://localhost:${PORT} (estáticos desde ${ROOT_DIR})`);
+        logOAuthSetupHints();
     });
 }
 

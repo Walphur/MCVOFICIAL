@@ -9,7 +9,8 @@ const {
     verifyOAuthState,
     setOAuthStateCookie,
     readOAuthStateCookie,
-    clearOAuthStateCookie
+    clearOAuthStateCookie,
+    oauthSetupPayload
 } = require("./oauthShared");
 const {
     fetchSteamProfile,
@@ -55,11 +56,23 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
     app.get("/api/auth/user/options", (req, res) => {
         const ticketsRequireAuth =
             String(process.env.REQUIRE_USER_AUTH_TICKETS || "1").trim() !== "0" && isPublicUserAuthEnabled();
+        const setup = oauthSetupPayload(req);
         return res.json({
             enabled: isPublicUserAuthEnabled(),
             googleEnabled: isPublicGoogleEnabled(),
             steamEnabled: isPublicSteamEnabled(),
-            ticketsRequireAuth
+            ticketsRequireAuth,
+            oauthBaseUrl: setup.oauthBaseUrl,
+            googleUserRedirectUri: setup.googleUserRedirectUri,
+            recommendedGoogleRedirectUris: setup.recommendedInGoogleConsole
+        });
+    });
+
+    app.get("/api/auth/oauth-redirects", (req, res) => {
+        const setup = oauthSetupPayload(req);
+        return res.json({
+            ...setup,
+            hint: "Copiá recommendedInGoogleConsole en Google Cloud Console → Credentials → OAuth client → Authorized redirect URIs"
         });
     });
 
