@@ -397,6 +397,31 @@ const discordClient = new Client({
     ],
     partials: [Partials.Message, Partials.Channel]
 });
+let discordLoginInFlight = false;
+let discordLastLoginAt = 0;
+
+async function ensureDiscordConnected(reason = "unknown") {
+    if (!DISCORD_BOT_TOKEN || DISCORD_BOT_TOKEN === "TOKEN_DE_TU_BOT") {
+        return;
+    }
+    if (discordClient.isReady() || discordLoginInFlight) {
+        return;
+    }
+    const now = Date.now();
+    if (now - discordLastLoginAt < 5000) {
+        return;
+    }
+    discordLoginInFlight = true;
+    discordLastLoginAt = now;
+    try {
+        console.log(`Discord reconnect attempt (${reason})`);
+        await discordClient.login(DISCORD_BOT_TOKEN);
+    } catch (e) {
+        console.warn(`Discord reconnect failed (${reason}):`, e.message);
+    } finally {
+        discordLoginInFlight = false;
+    }
+}
 
 registerPlaytimeAdminApi(app, {
     getPool,
@@ -475,6 +500,23 @@ discordClient.on("ready", () => {
             String(process.env.DISCORD_WIPE_REMINDER_CHANNEL_ID || DISCORD_PLAYTIME_CHANNEL_ID || "").trim()
     });
 });
+discordClient.on("shardDisconnect", (event, shardId) => {
+    console.warn(`Discord shard disconnect: shard=${shardId} code=${event?.code ?? "?"}`);
+    ensureDiscordConnected("shardDisconnect").catch(() => {});
+});
+discordClient.on("shardError", (error, shardId) => {
+    console.warn(`Discord shard error: shard=${shardId} msg=${error?.message || error}`);
+});
+discordClient.on("error", (error) => {
+    console.warn(`Discord client error: ${error?.message || error}`);
+});
+discordClient.on("invalidated", () => {
+    console.warn("Discord session invalidated; retrying login");
+    ensureDiscordConnected("invalidated").catch(() => {});
+});
+setInterval(() => {
+    ensureDiscordConnected("watchdog").catch(() => {});
+}, 60 * 1000);
 
 async function handleBotMessage(message) {
     try {
@@ -553,7 +595,7 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
     attachWipeReportDiscord(discordClient, { getPool });
     attachWipeYoTopDiscord(discordClient, { getPool });
     attachWipeAttendanceDiscord(discordClient, { getPool });
-    discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
+    ensureDiscordConnected("startup").catch((e) => {
         console.warn("Discord bot login falló:", e.message);
     });
 } else {
