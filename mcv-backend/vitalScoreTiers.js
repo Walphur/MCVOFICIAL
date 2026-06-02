@@ -90,7 +90,7 @@ const EU_MEDIUM_CONFIG = {
     label: "EU Medium 2x",
     categories: {
         killsT30: {
-            label: "T3 Kills",
+            label: "Kill T3",
             leaderTier: true,
             tiers: buildStandardTiers([0, 10, 15, 20, 30, 40, 60, 80, Infinity])
         },
@@ -138,7 +138,7 @@ const EU_MONTHLY_CONFIG = {
     label: "EU Monthly 2x",
     categories: {
         killsT30: {
-            label: "T3 Kills",
+            label: "Kill T3",
             leaderTier: true,
             tiers: buildStandardTiers([0, 20, 30, 40, 60, 80, 120, 160, Infinity])
         },

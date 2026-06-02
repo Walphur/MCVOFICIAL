@@ -885,9 +885,12 @@ body.home-page {
     text-decoration: none;
 }
 .cuenta-vital-link:hover { text-decoration: underline; }
+@media (max-width: 900px) {
+    .cuenta-vital-group__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 720px) {
     .cuenta-dashboard__grid { grid-template-columns: 1fr; }
-    .cuenta-vital-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cuenta-vital-group__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Panel flotante login (index) */

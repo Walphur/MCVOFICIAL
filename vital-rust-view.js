@@ -194,7 +194,7 @@
             html += statCard("K/D", p.kdr, hi === "kdr");
             html += statCard("Kills", fmtNum(p.kills), hi === "kills");
             html += statCard("Deaths", fmtNum(p.deaths), hi === "deaths");
-            html += statCard("Kills T30", fmtNum(p.killsT30), hi === "killsT30");
+            html += statCard("Kill T3", fmtNum(p.killsT30), hi === "killsT30");
             html += statCard("Rockets", fmtNum(p.rocketsFired), hi === "rocketsFired");
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--farm"><h5 class="vital-stat-group-title">Farming</h5><div class="vital-stat-group-grid">';
