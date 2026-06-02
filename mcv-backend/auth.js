@@ -75,10 +75,51 @@ function authAdmin(req, res, next) {
     }
 }
 
+function signUserJwt(userRow) {
+    const secret = jwtSecret();
+    if (!secret || !userRow) {
+        return null;
+    }
+    return jwt.sign(
+        {
+            role: "user",
+            userId: userRow.id,
+            steamId64: userRow.steam_id64 || null,
+            email: userRow.google_email || null,
+            displayName: userRow.display_name || ""
+        },
+        secret,
+        { expiresIn: "30d" }
+    );
+}
+
+function authUser(req, res, next) {
+    const secret = jwtSecret();
+    if (!secret) {
+        return res.status(503).json({ error: "JWT_SECRET no configurado" });
+    }
+    const h = req.headers.authorization;
+    if (!h || !h.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Iniciá sesión con Steam o Google" });
+    }
+    try {
+        const decoded = jwt.verify(h.slice(7), secret);
+        if (!decoded || decoded.role !== "user" || !decoded.userId) {
+            return res.status(403).json({ error: "Sesión de usuario inválida" });
+        }
+        req.userAuth = decoded;
+        next();
+    } catch {
+        return res.status(401).json({ error: "Sesión expirada. Volvé a iniciar sesión." });
+    }
+}
+
 module.exports = {
     jwtSecret,
     timingSafeEqualStr,
     clientIp,
     authAdmin,
-    authAdminIpAllowlist
+    authAdminIpAllowlist,
+    authUser,
+    signUserJwt
 };

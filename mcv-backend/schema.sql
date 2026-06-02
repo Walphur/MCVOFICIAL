@@ -336,3 +336,29 @@ CREATE TABLE IF NOT EXISTS wipe_attendance_responses (
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_wipe_attendance_responses_poll ON wipe_attendance_responses (poll_id, status);
+
+-- split
+CREATE TABLE IF NOT EXISTS site_users (
+    id SERIAL PRIMARY KEY,
+    steam_id64 VARCHAR(20) UNIQUE,
+    google_sub VARCHAR(128) UNIQUE,
+    google_email VARCHAR(254),
+    display_name VARCHAR(120) NOT NULL DEFAULT '',
+    avatar_url TEXT,
+    auth_provider VARCHAR(16) NOT NULL CHECK (auth_provider IN ('steam', 'google')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_login_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (steam_id64 IS NOT NULL OR google_sub IS NOT NULL)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_site_users_steam ON site_users (steam_id64) WHERE steam_id64 IS NOT NULL;
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_site_users_google ON site_users (google_sub) WHERE google_sub IS NOT NULL;
+
+-- split
+ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS site_user_id INT REFERENCES site_users(id);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets (site_user_id, created_at DESC);

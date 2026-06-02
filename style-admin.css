@@ -34,6 +34,59 @@
     text-decoration: none;
     justify-content: center;
 }
+.cuenta-section .cuenta-intro {
+    color: var(--muted);
+    max-width: 52ch;
+    margin-bottom: 1.5rem;
+}
+.cuenta-card {
+    max-width: 420px;
+}
+.cuenta-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cuenta-oauth__btn {
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+.cuenta-hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 14px;
+}
+.cuenta-profile-head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.cuenta-avatar {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    object-fit: cover;
+}
+.cuenta-meta {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+}
+.tickets-auth-gate {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(250, 166, 26, 0.35);
+    border-radius: 8px;
+    background: rgba(250, 166, 26, 0.08);
+}
+.tickets-auth-gate a {
+    color: var(--primary);
+    font-weight: 600;
+}
 
 .login-container {
     width: min(420px, 100%);

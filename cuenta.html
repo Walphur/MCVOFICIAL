@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Mi cuenta</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css?v=31">
+    <link rel="stylesheet" href="style-admin.css?v=52">
+    <script src="mcv-purge-legacy-api.js?v=2"></script>
+    <script src="mcv-api-base.js?v=2"></script>
+    <script src="mcv-user-auth.js?v=1"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-layout.js?v=8" defer></script>
+</head>
+<body class="grain cuenta-page" data-mcv-page="cuenta">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+<section class="page-section cuenta-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Cuenta MCV</span>
+    </div>
+    <h2>Tu <span>cuenta</span></h2>
+    <p class="cuenta-intro">Iniciá sesión con Steam o Google para enviar tickets y acceder a funciones del sitio con más seguridad.</p>
+
+    <div id="cuenta-guest" class="form-container cuenta-card" hidden>
+        <p id="cuenta-error" class="tickets-form-msg err" hidden></p>
+        <div class="cuenta-oauth">
+            <a id="cuenta-steam" class="btn-primary w-100 cuenta-oauth__btn" href="#">Continuar con Steam</a>
+            <a id="cuenta-google" class="btn-outline w-100 cuenta-oauth__btn" href="#">Continuar con Google</a>
+        </div>
+        <p class="cuenta-hint">Al entrar se crea tu cuenta automáticamente (primera vez). No pedimos contraseña.</p>
+    </div>
+
+    <div id="cuenta-profile" class="form-container cuenta-card" hidden>
+        <div class="cuenta-profile-head">
+            <img id="cuenta-avatar" class="cuenta-avatar" width="64" height="64" alt="" hidden />
+            <div>
+                <strong id="cuenta-name">—</strong>
+                <p id="cuenta-meta" class="cuenta-meta"></p>
+            </div>
+        </div>
+        <button type="button" class="btn-outline" id="cuenta-logout">Cerrar sesión</button>
+    </div>
+
+    <p id="cuenta-loading" class="empty-hint">Cargando…</p>
+</section>
+
+<script>
+(function () {
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var guest = document.getElementById("cuenta-guest");
+    var profile = document.getElementById("cuenta-profile");
+    var loading = document.getElementById("cuenta-loading");
+    var errBox = document.getElementById("cuenta-error");
+    var qs = new URLSearchParams(window.location.search || "");
+    var nextPath = String(qs.get("next") || "cuenta.html").replace(/^\/+/, "");
+
+    if (typeof mcvCaptureUserTokenFromUrl === "function") {
+        mcvCaptureUserTokenFromUrl();
+    }
+
+    var oauthErr = qs.get("oauth_error");
+    if (oauthErr && errBox) {
+        var msgs = {
+            google_failed: "No se pudo completar el login con Google.",
+            steam_failed: "No se pudo completar el login con Steam.",
+            steam_verify: "Steam no verificó la sesión. Intentá de nuevo.",
+            invalid_state: "La sesión expiró. Volvé a intentar."
+        };
+        errBox.textContent = msgs[oauthErr] || "Error al iniciar sesión.";
+        errBox.hidden = false;
+    }
+
+    function showGuest() {
+        if (loading) loading.hidden = true;
+        if (profile) profile.hidden = true;
+        if (guest) guest.hidden = false;
+    }
+
+    function showProfile(user) {
+        if (loading) loading.hidden = true;
+        if (guest) guest.hidden = true;
+        if (profile) profile.hidden = false;
+        var nameEl = document.getElementById("cuenta-name");
+        var metaEl = document.getElementById("cuenta-meta");
+        var av = document.getElementById("cuenta-avatar");
+        if (nameEl) nameEl.textContent = user.displayName || "Usuario";
+        var parts = [];
+        if (user.steamId64) parts.push("Steam " + user.steamId64);
+        if (user.email) parts.push(user.email);
+        if (metaEl) metaEl.textContent = parts.join(" · ") || user.authProvider || "";
+        if (av && user.avatarUrl) {
+            av.src = user.avatarUrl;
+            av.hidden = false;
+        } else if (av) {
+            av.hidden = true;
+        }
+    }
+
+    function bindOAuthLinks(opts) {
+        var steamBtn = document.getElementById("cuenta-steam");
+        var googleBtn = document.getElementById("cuenta-google");
+        var q = "?next=" + encodeURIComponent(nextPath);
+        if (steamBtn) {
+            steamBtn.hidden = !(opts && opts.steamEnabled);
+            if (opts && opts.steamEnabled) steamBtn.href = API + "/api/auth/user/steam/start" + q;
+        }
+        if (googleBtn) {
+            googleBtn.hidden = !(opts && opts.googleEnabled);
+            if (opts && opts.googleEnabled) googleBtn.href = API + "/api/auth/user/google/start" + q;
+        }
+    }
+
+    fetch(API + "/api/auth/user/options", { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (opts) {
+            bindOAuthLinks(opts);
+        })
+        .catch(function () {});
+
+    if (typeof mcvFetchUserMe === "function" && mcvUserToken()) {
+        mcvFetchUserMe().then(function (user) {
+            if (user) {
+                showProfile(user);
+                if (nextPath && nextPath !== "cuenta.html" && qs.get("token")) {
+                    window.location.href = nextPath;
+                }
+            } else {
+                showGuest();
+            }
+        });
+    } else {
+        showGuest();
+    }
+
+    var logoutBtn = document.getElementById("cuenta-logout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", function () {
+            if (typeof mcvUserLogout === "function") mcvUserLogout();
+            showGuest();
+        });
+    }
+})();
+</script>
+</body>
+</html>

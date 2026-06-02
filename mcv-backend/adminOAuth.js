@@ -5,19 +5,14 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const openid = require("openid");
 const { jwtSecret, clientIp } = require("./auth");
-
-function oauthPublicBase(req) {
-    const env = String(process.env.OAUTH_PUBLIC_BASE_URL || process.env.PUBLIC_API_URL || "").trim().replace(
-        /\/$/,
-        ""
-    );
-    if (env) {
-        return env;
-    }
-    const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
-    const host = String(req.headers["x-forwarded-host"] || req.get("host") || "").split(",")[0].trim();
-    return host ? `${proto}://${host}` : "";
-}
+const {
+    oauthPublicBase,
+    signOAuthState,
+    verifyOAuthState,
+    setOAuthStateCookie,
+    readOAuthStateCookie,
+    clearOAuthStateCookie
+} = require("./oauthShared");
 
 function googleClientId() {
     return String(process.env.GOOGLE_CLIENT_ID || "").trim();
@@ -49,26 +44,6 @@ function isSteamOAuthEnabled() {
     return steamAllowlist().length > 0;
 }
 
-function signOAuthState(payload) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return null;
-    }
-    return jwt.sign(payload, secret, { expiresIn: "10m" });
-}
-
-function verifyOAuthState(token) {
-    const secret = jwtSecret();
-    if (!secret || !token) {
-        return null;
-    }
-    try {
-        return jwt.verify(String(token), secret);
-    } catch {
-        return null;
-    }
-}
-
 function issueAdminToken() {
     const secret = jwtSecret();
     if (!secret) {
@@ -85,28 +60,6 @@ function redirectLoginSuccess(res, base, token) {
 function redirectLoginError(res, base, code) {
     const url = `${base}/login.html?oauth_error=${encodeURIComponent(code)}`;
     return res.redirect(302, url);
-}
-
-function setOAuthStateCookie(res, state) {
-    res.setHeader(
-        "Set-Cookie",
-        `mcv_oauth_state=${encodeURIComponent(state)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
-    );
-}
-
-function readOAuthStateCookie(req) {
-    const raw = String(req.headers.cookie || "");
-    const parts = raw.split(";").map((s) => s.trim());
-    for (const p of parts) {
-        if (p.startsWith("mcv_oauth_state=")) {
-            return decodeURIComponent(p.slice("mcv_oauth_state=".length));
-        }
-    }
-    return "";
-}
-
-function clearOAuthStateCookie(res) {
-    res.setHeader("Set-Cookie", "mcv_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
 }
 
 function registerAdminOAuthRoutes(app) {

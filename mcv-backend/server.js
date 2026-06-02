@@ -31,7 +31,7 @@ const { registerVitalRustApi } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
-const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
+const { registerPublicUserAuthRoutes } = require("./userOAuth");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -166,6 +166,11 @@ registerTournamentApi(app, {
     getPool,
     steamApiKey: STEAM_API_KEY,
     uploadRoot: UPLOAD_ROOT
+});
+
+registerPublicUserAuthRoutes(app, {
+    getPool,
+    steamApiKey: STEAM_API_KEY
 });
 
 registerWipeListApi(app, {
@@ -926,7 +931,7 @@ app.use("/uploads", express.static(UPLOAD_ROOT));
 /** Admin: sin caché agresiva (Cloudflare/navegador); así aparece Vital Rust tras deploy. */
 app.use((req, res, next) => {
     const p = String(req.path || "");
-    if (p === "/admin.html" || p === "/login.html" || p === "/sw.js") {
+    if (p === "/admin.html" || p === "/login.html" || p === "/cuenta.html" || p === "/sw.js") {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("X-Robots-Tag", "noindex, nofollow");

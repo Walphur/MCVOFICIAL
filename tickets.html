@@ -14,6 +14,7 @@
     <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
+    <script src="mcv-user-auth.js?v=1"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <script src="mcv-layout.js?v=6" defer></script>
 </head>
@@ -37,6 +38,10 @@
         <div class="tickets-intro">
             <h3 data-i18n="tickets.introH">Cómo funciona</h3>
             <p data-i18n="tickets.introP">Completá el formulario: tu solicitud queda registrada en el panel del staff. También podés abrir un ticket en Discord para seguimiento en vivo.</p>
+        </div>
+
+        <div id="tickets-auth-gate" class="tickets-auth-gate" hidden>
+            <p>Para enviar un ticket tenés que <a href="cuenta.html?next=tickets.html">iniciar sesión con Steam o Google</a>.</p>
         </div>
 
         <form id="tickets-form">
@@ -93,7 +98,33 @@
     var msg = document.getElementById("tickets-form-msg");
     var lookupForm = document.getElementById("tickets-lookup-form");
     var lookupMsg = document.getElementById("tickets-lookup-msg");
+    var authGate = document.getElementById("tickets-auth-gate");
     lucide.createIcons();
+
+    if (typeof mcvCaptureUserTokenFromUrl === "function") {
+        mcvCaptureUserTokenFromUrl();
+    }
+
+    function ensureTicketAuth() {
+        return fetch(API + "/api/auth/user/options", { cache: "no-store" })
+            .then(function (r) { return r.json(); })
+            .then(function (opts) {
+                if (!opts || !opts.enabled) {
+                    return true;
+                }
+                if (typeof mcvUserToken === "function" && mcvUserToken()) {
+                    return true;
+                }
+                if (authGate) authGate.hidden = false;
+                if (form) form.hidden = true;
+                return false;
+            })
+            .catch(function () {
+                return true;
+            });
+    }
+
+    ensureTicketAuth();
 
     var typeSelect = form.querySelector('select[name="ticketType"]');
     var badges = document.querySelectorAll(".ticket-type-badge[data-ticket-type]");
@@ -142,7 +173,7 @@
         };
         fetch(API + "/api/tickets", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: typeof mcvUserAuthHeaders === "function" ? mcvUserAuthHeaders() : { "Content-Type": "application/json" },
             body: JSON.stringify(body)
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
@@ -166,7 +197,13 @@
                 syncTicketBadges();
             })
             .catch(function (err) {
-                msg.textContent = (err && err.message) ? err.message : T("tickets.error");
+                var em = (err && err.message) ? err.message : T("tickets.error");
+                if (/sesión|login|autorizado/i.test(em)) {
+                    em = "Iniciá sesión en Mi cuenta (Steam o Google) para enviar tickets.";
+                    if (authGate) authGate.hidden = false;
+                    if (form) form.hidden = true;
+                }
+                msg.textContent = em;
                 msg.className = "tickets-form-msg err";
                 msg.hidden = false;
             });

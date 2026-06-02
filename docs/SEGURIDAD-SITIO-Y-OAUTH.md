@@ -128,3 +128,30 @@ Podés usar **contraseña + Turnstile**, **Google**, o **Steam**. Lo más seguro
 | `not_allowed` | SteamID o Gmail no está en la lista del servidor |
 | `invalid_state` | Tardaste mucho o recargaste mal; reintentá |
 | `steam_verify` / `google_failed` | Fallo técnico; revisá logs en Render |
+
+---
+
+## Cuentas públicas (cualquier usuario)
+
+Página **Mi cuenta**: `https://mcvoficial.com/cuenta.html`
+
+- Primer login con Steam o Google = **crear cuenta** automática
+- **Tickets** requieren sesión (token `mcv_user_jwt` en el navegador)
+- Admin sigue aparte (`login.html` + lista cerrada opcional)
+
+### Render
+
+```env
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+OAUTH_PUBLIC_BASE_URL=https://mcvoficial.com
+PUBLIC_USER_STEAM=1
+PUBLIC_USER_GOOGLE=1
+REQUIRE_USER_AUTH_TICKETS=1
+```
+
+### Google — agregar redirect URI
+
+`https://mcvoficial.com/api/auth/user/google/callback`
+
+(Además del de admin si lo usás: `/api/auth/google/callback`)

@@ -24,6 +24,7 @@
         { id: "team", href: "equipo/", i18n: "nav.team", also: ["teamForm"] },
         { id: "bot", href: "bot.html", i18n: "nav.bot" },
         { id: "tickets", href: "tickets.html", i18n: "nav.tickets" },
+        { id: "cuenta", href: "cuenta.html", i18n: "nav.account" },
         { id: "live", href: "live.html", i18n: "nav.streams", live: true }
     ];
 
