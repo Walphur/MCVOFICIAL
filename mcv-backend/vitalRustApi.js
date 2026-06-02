@@ -3039,6 +3039,7 @@ module.exports = {
     authVitalPublic,
     vitalPublicAccessKey,
     isVitalPublicConfigured,
+    ensurePlayerInfoTable,
     loadClanSteamIds,
     normalizeSteamId64,
     normalizePlayerStatCount,
