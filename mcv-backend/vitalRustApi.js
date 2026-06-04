@@ -34,7 +34,7 @@ const ALL_VITAL_SERVERS = [
 const DEFAULT_SERVER_KEY = String(process.env.VITAL_DEFAULT_SERVER_KEY || "eu-monthly").trim();
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 
-async function fetchSteamAvatarsBatch(steamIds) {
+async function fetchSteamSummariesBatch(steamIds) {
     const map = new Map();
     const ids = [...new Set((steamIds || []).map((id) => normalizeSteamId64(id)).filter(Boolean))];
     if (!STEAM_API_KEY || !ids.length) return map;
@@ -48,13 +48,71 @@ async function fetchSteamAvatarsBatch(steamIds) {
             for (const p of data?.response?.players || []) {
                 const sid = normalizeSteamId64(p.steamid);
                 if (!sid) continue;
-                map.set(sid, p.avatarfull || p.avatarmedium || p.avatar || "");
+                map.set(sid, {
+                    avatarUrl: p.avatarfull || p.avatarmedium || p.avatar || "",
+                    personaName: String(p.personaname || "").trim().slice(0, 120)
+                });
             }
         } catch (e) {
-            console.warn("fetchSteamAvatarsBatch:", e.message);
+            console.warn("fetchSteamSummariesBatch:", e.message);
         }
     }
     return map;
+}
+
+async function fetchSteamAvatarsBatch(steamIds) {
+    const summaries = await fetchSteamSummariesBatch(steamIds);
+    const map = new Map();
+    for (const [sid, row] of summaries) {
+        if (row?.avatarUrl) map.set(sid, row.avatarUrl);
+    }
+    return map;
+}
+
+async function applySteamSummariesToPlayerInfo(pool, steamIds) {
+    const ids = [...new Set((steamIds || []).map((id) => normalizeSteamId64(id)).filter(Boolean))];
+    if (!ids.length) return { updated: 0, steamConfigured: Boolean(STEAM_API_KEY) };
+    const ready = await ensurePlayerInfoTable(pool);
+    if (!ready) return { updated: 0, steamConfigured: Boolean(STEAM_API_KEY) };
+    const summaries = await fetchSteamSummariesBatch(ids);
+    let updated = 0;
+    for (const sid of ids) {
+        const summary = summaries.get(sid);
+        const personaName = summary?.personaName || "";
+        if (!personaName) continue;
+        const r = await pool.query(
+            `UPDATE player_info_profiles
+             SET display_name = CASE
+               WHEN COALESCE(TRIM(display_name), '') = ''
+                 OR display_name = steam_id64
+                 OR display_name ~ '^[0-9]{17}$'
+               THEN $2
+               ELSE display_name
+             END,
+             updated_at = NOW()
+             WHERE steam_id64 = $1
+               AND (
+                 COALESCE(TRIM(display_name), '') = ''
+                 OR display_name = steam_id64
+                 OR display_name ~ '^[0-9]{17}$'
+               )
+             RETURNING steam_id64`,
+            [sid, personaName]
+        );
+        if (r.rowCount) updated += 1;
+    }
+    return { updated, steamConfigured: Boolean(STEAM_API_KEY) };
+}
+
+function enrichExtrasWithSteamSummaries(players, summaryMap) {
+    return (players || []).map((p) => {
+        const summary = summaryMap.get(p.steamId64);
+        return {
+            ...p,
+            personaName: summary?.personaName || p.personaName || "",
+            avatarUrl: summary?.avatarUrl || p.avatarUrl || ""
+        };
+    });
 }
 
 const cache = new Map();
@@ -1164,11 +1222,13 @@ async function applyTierScoreResults(pool, tierResult, { serverLabel }) {
 async function resetPlayerScore(pool, steamId64) {
     await ensurePlayerInfoTable(pool);
     await ensureScoreEventsTable(pool);
+    await ensurePlayerExtraPointLinksTable(pool);
     const cur = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
     if (!cur.rowCount) {
         throw new Error("Jugador no encontrado en Info jugadores");
     }
     await pool.query(`DELETE FROM player_score_events WHERE steam_id64 = $1`, [steamId64]);
+    await pool.query(`DELETE FROM player_extra_point_links WHERE steam_id64 = $1`, [steamId64]);
     await pool.query(`UPDATE player_info_profiles SET performance_score = 0, updated_at = NOW() WHERE steam_id64 = $1`, [
         steamId64
     ]);
@@ -1713,14 +1773,17 @@ function registerVitalRustApi(app, { getPool }) {
             const roster = await loadClanSteamIds(getPool);
             const mcvSet = new Set(roster.mcvIds);
             const missingInPlayerInfo = await countExtrasMissingPlayerInfo(pool, players);
+            const steamMap = await fetchSteamSummariesBatch(players.map((p) => p.steamId64));
+            const enriched = enrichExtrasWithSteamSummaries(players, steamMap).map((p) => ({
+                ...p,
+                alsoInMcv: mcvSet.has(p.steamId64)
+            }));
             return res.json({
                 persisted: true,
                 total: players.length,
                 missingInPlayerInfo,
-                players: players.map((p) => ({
-                    ...p,
-                    alsoInMcv: mcvSet.has(p.steamId64)
-                }))
+                steamConfigured: Boolean(STEAM_API_KEY),
+                players: enriched
             });
         } catch (e) {
             console.error("vital extra list:", e.message);
@@ -1762,6 +1825,7 @@ function registerVitalRustApi(app, { getPool }) {
                 pool,
                 added.map((steamId64) => ({ steamId64, label }))
             );
+            const steamSync = await applySteamSummariesToPlayerInfo(pool, added);
             const saved = await loadManualSteamIdsFromDb(pool);
             return res.json({
                 ok: true,
@@ -1769,11 +1833,48 @@ function registerVitalRustApi(app, { getPool }) {
                 count: added.length,
                 persisted: true,
                 totalSaved: saved.length,
-                playerInfoCreated
+                playerInfoCreated,
+                steamNamesUpdated: steamSync.updated,
+                steamConfigured: steamSync.steamConfigured
             });
         } catch (e) {
             console.error("vital extra add:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo guardar" });
+        }
+    });
+
+    app.post("/api/admin/vital/extra-players/sync-steam", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        if (!STEAM_API_KEY) {
+            return res.status(503).json({
+                error: "Falta STEAM_API_KEY en el servidor para consultar perfiles de Steam"
+            });
+        }
+        try {
+            const ready = await ensureVitalExtraTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar la tabla vital_extra_steam_ids" });
+            }
+            const extras = await loadManualSteamIdsFromDb(pool);
+            const steamSync = await applySteamSummariesToPlayerInfo(
+                pool,
+                extras.map((p) => p.steamId64)
+            );
+            return res.json({
+                ok: true,
+                totalExtras: extras.length,
+                steamNamesUpdated: steamSync.updated,
+                message:
+                    steamSync.updated > 0
+                        ? `${steamSync.updated} nombre(s) actualizados desde Steam.`
+                        : "No había nombres pendientes de actualizar (o Steam no devolvió datos)."
+            });
+        } catch (e) {
+            console.error("vital extra sync steam:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo sincronizar con Steam" });
         }
     });
 
@@ -1789,14 +1890,22 @@ function registerVitalRustApi(app, { getPool }) {
             }
             const extras = await loadManualSteamIdsFromDb(pool);
             const playerInfoCreated = await ensurePlayerInfoForExtraSteamIds(pool, extras);
+            const steamSync = await applySteamSummariesToPlayerInfo(
+                pool,
+                extras.map((p) => p.steamId64)
+            );
             return res.json({
                 ok: true,
                 totalExtras: extras.length,
                 playerInfoCreated,
+                steamNamesUpdated: steamSync.updated,
+                steamConfigured: steamSync.steamConfigured,
                 message:
                     playerInfoCreated > 0
                         ? `${playerInfoCreated} jugador(es) agregados a Info jugadores.`
-                        : "Todos los extras ya tenían ficha en Jugadores."
+                        : steamSync.updated > 0
+                          ? `${steamSync.updated} nombre(s) actualizados desde Steam.`
+                          : "Todos los extras ya tenían ficha en Jugadores."
             });
         } catch (e) {
             console.error("vital extra sync player-info:", e.message);
@@ -2062,13 +2171,17 @@ function registerVitalRustApi(app, { getPool }) {
         if (!ready) return res.status(503).json({ error: "No se pudo preparar player_info_profiles" });
         try {
             await ensureScoreEventsTable(pool);
+            await ensurePlayerExtraPointLinksTable(pool);
             const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM player_info_profiles`);
             await pool.query(`UPDATE player_info_profiles SET performance_score = 0, updated_at = NOW()`);
             await pool.query(`DELETE FROM player_score_events`);
+            const extraPts = await pool.query(`DELETE FROM player_extra_point_links`);
             return res.json({
                 ok: true,
                 playersReset: countRes.rows[0]?.n || 0,
-                message: "Puntos reiniciados para todo el roster (nuevo wipe)."
+                extraPointsCleared: extraPts.rowCount || 0,
+                message:
+                    "Puntos reiniciados para todo el roster (puntaje, movimientos y puntos extra manuales)."
             });
         } catch (e) {
             console.error("vital reset all scores:", e.message);

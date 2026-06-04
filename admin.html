@@ -543,6 +543,7 @@
                             </label>
                             <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-extra-sync-jugadores" data-i18n="admin.vitalExtraSyncJugadores">Cargar extras en Jugadores</button>
+                            <button type="button" class="btn-outline btn-sm" id="btn-vital-extra-sync-steam" data-i18n="admin.vitalExtraSyncSteam">Nombres Steam</button>
                         </div>
                         <p id="vital-extra-missing-hint" class="admin-form-hint vital-extra-missing-hint" hidden></p>
                         <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
@@ -638,7 +639,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=44"></script>
+<script src="mcv-i18n.js?v=62"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous"></script>
 <script src="mcv-vital-export.js?v=3"></script>
 <script>
@@ -1738,8 +1739,8 @@
         }
         list.innerHTML = players.map(function (p) {
             var prof = findVitalRow(p.steamId64);
-            var display = (prof && prof.displayName) ? prof.displayName : (p.personaName || p.steamId64);
-            var avatarRow = prof || { displayName: display, avatarUrl: p.avatarUrl || '' };
+            var display = (prof && prof.displayName) ? prof.displayName : (p.personaName || p.label || p.steamId64);
+            var avatarRow = prof || { displayName: display, avatarUrl: p.avatarUrl || '', steamId64: p.steamId64 };
             var note = p.label ? ' <span class="vital-extra-note">— ' + esc(p.label) + '</span>' : '';
             var mcv = p.alsoInMcv ? ' <span class="vital-extra-mcv">' + esc(vitalLabel('admin.vitalExtraAlsoMcv', 'también en MCV')) + '</span>' : '';
             return '<li class="vital-extra-item">' +
@@ -1872,6 +1873,7 @@
                 renderVitalExtraList(players);
                 updateVitalExtraCount(players.length, x.d.persisted !== false);
                 updateVitalExtraMissingHint(x.d.missingInPlayerInfo);
+                updateVitalExtraSteamHint(x.d.steamConfigured);
                 return players;
             })
             .catch(function (e) {
@@ -1896,6 +1898,18 @@
                     deployHint.hidden = false;
                 }
             });
+    }
+
+    function updateVitalExtraSteamHint(configured) {
+        var deployHint = document.getElementById('vital-extra-deploy-hint');
+        if (!deployHint || configured !== false) return;
+        if (deployHint.hidden && !deployHint.textContent) {
+            deployHint.textContent = vitalLabel(
+                'admin.vitalExtraSteamKeyMissing',
+                'Sin STEAM_API_KEY en Render no se pueden traer nombres/avatares de Steam (se ve solo el ID).'
+            );
+            deployHint.hidden = false;
+        }
     }
 
     function updateVitalExtraMissingHint(missing) {
@@ -1927,7 +1941,7 @@
                 if (!opts.quiet) {
                     banner(x.d.message || (created ? 'Sincronizado con Jugadores.' : 'Ya estaban en Jugadores.'), false);
                 }
-                if (created > 0) {
+                if (created > 0 || Number(x.d.steamNamesUpdated || 0) > 0) {
                     loadVitalPlayerInfo().catch(function () {});
                 }
                 return loadVitalExtraPlayers({ quiet: true });
@@ -1968,7 +1982,7 @@
                 steamIn.value = '';
                 if (labelIn) labelIn.value = '';
                 loadVitalExtraPlayers({ quiet: true }).catch(function () {});
-                if (Number(x.d.playerInfoCreated || 0) > 0) {
+                if (Number(x.d.playerInfoCreated || 0) > 0 || Number(x.d.steamNamesUpdated || 0) > 0) {
                     loadVitalPlayerInfo().catch(function () {});
                 }
                 var total = x.d.totalSaved != null ? x.d.totalSaved : x.d.count;
@@ -1977,6 +1991,11 @@
                     (total != null ? ' · ' + vitalLabel('admin.vitalExtraTotal', 'Total: ') + total : '');
                 if (Number(x.d.playerInfoCreated || 0) > 0) {
                     msg += ' · ' + vitalLabel('admin.vitalExtraInJugadores', 'Nuevos en Jugadores: ') + x.d.playerInfoCreated;
+                }
+                if (Number(x.d.steamNamesUpdated || 0) > 0) {
+                    msg += ' · Steam: ' + x.d.steamNamesUpdated;
+                } else if (x.d.steamConfigured === false) {
+                    msg += ' · ' + vitalLabel('admin.vitalExtraSteamKeyMissingShort', 'sin STEAM_API_KEY');
                 }
                 banner(msg, false);
             })
@@ -3771,7 +3790,7 @@
     function resetAllVitalScores() {
         return showVitalConfirm({
             title: 'Reiniciar todos los puntos',
-            message: '¿Borrar los puntos de TODO el roster? Se eliminan los movimientos y el puntaje vuelve a 0. Ideal al empezar un wipe nuevo.',
+            message: '¿Borrar los puntos de TODO el roster? Se eliminan movimientos, puntos extra manuales (tab Puntos) y el puntaje vuelve a 0. Ideal al empezar un wipe nuevo.',
             confirmLabel: 'Reiniciar todo',
             danger: true
         }).then(function (ok) {
@@ -3953,6 +3972,7 @@
         }
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
         var btnExtraSyncJugadores = document.getElementById('btn-vital-extra-sync-jugadores');
+        var btnExtraSyncSteam = document.getElementById('btn-vital-extra-sync-steam');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
@@ -3970,6 +3990,24 @@
         if (btnExtraSyncJugadores) {
             btnExtraSyncJugadores.addEventListener('click', function () {
                 syncVitalExtrasToPlayerInfo().catch(function () {});
+            });
+        }
+        if (btnExtraSyncSteam) {
+            btnExtraSyncSteam.addEventListener('click', function () {
+                fetch(API + '/api/admin/vital/extra-players/sync-steam', {
+                    method: 'POST',
+                    headers: authHeaders()
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'steam');
+                        banner(x.d.message || 'Steam sincronizado.', false);
+                        loadVitalExtraPlayers({ quiet: true }).catch(function () {});
+                        if (Number(x.d.steamNamesUpdated || 0) > 0) {
+                            loadVitalPlayerInfo().catch(function () {});
+                        }
+                    })
+                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
             });
         }
         if (btnInfoRefresh) {
