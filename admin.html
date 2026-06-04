@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=60">
+    <link rel="stylesheet" href="style-admin.css?v=61">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -322,6 +322,8 @@
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres Vital</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
+                            <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" data-i18n="admin.vitalResetScoresAll">Reiniciar todos los puntos</button>
+                            <button type="button" class="btn-outline btn-sm" id="btn-vital-reset-hours-all" data-i18n="admin.vitalResetHoursAll">Borrar todas las horas</button>
                         </div>
                     </details>
                 </aside>
@@ -527,7 +529,7 @@
                 <section class="vital-subpanel" data-vital-section="extras" style="display:none;">
                     <div class="vital-page-simple">
                         <h4 data-i18n="admin.vitalExtraTitle">Jugadores extra (roster Vital)</h4>
-                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV pero aún no están en Info jugadores. El roster Vital incluye automáticamente a quienes en Info jugadores están activos en el wipe (MCV activo/admin, no pausados).</p>
+                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV. Al agregar, se crean también en la lista Jugadores (estado Invitado al wipe). El link público Vital suma extras + jugadores activos en wipe.</p>
                         <p class="admin-form-hint admin-readable">Link público del equipo: <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">vital-rust.html</a></p>
                         <p id="vital-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
@@ -540,7 +542,9 @@
                                 <input type="text" id="vital-extra-label" class="admin-input" placeholder="Ej. trial, recruit" maxlength="120">
                             </label>
                             <button type="button" class="btn-primary-small" id="btn-vital-extra-add" data-i18n="admin.vitalExtraAdd">Agregar</button>
+                            <button type="button" class="btn-outline btn-sm" id="btn-vital-extra-sync-jugadores" data-i18n="admin.vitalExtraSyncJugadores">Cargar extras en Jugadores</button>
                         </div>
+                        <p id="vital-extra-missing-hint" class="admin-form-hint vital-extra-missing-hint" hidden></p>
                         <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
                         <ul id="vital-extra-list" class="vital-extra-list"></ul>
                         <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
@@ -1867,6 +1871,7 @@
                 writeVitalExtraLocal(players);
                 renderVitalExtraList(players);
                 updateVitalExtraCount(players.length, x.d.persisted !== false);
+                updateVitalExtraMissingHint(x.d.missingInPlayerInfo);
                 return players;
             })
             .catch(function (e) {
@@ -1890,6 +1895,45 @@
                     deployHint.textContent = (e && e.message) ? e.message : vitalLabel('admin.vitalLoadError', 'Error');
                     deployHint.hidden = false;
                 }
+            });
+    }
+
+    function updateVitalExtraMissingHint(missing) {
+        var el = document.getElementById('vital-extra-missing-hint');
+        if (!el) return;
+        var n = Number(missing || 0);
+        if (!n) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        el.hidden = false;
+        el.textContent = vitalLabel(
+            'admin.vitalExtraMissingHint',
+            '{n} extra(s) sin ficha en Jugadores. Usá «Cargar extras en Jugadores».'
+        ).replace('{n}', String(n));
+    }
+
+    function syncVitalExtrasToPlayerInfo(opts) {
+        opts = opts || {};
+        return fetch(API + '/api/admin/vital/extra-players/sync-player-info', {
+            method: 'POST',
+            headers: authHeaders()
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'sync');
+                var created = Number(x.d.playerInfoCreated || 0);
+                if (!opts.quiet) {
+                    banner(x.d.message || (created ? 'Sincronizado con Jugadores.' : 'Ya estaban en Jugadores.'), false);
+                }
+                if (created > 0) {
+                    loadVitalPlayerInfo().catch(function () {});
+                }
+                return loadVitalExtraPlayers({ quiet: true });
+            })
+            .catch(function (e) {
+                if (!opts.quiet) banner((e && e.message) ? e.message : 'Error', true);
             });
     }
 
@@ -1924,12 +1968,17 @@
                 steamIn.value = '';
                 if (labelIn) labelIn.value = '';
                 loadVitalExtraPlayers({ quiet: true }).catch(function () {});
+                if (Number(x.d.playerInfoCreated || 0) > 0) {
+                    loadVitalPlayerInfo().catch(function () {});
+                }
                 var total = x.d.totalSaved != null ? x.d.totalSaved : x.d.count;
-                banner(
+                var msg =
                     vitalLabel('admin.vitalExtraAdded', 'Guardado(s) en servidor: ') + (x.d.count || 0) +
-                    (total != null ? ' · ' + vitalLabel('admin.vitalExtraTotal', 'Total: ') + total : ''),
-                    false
-                );
+                    (total != null ? ' · ' + vitalLabel('admin.vitalExtraTotal', 'Total: ') + total : '');
+                if (Number(x.d.playerInfoCreated || 0) > 0) {
+                    msg += ' · ' + vitalLabel('admin.vitalExtraInJugadores', 'Nuevos en Jugadores: ') + x.d.playerInfoCreated;
+                }
+                banner(msg, false);
             })
             .catch(function (e) {
                 banner((e && e.message) ? e.message : 'Error', true);
@@ -3719,6 +3768,91 @@
             });
     }
 
+    function resetAllVitalScores() {
+        return showVitalConfirm({
+            title: 'Reiniciar todos los puntos',
+            message: '¿Borrar los puntos de TODO el roster? Se eliminan los movimientos y el puntaje vuelve a 0. Ideal al empezar un wipe nuevo.',
+            confirmLabel: 'Reiniciar todo',
+            danger: true
+        }).then(function (ok) {
+            if (!ok) return;
+            return fetch(API + '/api/admin/vital/reset-all-scores', {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (x) {
+                    if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                    banner(x.d.message || 'Puntos reiniciados.', false);
+                    addVitalInfoLog('Puntos reiniciados para todo el roster.', 'warn');
+                    return loadVitalPlayerInfo().then(function () {
+                        return syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {});
+                    });
+                })
+                .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+        });
+    }
+
+    function resetAllVitalHours() {
+        return showVitalConfirm({
+            title: 'Borrar todas las horas',
+            message: '¿Poner en blanco las horas jugadas de TODOS los jugadores en Info jugadores?',
+            confirmLabel: 'Borrar horas',
+            danger: true
+        }).then(function (ok) {
+            if (!ok) return;
+            return fetch(API + '/api/admin/vital/reset-all-hours', {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (x) {
+                    if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                    banner(x.d.message || 'Horas borradas.', false);
+                    addVitalInfoLog('Horas borradas para todo el roster.', 'warn');
+                    return loadVitalPlayerInfo();
+                })
+                .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+        });
+    }
+
+    function resetVitalScoreForPlayer() {
+        var sid = vitalSelectedSteam;
+        if (!sid) {
+            banner('Seleccioná un jugador.', true);
+            return Promise.resolve();
+        }
+        var name = String((document.getElementById('vital-info-name') || {}).value || '').trim() || sid;
+        return showVitalConfirm({
+            title: 'Reiniciar puntos',
+            message: '¿Reiniciar puntos de «' + name + '»? Se borran movimientos y el total vuelve a 0.',
+            confirmLabel: 'Reiniciar',
+            danger: true
+        }).then(function (ok) {
+            if (!ok) return;
+            return fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid) + '/reset-score', {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (x) {
+                    if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                    banner('Puntos reiniciados para ' + name + '.', false);
+                    if (x.d && x.d.profile) {
+                        var idx = vitalInfoRows.findIndex(function (r) {
+                            return normalizeVitalSteamLocal(r.steamId64) === normalizeVitalSteamLocal(sid);
+                        });
+                        if (idx >= 0) vitalInfoRows[idx] = x.d.profile;
+                    }
+                    renderVitalInfoList();
+                    renderVitalPlayerSummary();
+                    renderVitalTierPlayerBreakdown(sid);
+                    return loadVitalScoreEvents(sid);
+                })
+                .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+        });
+    }
+
     function saveVitalPlayerInfo() {
         var payload = gatherVitalInfoPayload();
         if (payload.notesExtra) {
@@ -3818,6 +3952,7 @@
             });
         }
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
+        var btnExtraSyncJugadores = document.getElementById('btn-vital-extra-sync-jugadores');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
         var btnInfoSave = document.getElementById('btn-vital-info-save');
         var btnInfoBmHours = document.getElementById('btn-vital-info-bm-hours');
@@ -3831,6 +3966,11 @@
         var infoSearch = document.getElementById('vital-info-search');
         if (btnExtraAdd) {
             btnExtraAdd.addEventListener('click', addVitalExtraPlayers);
+        }
+        if (btnExtraSyncJugadores) {
+            btnExtraSyncJugadores.addEventListener('click', function () {
+                syncVitalExtrasToPlayerInfo().catch(function () {});
+            });
         }
         if (btnInfoRefresh) {
             btnInfoRefresh.addEventListener('click', function () {

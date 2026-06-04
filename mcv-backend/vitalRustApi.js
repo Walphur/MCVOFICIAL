@@ -1392,6 +1392,40 @@ async function loadManualSteamIdsFromDb(pool) {
     }
 }
 
+/** Crea fichas en Info jugadores para SteamID del extras roster que aún no existen. */
+async function ensurePlayerInfoForExtraSteamIds(pool, entries) {
+    const ready = await ensurePlayerInfoTable(pool);
+    if (!ready) {
+        throw new Error("No se pudo preparar player_info_profiles");
+    }
+    let created = 0;
+    const list = Array.isArray(entries) ? entries : [];
+    for (const entry of list) {
+        const steamId64 = normalizeSteamId64(entry?.steamId64 || entry?.steam_id64 || entry);
+        if (!steamId64) continue;
+        const label = String(entry?.label || "").trim().slice(0, 120);
+        const displayName = label || null;
+        const r = await pool.query(
+            `INSERT INTO player_info_profiles (steam_id64, display_name, status_tag, vouch_by, wipe_phase)
+             VALUES ($1, $2, 'wipe_guest', $3, 'unknown')
+             ON CONFLICT (steam_id64) DO NOTHING
+             RETURNING steam_id64`,
+            [steamId64, displayName, label || null]
+        );
+        if (r.rowCount) created += 1;
+    }
+    return created;
+}
+
+async function countExtrasMissingPlayerInfo(pool, extras) {
+    const list = Array.isArray(extras) ? extras : [];
+    if (!list.length) return 0;
+    const ids = list.map((p) => p.steamId64).filter(Boolean);
+    const r = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = ANY($1::text[])`, [ids]);
+    const have = new Set(r.rows.map((row) => row.steam_id64));
+    return ids.filter((id) => !have.has(id)).length;
+}
+
 async function loadActivePlayerInfoSteamIds(pool) {
     if (!pool) {
         return [];
@@ -1678,9 +1712,11 @@ function registerVitalRustApi(app, { getPool }) {
             const players = await loadManualSteamIdsFromDb(pool);
             const roster = await loadClanSteamIds(getPool);
             const mcvSet = new Set(roster.mcvIds);
+            const missingInPlayerInfo = await countExtrasMissingPlayerInfo(pool, players);
             return res.json({
                 persisted: true,
                 total: players.length,
+                missingInPlayerInfo,
                 players: players.map((p) => ({
                     ...p,
                     alsoInMcv: mcvSet.has(p.steamId64)
@@ -1722,17 +1758,49 @@ function registerVitalRustApi(app, { getPool }) {
                 );
                 added.push(steamId64);
             }
+            const playerInfoCreated = await ensurePlayerInfoForExtraSteamIds(
+                pool,
+                added.map((steamId64) => ({ steamId64, label }))
+            );
             const saved = await loadManualSteamIdsFromDb(pool);
             return res.json({
                 ok: true,
                 added,
                 count: added.length,
                 persisted: true,
-                totalSaved: saved.length
+                totalSaved: saved.length,
+                playerInfoCreated
             });
         } catch (e) {
             console.error("vital extra add:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo guardar" });
+        }
+    });
+
+    app.post("/api/admin/vital/extra-players/sync-player-info", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        try {
+            const ready = await ensureVitalExtraTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar la tabla vital_extra_steam_ids" });
+            }
+            const extras = await loadManualSteamIdsFromDb(pool);
+            const playerInfoCreated = await ensurePlayerInfoForExtraSteamIds(pool, extras);
+            return res.json({
+                ok: true,
+                totalExtras: extras.length,
+                playerInfoCreated,
+                message:
+                    playerInfoCreated > 0
+                        ? `${playerInfoCreated} jugador(es) agregados a Info jugadores.`
+                        : "Todos los extras ya tenían ficha en Jugadores."
+            });
+        } catch (e) {
+            console.error("vital extra sync player-info:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo sincronizar con Jugadores" });
         }
     });
 

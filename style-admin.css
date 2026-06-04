@@ -618,6 +618,10 @@ details.vital-extra-panel .vital-extra-form {
 .vital-extra-field-wide {
     flex: 1 1 100%;
 }
+.vital-extra-missing-hint {
+    margin: 0 0 8px;
+    color: #fde68a;
+}
 .vital-extra-textarea {
     min-height: 88px;
     resize: vertical;
