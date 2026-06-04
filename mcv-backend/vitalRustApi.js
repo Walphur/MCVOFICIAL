@@ -11,6 +11,7 @@ const {
     resolveTierScoreConfig,
     roundScore
 } = require("./vitalScoreTiers");
+const { syncPlaytimeFromChannel } = require("./playtimeSync");
 
 /**
  * serverId según orden en vitalrust.com/statistics (EU 10x = 1 confirmado en DevTools).
@@ -1654,7 +1655,131 @@ function aggregateOverview(players) {
     return sum;
 }
 
-function registerVitalRustApi(app, { getPool }) {
+function isComplianceReportPlayer(row) {
+    if (!row) return false;
+    if (String(row.statusTag || "") === "mcv_inactive") return false;
+    if (row.pausedOutsideWipe || normalizeWipePhase(row.wipePhase) === "no_juega") return false;
+    return true;
+}
+
+function complianceRowFromProfile(p) {
+    return {
+        steamId64: p.steamId64,
+        displayName: String(p.displayName || "").trim() || p.steamId64,
+        statusTag: p.statusTag,
+        wipePhase: normalizeWipePhase(p.wipePhase)
+    };
+}
+
+async function loadSteamDiscordLinksMap(pool, steamIds) {
+    const map = new Map();
+    const ids = [...new Set((steamIds || []).map((id) => normalizeSteamId64(id)).filter(Boolean))];
+    if (!pool || !ids.length) return map;
+    const r = await pool.query(
+        `SELECT steam_id64, discord_user_id, discord_username, persona_name
+         FROM wipe_list_members
+         WHERE steam_id64 = ANY($1::varchar[])
+           AND discord_user_id NOT LIKE 'wipehx:%'
+           AND discord_user_id NOT LIKE 'paste:%'
+           AND discord_user_id ~ '^[0-9]{16,20}$'`,
+        [ids]
+    );
+    for (const row of r.rows) {
+        const sid = normalizeSteamId64(row.steam_id64);
+        if (!sid) continue;
+        map.set(sid, {
+            discordUserId: String(row.discord_user_id || "").trim(),
+            discordUsername: String(row.discord_username || row.persona_name || "").trim()
+        });
+    }
+    return map;
+}
+
+async function buildComplianceReport(pool, options = {}) {
+    const ready = await ensurePlayerInfoTable(pool);
+    if (!ready) {
+        throw new Error("No se pudo preparar player_info_profiles");
+    }
+    const r = await pool.query(
+        `SELECT steam_id64, display_name, status_tag, wipe_phase, paused_outside_wipe, bm_url
+         FROM player_info_profiles
+         ORDER BY LOWER(COALESCE(display_name, steam_id64)), steam_id64`
+    );
+    const profiles = r.rows.map(normalizePlayerInfoRow).filter(Boolean);
+    const inScope = profiles.filter(isComplianceReportPlayer);
+    const linkMap = await loadSteamDiscordLinksMap(
+        pool,
+        inScope.map((p) => p.steamId64)
+    );
+
+    const noDiscordSteam = [];
+    const noWipePhase = [];
+    const noBattleMetrics = [];
+
+    for (const p of inScope) {
+        const base = complianceRowFromProfile(p);
+        if (!linkMap.has(p.steamId64)) {
+            noDiscordSteam.push({
+                ...base,
+                reason: "Sin vincular Discord con Steam (/mcv-wipe)"
+            });
+        }
+        if (normalizeWipePhase(p.wipePhase) === "unknown") {
+            noWipePhase.push({
+                ...base,
+                reason: "Fase wipe sin definir (—)"
+            });
+        }
+        if (!extractBattleMetricsId(p.bmUrl)) {
+            noBattleMetrics.push({
+                ...base,
+                reason: "Sin link BattleMetrics"
+            });
+        }
+    }
+
+    let discordHoursNoSteam = [];
+    let discordScan = { attempted: false, ok: false, error: null, scanned: 0 };
+    if (options.scanDiscord) {
+        discordScan.attempted = true;
+        const client = options.discordClient;
+        const channelId = String(options.playtimeChannelId || "").trim();
+        if (!client?.isReady?.()) {
+            discordScan.error = "Bot de Discord no conectado";
+        } else if (!channelId) {
+            discordScan.error = "Falta DISCORD_PLAYTIME_CHANNEL_ID";
+        } else {
+            try {
+                const result = await syncPlaytimeFromChannel(client, pool, channelId, {
+                    maxMessages: options.maxMessages || 400
+                });
+                discordScan.ok = true;
+                discordScan.scanned = result.scanned || 0;
+                discordHoursNoSteam = (result.unmatchedPlayers || []).map((u) => ({
+                    discordUserId: u.discordUserId,
+                    discordUsername: u.discordUsername || u.discordUserId,
+                    hours: u.hours,
+                    reason: "Posteó horas en Discord pero no tiene /mcv-wipe"
+                }));
+            } catch (e) {
+                discordScan.error = e.message || "Error leyendo canal de horas";
+            }
+        }
+    }
+
+    return {
+        generatedAt: new Date().toISOString(),
+        scopeCount: inScope.length,
+        totalProfiles: profiles.length,
+        noDiscordSteam,
+        noWipePhase,
+        noBattleMetrics,
+        discordHoursNoSteam,
+        discordScan
+    };
+}
+
+function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChannelId }) {
     app.get("/api/admin/vital/config", authAdmin, (req, res) => {
         const paths = apiPaths();
         const servers = parseServers();
@@ -2269,6 +2394,26 @@ function registerVitalRustApi(app, { getPool }) {
         } catch (e) {
             console.error("extra-points put:", e.message);
             return res.status(500).json({ error: e.message || "Error al guardar extras" });
+        }
+    });
+
+    app.get("/api/admin/vital/compliance-report", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        const scanDiscord =
+            String(req.query.scanDiscord || req.query.discord || "").trim() === "1" ||
+            String(req.query.scanDiscord || "").toLowerCase() === "true";
+        try {
+            const report = await buildComplianceReport(pool, {
+                scanDiscord,
+                discordClient: getDiscordClient?.(),
+                playtimeChannelId: getPlaytimeChannelId?.(),
+                maxMessages: Number(req.query.maxMessages) || 400
+            });
+            return res.json({ ok: true, report });
+        } catch (e) {
+            console.error("vital compliance-report:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo generar el reporte" });
         }
     });
 

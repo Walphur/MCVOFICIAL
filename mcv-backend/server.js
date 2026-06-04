@@ -190,7 +190,11 @@ registerTeamRosterApi(app, {
 
 registerTicketsApi(app, { getPool });
 
-registerVitalRustApi(app, { getPool });
+registerVitalRustApi(app, {
+    getPool,
+    getDiscordClient: () => discordClient,
+    getPlaytimeChannelId: () => DISCORD_PLAYTIME_CHANNEL_ID
+});
 
 registerYoutubeFeedApi(app);
 registerTiktokFeedApi(app);

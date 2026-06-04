@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=61">
+    <link rel="stylesheet" href="style-admin.css?v=62">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -324,6 +324,7 @@
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
                             <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" data-i18n="admin.vitalResetScoresAll">Reiniciar todos los puntos</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-reset-hours-all" data-i18n="admin.vitalResetHoursAll">Borrar todas las horas</button>
+                            <button type="button" class="btn-primary-small btn-sm" id="btn-vital-compliance-report" data-i18n="admin.vitalComplianceReport">Reporte pendientes</button>
                         </div>
                     </details>
                 </aside>
@@ -410,7 +411,7 @@
                                             <header class="vital-form-section__head"><h3 class="vital-form-section__title">Wipe</h3><p class="vital-form-section__hint">Participación en el wipe actual. El estado En wipe / Pausado está en la barra inferior.</p></header>
                                             <div class="vital-form-section__body vital-form-grid">
                                                 <label class="vital-field vital-field--wide"><span>Fase wipe</span><select id="vital-info-wipe-phase" class="admin-input">
-                                                    <option value="unknown">Sin definir</option>
+                                                    <option value="">—</option>
                                                     <option value="inicio">Inicio</option>
                                                     <option value="late">Late</option>
                                                     <option value="no_juega">No juega</option>
@@ -596,6 +597,21 @@
         </div>
     </main>
 
+    <dialog id="vital-compliance-dlg" class="admin-dialog vital-compliance-dlg">
+        <div class="admin-dialog-box vital-compliance-box">
+            <header class="vital-compliance-head">
+                <p class="vital-compliance-kicker">MCV OPS</p>
+                <h3 class="vital-compliance-title" id="vital-compliance-title">Pendientes del wipe</h3>
+                <p class="vital-compliance-sub" id="vital-compliance-sub"></p>
+            </header>
+            <div id="vital-compliance-body" class="vital-compliance-body" role="document"></div>
+            <div class="admin-dialog-actions vital-compliance-actions">
+                <button type="button" class="btn-outline" id="vital-compliance-copy">Copiar lista</button>
+                <button type="button" class="btn-primary-small" id="vital-compliance-close">Cerrar</button>
+            </div>
+        </div>
+    </dialog>
+
     <dialog id="vital-confirm-dlg" class="admin-dialog admin-confirm-dialog">
         <div class="admin-dialog-box">
             <div class="admin-confirm-dialog__icon" id="vital-confirm-icon" aria-hidden="true">?</div>
@@ -639,7 +655,7 @@
 
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
-<script src="mcv-i18n.js?v=62"></script>
+<script src="mcv-i18n.js?v=63"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js" crossorigin="anonymous"></script>
 <script src="mcv-vital-export.js?v=3"></script>
 <script>
@@ -2478,13 +2494,145 @@
     }
 
     function wipePhaseLabel(phase) {
+        var p = String(phase || '').trim();
+        if (!p || p === 'unknown') return '—';
         var m = {
             inicio: 'Inicio wipe',
             late: 'Late wipe',
-            no_juega: 'No juega',
-            unknown: 'Sin definir'
+            no_juega: 'No juega'
         };
-        return m[phase] || 'Sin definir';
+        return m[p] || '—';
+    }
+
+    function normalizeWipePhaseFormValue(phase) {
+        var p = String(phase || '').trim();
+        if (!p || p === 'unknown') return '';
+        return p;
+    }
+
+    function wipePhasePayloadValue(formVal) {
+        var v = String(formVal || '').trim();
+        return v || 'unknown';
+    }
+
+    var vitalComplianceLastReport = null;
+
+    function complianceListHtml(title, items, renderItem) {
+        if (!items || !items.length) {
+            return '<section class="vital-compliance-section is-ok">' +
+                '<h4>' + esc(title) + '</h4>' +
+                '<p class="vital-compliance-empty">Nadie pendiente ✓</p></section>';
+        }
+        return '<section class="vital-compliance-section">' +
+            '<h4>' + esc(title) + ' <span class="vital-compliance-count">' + items.length + '</span></h4>' +
+            '<ul class="vital-compliance-list">' +
+            items.map(renderItem).join('') +
+            '</ul></section>';
+    }
+
+    function renderVitalComplianceReport(report) {
+        var body = document.getElementById('vital-compliance-body');
+        var sub = document.getElementById('vital-compliance-sub');
+        if (!body || !report) return;
+        var parts = [];
+        if (sub) {
+            sub.textContent = 'Jugadores en wipe (no pausados): ' + String(report.scopeCount || 0) +
+                ' · Total fichas: ' + String(report.totalProfiles || 0);
+            if (report.discordScan && report.discordScan.attempted) {
+                if (report.discordScan.ok) {
+                    sub.textContent += ' · Canal Discord escaneado (' + String(report.discordScan.scanned || 0) + ' msgs)';
+                } else if (report.discordScan.error) {
+                    sub.textContent += ' · Discord: ' + report.discordScan.error;
+                }
+            }
+        }
+        parts.push(complianceListHtml(
+            'Discord sin Steam (/mcv-wipe)',
+            report.noDiscordSteam,
+            function (r) {
+                return '<li><strong>' + esc(r.displayName) + '</strong> <span class="vital-compliance-meta">' +
+                    esc(r.steamId64) + '</span></li>';
+            }
+        ));
+        parts.push(complianceListHtml(
+            'Horas en Discord sin vincular',
+            report.discordHoursNoSteam,
+            function (r) {
+                return '<li><strong>' + esc(r.discordUsername || r.discordUserId) + '</strong>' +
+                    (r.hours != null ? ' <span class="vital-compliance-meta">' + esc(String(r.hours)) + 'h</span>' : '') +
+                    '</li>';
+            }
+        ));
+        parts.push(complianceListHtml(
+            'Fase wipe sin definir (—)',
+            report.noWipePhase,
+            function (r) {
+                return '<li><strong>' + esc(r.displayName) + '</strong> <span class="vital-compliance-meta">' +
+                    esc(r.steamId64) + '</span></li>';
+            }
+        ));
+        parts.push(complianceListHtml(
+            'Sin BattleMetrics',
+            report.noBattleMetrics,
+            function (r) {
+                return '<li><strong>' + esc(r.displayName) + '</strong> <span class="vital-compliance-meta">' +
+                    esc(r.steamId64) + '</span></li>';
+            }
+        ));
+        body.innerHTML = parts.join('');
+    }
+
+    function complianceReportPlainText(report) {
+        if (!report) return '';
+        var lines = ['=== MCV — Pendientes del wipe ===', ''];
+        function block(title, items, fmt) {
+            lines.push(title + ' (' + (items ? items.length : 0) + ')');
+            if (!items || !items.length) {
+                lines.push('  (ninguno)');
+            } else {
+                items.forEach(function (r) { lines.push('  · ' + fmt(r)); });
+            }
+            lines.push('');
+        }
+        block('Discord sin Steam (/mcv-wipe)', report.noDiscordSteam, function (r) {
+            return (r.displayName || r.steamId64) + ' — ' + r.steamId64;
+        });
+        block('Horas en Discord sin vincular', report.discordHoursNoSteam, function (r) {
+            return (r.discordUsername || r.discordUserId) + (r.hours != null ? ' (' + r.hours + 'h)' : '');
+        });
+        block('Fase wipe sin definir (—)', report.noWipePhase, function (r) {
+            return (r.displayName || r.steamId64) + ' — ' + r.steamId64;
+        });
+        block('Sin BattleMetrics', report.noBattleMetrics, function (r) {
+            return (r.displayName || r.steamId64) + ' — ' + r.steamId64;
+        });
+        return lines.join('\n').trim();
+    }
+
+    function openVitalComplianceReport() {
+        var dlg = document.getElementById('vital-compliance-dlg');
+        var body = document.getElementById('vital-compliance-body');
+        if (!dlg || !body) return;
+        body.innerHTML = '<p class="empty-hint">Generando reporte…</p>';
+        dlg.showModal();
+        fetch(API + '/api/admin/vital/compliance-report?scanDiscord=1', {
+            headers: authHeaders(),
+            cache: 'no-store'
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'report');
+                vitalComplianceLastReport = x.d.report;
+                renderVitalComplianceReport(vitalComplianceLastReport);
+            })
+            .catch(function (e) {
+                body.innerHTML = '<p class="empty-hint">' + esc((e && e.message) ? e.message : 'Error') + '</p>';
+            });
+    }
+
+    function closeVitalComplianceReport() {
+        var dlg = document.getElementById('vital-compliance-dlg');
+        if (dlg && dlg.open) dlg.close();
     }
 
     function renderVitalQuickFilterCounts() {
@@ -3583,7 +3731,7 @@
             if (paused) {
                 wipeEl.value = 'no_juega';
             } else if (wipeEl.value === 'no_juega') {
-                wipeEl.value = 'unknown';
+                wipeEl.value = '';
             }
         }
         syncWipeSegmentUI();
@@ -3608,7 +3756,7 @@
             strikeNotes: (document.getElementById('vital-info-warning') || {}).value || '',
             entryDate: (document.getElementById('vital-info-entry') || {}).value || null,
             vouchBy: (document.getElementById('vital-info-vouch') || {}).value || '',
-            wipePhase: (document.getElementById('vital-info-wipe-phase') || {}).value || 'unknown',
+            wipePhase: wipePhasePayloadValue((document.getElementById('vital-info-wipe-phase') || {}).value),
             hoursPlayed: Number.isFinite(hoursPlayed) ? Math.max(0, Math.round(hoursPlayed)) : 0,
             combatsLost: Number((document.getElementById('vital-info-combats-lost') || {}).value || 0),
             minisLost: Number((document.getElementById('vital-info-minis-lost') || {}).value || 0),
@@ -3637,7 +3785,7 @@
         set('vital-info-strikes', p.strikes);
         set('vital-info-entry', p.entryDate ? String(p.entryDate).slice(0, 10) : '');
         set('vital-info-vouch', p.vouchBy);
-        set('vital-info-wipe-phase', p.wipePhase);
+        set('vital-info-wipe-phase', normalizeWipePhaseFormValue(p.wipePhase));
         set('vital-info-hours', p.hoursPlayed != null && p.hoursPlayed !== '' ? p.hoursPlayed : '');
         set('vital-info-combats-lost', p.combatsLost != null ? p.combatsLost : 0);
         set('vital-info-minis-lost', p.minisLost != null ? p.minisLost : 0);
@@ -4024,9 +4172,35 @@
         if (btnDashCopy) btnDashCopy.addEventListener('click', copyVitalDashboardSummary);
         if (btnSyncNames) btnSyncNames.addEventListener('click', function () { syncVitalDisplayNames().catch(function () {}); });
         if (btnSyncPlaytime) btnSyncPlaytime.addEventListener('click', function () { syncDiscordPlaytime().catch(function () {}); });
+        var btnComplianceReport = document.getElementById('btn-vital-compliance-report');
         var btnResetScoresAll = document.getElementById('btn-vital-reset-scores-all');
         var btnResetHoursAll = document.getElementById('btn-vital-reset-hours-all');
         var btnResetScorePlayer = document.getElementById('btn-vital-reset-score-player');
+        if (btnComplianceReport) btnComplianceReport.addEventListener('click', openVitalComplianceReport);
+        var complianceDlg = document.getElementById('vital-compliance-dlg');
+        var complianceClose = document.getElementById('vital-compliance-close');
+        var complianceCopy = document.getElementById('vital-compliance-copy');
+        if (complianceClose) complianceClose.addEventListener('click', closeVitalComplianceReport);
+        if (complianceDlg) {
+            complianceDlg.addEventListener('click', function (e) {
+                if (e.target === complianceDlg) closeVitalComplianceReport();
+            });
+        }
+        if (complianceCopy) {
+            complianceCopy.addEventListener('click', function () {
+                if (!vitalComplianceLastReport) return;
+                var text = complianceReportPlainText(vitalComplianceLastReport);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function () {
+                        banner('Lista copiada al portapapeles.', false);
+                    }).catch(function () {
+                        banner('No se pudo copiar.', true);
+                    });
+                } else {
+                    banner('Copiá manualmente desde el reporte.', true);
+                }
+            });
+        }
         if (btnResetScoresAll) btnResetScoresAll.addEventListener('click', function () { resetAllVitalScores().catch(function () {}); });
         if (btnResetHoursAll) btnResetHoursAll.addEventListener('click', function () { resetAllVitalHours().catch(function () {}); });
         if (btnResetScorePlayer) btnResetScorePlayer.addEventListener('click', function () { resetVitalScoreForPlayer().catch(function () {}); });
@@ -4086,7 +4260,7 @@
                 if (wipePhaseEl.value === 'no_juega') {
                     confirmWipeParticipationChange(true).then(function (ok) {
                         if (!ok) {
-                            wipePhaseEl.value = isVitalPaused() ? 'no_juega' : 'unknown';
+                            wipePhaseEl.value = isVitalPaused() ? 'no_juega' : '';
                             return;
                         }
                         setWipeParticipationState(true);
