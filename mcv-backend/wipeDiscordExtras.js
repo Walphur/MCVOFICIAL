@@ -2,11 +2,13 @@
 
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const { loadWipeHoursReport, loadPlayerStatsForDiscord, displayName } = require("./wipeReport");
+const { fetchTierScoresPayload } = require("./vitalRustApi");
+const { buildYoDetailEmbeds, loadPlayerYoDetail } = require("./discordPlayerYo");
 
 function buildMcYoSlashCommand() {
     return new SlashCommandBuilder()
         .setName("mcv-yo")
-        .setDescription("Tu Steam vinculado, horas del wipe y puntos del panel admin")
+        .setDescription("Tu Steam, horas, puntos y desglose detallado (stats + extras)")
         .toJSON();
 }
 
@@ -25,35 +27,9 @@ function buildMcTopSlashCommand() {
         .toJSON();
 }
 
+/** @deprecated Usar buildYoDetailEmbeds — se mantiene para tests legacy */
 function buildYoEmbed(stats) {
-    if (!stats) {
-        return new EmbedBuilder()
-            .setColor(0xed4245)
-            .setTitle("📋 Tu wipe MCV")
-            .setDescription(
-                "Todavía no vinculaste Steam.\n\n" +
-                    "1. Usá **`/mcv-wipe`** con tu SteamID64 (17 dígitos)\n" +
-                    "2. Después **`/mcv-horas`** o posteá tus horas en #playtime (`31h`)"
-            );
-    }
-    const name = displayName(stats);
-    const hasHours = stats.hoursPlayed != null && stats.hoursPlayed > 0;
-    const hoursText = hasHours ? `**${stats.hoursPlayed}h**` : "_sin cargar_";
-    const pts = stats.performanceScore ?? 0;
-    const checks = [
-        "✅ Steam vinculado",
-        hasHours ? "✅ Horas del wipe cargadas" : "⚠️ Falta cargar horas (`/mcv-horas` o #playtime)"
-    ].join("\n");
-
-    return new EmbedBuilder()
-        .setColor(hasHours ? 0x57f287 : 0xfaa61a)
-        .setTitle(`📋 ${name}`)
-        .setDescription(
-            `**Steam:** \`${stats.steamId64}\`\n` +
-                `**Horas wipe:** ${hoursText}\n` +
-                `**Puntos wipe:** **${pts} pts** _(suma del scoring en admin: Vital, farm, combate, etc.)_\n\n` +
-                checks
-        );
+    return buildYoDetailEmbeds(stats, null)[0];
 }
 
 function buildTopEmbed(rows, limit) {
@@ -186,11 +162,12 @@ function attachWipeYoTopDiscord(client, { getPool }) {
         if (cmd === "mcv-yo") {
             await interaction.deferReply({ ephemeral: true });
             try {
-                const stats = await loadPlayerStatsForDiscord(pool, interaction.user.id);
-                await interaction.editReply({ embeds: [buildYoEmbed(stats)] });
+                const yo = await loadPlayerYoDetail(getPool, fetchTierScoresPayload, interaction.user.id);
+                const embeds = buildYoDetailEmbeds(yo.stats, yo.detail);
+                await interaction.editReply({ embeds });
             } catch (e) {
                 console.error("mcv-yo:", e.message);
-                await interaction.editReply({ content: "No se pudo cargar tu info. Probá de nuevo." });
+                await interaction.editReply({ content: "No se pudo cargar tu info. Probá de nuevo en unos segundos." });
             }
             return;
         }

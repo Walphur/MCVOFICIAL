@@ -1779,6 +1779,111 @@ async function buildComplianceReport(pool, options = {}) {
     };
 }
 
+async function resolveCurrentWipeId(paths, serverId) {
+    if (!paths.wipesCurrent) {
+        return null;
+    }
+    try {
+        const curUrl = fillTemplate(paths.wipesCurrent, buildVars(serverId, "null", 0, 1));
+        const { data } = await fetchUpstream(curUrl);
+        return String(data?.data?.id || "").trim() || null;
+    } catch (e) {
+        console.warn("resolveCurrentWipeId:", e.message);
+        return null;
+    }
+}
+
+async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, at } = {}) {
+    if (!vitalEnabled()) {
+        throw new Error("Vital API deshabilitada");
+    }
+    const server = resolveServer(serverKey);
+    if (!server?.configured) {
+        throw new Error("Servidor Vital inválido o sin serverId");
+    }
+    const scoredAt = at instanceof Date && !Number.isNaN(at.getTime()) ? at : new Date();
+    const resolved = resolveTierScoreConfig({ serverKey: server.key, at: scoredAt });
+    const paths = apiPaths();
+    if (!paths.playersOverviewPost) {
+        throw new Error("Sin VITAL_API_PLAYERS_OVERVIEW_POST");
+    }
+    let wipeId = String(wipeIdRaw || "").trim();
+    if (!wipeId || wipeId === "current") {
+        wipeId = (await resolveCurrentWipeId(paths, server.serverId)) || "null";
+    }
+    const roster = await loadClanSteamIds(getPool);
+    const clanIds = roster.ids;
+    if (!clanIds.length) {
+        return {
+            server,
+            wipeId,
+            rosterSize: 0,
+            vitalMatched: 0,
+            notFound: [],
+            tierResult: computeTierScoresForRoster({ serverKey: server.key, players: [], at: scoredAt })
+        };
+    }
+    if (refresh) {
+        for (const k of [...cache.keys()]) {
+            if (k.startsWith("POST ")) {
+                cache.delete(k);
+            }
+        }
+    }
+    const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
+    const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
+    const notFound = clanIds.filter((id) => !bySteam.has(id));
+
+    const pool = getPool();
+    if (!pool) {
+        throw new Error("Base de datos no configurada");
+    }
+    await ensurePlayerInfoTable(pool);
+    const profilesRes = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = ANY($1::varchar[])`, [
+        clanIds
+    ]);
+    const profileMap = new Map(
+        profilesRes.rows
+            .map((r) => normalizePlayerInfoRow(r))
+            .filter(Boolean)
+            .map((p) => [p.steamId64, p])
+    );
+    const extraMap = await loadExtraPointKeysMap(pool, [...profileMap.keys()]);
+
+    const playersForScoring = [...profileMap.keys()].map((sid) => {
+        const profile = profileMap.get(sid);
+        const vital = bySteam.get(sid) || {};
+        const extraKeys = extraMap.get(sid) || profile.extraKeys || [];
+        return {
+            steamId64: sid,
+            name: profile.displayName || vital.name || "",
+            vital,
+            profile,
+            extraKeys
+        };
+    });
+
+    const tierResult = computeTierScoresForRoster({ serverKey: server.key, players: playersForScoring, at: scoredAt });
+
+    return {
+        server,
+        wipeId,
+        rosterSize: clanIds.length,
+        vitalMatched: matched.length,
+        scoredPlayers: playersForScoring.length,
+        notFound,
+        tierResult,
+        resolved: {
+            serverKey: resolved.serverKey,
+            configKey: resolved.configKey,
+            configLabel: resolved.config.label,
+            period: resolved.period,
+            periodLabel: resolved.label
+        },
+        vitalCache: buildVitalCacheMeta()
+    };
+}
+
 function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChannelId }) {
     app.get("/api/admin/vital/config", authAdmin, (req, res) => {
         const paths = apiPaths();
@@ -2828,118 +2933,13 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         }
     }
 
-    async function resolveCurrentWipeId(paths, serverId) {
-        if (!paths.wipesCurrent) {
-            return null;
-        }
-        try {
-            const curUrl = fillTemplate(paths.wipesCurrent, buildVars(serverId, "null", 0, 1));
-            const { data } = await fetchUpstream(curUrl);
-            return String(data?.data?.id || "").trim() || null;
-        } catch (e) {
-            console.warn("resolveCurrentWipeId:", e.message);
-            return null;
-        }
-    }
-
-    async function fetchTierScoresPayload({ serverKey, wipeIdRaw, refresh, at }) {
-        if (!vitalEnabled()) {
-            throw new Error("Vital API deshabilitada");
-        }
-        const server = resolveServer(serverKey);
-        if (!server?.configured) {
-            throw new Error("Servidor Vital inválido o sin serverId");
-        }
-        const scoredAt = at instanceof Date && !Number.isNaN(at.getTime()) ? at : new Date();
-        const resolved = resolveTierScoreConfig({ serverKey: server.key, at: scoredAt });
-        const paths = apiPaths();
-        if (!paths.playersOverviewPost) {
-            throw new Error("Sin VITAL_API_PLAYERS_OVERVIEW_POST");
-        }
-        let wipeId = String(wipeIdRaw || "").trim();
-        if (!wipeId || wipeId === "current") {
-            wipeId = (await resolveCurrentWipeId(paths, server.serverId)) || "null";
-        }
-        const roster = await loadClanSteamIds(getPool);
-        const clanIds = roster.ids;
-        if (!clanIds.length) {
-            return {
-                server,
-                wipeId,
-                rosterSize: 0,
-                vitalMatched: 0,
-                notFound: [],
-                tierResult: computeTierScoresForRoster({ serverKey: server.key, players: [], at: scoredAt })
-            };
-        }
-        if (refresh) {
-            for (const k of [...cache.keys()]) {
-                if (k.startsWith("POST ")) {
-                    cache.delete(k);
-                }
-            }
-        }
-        const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
-        const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
-        const notFound = clanIds.filter((id) => !bySteam.has(id));
-
-        const pool = getPool();
-        if (!pool) {
-            throw new Error("Base de datos no configurada");
-        }
-        await ensurePlayerInfoTable(pool);
-        const profilesRes = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = ANY($1::varchar[])`, [
-            clanIds
-        ]);
-        const profileMap = new Map(
-            profilesRes.rows
-                .map((r) => normalizePlayerInfoRow(r))
-                .filter(Boolean)
-                .map((p) => [p.steamId64, p])
-        );
-        const extraMap = await loadExtraPointKeysMap(pool, [...profileMap.keys()]);
-
-        const playersForScoring = [...profileMap.keys()].map((sid) => {
-            const profile = profileMap.get(sid);
-            const vital = bySteam.get(sid) || {};
-            const extraKeys = extraMap.get(sid) || profile.extraKeys || [];
-            return {
-                steamId64: sid,
-                name: profile.displayName || vital.name || "",
-                vital,
-                profile,
-                extraKeys
-            };
-        });
-
-        const tierResult = computeTierScoresForRoster({ serverKey: server.key, players: playersForScoring, at: scoredAt });
-
-        return {
-            server,
-            wipeId,
-            rosterSize: clanIds.length,
-            vitalMatched: matched.length,
-            scoredPlayers: playersForScoring.length,
-            notFound,
-            tierResult,
-            resolved: {
-                serverKey: resolved.serverKey,
-                configKey: resolved.configKey,
-                configLabel: resolved.config.label,
-                period: resolved.period,
-                periodLabel: resolved.label
-            },
-            vitalCache: buildVitalCacheMeta()
-        };
-    }
-
     app.post("/api/admin/vital/tier-scores/preview", authAdmin, async (req, res) => {
         const body = req.body && typeof req.body === "object" ? req.body : {};
         const serverKey = String(req.query.server || body.server || DEFAULT_SERVER_KEY).trim();
         const wipeIdRaw = String(req.query.wipeId || body.wipeId || "current").trim();
         const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
         try {
-            const payload = await fetchTierScoresPayload({ serverKey, wipeIdRaw, refresh });
+            const payload = await fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh });
             return res.json({ ok: true, preview: true, ...payload });
         } catch (e) {
             console.error("vital tier preview:", e.message);
@@ -2957,7 +2957,7 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         const wipeIdRaw = String(req.query.wipeId || body.wipeId || "current").trim();
         const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
         try {
-            const payload = await fetchTierScoresPayload({ serverKey, wipeIdRaw, refresh });
+            const payload = await fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh });
             const applyResult = await applyTierScoreResults(pool, payload.tierResult, {
                 serverLabel: payload.tierResult.serverLabel
             });
@@ -3371,5 +3371,6 @@ module.exports = {
     normalizePlayerStatCount,
     resolvePlayerInfoHoursInput,
     buildVitalCacheMeta,
-    buildingTotalFromVital
+    buildingTotalFromVital,
+    fetchTierScoresPayload
 };
