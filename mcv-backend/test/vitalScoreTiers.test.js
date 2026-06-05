@@ -92,6 +92,15 @@ test("wipe_guest sin fase inicio/late no recibe puntos", () => {
     assert.equal(result.players[0].skipped, true);
 });
 
+test("building Monthly no resta puntos por debajo de 6k", () => {
+    const cfg = getTierScoreConfig("eu-monthly");
+    const buildingTiers = cfg.categories.building.tiers;
+    assert.equal(scoreFromTiers(0, buildingTiers), 0);
+    assert.equal(scoreFromTiers(2201, buildingTiers), 0);
+    assert.equal(scoreFromTiers(5999, buildingTiers), 0);
+    assert.equal(scoreFromTiers(15000, buildingTiers), 1);
+});
+
 test("building viene de Vital (suma buildings + deployables)", () => {
     const result = computeTierScoresForRoster({
         serverKey: "eu-medium",

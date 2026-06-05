@@ -53,8 +53,8 @@ function buildBuildingMediumTiers() {
 function buildBuildingMonthlyTiers() {
     return [
         { points: 0, min: 0 },
-        { points: -2, min: 1500 },
-        { points: -1, min: 3000 },
+        { points: 0, min: 1500 },
+        { points: 0, min: 3000 },
         { points: 0, min: 6000 },
         { points: 1, min: 15000 },
         { points: 5, min: Infinity }
