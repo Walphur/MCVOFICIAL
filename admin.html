@@ -3357,6 +3357,7 @@
                 row.tierBreakdown = p.breakdown;
                 row.tierValues = p.values;
                 row.tierSkipped = !!p.skipped;
+                if (Array.isArray(p.extraKeys)) row.extraKeys = p.extraKeys.slice();
             }
         });
     }
@@ -3432,6 +3433,8 @@
                 var row = findVitalRow(sid);
                 if (row) row.extraKeys = vitalSelectedExtraKeys.slice();
                 setVitalExtraPointsStatus('Extras guardados', false);
+                renderVitalTierPlayerBreakdown(sid);
+                renderVitalExtraPointToggles();
                 if (opts.recalc !== false) {
                     return syncVitalTierFromVital({ apply: true, quiet: true });
                 }
@@ -3451,6 +3454,7 @@
             vitalSelectedExtraKeys.push(key);
         }
         renderVitalExtraPointToggles();
+        renderVitalTierPlayerBreakdown(vitalSelectedSteam);
         clearTimeout(vitalExtraSaveTimer);
         vitalExtraSaveTimer = setTimeout(function () {
             saveVitalExtraPoints({ recalc: true }).catch(function () {});
@@ -3463,6 +3467,47 @@
             el.textContent = msg || '';
             el.classList.toggle('is-error', !!isError);
         }
+    }
+
+    function buildVitalExtraStatCard(label, pts) {
+        var iconCls = vitalStatIconClass(pts, false);
+        var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
+        return '<article class="vital-perf-stat-card vital-perf-stat-card--extra">' +
+            '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+            '<div class="vital-perf-stat-card__main">' +
+            '<h5 class="vital-perf-stat-card__title">' + esc(label) + '</h5>' +
+            '<span class="vital-perf-stat-card__progress">Extra manual</span>' +
+            '</div>' +
+            '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
+            '</article>';
+    }
+
+    function buildVitalExtraCardsHtml(tier) {
+        var seen = {};
+        var html = '';
+        (tier.breakdown || []).forEach(function (b) {
+            if (String(b.id || '').indexOf('extra_') !== 0) return;
+            var pts = Number(b.points || 0);
+            if (!pts) return;
+            var key = String(b.id).slice(6);
+            seen[key] = true;
+            html += buildVitalExtraStatCard(b.label, pts);
+        });
+        vitalSelectedExtraKeys.forEach(function (key) {
+            if (seen[key]) return;
+            var item = null;
+            for (var i = 0; i < vitalExtraCatalog.length; i++) {
+                if (vitalExtraCatalog[i].key === key) {
+                    item = vitalExtraCatalog[i];
+                    break;
+                }
+            }
+            if (!item) return;
+            var ptsPending = Number(item.points || 0);
+            if (!ptsPending) return;
+            html += buildVitalExtraStatCard('Extra: ' + item.label, ptsPending);
+        });
+        return html;
     }
 
     function renderVitalTierPlayerBreakdown(steamId) {
@@ -3479,13 +3524,17 @@
             box.innerHTML = '<p class="vital-breakdown-skipped">Este jugador está pausado / no juega el wipe: no se suman ni restan puntos automáticos.</p>';
             return;
         }
-        if (!tier.breakdown || !tier.breakdown.length) {
+        var hasStats = tier.breakdown && tier.breakdown.some(function (b) {
+            return String(b.id || '').indexOf('extra_') !== 0;
+        });
+        var hasExtras = buildVitalExtraCardsHtml(tier);
+        if (!hasStats && !hasExtras) {
             box.innerHTML = '<p class="empty-hint">Sin stats Vital para este jugador. Usá Recalcular en la barra lateral.</p>';
             return;
         }
 
         ensureVitalTierConfigCache(vitalTierServerKey()).finally(function () {
-            var statCards = tier.breakdown.filter(function (b) {
+            var statCards = (tier.breakdown || []).filter(function (b) {
                 return String(b.id || '').indexOf('extra_') !== 0;
             }).map(function (b) {
                 var statId = b.id;
@@ -3516,21 +3565,7 @@
                     '</article>';
             }).join('');
 
-            var extraCards = tier.breakdown.filter(function (b) {
-                return String(b.id || '').indexOf('extra_') === 0 && Number(b.points) !== 0;
-            }).map(function (b) {
-                var pts = Number(b.points || 0);
-                var iconCls = vitalStatIconClass(pts, false);
-                var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
-                return '<article class="vital-perf-stat-card vital-perf-stat-card--extra">' +
-                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
-                    '<div class="vital-perf-stat-card__main">' +
-                    '<h5 class="vital-perf-stat-card__title">' + esc(b.label) + '</h5>' +
-                    '<span class="vital-perf-stat-card__progress">Extra manual</span>' +
-                    '</div>' +
-                    '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
-                    '</article>';
-            }).join('');
+            var extraCards = buildVitalExtraCardsHtml(tier);
 
             box.innerHTML = statCards + extraCards;
             renderVitalPlayerSummary();

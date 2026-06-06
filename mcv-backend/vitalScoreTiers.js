@@ -73,6 +73,7 @@ const EXTRA_POINT_CATALOG = [
     { key: "outpost_trade", label: "OUTPOST+TRADE", points: 2 },
     { key: "autocrafter", label: "AUTOCRAFTER", points: 3 },
     { key: "huerto", label: "HUERTERO", points: 6 },
+    { key: "horse", label: "HORSE", points: 6 },
     { key: "crafter", label: "CRAFTER", points: 4 },
     { key: "turret", label: "TURRET", points: 4 },
     { key: "vending", label: "VENDING", points: 4 },

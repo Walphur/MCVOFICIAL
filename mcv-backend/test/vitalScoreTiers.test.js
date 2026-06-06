@@ -60,6 +60,12 @@ test("computeManualExtraPoints suma extras marcados por admin", () => {
     assert.ok(extra.hits.some((h) => h.label === "OPEN CORE"));
 });
 
+test("computeManualExtraPoints incluye horse +6", () => {
+    const extra = computeManualExtraPoints(["horse", "locker"]);
+    assert.equal(extra.total, 8);
+    assert.ok(extra.hits.some((h) => h.key === "horse" && h.points === 6));
+});
+
 test("jugador no_juega no recibe puntos", () => {
     const result = computeTierScoresForRoster({
         serverKey: "eu-medium",
