@@ -78,8 +78,8 @@ const EXTRA_POINT_CATALOG = [
     { key: "turret", label: "TURRET", points: 4 },
     { key: "vending", label: "VENDING", points: 4 },
     { key: "chupona", label: "CHUPONA", points: 2 },
-    { key: "romper_mini", label: "ROMPER MINI", points: -0.25 },
-    { key: "romper_combat", label: "ROMPER COMBAT", points: -0.5 },
+    { key: "romper_mini", label: "ROMPER MINI", points: -0.25, stackable: true },
+    { key: "romper_combat", label: "ROMPER COMBAT", points: -0.5, stackable: true },
     { key: "volar_viajes", label: "VOLAR+VIAJES", points: 4 },
     { key: "leeeech", label: "LEEEEECH", points: -3 }
 ];
@@ -216,7 +216,59 @@ function listTierScoreConfigs() {
 }
 
 function listExtraPointCatalog() {
-    return EXTRA_POINT_CATALOG.filter((e) => e.key !== "nothing");
+    return EXTRA_POINT_CATALOG.filter((e) => e.key !== "nothing").map((e) => ({
+        key: e.key,
+        label: e.label,
+        points: e.points,
+        stackable: Boolean(e.stackable)
+    }));
+}
+
+function isStackableExtraKey(key) {
+    const item = EXTRA_BY_KEY[String(key || "").trim()];
+    return Boolean(item?.stackable);
+}
+
+function normalizeExtraCounts(extraKeys, extraCounts) {
+    const counts = {};
+    if (extraCounts && typeof extraCounts === "object" && !Array.isArray(extraCounts)) {
+        for (const [rawKey, rawQty] of Object.entries(extraCounts)) {
+            const key = String(rawKey || "").trim();
+            const item = EXTRA_BY_KEY[key];
+            if (!item) {
+                continue;
+            }
+            const qty = Math.max(0, Math.min(99, Math.floor(Number(rawQty) || 0)));
+            if (qty > 0) {
+                counts[key] = qty;
+            }
+        }
+    }
+    const keys = Array.isArray(extraKeys) ? extraKeys : [];
+    for (const raw of keys) {
+        const key = String(raw || "").trim();
+        const item = EXTRA_BY_KEY[key];
+        if (!item) {
+            continue;
+        }
+        if (isStackableExtraKey(key)) {
+            counts[key] = (counts[key] || 0) + 1;
+        } else if (!counts[key]) {
+            counts[key] = 1;
+        }
+    }
+    return counts;
+}
+
+function expandExtraKeysFromCounts(extraCounts) {
+    const counts = normalizeExtraCounts([], extraCounts);
+    const keys = [];
+    for (const [key, qty] of Object.entries(counts)) {
+        for (let i = 0; i < qty; i += 1) {
+            keys.push(key);
+        }
+    }
+    return keys;
 }
 
 function num(raw) {
@@ -295,20 +347,21 @@ function scoreCategory(catKey, cat, value, steamId64, leaders) {
     return base;
 }
 
-function computeManualExtraPoints(extraKeys) {
-    const keys = Array.isArray(extraKeys) ? extraKeys : [];
+function computeManualExtraPoints(extraKeys, extraCounts) {
+    const counts = normalizeExtraCounts(extraKeys, extraCounts);
     const hits = [];
     let total = 0;
-    for (const raw of keys) {
-        const key = String(raw || "").trim();
+    for (const [key, qty] of Object.entries(counts)) {
         const item = EXTRA_BY_KEY[key];
         if (!item || item.points === 0) {
             continue;
         }
-        hits.push({ key: item.key, label: item.label, points: item.points });
-        total += item.points;
+        const pts = roundScore(item.points * qty);
+        const label = qty > 1 ? `${item.label} ×${qty}` : item.label;
+        hits.push({ key: item.key, label, points: pts, qty });
+        total += pts;
     }
-    return { total: roundScore(total), hits };
+    return { total: roundScore(total), hits, counts };
 }
 
 function extractPlayerValues(vitalPlayer, profile) {
@@ -366,6 +419,7 @@ function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
                 name: String(p.name || p.displayName || profile?.displayName || "").trim(),
                 values: extractPlayerValues(p.vital || p, profile),
                 extraKeys: p.extraKeys || profile?.extraKeys || [],
+                extraCounts: p.extraCounts || profile?.extraCounts || {},
                 participatesWipe: participates
             };
         })
@@ -386,7 +440,8 @@ function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
                 skipReason: "no_juega_wipe",
                 breakdown: [],
                 values: entry.values,
-                extraKeys: entry.extraKeys
+                extraKeys: entry.extraKeys,
+                extraCounts: entry.extraCounts
             };
         }
 
@@ -399,12 +454,12 @@ function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
             breakdown.push({ id: catKey, label: cat.label, raw, points: pts, isLeader });
             statTotal += pts;
         }
-        const extra = computeManualExtraPoints(entry.extraKeys);
+        const extra = computeManualExtraPoints(entry.extraKeys, entry.extraCounts);
         for (const hit of extra.hits) {
             breakdown.push({
                 id: "extra_" + hit.key,
                 label: "Extra: " + hit.label,
-                raw: null,
+                raw: hit.qty > 1 ? hit.qty : null,
                 points: hit.points,
                 isLeader: false
             });
@@ -419,7 +474,8 @@ function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
             skipped: false,
             breakdown,
             values: entry.values,
-            extraKeys: entry.extraKeys
+            extraKeys: entry.extraKeys,
+            extraCounts: extra.counts
         };
     });
 
@@ -447,6 +503,9 @@ module.exports = {
     EXTRA_BY_KEY,
     computeTierScoresForRoster,
     computeManualExtraPoints,
+    normalizeExtraCounts,
+    expandExtraKeysFromCounts,
+    isStackableExtraKey,
     scoreFromTiers,
     buildRosterLeaders,
     extractPlayerValues,

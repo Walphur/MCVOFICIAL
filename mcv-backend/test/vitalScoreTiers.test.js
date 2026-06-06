@@ -66,6 +66,36 @@ test("computeManualExtraPoints incluye horse +6", () => {
     assert.ok(extra.hits.some((h) => h.key === "horse" && h.points === 6));
 });
 
+test("computeManualExtraPoints acumula romper mini y combat en el mismo wipe", () => {
+    const extra = computeManualExtraPoints([], { romper_mini: 4, romper_combat: 2 });
+    assert.equal(extra.total, -2);
+    const mini = extra.hits.find((h) => h.key === "romper_mini");
+    const combat = extra.hits.find((h) => h.key === "romper_combat");
+    assert.equal(mini.points, -1);
+    assert.equal(mini.qty, 4);
+    assert.equal(combat.points, -1);
+    assert.equal(combat.qty, 2);
+});
+
+test("computeTierScoresForRoster suma romper mini repetido", () => {
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-medium",
+        players: [
+            {
+                steamId64: "76561198000000009",
+                vital: { killsT30: 0, kdr: 0, farmWood: 0, farmMetal: 0, farmSulfur: 0, scrapLooted: 0, building: 0 },
+                profile: { statusTag: "mcv_active", hoursPlayed: 40 },
+                extraCounts: { romper_mini: 3 }
+            }
+        ]
+    });
+    const p = result.players[0];
+    assert.equal(p.extraTotal, -0.75);
+    const mini = p.breakdown.find((b) => b.id === "extra_romper_mini");
+    assert.equal(mini.points, -0.75);
+    assert.equal(mini.label, "Extra: ROMPER MINI ×3");
+});
+
 test("jugador no_juega no recibe puntos", () => {
     const result = computeTierScoresForRoster({
         serverKey: "eu-medium",

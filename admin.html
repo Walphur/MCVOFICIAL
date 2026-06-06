@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=63">
+    <link rel="stylesheet" href="style-admin.css?v=64">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -2098,6 +2098,7 @@
     var VITAL_TIER_WIPE_LS = 'mcv_vital_tier_wipe_v1';
     var vitalExtraCatalog = [];
     var vitalSelectedExtraKeys = [];
+    var vitalSelectedExtraCounts = {};
     var vitalScoreEvents = [];
     var vitalExtraSaveTimer = null;
     var vitalTierConfigCache = {};
@@ -3363,6 +3364,7 @@
                 row.tierValues = p.values;
                 row.tierSkipped = !!p.skipped;
                 if (Array.isArray(p.extraKeys)) row.extraKeys = p.extraKeys.slice();
+                if (p.extraCounts) row.extraCounts = Object.assign({}, p.extraCounts);
             }
         });
     }
@@ -3385,8 +3387,40 @@
             });
     }
 
-    function setVitalSelectedExtraKeys(keys) {
-        vitalSelectedExtraKeys = (keys || []).map(function (k) { return String(k || '').trim(); }).filter(Boolean);
+    function syncVitalSelectedExtraKeysFromCounts() {
+        vitalSelectedExtraKeys = [];
+        Object.keys(vitalSelectedExtraCounts).forEach(function (key) {
+            var qty = Number(vitalSelectedExtraCounts[key] || 0);
+            for (var i = 0; i < qty; i++) vitalSelectedExtraKeys.push(key);
+        });
+    }
+
+    function setVitalSelectedExtraKeys(keys, counts) {
+        vitalSelectedExtraCounts = {};
+        if (counts && typeof counts === 'object' && !Array.isArray(counts)) {
+            Object.keys(counts).forEach(function (key) {
+                var qty = Math.max(0, Math.min(99, Math.floor(Number(counts[key]) || 0)));
+                if (qty > 0) vitalSelectedExtraCounts[key] = qty;
+            });
+        } else {
+            (keys || []).forEach(function (k) {
+                var key = String(k || '').trim();
+                if (!key) return;
+                var item = null;
+                for (var i = 0; i < vitalExtraCatalog.length; i++) {
+                    if (vitalExtraCatalog[i].key === key) {
+                        item = vitalExtraCatalog[i];
+                        break;
+                    }
+                }
+                if (item && item.stackable) {
+                    vitalSelectedExtraCounts[key] = (vitalSelectedExtraCounts[key] || 0) + 1;
+                } else if (!vitalSelectedExtraCounts[key]) {
+                    vitalSelectedExtraCounts[key] = 1;
+                }
+            });
+        }
+        syncVitalSelectedExtraKeysFromCounts();
         renderVitalExtraPointToggles();
     }
 
@@ -3402,11 +3436,29 @@
             return;
         }
         box.innerHTML = vitalExtraCatalog.map(function (item) {
-            var on = vitalSelectedExtraKeys.indexOf(item.key) >= 0;
             var pts = Number(item.points || 0);
-            var cls = 'vital-extra-toggle' + (on ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
             var sign = pts > 0 ? '+' : '';
-            return '<button type="button" class="' + cls + '" data-extra-key="' + escAttr(item.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+            if (item.stackable) {
+                var count = Number(vitalSelectedExtraCounts[item.key] || 0);
+                var totalPts = pts * count;
+                var totalSign = totalPts > 0 ? '+' : '';
+                var cls = 'vital-extra-stack' + (count > 0 ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
+                return '<div class="' + cls + '" data-extra-stack="' + escAttr(item.key) + '">' +
+                    '<div class="vital-extra-stack__controls">' +
+                    '<button type="button" class="vital-extra-stack__btn" data-extra-dec="' + escAttr(item.key) + '" aria-label="Restar ' + escAttr(item.label) + '"' + (count <= 0 ? ' disabled' : '') + '>−</button>' +
+                    '<span class="vital-extra-stack__count" aria-live="polite">' + esc(String(count)) + '</span>' +
+                    '<button type="button" class="vital-extra-stack__btn" data-extra-inc="' + escAttr(item.key) + '" aria-label="Sumar ' + escAttr(item.label) + '"' + (count >= 99 ? ' disabled' : '') + '>+</button>' +
+                    '</div>' +
+                    '<div class="vital-extra-stack__meta">' +
+                    '<span class="vital-extra-stack__label">' + esc(item.label) + '</span>' +
+                    '<span class="vital-extra-stack__pts">' + esc(sign + String(pts)) + ' c/u' +
+                    (count > 0 ? ' · ' + esc(totalSign + String(totalPts)) : '') +
+                    '</span>' +
+                    '</div></div>';
+            }
+            var on = Number(vitalSelectedExtraCounts[item.key] || 0) > 0;
+            var clsToggle = 'vital-extra-toggle' + (on ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
+            return '<button type="button" class="' + clsToggle + '" data-extra-key="' + escAttr(item.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
                 '<span class="vital-extra-toggle__label">' + esc(item.label) + '</span>' +
                 '<span class="vital-extra-toggle__pts">' + esc(sign + String(pts)) + '</span>' +
                 '</button>';
@@ -3429,14 +3481,17 @@
         return fetch(API + '/api/admin/vital/player-info/' + encodeURIComponent(sid) + '/extra-points', {
             method: 'PUT',
             headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
-            body: JSON.stringify({ extraKeys: vitalSelectedExtraKeys.slice() })
+            body: JSON.stringify({ extraCounts: Object.assign({}, vitalSelectedExtraCounts) })
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'save extras');
-                vitalSelectedExtraKeys = x.d.extraKeys || vitalSelectedExtraKeys;
+                setVitalSelectedExtraKeys(x.d.extraKeys || [], x.d.extraCounts || null);
                 var row = findVitalRow(sid);
-                if (row) row.extraKeys = vitalSelectedExtraKeys.slice();
+                if (row) {
+                    row.extraCounts = Object.assign({}, vitalSelectedExtraCounts);
+                    row.extraKeys = vitalSelectedExtraKeys.slice();
+                }
                 setVitalExtraPointsStatus('Extras guardados', false);
                 renderVitalTierPlayerBreakdown(sid);
                 renderVitalExtraPointToggles();
@@ -3449,15 +3504,28 @@
             });
     }
 
+    function adjustVitalExtraCount(key, delta) {
+        key = String(key || '').trim();
+        if (!key || !delta) return;
+        var cur = Number(vitalSelectedExtraCounts[key] || 0);
+        var next = Math.max(0, Math.min(99, cur + delta));
+        if (next <= 0) delete vitalSelectedExtraCounts[key];
+        else vitalSelectedExtraCounts[key] = next;
+        syncVitalSelectedExtraKeysFromCounts();
+        renderVitalExtraPointToggles();
+        renderVitalTierPlayerBreakdown(vitalSelectedSteam);
+        clearTimeout(vitalExtraSaveTimer);
+        vitalExtraSaveTimer = setTimeout(function () {
+            saveVitalExtraPoints({ recalc: true }).catch(function () {});
+        }, 350);
+    }
+
     function toggleVitalExtraPoint(key) {
         key = String(key || '').trim();
         if (!key) return;
-        var idx = vitalSelectedExtraKeys.indexOf(key);
-        if (idx >= 0) {
-            vitalSelectedExtraKeys.splice(idx, 1);
-        } else {
-            vitalSelectedExtraKeys.push(key);
-        }
+        if (Number(vitalSelectedExtraCounts[key] || 0) > 0) delete vitalSelectedExtraCounts[key];
+        else vitalSelectedExtraCounts[key] = 1;
+        syncVitalSelectedExtraKeysFromCounts();
         renderVitalExtraPointToggles();
         renderVitalTierPlayerBreakdown(vitalSelectedSteam);
         clearTimeout(vitalExtraSaveTimer);
@@ -3502,8 +3570,10 @@
             seen[key] = true;
             html += buildVitalExtraStatCard(b.label, pts);
         });
-        vitalSelectedExtraKeys.forEach(function (key) {
+        Object.keys(vitalSelectedExtraCounts).forEach(function (key) {
             if (seen[key]) return;
+            var qty = Number(vitalSelectedExtraCounts[key] || 0);
+            if (!qty) return;
             var item = null;
             for (var i = 0; i < vitalExtraCatalog.length; i++) {
                 if (vitalExtraCatalog[i].key === key) {
@@ -3512,9 +3582,10 @@
                 }
             }
             if (!item) return;
-            var ptsPending = Number(item.points || 0);
+            var ptsPending = Number(item.points || 0) * qty;
             if (!ptsPending) return;
-            html += buildVitalExtraStatCard('Extra: ' + item.label, ptsPending);
+            var label = 'Extra: ' + item.label + (qty > 1 ? ' ×' + qty : '');
+            html += buildVitalExtraStatCard(label, ptsPending);
         });
         return html;
     }
@@ -3853,7 +3924,7 @@
         set('vital-info-status', mappedStatus);
         var roles = (p.roleLabels && p.roleLabels.length) ? p.roleLabels : parseRoleLabelsLocal(p.roleLabel);
         setVitalPlayerRoles(roles);
-        setVitalSelectedExtraKeys(p.extraKeys || []);
+        setVitalSelectedExtraKeys(p.extraKeys || [], p.extraCounts || null);
         updateVitalScoreTotalDisplay(p.performanceScore != null ? p.performanceScore : 0);
         set('vital-info-strikes', p.strikes);
         set('vital-info-entry', p.entryDate ? String(p.entryDate).slice(0, 10) : '');
@@ -4289,6 +4360,16 @@
         if (extraToggles && !extraToggles.dataset.delegateBound) {
             extraToggles.dataset.delegateBound = '1';
             extraToggles.addEventListener('click', function (ev) {
+                var inc = ev.target && ev.target.closest ? ev.target.closest('[data-extra-inc]') : null;
+                if (inc) {
+                    adjustVitalExtraCount(inc.getAttribute('data-extra-inc'), 1);
+                    return;
+                }
+                var dec = ev.target && ev.target.closest ? ev.target.closest('[data-extra-dec]') : null;
+                if (dec) {
+                    adjustVitalExtraCount(dec.getAttribute('data-extra-dec'), -1);
+                    return;
+                }
                 var btn = ev.target && ev.target.closest ? ev.target.closest('[data-extra-key]') : null;
                 if (!btn) return;
                 toggleVitalExtraPoint(btn.getAttribute('data-extra-key'));

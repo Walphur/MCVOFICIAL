@@ -8,6 +8,8 @@ const {
     getTierScoreConfig,
     listTierScoreConfigs,
     listExtraPointCatalog,
+    normalizeExtraCounts,
+    expandExtraKeysFromCounts,
     resolveTierScoreConfig,
     roundScore
 } = require("./vitalScoreTiers");
@@ -980,6 +982,9 @@ async function ensurePlayerExtraPointLinksTable(pool) {
     }
     try {
         await pool.query(PLAYER_EXTRA_POINT_LINKS_SQL);
+        await pool
+            .query(`ALTER TABLE player_extra_point_links ADD COLUMN IF NOT EXISTS qty INT NOT NULL DEFAULT 1`)
+            .catch(() => {});
         return true;
     } catch (e) {
         console.error("ensure player_extra_point_links:", e.message);
@@ -987,7 +992,7 @@ async function ensurePlayerExtraPointLinksTable(pool) {
     }
 }
 
-async function loadExtraPointKeysMap(pool, steamIds) {
+async function loadExtraPointCountsMap(pool, steamIds) {
     const map = new Map();
     if (!pool || !steamIds.length) {
         return map;
@@ -995,7 +1000,8 @@ async function loadExtraPointKeysMap(pool, steamIds) {
     await ensurePlayerExtraPointLinksTable(pool);
     try {
         const r = await pool.query(
-            `SELECT steam_id64, extra_key FROM player_extra_point_links
+            `SELECT steam_id64, extra_key, COALESCE(qty, 1)::int AS qty
+             FROM player_extra_point_links
              WHERE steam_id64 = ANY($1::varchar[])
              ORDER BY extra_key ASC`,
             [steamIds]
@@ -1004,31 +1010,51 @@ async function loadExtraPointKeysMap(pool, steamIds) {
             const sid = normalizeSteamId64(row.steam_id64);
             if (!sid) continue;
             if (!map.has(sid)) {
-                map.set(sid, []);
+                map.set(sid, {});
             }
-            map.get(sid).push(String(row.extra_key || "").trim());
+            const key = String(row.extra_key || "").trim();
+            const qty = Math.max(1, Math.min(99, Number(row.qty) || 1));
+            if (key) {
+                map.get(sid)[key] = qty;
+            }
         }
     } catch (e) {
-        console.warn("loadExtraPointKeysMap:", e.message);
+        console.warn("loadExtraPointCountsMap:", e.message);
     }
     return map;
 }
 
-async function syncPlayerExtraPointLinks(pool, steamId64, extraKeys) {
+async function loadExtraPointKeysMap(pool, steamIds) {
+    const countsMap = await loadExtraPointCountsMap(pool, steamIds);
+    const map = new Map();
+    for (const [sid, counts] of countsMap.entries()) {
+        map.set(sid, expandExtraKeysFromCounts(counts));
+    }
+    return map;
+}
+
+async function syncPlayerExtraPointLinks(pool, steamId64, extraKeys, extraCounts) {
     await ensurePlayerExtraPointLinksTable(pool);
     const catalog = new Set(listExtraPointCatalog().map((e) => e.key));
-    const keys = [...new Set((Array.isArray(extraKeys) ? extraKeys : []).map((k) => String(k || "").trim()).filter(Boolean))].filter((k) =>
-        catalog.has(k)
-    );
+    const counts = normalizeExtraCounts(extraKeys, extraCounts);
+    const filtered = {};
+    for (const [key, qty] of Object.entries(counts)) {
+        if (catalog.has(key) && qty > 0) {
+            filtered[key] = qty;
+        }
+    }
     await pool.query(`DELETE FROM player_extra_point_links WHERE steam_id64 = $1`, [steamId64]);
-    for (const key of keys) {
+    for (const [key, qty] of Object.entries(filtered)) {
         await pool.query(
-            `INSERT INTO player_extra_point_links (steam_id64, extra_key) VALUES ($1, $2)
-             ON CONFLICT DO NOTHING`,
-            [steamId64, key.slice(0, 64)]
+            `INSERT INTO player_extra_point_links (steam_id64, extra_key, qty) VALUES ($1, $2, $3)
+             ON CONFLICT (steam_id64, extra_key) DO UPDATE SET qty = EXCLUDED.qty`,
+            [steamId64, key.slice(0, 64), qty]
         );
     }
-    return keys;
+    return {
+        counts: filtered,
+        extraKeys: expandExtraKeysFromCounts(filtered)
+    };
 }
 
 async function loadRoleLabelsMap(pool, steamIds) {
@@ -1848,18 +1874,20 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
             .filter(Boolean)
             .map((p) => [p.steamId64, p])
     );
-    const extraMap = await loadExtraPointKeysMap(pool, [...profileMap.keys()]);
+    const extraCountsMap = await loadExtraPointCountsMap(pool, [...profileMap.keys()]);
 
     const playersForScoring = [...profileMap.keys()].map((sid) => {
         const profile = profileMap.get(sid);
         const vital = bySteam.get(sid) || {};
-        const extraKeys = extraMap.get(sid) || profile.extraKeys || [];
+        const extraCounts = extraCountsMap.get(sid) || profile.extraCounts || {};
+        const extraKeys = expandExtraKeysFromCounts(extraCounts);
         return {
             steamId64: sid,
             name: profile.displayName || vital.name || "",
             vital,
             profile,
-            extraKeys
+            extraKeys,
+            extraCounts
         };
     });
 
@@ -2473,8 +2501,13 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         const steamId64 = normalizeSteamId64(req.params.steamId64);
         if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
         try {
-            const map = await loadExtraPointKeysMap(pool, [steamId64]);
-            return res.json({ steamId64, extraKeys: map.get(steamId64) || [] });
+            const countsMap = await loadExtraPointCountsMap(pool, [steamId64]);
+            const extraCounts = countsMap.get(steamId64) || {};
+            return res.json({
+                steamId64,
+                extraKeys: expandExtraKeysFromCounts(extraCounts),
+                extraCounts
+            });
         } catch (e) {
             console.error("extra-points get:", e.message);
             return res.status(500).json({ error: e.message || "Error al leer extras" });
@@ -2488,14 +2521,15 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         if (!steamId64) return res.status(400).json({ error: "SteamID64 inválido" });
         const body = req.body && typeof req.body === "object" ? req.body : {};
         const extraKeys = Array.isArray(body.extraKeys) ? body.extraKeys : [];
+        const extraCounts = body.extraCounts && typeof body.extraCounts === "object" ? body.extraCounts : null;
         try {
             await ensurePlayerInfoTable(pool);
             const exists = await pool.query(`SELECT steam_id64 FROM player_info_profiles WHERE steam_id64 = $1`, [steamId64]);
             if (!exists.rowCount) {
                 return res.status(404).json({ error: "Jugador no encontrado en Info jugadores" });
             }
-            const saved = await syncPlayerExtraPointLinks(pool, steamId64, extraKeys);
-            return res.json({ ok: true, steamId64, extraKeys: saved });
+            const saved = await syncPlayerExtraPointLinks(pool, steamId64, extraKeys, extraCounts);
+            return res.json({ ok: true, steamId64, extraKeys: saved.extraKeys, extraCounts: saved.counts });
         } catch (e) {
             console.error("extra-points put:", e.message);
             return res.status(500).json({ error: e.message || "Error al guardar extras" });
@@ -2552,7 +2586,7 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                 pool,
                 profiles.map((p) => p.steamId64)
             );
-            const extraMap = await loadExtraPointKeysMap(
+            const extraCountsMap = await loadExtraPointCountsMap(
                 pool,
                 profiles.map((p) => p.steamId64)
             );
@@ -2562,7 +2596,9 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                     p.roleLabels = extra;
                     p.roleLabel = extra.join(", ");
                 }
-                p.extraKeys = extraMap.get(p.steamId64) || [];
+                const extraCounts = extraCountsMap.get(p.steamId64) || {};
+                p.extraCounts = extraCounts;
+                p.extraKeys = expandExtraKeysFromCounts(extraCounts);
             });
             const avatarMap = await fetchSteamAvatarsBatch(profiles.map((p) => p.steamId64));
             profiles.forEach((p) => {
