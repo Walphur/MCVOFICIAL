@@ -5025,6 +5025,11 @@ select.vital-input-compact option {
     border-style: dashed;
     opacity: 0.92;
 }
+.vital-perf-stat-card--manual {
+    border-style: dashed;
+    border-color: rgba(212, 164, 55, 0.35);
+    opacity: 0.95;
+}
 .vital-perf-stat-icon {
     width: 28px;
     height: 28px;
