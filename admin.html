@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=64">
+    <link rel="stylesheet" href="style-admin.css?v=65">
     <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
 </head>
 <body class="admin-body" data-mcv-page="admin">
@@ -3424,6 +3424,38 @@
         renderVitalExtraPointToggles();
     }
 
+    function renderVitalExtraStackItem(item) {
+        var pts = Number(item.points || 0);
+        var sign = pts > 0 ? '+' : '';
+        var count = Number(vitalSelectedExtraCounts[item.key] || 0);
+        var totalPts = pts * count;
+        var totalSign = totalPts > 0 ? '+' : '';
+        var cls = 'vital-extra-stack' + (count > 0 ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
+        return '<div class="' + cls + '" data-extra-stack="' + escAttr(item.key) + '">' +
+            '<div class="vital-extra-stack__controls">' +
+            '<button type="button" class="vital-extra-stack__btn" data-extra-dec="' + escAttr(item.key) + '" aria-label="Restar ' + escAttr(item.label) + '"' + (count <= 0 ? ' disabled' : '') + '>−</button>' +
+            '<span class="vital-extra-stack__count" aria-live="polite">' + esc(String(count)) + '</span>' +
+            '<button type="button" class="vital-extra-stack__btn" data-extra-inc="' + escAttr(item.key) + '" aria-label="Sumar ' + escAttr(item.label) + '"' + (count >= 99 ? ' disabled' : '') + '>+</button>' +
+            '</div>' +
+            '<div class="vital-extra-stack__meta">' +
+            '<span class="vital-extra-stack__label">' + esc(item.label) + '</span>' +
+            '<span class="vital-extra-stack__pts">' + esc(sign + String(pts)) + ' c/u' +
+            (count > 0 ? ' · ' + esc(totalSign + String(totalPts)) : '') +
+            '</span>' +
+            '</div></div>';
+    }
+
+    function renderVitalExtraToggleItem(item) {
+        var pts = Number(item.points || 0);
+        var sign = pts > 0 ? '+' : '';
+        var on = Number(vitalSelectedExtraCounts[item.key] || 0) > 0;
+        var clsToggle = 'vital-extra-toggle' + (on ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
+        return '<button type="button" class="' + clsToggle + '" data-extra-key="' + escAttr(item.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+            '<span class="vital-extra-toggle__label">' + esc(item.label) + '</span>' +
+            '<span class="vital-extra-toggle__pts">' + esc(sign + String(pts)) + '</span>' +
+            '</button>';
+    }
+
     function renderVitalExtraPointToggles() {
         var box = document.getElementById('vital-extra-points-toggles');
         if (!box) return;
@@ -3435,34 +3467,23 @@
             box.innerHTML = '<p class="empty-hint">Sin catálogo de extras.</p>';
             return;
         }
-        box.innerHTML = vitalExtraCatalog.map(function (item) {
-            var pts = Number(item.points || 0);
-            var sign = pts > 0 ? '+' : '';
+        var html = '';
+        var stackBatch = [];
+        function flushStackBatch() {
+            if (!stackBatch.length) return;
+            html += '<div class="vital-extra-stack-group">' + stackBatch.join('') + '</div>';
+            stackBatch = [];
+        }
+        vitalExtraCatalog.forEach(function (item) {
             if (item.stackable) {
-                var count = Number(vitalSelectedExtraCounts[item.key] || 0);
-                var totalPts = pts * count;
-                var totalSign = totalPts > 0 ? '+' : '';
-                var cls = 'vital-extra-stack' + (count > 0 ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
-                return '<div class="' + cls + '" data-extra-stack="' + escAttr(item.key) + '">' +
-                    '<div class="vital-extra-stack__controls">' +
-                    '<button type="button" class="vital-extra-stack__btn" data-extra-dec="' + escAttr(item.key) + '" aria-label="Restar ' + escAttr(item.label) + '"' + (count <= 0 ? ' disabled' : '') + '>−</button>' +
-                    '<span class="vital-extra-stack__count" aria-live="polite">' + esc(String(count)) + '</span>' +
-                    '<button type="button" class="vital-extra-stack__btn" data-extra-inc="' + escAttr(item.key) + '" aria-label="Sumar ' + escAttr(item.label) + '"' + (count >= 99 ? ' disabled' : '') + '>+</button>' +
-                    '</div>' +
-                    '<div class="vital-extra-stack__meta">' +
-                    '<span class="vital-extra-stack__label">' + esc(item.label) + '</span>' +
-                    '<span class="vital-extra-stack__pts">' + esc(sign + String(pts)) + ' c/u' +
-                    (count > 0 ? ' · ' + esc(totalSign + String(totalPts)) : '') +
-                    '</span>' +
-                    '</div></div>';
+                stackBatch.push(renderVitalExtraStackItem(item));
+            } else {
+                flushStackBatch();
+                html += renderVitalExtraToggleItem(item);
             }
-            var on = Number(vitalSelectedExtraCounts[item.key] || 0) > 0;
-            var clsToggle = 'vital-extra-toggle' + (on ? ' is-on' : '') + (pts < 0 ? ' is-minus' : (pts > 0 ? ' is-plus' : ''));
-            return '<button type="button" class="' + clsToggle + '" data-extra-key="' + escAttr(item.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
-                '<span class="vital-extra-toggle__label">' + esc(item.label) + '</span>' +
-                '<span class="vital-extra-toggle__pts">' + esc(sign + String(pts)) + '</span>' +
-                '</button>';
-        }).join('');
+        });
+        flushStackBatch();
+        box.innerHTML = html;
     }
 
     function setVitalExtraPointsStatus(msg, isError) {

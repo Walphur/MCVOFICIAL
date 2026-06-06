@@ -3198,6 +3198,15 @@ details.vital-extra-panel > :not(summary) {
 }
 .vital-extra-toggle.is-plus .vital-extra-toggle__pts { color: #86efac; }
 .vital-extra-toggle.is-minus .vital-extra-toggle__pts { color: #fecaca; }
+.vital-extra-stack-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: min(100%, 300px);
+}
+.vital-extra-stack-group .vital-extra-stack {
+    width: 100%;
+}
 .vital-extra-stack {
     display: inline-flex;
     align-items: center;
