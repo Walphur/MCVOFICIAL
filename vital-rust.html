@@ -53,7 +53,7 @@
                     <option value="null">Total</option>
                 </select>
             </label>
-            <button type="button" class="btn-primary-small" id="btn-vital-refresh">Actualizar stats</button>
+            <button type="button" class="btn-primary-small" id="btn-vital-refresh" title="Vuelve a consultar Vital (puede tardar). Al cambiar wipe se carga solo con caché.">Forzar Vital</button>
             <button type="button" class="btn-outline" id="btn-vital-export">Exportar CSV</button>
         </div>
 
@@ -90,7 +90,7 @@
         </div>
 
         <div id="vital-clan-players" class="vital-players-grid">
-            <p class="empty-hint">Elegí servidor y tocá «Actualizar stats».</p>
+            <p class="empty-hint">Elegí servidor y wipe — los datos se cargan automáticamente.</p>
         </div>
 
         <details class="admin-collapse vital-rust-details">
@@ -101,6 +101,6 @@
 </main>
 
 <script src="mcv-layout.js?v=3" defer></script>
-<script src="vital-rust-view.js?v=6"></script>
+<script src="vital-rust-view.js?v=7"></script>
 </body>
 </html>

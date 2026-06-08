@@ -10,6 +10,8 @@
     var clanRows = [];
     var configLoaded = false;
     var forceRefreshNext = false;
+    var clientStatsCache = {};
+    var loadSeq = 0;
 
     function esc(s) {
         return String(s == null ? "" : s)
@@ -108,8 +110,9 @@
         if (ttl && age >= ttl) {
             line += ". Conviene actualizar de nuevo.";
         } else if (ttl) {
-            line += ". Caché ~" + String(ttl) + " s — «Actualizar stats» fuerza datos nuevos.";
+            line += ". Caché del servidor ~" + String(ttl) + " s.";
         }
+        line += " Cambiar wipe carga solo; «Forzar Vital» consulta de nuevo.";
         return line;
     }
 
@@ -119,6 +122,53 @@
         var text = formatCacheMeta(cache);
         el.textContent = text;
         el.hidden = !text;
+    }
+
+    function statsCacheKey() {
+        var sel = document.getElementById("vital-server-select");
+        var wipeSel = document.getElementById("vital-wipe-select");
+        return String(sel && sel.value ? sel.value : "") + "|" + String(wipeSel && wipeSel.value ? wipeSel.value : "");
+    }
+
+    function applyClanPayload(data, sel) {
+        var meta = document.getElementById("vital-roster-meta");
+        if (meta) {
+            meta.textContent =
+                (data.players || []).length +
+                " de " +
+                (data.rosterSize || 0) +
+                " jugadores con datos · " +
+                ((data.server && data.server.label) || (sel && sel.value) || "");
+        }
+        renderCards(data.players || []);
+        var nf = document.getElementById("vital-not-found");
+        if (nf) {
+            nf.textContent =
+                data.notFound && data.notFound.length ? data.notFound.join(", ") : "Todos con datos en Vital.";
+        }
+        setCacheMeta(data.vitalCache);
+    }
+
+    function rememberClientCache(data) {
+        var key = statsCacheKey();
+        if (!key || key.endsWith("|")) return;
+        clientStatsCache[key] = {
+            players: data.players || [],
+            rosterSize: data.rosterSize || 0,
+            server: data.server || null,
+            notFound: data.notFound || [],
+            hint: data.hint || null,
+            vitalCache: data.vitalCache || null,
+            savedAt: Date.now()
+        };
+    }
+
+    function paintClientCache(key) {
+        var hit = clientStatsCache[key];
+        if (!hit) return false;
+        var sel = document.getElementById("vital-server-select");
+        applyClanPayload(hit, sel);
+        return true;
     }
 
     function statCard(label, value, highlight) {
@@ -259,7 +309,11 @@
                     sel.value = defKey;
                 }
                 sel.onchange = function () {
-                    loadWipes().catch(function () {});
+                    loadWipes()
+                        .then(function () {
+                            return loadClanStats({ forceRefresh: false });
+                        })
+                        .catch(function () {});
                 };
             }
             if (disclaimer && x.d.disclaimer) {
@@ -276,17 +330,26 @@
         var sel = document.getElementById("vital-server-select");
         var wipeSel = document.getElementById("vital-wipe-select");
         var box = document.getElementById("vital-clan-players");
-        var meta = document.getElementById("vital-roster-meta");
-        if (!sel || !wipeSel || !box) return;
+        if (!sel || !wipeSel || !box) return Promise.resolve();
         var wipeId = wipeSel.value;
         if (!wipeId) {
             banner("Elegí un wipe.", true);
-            return;
+            return Promise.resolve();
         }
-        var refresh = opts.forceRefresh || forceRefreshNext;
+        var refresh = !!(opts.forceRefresh || forceRefreshNext);
         forceRefreshNext = false;
-        box.innerHTML = '<p class="empty-hint">Cargando estadísticas…</p>';
-        banner(refresh ? "Consultando Vital Rust (actualización forzada)…" : "Cargando stats (puede usar caché)…", false);
+        var cacheKey = statsCacheKey();
+        var seq = ++loadSeq;
+        var hadLocal = false;
+
+        if (!refresh && paintClientCache(cacheKey)) {
+            hadLocal = true;
+            banner("Mostrando datos de esta sesión para el wipe seleccionado…", false);
+        } else {
+            box.innerHTML = '<p class="empty-hint">Cargando estadísticas…</p>';
+            banner(refresh ? "Consultando Vital Rust (forzado)…" : "Cargando stats…", false);
+        }
+
         var q =
             "?server=" +
             encodeURIComponent(sel.value) +
@@ -297,6 +360,7 @@
             "&_=" +
             Date.now();
         return vitalFetch("/api/public/vital/clan" + q).then(function (x) {
+            if (seq !== loadSeq) return;
             if (x.status === 401) {
                 showGate(true);
                 throw new Error("Clave inválida");
@@ -306,27 +370,27 @@
                 if (x.d && x.d.hint) errMsg += " " + x.d.hint;
                 throw new Error(errMsg);
             }
-            if (meta) {
-                meta.textContent =
-                    (x.d.players || []).length +
-                    " de " +
-                    (x.d.rosterSize || 0) +
-                    " jugadores con datos · " +
-                    ((x.d.server && x.d.server.label) || sel.value);
-            }
-            renderCards(x.d.players || []);
-            var nf = document.getElementById("vital-not-found");
-            if (nf) {
-                nf.textContent =
-                    x.d.notFound && x.d.notFound.length ? x.d.notFound.join(", ") : "Todos con datos en Vital.";
-            }
-            setCacheMeta(x.d.vitalCache);
+            rememberClientCache(x.d);
+            applyClanPayload(x.d, sel);
             if (x.d.hint && !(x.d.players || []).length) {
                 banner(x.d.hint, true);
+            } else if (refresh) {
+                banner("Datos actualizados desde Vital.", false);
+            } else if (hadLocal) {
+                banner("Datos del wipe actualizados.", false);
             } else {
                 banner("Datos cargados.", false);
             }
         }).catch(function (e) {
+            if (seq !== loadSeq) return;
+            if (paintClientCache(cacheKey)) {
+                banner(
+                    ((e && e.message) ? e.message : "Error al cargar") +
+                        " — se muestra la última versión guardada de este wipe.",
+                    true
+                );
+                return;
+            }
             renderCards([]);
             box.innerHTML =
                 '<p class="empty-hint">' + esc((e && e.message) ? e.message : "Error al cargar") + "</p>";
@@ -413,6 +477,12 @@
         if (btnExport) btnExport.addEventListener("click", exportCsv);
         if (keySel) keySel.addEventListener("change", applySort);
         if (dirSel) dirSel.addEventListener("change", applySort);
+        var wipeSel = document.getElementById("vital-wipe-select");
+        if (wipeSel) {
+            wipeSel.addEventListener("change", function () {
+                loadClanStats({ forceRefresh: false }).catch(function () {});
+            });
+        }
 
         vitalFetch("/api/public/vital/status").then(function (x) {
             if (x.ok && x.d && !x.d.enabled) {
