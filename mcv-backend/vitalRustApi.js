@@ -376,7 +376,7 @@ async function fetchUpstreamPost(url, body, { skipCache = false } = {}) {
     }
     await throttleUpstream();
     const { data, status } = await axios.post(url, body, {
-        timeout: 25000,
+        timeout: Number(process.env.VITAL_API_POST_TIMEOUT_MS || 40000),
         headers: {
             ...upstreamHeaders(),
             "Content-Type": "application/json"
@@ -767,41 +767,118 @@ function clanPlayerIncludes() {
     return [...new Set([...base, "combat", "raiding", "farming", "pve", "building"])];
 }
 
+function vitalClanChunkSize() {
+    const n = Number(process.env.VITAL_CLAN_CHUNK_SIZE || 25);
+    return Math.max(10, Math.min(50, Number.isFinite(n) ? Math.floor(n) : 25));
+}
+
+function vitalBuildingChunkSize() {
+    const n = Number(process.env.VITAL_BUILDING_CHUNK_SIZE || 18);
+    return Math.max(8, Math.min(30, Number.isFinite(n) ? Math.floor(n) : 18));
+}
+
+function isVitalTransientError(err) {
+    const status = Number(err?.status);
+    return status === 408 || status === 429 || status === 504 || status === 520;
+}
+
+function applyBuildingRawToPlayer(player, row) {
+    const buildingRaw = row.statistics?.building || row.building || {};
+    player.building = buildingTotalFromVital(buildingRaw);
+    player.deployablesPlaced = deployablesTotalFromVital(buildingRaw);
+    Object.assign(player, extractDeployableStats(buildingRaw));
+    delete player.buildingDetail;
+}
+
+function sanitizeVitalPlayerPublic(player) {
+    if (!player || typeof player !== "object") {
+        return player;
+    }
+    const copy = { ...player };
+    delete copy.buildingDetail;
+    return copy;
+}
+
+async function postPlayersOverviewResilient(url, serverId, wipeId, playerIds, includes, opts) {
+    try {
+        return await postPlayersOverview(url, serverId, wipeId, playerIds, includes, opts);
+    } catch (err) {
+        if (!isVitalTransientError(err) || playerIds.length <= 8) {
+            throw err;
+        }
+        const mid = Math.ceil(playerIds.length / 2);
+        const left = await postPlayersOverviewResilient(
+            url,
+            serverId,
+            wipeId,
+            playerIds.slice(0, mid),
+            includes,
+            opts
+        );
+        const right = await postPlayersOverviewResilient(
+            url,
+            serverId,
+            wipeId,
+            playerIds.slice(mid),
+            includes,
+            opts
+        );
+        return [...left, ...right];
+    }
+}
+
 async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh = false } = {}) {
     const url = fillTemplate(paths.playersOverviewPost, {});
-    const preferred = clanPlayerIncludes();
-    const chunkSize = 100;
-    const matched = [];
     const postOpts = refresh ? { skipCache: true } : {};
+    const coreIncludes = ["combat", "raiding", "farming", "pve"];
+    const coreFallbacks = [coreIncludes, ["combat", "raiding", "farming"], ["combat", "raiding"], ["combat"]];
+    const bySteam = new Map();
+    const chunkSize = vitalClanChunkSize();
 
     for (let i = 0; i < steamIds.length; i += chunkSize) {
         const batch = steamIds.slice(i, i + chunkSize);
-        let rows = await postPlayersOverview(url, serverId, wipeId, batch, preferred, postOpts);
-        if (!rows.length && !preferred.every((x) => x === "combat")) {
-            rows = await postPlayersOverview(url, serverId, wipeId, batch, ["combat", "raiding"], postOpts);
-        }
-        if (!rows.length) {
-            rows = await postPlayersOverview(url, serverId, wipeId, batch, ["combat"], postOpts);
-        }
-        if (!rows.length) {
-            rows = await postPlayersOverview(
-                url,
-                serverId,
-                wipeId,
-                batch,
-                ["combat", "raiding", "farming", "pve"],
-                postOpts
-            );
+        let rows = [];
+        for (const includes of coreFallbacks) {
+            try {
+                rows = await postPlayersOverviewResilient(url, serverId, wipeId, batch, includes, postOpts);
+                if (rows.length) {
+                    break;
+                }
+            } catch (err) {
+                if (isVitalTransientError(err) && includes.join() !== "combat") {
+                    console.warn("vital clan core chunk retry:", includes.join(","), err.message);
+                    continue;
+                }
+                throw err;
+            }
         }
         for (const row of rows) {
             const p = normalizePlayer(row);
             if (p) {
-                matched.push(p);
+                delete p.buildingDetail;
+                bySteam.set(p.steamId64, p);
             }
         }
     }
 
-    const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
+    const buildingChunk = vitalBuildingChunkSize();
+    const idsWithData = steamIds.filter((id) => bySteam.has(id));
+    for (let i = 0; i < idsWithData.length; i += buildingChunk) {
+        const batch = idsWithData.slice(i, i + buildingChunk);
+        try {
+            const rows = await postPlayersOverviewResilient(url, serverId, wipeId, batch, ["building"], postOpts);
+            for (const row of rows) {
+                const sid = pickSteamId(row);
+                const player = sid ? bySteam.get(sid) : null;
+                if (player) {
+                    applyBuildingRawToPlayer(player, row);
+                }
+            }
+        } catch (err) {
+            console.warn("vital clan building chunk:", err.message);
+        }
+    }
+
     return steamIds.map((id) => bySteam.get(id)).filter(Boolean);
 }
 
@@ -3325,14 +3402,22 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                 wipeId,
                 rosterSize: clanIds.length,
                 playerInfoCount: roster.playerInfoCount || 0,
-                players: matched,
+                players: matched.map(sanitizeVitalPlayerPublic),
                 notFound,
                 hint,
                 vitalCache: buildVitalCacheMeta()
             });
         } catch (e) {
             console.error("vital public clan:", e.message);
-            return res.status(502).json({ error: e.message || "Error Vital" });
+            const status = Number(e.status);
+            const code = status === 408 || status === 429 || status === 504 ? 503 : 502;
+            return res.status(code).json({
+                error: e.message || "Error Vital",
+                hint:
+                    status === 408
+                        ? "Vital tardó demasiado. Reintentá en unos segundos o sin «Actualizar stats» forzado."
+                        : undefined
+            });
         }
     });
 

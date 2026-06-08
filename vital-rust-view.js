@@ -301,7 +301,11 @@
                 showGate(true);
                 throw new Error("Clave inválida");
             }
-            if (!x.ok) throw new Error(formatApiError(x, "Error al cargar stats"));
+            if (!x.ok) {
+                var errMsg = formatApiError(x, "Error al cargar stats");
+                if (x.d && x.d.hint) errMsg += " " + x.d.hint;
+                throw new Error(errMsg);
+            }
             if (meta) {
                 meta.textContent =
                     (x.d.players || []).length +
