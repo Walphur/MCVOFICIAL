@@ -5,6 +5,8 @@
     "use strict";
 
     var STORAGE_KEY = "mcv_vital_public_key_v1";
+    var STATS_CACHE_KEY = "mcv_vital_stats_cache_v1";
+    var WIPE_PREF_KEY = "mcv_vital_wipe_pref_v1";
     var sortKey = "killsT30";
     var sortDir = "desc";
     var clanRows = [];
@@ -112,8 +114,61 @@
         } else if (ttl) {
             line += ". Caché del servidor ~" + String(ttl) + " s.";
         }
-        line += " Cambiar wipe carga solo; «Forzar Vital» consulta de nuevo.";
+        line += " Cambiar wipe usa datos guardados; «Forzar Vital» consulta Vital de nuevo.";
         return line;
+    }
+
+    function loadPersistedStatsCache() {
+        try {
+            var raw = global.sessionStorage.getItem(STATS_CACHE_KEY);
+            if (!raw) return;
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object") {
+                clientStatsCache = parsed;
+            }
+        } catch (e) {
+            clientStatsCache = {};
+        }
+    }
+
+    function persistStatsCache() {
+        try {
+            global.sessionStorage.setItem(STATS_CACHE_KEY, JSON.stringify(clientStatsCache));
+        } catch (e) {
+            try {
+                var keys = Object.keys(clientStatsCache);
+                if (keys.length <= 1) return;
+                keys.sort(function (a, b) {
+                    return (clientStatsCache[a].savedAt || 0) - (clientStatsCache[b].savedAt || 0);
+                });
+                delete clientStatsCache[keys[0]];
+                global.sessionStorage.setItem(STATS_CACHE_KEY, JSON.stringify(clientStatsCache));
+            } catch (e2) {}
+        }
+    }
+
+    function savedWipePref(serverKey) {
+        try {
+            var raw = global.sessionStorage.getItem(WIPE_PREF_KEY);
+            if (!raw) return null;
+            var map = JSON.parse(raw);
+            return map && map[serverKey] ? String(map[serverKey]) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function saveWipePref(serverKey, wipeId) {
+        if (!serverKey || !wipeId) return;
+        try {
+            var map = {};
+            var raw = global.sessionStorage.getItem(WIPE_PREF_KEY);
+            if (raw) {
+                map = JSON.parse(raw) || {};
+            }
+            map[String(serverKey)] = String(wipeId);
+            global.sessionStorage.setItem(WIPE_PREF_KEY, JSON.stringify(map));
+        } catch (e) {}
     }
 
     function setCacheMeta(cache) {
@@ -161,6 +216,7 @@
             vitalCache: data.vitalCache || null,
             savedAt: Date.now()
         };
+        persistStatsCache();
     }
 
     function paintClientCache(key) {
@@ -280,10 +336,15 @@
                 html += '<option value="' + esc(w.id) + '">' + esc(w.label) + (w.current ? " ★" : "") + "</option>";
             });
             wipeSel.innerHTML = html;
-            var current = (x.d.wipes || []).find(function (w) {
-                return w.current;
-            });
-            if (current) wipeSel.value = current.id;
+            var pref = savedWipePref(sel.value);
+            if (pref && wipeSel.querySelector('option[value="' + pref.replace(/"/g, "") + '"]')) {
+                wipeSel.value = pref;
+            } else {
+                var current = (x.d.wipes || []).find(function (w) {
+                    return w.current;
+                });
+                if (current) wipeSel.value = current.id;
+            }
         });
     }
 
@@ -340,15 +401,19 @@
         forceRefreshNext = false;
         var cacheKey = statsCacheKey();
         var seq = ++loadSeq;
-        var hadLocal = false;
+
+        saveWipePref(sel.value, wipeId);
 
         if (!refresh && paintClientCache(cacheKey)) {
-            hadLocal = true;
-            banner("Mostrando datos de esta sesión para el wipe seleccionado…", false);
-        } else {
-            box.innerHTML = '<p class="empty-hint">Cargando estadísticas…</p>';
-            banner(refresh ? "Consultando Vital Rust (forzado)…" : "Cargando stats…", false);
+            banner(
+                "Datos guardados de este wipe (sin consultar Vital). Usá «Forzar Vital» para actualizar.",
+                false
+            );
+            return Promise.resolve();
         }
+
+        box.innerHTML = '<p class="empty-hint">Cargando estadísticas…</p>';
+        banner(refresh ? "Consultando Vital Rust (forzado)…" : "Cargando stats…", false);
 
         var q =
             "?server=" +
@@ -376,10 +441,8 @@
                 banner(x.d.hint, true);
             } else if (refresh) {
                 banner("Datos actualizados desde Vital.", false);
-            } else if (hadLocal) {
-                banner("Datos del wipe actualizados.", false);
             } else {
-                banner("Datos cargados.", false);
+                banner("Datos cargados y guardados para este wipe.", false);
             }
         }).catch(function (e) {
             if (seq !== loadSeq) return;
@@ -449,6 +512,7 @@
     }
 
     function init() {
+        loadPersistedStatsCache();
         var gateForm = document.getElementById("vital-rust-gate-form");
         var btnRefresh = document.getElementById("btn-vital-refresh");
         var btnExport = document.getElementById("btn-vital-export");

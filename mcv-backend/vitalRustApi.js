@@ -396,6 +396,51 @@ async function fetchUpstreamPost(url, body, { skipCache = false } = {}) {
     return { data, cached: false };
 }
 
+function postCacheBodyFromKey(key) {
+    const idx = String(key).indexOf("{");
+    if (idx < 0) {
+        return null;
+    }
+    try {
+        return JSON.parse(String(key).slice(idx));
+    } catch {
+        return null;
+    }
+}
+
+function normalizePostCacheWipeId(wipeId) {
+    if (wipeId == null || String(wipeId).trim() === "" || String(wipeId) === "null") {
+        return null;
+    }
+    return String(wipeId);
+}
+
+/** Borra solo entradas POST de Vital para un servidor+wipe (no invalida otros wipes). */
+function invalidateVitalPostCacheForScope(serverId, wipeId) {
+    const sid = Number(serverId);
+    if (!Number.isFinite(sid)) {
+        return 0;
+    }
+    const wid = normalizePostCacheWipeId(wipeId);
+    let removed = 0;
+    for (const k of [...cache.keys()]) {
+        if (!k.startsWith("POST ")) {
+            continue;
+        }
+        const body = postCacheBodyFromKey(k);
+        if (!body || Number(body.serverId) !== sid) {
+            continue;
+        }
+        const bodyWipe = normalizePostCacheWipeId(body.wipeId);
+        if (bodyWipe !== wid) {
+            continue;
+        }
+        cache.delete(k);
+        removed += 1;
+    }
+    return removed;
+}
+
 function num(v) {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
@@ -828,8 +873,11 @@ async function postPlayersOverviewResilient(url, serverId, wipeId, playerIds, in
 }
 
 async function fetchClanPlayersPost(paths, serverId, wipeId, steamIds, { refresh = false } = {}) {
+    if (refresh) {
+        invalidateVitalPostCacheForScope(serverId, wipeId);
+    }
     const url = fillTemplate(paths.playersOverviewPost, {});
-    const postOpts = refresh ? { skipCache: true } : {};
+    const postOpts = {};
     const coreIncludes = ["combat", "raiding", "farming", "pve"];
     const coreFallbacks = [coreIncludes, ["combat", "raiding", "farming"], ["combat", "raiding"], ["combat"]];
     const bySteam = new Map();
@@ -1968,13 +2016,6 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
             tierResult: computeTierScoresForRoster({ serverKey: server.key, players: [], at: scoredAt })
         };
     }
-    if (refresh) {
-        for (const k of [...cache.keys()]) {
-            if (k.startsWith("POST ")) {
-                cache.delete(k);
-            }
-        }
-    }
     const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
     const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
     const notFound = clanIds.filter((id) => !bySteam.has(id));
@@ -3002,13 +3043,6 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                 });
             }
             const refresh = String(req.query.refresh || "").trim() === "1";
-            if (refresh) {
-                for (const k of [...cache.keys()]) {
-                    if (k.startsWith("POST ")) {
-                        cache.delete(k);
-                    }
-                }
-            }
             const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
 
             const foundSet = new Set(matched.map((p) => p.steamId64));
@@ -3209,13 +3243,6 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                 return res.json({ ok: true, updated: 0, skipped: 0, message: "Roster vacío" });
             }
             const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
-            if (refresh) {
-                for (const k of [...cache.keys()]) {
-                    if (k.startsWith("POST ")) {
-                        cache.delete(k);
-                    }
-                }
-            }
             const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
             const bySteam = new Map(matched.map((p) => [p.steamId64, p]));
             const emptyRes = await pool.query(
@@ -3371,13 +3398,6 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
                 });
             }
             const refresh = String(req.query.refresh || "").trim() === "1";
-            if (refresh) {
-                for (const k of [...cache.keys()]) {
-                    if (k.startsWith("POST ")) {
-                        cache.delete(k);
-                    }
-                }
-            }
             const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
             const foundSet = new Set(matched.map((p) => p.steamId64));
             const notFound = clanIds.filter((id) => !foundSet.has(id));
@@ -3534,6 +3554,8 @@ module.exports = {
     normalizePlayerStatCount,
     resolvePlayerInfoHoursInput,
     buildVitalCacheMeta,
+    invalidateVitalPostCacheForScope,
+    postCacheBodyFromKey,
     buildingTotalFromVital,
     deployablesTotalFromVital,
     extractDeployableStats,
