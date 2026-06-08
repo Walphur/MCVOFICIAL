@@ -317,8 +317,21 @@
             if (p.building != null && Number(p.building) > 0) {
                 groups.push({
                     title: "Building",
-                    cells: [{ label: "Piezas", val: fmtNum(p.building) }]
+                    cells: [{ label: "Bloques", val: fmtNum(p.building) }]
                 });
+            }
+            var baseCells = [];
+            if (Number(p.deployableAutoturrets) > 0) {
+                baseCells.push({ label: "Torretas", val: fmtNum(p.deployableAutoturrets) });
+            }
+            if (Number(p.deployablePlantation) > 0) {
+                baseCells.push({ label: "Huerto", val: fmtNum(p.deployablePlantation) });
+            }
+            if (Number(p.deployableCraftPlace) > 0) {
+                baseCells.push({ label: "Colocación", val: fmtNum(p.deployableCraftPlace) });
+            }
+            if (baseCells.length) {
+                groups.push({ title: "Base", cells: baseCells });
             }
             grid.innerHTML = groups
                 .map(function (g) {

@@ -1617,11 +1617,20 @@ details.vital-extra-panel .vital-extra-list {
 .vital-stat-group--farm .vital-stat-group-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
+.vital-stat-group--build .vital-stat-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.vital-stat-group--deploy .vital-stat-group-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 @media (max-width: 720px) {
     .vital-stat-group--combat .vital-stat-group-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .vital-stat-group--farm .vital-stat-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .vital-stat-group--deploy .vital-stat-group-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

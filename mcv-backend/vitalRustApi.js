@@ -468,6 +468,7 @@ function normalizePlayer(row) {
         scrapRecycled: scrapRecycled(pve),
         building: buildingTotalFromVital(buildingRaw),
         deployablesPlaced: deployablesTotalFromVital(buildingRaw),
+        ...extractDeployableStats(buildingRaw),
         buildingDetail: buildingRaw
     };
 }
@@ -681,6 +682,48 @@ function deployablesTotalFromVital(building) {
         return 0;
     }
     return Math.round(sumNumericObjectValues(building.deployables));
+}
+
+function sumDeployablesMatching(deployables, patterns) {
+    if (!deployables || typeof deployables !== "object") {
+        return 0;
+    }
+    let total = 0;
+    for (const [rawKey, rawVal] of Object.entries(deployables)) {
+        const key = String(rawKey || "").toLowerCase();
+        if (!patterns.some((re) => re.test(key))) {
+            continue;
+        }
+        const n = Number(rawVal);
+        if (Number.isFinite(n) && n > 0) {
+            total += n;
+        }
+    }
+    return Math.round(total);
+}
+
+const DEPLOYABLE_AUTOTURRET_PATTERNS = [/autoturret/];
+const DEPLOYABLE_PLANTATION_PATTERNS = [/hemp\.entity/, /planter/, /growable/];
+const DEPLOYABLE_CRAFT_PLACE_PATTERNS = [
+    /lock\.code/,
+    /^door\./,
+    /garagedoor/,
+    /box\.wooden/,
+    /woodbox/,
+    /locker/,
+    /^furnace$/,
+    /furnace\.large/,
+    /cupboard\.tool/
+];
+
+/** Torretas, huerto/plantación y colocación (code, doors, boxes, locker, furnace…) desde deployables. */
+function extractDeployableStats(building) {
+    const deployables = building?.deployables || {};
+    return {
+        deployableAutoturrets: sumDeployablesMatching(deployables, DEPLOYABLE_AUTOTURRET_PATTERNS),
+        deployablePlantation: sumDeployablesMatching(deployables, DEPLOYABLE_PLANTATION_PATTERNS),
+        deployableCraftPlace: sumDeployablesMatching(deployables, DEPLOYABLE_CRAFT_PLACE_PATTERNS)
+    };
 }
 
 function parsePlayerIncludes() {
@@ -3408,5 +3451,6 @@ module.exports = {
     buildVitalCacheMeta,
     buildingTotalFromVital,
     deployablesTotalFromVital,
+    extractDeployableStats,
     fetchTierScoresPayload
 };

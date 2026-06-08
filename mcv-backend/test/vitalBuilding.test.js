@@ -21,3 +21,24 @@ test("deployablesTotalFromVital suma deployables por separado", () => {
     });
     assert.equal(total, 8);
 });
+
+test("extractDeployableStats separa torretas, huerto y colocación", () => {
+    const vitalRustApi = require("../vitalRustApi");
+    const stats = vitalRustApi.extractDeployableStats({
+        buildings: { wall: "10" },
+        deployables: {
+            autoturret_deployed: "12",
+            "hemp.entity": "44",
+            "lock.code": "389",
+            "door.hinged.metal": "77",
+            "wall.frame.garagedoor": "219",
+            "box.wooden.large": "27",
+            "locker.deployed": "14",
+            furnace: "5",
+            sleepingbag_leather_deployed: "99"
+        }
+    });
+    assert.equal(stats.deployableAutoturrets, 12);
+    assert.equal(stats.deployablePlantation, 44);
+    assert.equal(stats.deployableCraftPlace, 389 + 77 + 219 + 27 + 14 + 5);
+});
