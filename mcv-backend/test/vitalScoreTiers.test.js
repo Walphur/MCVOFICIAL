@@ -137,7 +137,7 @@ test("building Monthly no resta puntos por debajo de 6k", () => {
     assert.equal(scoreFromTiers(15000, buildingTiers), 1);
 });
 
-test("building viene de Vital (suma buildings + deployables)", () => {
+test("building viene de Vital (bloques estructurales)", () => {
     const result = computeTierScoresForRoster({
         serverKey: "eu-medium",
         players: [

@@ -467,6 +467,7 @@ function normalizePlayer(row) {
         scrapLooted: scrapLooted(farming),
         scrapRecycled: scrapRecycled(pve),
         building: buildingTotalFromVital(buildingRaw),
+        deployablesPlaced: deployablesTotalFromVital(buildingRaw),
         buildingDetail: buildingRaw
     };
 }
@@ -666,22 +667,20 @@ function sumNumericObjectValues(obj) {
     return total;
 }
 
+/** Bloques estructurales (wall, floor, foundation…) — lo que muestra Vital en la pestaña Building. */
 function buildingTotalFromVital(building) {
     if (!building || typeof building !== "object") {
         return 0;
     }
-    let total = sumNumericObjectValues(building.buildings);
-    total += sumNumericObjectValues(building.deployables);
-    for (const [key, val] of Object.entries(building)) {
-        if (key === "buildings" || key === "deployables") {
-            continue;
-        }
-        const n = Number(val);
-        if (Number.isFinite(n) && n > 0) {
-            total += n;
-        }
+    return Math.round(sumNumericObjectValues(building.buildings));
+}
+
+/** Deployables (puertas, lockers, planters/hemp, locks, etc.) — no cuenta para puntos de Building. */
+function deployablesTotalFromVital(building) {
+    if (!building || typeof building !== "object") {
+        return 0;
     }
-    return Math.round(total);
+    return Math.round(sumNumericObjectValues(building.deployables));
 }
 
 function parsePlayerIncludes() {
@@ -3408,5 +3407,6 @@ module.exports = {
     resolvePlayerInfoHoursInput,
     buildVitalCacheMeta,
     buildingTotalFromVital,
+    deployablesTotalFromVital,
     fetchTierScoresPayload
 };
