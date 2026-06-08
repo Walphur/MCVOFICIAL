@@ -53,10 +53,10 @@ function buildBuildingMediumTiers() {
 function buildBuildingMonthlyTiers() {
     return [
         { points: 0, min: 0 },
-        { points: 0, min: 1500 },
-        { points: 0, min: 3000 },
-        { points: 0, min: 6000 },
-        { points: 1, min: 15000 },
+        { points: 1, min: 2000 },
+        { points: 2, min: 3000 },
+        { points: 3, min: 6000 },
+        { points: 4, min: 15000 },
         { points: 5, min: Infinity }
     ];
 }
@@ -128,7 +128,7 @@ const EU_MEDIUM_CONFIG = {
         },
         building: {
             label: "Building",
-            leaderTier: "builder",
+            leaderTier: false,
             tiers: buildBuildingMediumTiers()
         }
     }
@@ -176,7 +176,7 @@ const EU_MONTHLY_CONFIG = {
         },
         building: {
             label: "Building",
-            leaderTier: "builder",
+            leaderTier: false,
             tiers: buildBuildingMonthlyTiers()
         }
     }

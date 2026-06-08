@@ -128,13 +128,58 @@ test("wipe_guest sin fase inicio/late no recibe puntos", () => {
     assert.equal(result.players[0].skipped, true);
 });
 
-test("building Monthly no resta puntos por debajo de 6k", () => {
+test("building Monthly escala 0-4 en 2k/3k/6k/15k", () => {
     const cfg = getTierScoreConfig("eu-monthly");
     const buildingTiers = cfg.categories.building.tiers;
     assert.equal(scoreFromTiers(0, buildingTiers), 0);
-    assert.equal(scoreFromTiers(2201, buildingTiers), 0);
-    assert.equal(scoreFromTiers(5999, buildingTiers), 0);
-    assert.equal(scoreFromTiers(15000, buildingTiers), 1);
+    assert.equal(scoreFromTiers(1999, buildingTiers), 0);
+    assert.equal(scoreFromTiers(2000, buildingTiers), 1);
+    assert.equal(scoreFromTiers(3000, buildingTiers), 2);
+    assert.equal(scoreFromTiers(6000, buildingTiers), 3);
+    assert.equal(scoreFromTiers(15000, buildingTiers), 4);
+});
+
+test("building no tiene tier líder", () => {
+    assert.equal(getTierScoreConfig("eu-medium").categories.building.leaderTier, false);
+    assert.equal(getTierScoreConfig("eu-monthly").categories.building.leaderTier, false);
+});
+
+test("building no marca líder del roster aunque tenga el máximo", () => {
+    const result = computeTierScoresForRoster({
+        serverKey: "eu-monthly",
+        players: [
+            {
+                steamId64: "76561198000000010",
+                vital: {
+                    building: 20000,
+                    killsT30: 0,
+                    kdr: 0,
+                    farmWood: 0,
+                    farmMetal: 0,
+                    farmSulfur: 0,
+                    scrapLooted: 0
+                },
+                profile: { statusTag: "mcv_active" }
+            },
+            {
+                steamId64: "76561198000000011",
+                vital: {
+                    building: 5000,
+                    killsT30: 0,
+                    kdr: 0,
+                    farmWood: 0,
+                    farmMetal: 0,
+                    farmSulfur: 0,
+                    scrapLooted: 0
+                },
+                profile: { statusTag: "mcv_active" }
+            }
+        ]
+    });
+    const top = result.players.find((p) => p.steamId64.endsWith("010"));
+    const building = top.breakdown.find((b) => b.id === "building");
+    assert.equal(building.isLeader, false);
+    assert.equal(building.points, 4);
 });
 
 test("building viene de Vital (bloques estructurales)", () => {
