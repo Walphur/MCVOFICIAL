@@ -13,10 +13,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026-06-11-v1">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v1">
-    <script src="mcv-assets.js?v=2026-06-11-v1"></script>
-    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v1">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v2">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v2">
+    <script src="mcv-assets.js?v=2026-06-11-v2"></script>
+    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -3304,7 +3304,7 @@
     function vitalStatIconChar(cls) {
         if (cls === 'is-strong') return '✓';
         if (cls === 'is-weak') return '✕';
-        return '⚠';
+        return '';
     }
 
     function vitalScoreToPercent(total) {
@@ -3486,29 +3486,20 @@
         }
         var html = '';
         var stackBatch = [];
-        var bottomRow = [];
-        function flushBottomRow() {
-            if (!bottomRow.length && !stackBatch.length) return;
-            html += '<div class="vital-extra-bottom-row">';
-            bottomRow.forEach(function (chunk) { html += chunk; });
-            if (stackBatch.length) {
-                html += '<div class="vital-extra-stack-group">' + stackBatch.join('') + '</div>';
-                stackBatch = [];
-            }
-            html += '</div>';
-            bottomRow = [];
+        function flushStackBatch() {
+            if (!stackBatch.length) return;
+            html += '<div class="vital-extra-bottom-row"><div class="vital-extra-stack-group">' + stackBatch.join('') + '</div></div>';
+            stackBatch = [];
         }
         vitalExtraCatalog.forEach(function (item) {
             if (item.stackable) {
                 stackBatch.push(renderVitalExtraStackItem(item));
-            } else if (item.key === 'leeeech') {
-                bottomRow.push(renderVitalExtraToggleItem(item));
             } else {
-                flushBottomRow();
+                flushStackBatch();
                 html += renderVitalExtraToggleItem(item);
             }
         });
-        flushBottomRow();
+        flushStackBatch();
         box.innerHTML = html;
     }
 

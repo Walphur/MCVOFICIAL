@@ -79,7 +79,7 @@ const EXTRA_POINT_CATALOG = [
     { key: "vending", label: "VENDING", points: 4 },
     { key: "chupona", label: "CHUPONA", points: 2 },
     { key: "volar_viajes", label: "VOLAR+VIAJES", points: 4 },
-    { key: "leeeech", label: "LEEEEECH", points: -3 },
+    { key: "leeeech", label: "LEECH", points: -3 },
     { key: "romper_mini", label: "ROMPER MINI", points: -0.25, stackable: true },
     { key: "romper_combat", label: "ROMPER COMBAT", points: -0.5, stackable: true }
 ];
