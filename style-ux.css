@@ -887,8 +887,8 @@ a:not(.btn-primary):not(.btn-secondary) {
 }
 .winner-recap-grid {
     display: grid;
-    grid-template-columns: minmax(260px, 320px) minmax(200px, 280px);
-    align-items: stretch;
+    grid-template-columns: minmax(260px, 1fr) minmax(180px, 280px);
+    align-items: start;
     justify-content: center;
     gap: 16px 20px;
 }
@@ -937,7 +937,55 @@ a:not(.btn-primary):not(.btn-secondary) {
     overflow: hidden;
     border: 1px solid rgba(250, 166, 26, 0.22);
     background: #050505;
+    max-height: 380px;
 }
+.winner-poster-wrap--recap {
+    height: auto;
+    max-height: 380px;
+    align-self: start;
+}
+.winner-poster-wrap--photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 380px;
+    aspect-ratio: 3 / 4;
+}
+.winner-poster-wrap--photo img {
+    width: 100%;
+    height: 100%;
+    max-height: 380px;
+    min-height: 0;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+}
+.winner-poster-iframe-shell {
+    position: relative;
+    width: 100%;
+    max-height: 380px;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+}
+.winner-poster-iframe-shell iframe.winner-poster-embed {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    transform: none;
+}
+.tournament-live-offline {
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.88rem;
+    text-align: center;
+}
+.tournament-live-offline a { color: var(--primary); }
 .t-hero-status {
     margin-top: 18px;
     font-family: "JetBrains Mono", monospace;

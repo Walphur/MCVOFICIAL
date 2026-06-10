@@ -296,6 +296,25 @@
         }
     }
 
+    function ensureIconsScript() {
+        if (document.querySelector("script[data-mcv-icons]")) {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+            return;
+        }
+        var script = document.createElement("script");
+        script.src = base + "mcv-icons.js?v=1";
+        script.defer = true;
+        script.setAttribute("data-mcv-icons", "1");
+        script.onload = function () {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+        };
+        document.body.appendChild(script);
+    }
+
     function boot() {
         ensureSkipLink();
         ensureUxAssets();
@@ -313,6 +332,12 @@
         if (typeof lucide !== "undefined" && lucide.createIcons) {
             lucide.createIcons();
         }
+        ensureIconsScript();
+        setTimeout(function () {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+        }, 50);
     }
 
     if (document.readyState === "loading") {

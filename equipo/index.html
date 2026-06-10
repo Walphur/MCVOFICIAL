@@ -8,11 +8,11 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../logo.png">
     <link rel="alternate icon" href="../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../style.css?v=29">
+    <link rel="stylesheet" href="../style.css?v=33">
     <script src="../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="../mcv-layout.js?v=6" defer></script>
+    <script src="../mcv-layout.js?v=8" defer></script>
 </head>
 <body class="grain equipo-page" data-mcv-page="team">
 
@@ -122,7 +122,7 @@
             socBrand(m.tiktok_url, "tiktok", "TikTok");
         var socRow = soc
             ? '<div class="equipo-card-soc-row">' + soc + "</div>"
-            : "";
+            : '<div class="equipo-card-soc-row equipo-card-soc-row--empty" aria-hidden="true"></div>';
         var roleHtml = role
             ? '<p class="equipo-card-role">' +
               role +

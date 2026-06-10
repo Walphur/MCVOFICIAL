@@ -2178,3 +2178,139 @@ body.tournament-page {
     .events-card-poster { width: 100%; }
     .events-card-poster img { min-height: 160px; }
 }
+
+/* —— Discord icon + botones con icono al lado —— */
+.mcv-discord-icon {
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
+    display: block;
+}
+.btn-with-discord,
+a[href*="discord.gg"].btn-primary,
+a[href*="discord.gg"].btn-secondary,
+.tournament-actions a[href*="discord"],
+.home-path-card[href*="discord"],
+.live-offline-banner .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+}
+a[href*="discord.gg"].btn-secondary,
+.tournament-actions a[href*="discord"] {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(0, 0, 0, 0.55);
+}
+a[href*="discord.gg"].btn-secondary:hover,
+.tournament-actions a[href*="discord"]:hover {
+    border-color: rgba(250, 166, 26, 0.55);
+    color: var(--primary);
+}
+a[href*="discord.gg"] .mcv-discord-icon,
+.btn-with-discord .mcv-discord-icon {
+    color: #fff;
+}
+.tournament-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.tournament-actions .btn-primary,
+.tournament-actions .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+.tournament-actions .btn-secondary i,
+.tournament-actions .btn-primary i,
+.bottom-cta .btn-primary i,
+.home-path-card i {
+    width: 1.1em;
+    height: 1.1em;
+    flex-shrink: 0;
+}
+
+/* —— Media embeds (home) —— */
+.home-media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    align-items: stretch;
+}
+@media (max-width: 820px) {
+    .home-media-grid { grid-template-columns: 1fr; }
+}
+.media-embed-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.25s;
+}
+.media-embed-card:hover {
+    border-color: rgba(250, 166, 26, 0.45);
+}
+.media-embed-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+}
+.media-embed-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+.media-embed-frame--fallback img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.75;
+}
+.media-embed-label {
+    display: block;
+    padding: 14px 16px;
+    text-align: center;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.12em;
+    color: var(--primary);
+    text-decoration: none;
+    border-top: 1px solid var(--border);
+    transition: background 0.2s, color 0.2s;
+}
+.media-embed-label:hover {
+    background: rgba(250, 166, 26, 0.1);
+    color: #fff;
+}
+
+/* —— Equipo: cards misma altura —— */
+.equipo-roster-grid {
+    align-items: stretch;
+}
+.equipo-card {
+    height: 100%;
+    min-height: 168px;
+}
+.equipo-card-top {
+    flex: 1 1 auto;
+}
+.equipo-card-soc-row {
+    margin-top: auto;
+    min-height: 56px;
+    align-items: center;
+}
+.equipo-card-soc-row--empty {
+    border-top-color: transparent;
+    visibility: hidden;
+    pointer-events: none;
+}

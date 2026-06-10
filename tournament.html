@@ -9,11 +9,13 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=31">
+    <link rel="stylesheet" href="style.css?v=33">
+    <link rel="stylesheet" href="style-ux.css?v=4">
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=7" defer></script>
+    <script src="mcv-layout.js?v=8" defer></script>
+    <script src="mcv-icons.js?v=1" defer></script>
     <meta name="description" content="Torneo Rust MCV: reglas, premios e inscripción de equipo.">
     <meta property="og:title" content="MCV — Torneo">
     <meta property="og:description" content="Inscripción web, calendario y reglas del evento.">
@@ -220,7 +222,10 @@
         <span style="color:#EF4444;">// Live Broadcast</span>
     </div>
     <h2><span data-i18n="tournament.liveHeading">En </span><span style="color:#EF4444;" data-i18n="tournament.liveHeadingSpan">vivo.</span></h2>
-    <div class="twitch-container">
+    <div id="t-live-offline" class="tournament-live-offline" hidden>
+        <p data-i18n="tournament.liveOffline">El torneo finalizó o el stream no está activo. Seguinos en <a href="live.html">Streams</a> o Discord.</p>
+    </div>
+    <div class="twitch-container" id="t-twitch-wrap">
         <iframe id="twitch-embed" title="Twitch MCV" src="about:blank" frameborder="0" allowfullscreen="true" scrolling="no" class="twitch-player"></iframe>
     </div>
 </section>
@@ -411,11 +416,18 @@
         setText('t-sch-close', t.registration_closes_at ? fmtDate(t.registration_closes_at) : '—');
         setText('t-sch-day', t.match_day_display || fmtDate(t.starts_at));
         setText('t-sch-check', t.check_in_display || T('tournament.checkinFallback'));
+        var liveSec = document.getElementById('live');
+        var twitchWrap = document.getElementById('t-twitch-wrap');
+        var liveOffline = document.getElementById('t-live-offline');
         if (t.status === 'finished') {
+            if (liveSec) liveSec.style.display = 'none';
             var iframeDone = document.getElementById('twitch-embed');
             if (iframeDone) iframeDone.src = 'about:blank';
         } else {
+            if (liveSec) liveSec.style.display = '';
             twitchFrame(t.twitch_channel);
+            if (twitchWrap) twitchWrap.hidden = false;
+            if (liveOffline) liveOffline.hidden = true;
         }
 
         var slots = document.getElementById('tournament-slots');

@@ -6122,8 +6122,17 @@ img.ops-player-avatar {
 }
 
 /* —— Admin polish: no emojis + UX ajustes solicitados —— */
+.dashboard-buttons .btn-primary-small,
+.admin-actions .btn-outline {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
 .btn-primary-small .admin-btn-icon {
-    margin-right: 6px;
+    margin-right: 0;
+    flex-shrink: 0;
 }
 
 .vital-app-shell {

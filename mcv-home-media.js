@@ -1,5 +1,5 @@
 /**
- * Home MCV Media: 1 YouTube (último) + 2 TikTok
+ * Home MCV Media: últimos 2 videos con reproducción embebida (YT + TikTok)
  */
 (function () {
     var grid = document.getElementById("home-media-grid");
@@ -8,10 +8,8 @@
         typeof mcvResolveApiBase === "function"
             ? mcvResolveApiBase()
             : String(window.location.origin || "").replace(/\/$/, "");
-    var T = typeof mcvT === "function" ? mcvT : function (k) {
-        return k;
-    };
-    var ttSub = T("home.tiktokSub");
+    var YT_CHANNEL = "https://www.youtube.com/@McompanyV";
+    var TT_CHANNEL = "https://www.tiktok.com/@mcv_rust";
 
     function esc(s) {
         return String(s == null ? "" : s)
@@ -20,69 +18,64 @@
             .replace(/"/g, "&quot;");
     }
 
-    function formatDuration(sec) {
-        var n = parseInt(sec, 10);
-        if (!Number.isFinite(n) || n < 1) return "";
-        var m = Math.floor(n / 60);
-        var s = n % 60;
-        return m + ":" + String(s).padStart(2, "0");
+    function ytIdFromVideo(v) {
+        if (!v) return "";
+        if (v.id) return String(v.id);
+        var m = String(v.url || "").match(/[?&]v=([^&]+)/);
+        return m ? m[1] : "";
     }
 
-    function ytCard(v) {
-        var dur = formatDuration(v.duration);
-        return (
-            '<a href="' +
-            esc(v.url) +
-            '" target="_blank" rel="noopener noreferrer" class="video-card video-card--yt">' +
-            '<div class="video-thumb"><img src="' +
-            esc(v.thumbnail) +
-            '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
-            '<span class="video-duration">' +
-            (dur || "YT") +
-            '</span><div class="play-btn"><i data-lucide="play"></i></div></div>' +
-            '<div class="video-info"><h4>' +
-            esc(v.title) +
-            '</h4><span class="video-platform">YouTube</span><span> · @McompanyV</span></div></a>'
-        );
+    function ttIdFromUrl(url) {
+        var m = String(url || "").match(/\/video\/(\d{10,25})/);
+        return m ? m[1] : "";
     }
 
-    function ttCard(v) {
-        var thumb = v.thumbnail
-            ? '<img src="' + esc(v.thumbnail) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'
-            : '<img src="logo.png" alt="MCV" class="logo-fallback">';
-        var thumbClass = v.thumbnail ? "" : " logo-thumb alt-thumb";
+    function embedCard(platform, channelUrl, videoUrl, videoId) {
+        var cls = platform === "youtube" ? "media-embed-card--yt" : "media-embed-card--tt";
+        var label = platform === "youtube" ? "YouTube" : "TikTok";
+        var embedSrc = "";
+        if (platform === "youtube" && videoId) {
+            embedSrc =
+                "https://www.youtube.com/embed/" +
+                encodeURIComponent(videoId) +
+                "?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1";
+        } else if (platform === "tiktok" && videoId) {
+            embedSrc = "https://www.tiktok.com/embed/v2/" + encodeURIComponent(videoId) + "?autoplay=1";
+        }
+        var frame = embedSrc
+            ? '<div class="media-embed-frame">' +
+              '<iframe src="' +
+              esc(embedSrc) +
+              '" title="' +
+              esc(label) +
+              '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>' +
+              "</div>"
+            : '<div class="media-embed-frame media-embed-frame--fallback"><a href="' +
+              esc(videoUrl || channelUrl) +
+              '" target="_blank" rel="noopener noreferrer"><img src="banner.png" alt="MCV"></a></div>';
         return (
-            '<a href="' +
-            esc(v.url) +
-            '" target="_blank" rel="noopener noreferrer" class="video-card video-card--tt">' +
-            '<div class="video-thumb' +
-            thumbClass +
+            '<article class="media-embed-card ' +
+            cls +
             '">' +
-            thumb +
-            '<span class="video-duration">TT</span><div class="play-btn"><i data-lucide="video"></i></div></div>' +
-            '<div class="video-info"><h4>' +
-            esc(v.title || T("home.tiktokTitle")) +
-            '</h4><span class="video-platform">TikTok</span><span> · ' +
-            esc(ttSub) +
-            "</span></div></a>"
+            frame +
+            '<a class="media-embed-label" href="' +
+            esc(channelUrl) +
+            '" target="_blank" rel="noopener noreferrer">' +
+            esc(label) +
+            "</a></article>"
         );
     }
 
     function fallbackHtml() {
         return (
-            '<a href="https://www.youtube.com/@McompanyV/videos" target="_blank" rel="noopener noreferrer" class="video-card video-card--yt">' +
-            '<div class="video-thumb"><img src="banner.png" alt="MCV"><span class="video-duration">YT</span><div class="play-btn"><i data-lucide="play"></i></div></div>' +
-            '<div class="video-info"><h4>' +
-            esc(T("home.video1Title")) +
-            '</h4><span>YouTube · @McompanyV</span></div></a>' +
-            ttCard({ url: "https://www.tiktok.com/@mcv_rust", title: T("home.video3Title"), thumbnail: "" }) +
-            ttCard({ url: "https://www.tiktok.com/@mcv_rust", title: T("home.tiktokTitle2"), thumbnail: "" })
+            embedCard("youtube", YT_CHANNEL, YT_CHANNEL + "/videos", "") +
+            embedCard("tiktok", TT_CHANNEL, TT_CHANNEL, "")
         );
     }
 
     function render(html) {
         grid.innerHTML = html;
-        if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+        if (typeof mcvPatchDiscordIcons === "function") mcvPatchDiscordIcons();
     }
 
     if (!API) {
@@ -102,8 +95,23 @@
             var yt = (pair[0] && pair[0].videos) || [];
             var tt = (pair[1] && pair[1].videos) || [];
             var html = "";
-            if (yt.length) html += ytCard(yt[0]);
-            for (var i = 0; i < tt.length && i < 2; i++) html += ttCard(tt[i]);
+            var slots = 0;
+            if (yt.length && slots < 2) {
+                var yv = yt[0];
+                var yid = ytIdFromVideo(yv);
+                if (yid) {
+                    html += embedCard("youtube", YT_CHANNEL, yv.url || YT_CHANNEL, yid);
+                    slots++;
+                }
+            }
+            for (var i = 0; i < tt.length && slots < 2; i++) {
+                var tv = tt[i];
+                if (tv.isProfile) continue;
+                var tid = ttIdFromUrl(tv.url);
+                if (!tid) continue;
+                html += embedCard("tiktok", TT_CHANNEL, tv.url || TT_CHANNEL, tid);
+                slots++;
+            }
             if (!html) html = fallbackHtml();
             render(html);
         })
