@@ -4468,6 +4468,9 @@ select.vital-input-compact option {
     line-height: 1.5;
     margin: 0 0 16px;
 }
+.vital-rust-gate-hint.is-error {
+    color: #A94442;
+}
 .vital-rust-gate-form {
     display: flex;
     flex-wrap: wrap;

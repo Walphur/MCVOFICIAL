@@ -195,6 +195,136 @@ function authVitalPublic(req, res, next) {
     next();
 }
 
+async function resolveVitalMemberFromRequest(req) {
+    const pool = getPool();
+    if (!pool) {
+        return { ok: false, status: 503, error: "Base de datos no disponible" };
+    }
+    if (!req.userAuth?.userId) {
+        return { ok: false, status: 401, error: "Iniciá sesión con Steam" };
+    }
+    const userRow = await getSiteUserById(pool, req.userAuth.userId);
+    const steamId = normalizeSteamId64(userRow?.steam_id64);
+    if (!steamId) {
+        return {
+            ok: false,
+            status: 403,
+            error: "Steam no vinculado",
+            hint: "Entrá con Steam (no solo Google). Si ya usás Google, vinculá Steam desde Mi cuenta."
+        };
+    }
+    const roster = await loadClanSteamIds(getPool);
+    if (!roster.ids.includes(steamId)) {
+        return {
+            ok: false,
+            status: 403,
+            error: "Tu Steam no está en el roster del clan",
+            hint: "Solo jugadores cargados en el admin MCV (Info jugadores / extras) pueden ver las stats completas.",
+            steamId64: steamId
+        };
+    }
+    return {
+        ok: true,
+        steamId64: steamId,
+        displayName: String(userRow?.display_name || "").trim(),
+        roster
+    };
+}
+
+function authVitalMember(req, res, next) {
+    authUser(req, res, async () => {
+        try {
+            const resolved = await resolveVitalMemberFromRequest(req);
+            if (!resolved.ok) {
+                return res.status(resolved.status).json({
+                    error: resolved.error,
+                    hint: resolved.hint,
+                    steamId64: resolved.steamId64
+                });
+            }
+            req.vitalMember = resolved;
+            next();
+        } catch (e) {
+            console.error("authVitalMember:", e.message);
+            return res.status(500).json({ error: "Error al verificar acceso al roster" });
+        }
+    });
+}
+
+async function handleVitalClanQuery(req, res, logLabel) {
+    if (!vitalEnabled()) {
+        return res.status(503).json({ error: "Vital API deshabilitada" });
+    }
+    const server = resolveServer(req.query.server);
+    if (!server?.configured) {
+        return res.status(503).json({
+            error: server ? "Falta serverId en VITAL_SERVERS_JSON" : "Servidor inválido",
+            server
+        });
+    }
+    const wipeId = resolveWipeIdParam(req);
+    if (!wipeId) {
+        return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel)" });
+    }
+    const paths = apiPaths();
+    try {
+        const roster = await loadClanSteamIds(getPool);
+        const clanIds = roster.ids;
+        const manualOnlySet = new Set(roster.manualIds);
+        if (!clanIds.length) {
+            return res.json({
+                server,
+                wipeId,
+                rosterSize: 0,
+                players: [],
+                notFound: [],
+                message: "Sin jugadores en el roster del clan."
+            });
+        }
+        const refresh = String(req.query.refresh || "").trim() === "1";
+        const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
+        const foundSet = new Set(matched.map((p) => p.steamId64));
+        const notFound = clanIds.filter((id) => !foundSet.has(id));
+        for (const p of matched) {
+            if (manualOnlySet.has(p.steamId64)) {
+                p.rosterSource = "manual";
+                const note = roster.manualLabels[p.steamId64];
+                if (note) {
+                    p.rosterNote = note;
+                }
+            } else {
+                p.rosterSource = "mcv";
+            }
+        }
+        matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kills - a.kills || b.kdr - a.kdr);
+        const hint =
+            clanIds.length && !matched.length
+                ? "Vital no devolvió filas para este wipe/servidor. Probá el wipe actual u otro servidor."
+                : null;
+        return res.json({
+            server,
+            wipeId,
+            rosterSize: clanIds.length,
+            playerInfoCount: roster.playerInfoCount || 0,
+            players: matched.map(sanitizeVitalPlayerPublic),
+            notFound,
+            hint,
+            vitalCache: buildVitalCacheMeta()
+        });
+    } catch (e) {
+        console.error(`vital ${logLabel} clan:`, e.message);
+        const status = Number(e.status);
+        const code = status === 408 || status === 429 || status === 504 ? 503 : 502;
+        return res.status(code).json({
+            error: e.message || "Error Vital",
+            hint:
+                status === 408
+                    ? "Vital tardó demasiado. Reintentá en unos segundos o sin «Forzar Vital»."
+                    : undefined
+        });
+    }
+}
+
 function vitalEnabled() {
     return String(process.env.VITAL_API_ENABLED || "1").trim() !== "0";
 }
@@ -3087,13 +3217,14 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
     });
 
     app.get("/api/public/vital/status", (req, res) => {
-        const configured = isVitalPublicConfigured();
         return res.json({
-            enabled: vitalEnabled() && configured,
-            linkAccess: configured,
-            hint: configured
+            enabled: vitalEnabled(),
+            linkAccess: true,
+            accessMode: "steam_roster",
+            legacyKeyAccess: isVitalPublicConfigured(),
+            hint: vitalEnabled()
                 ? null
-                : "Definí VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres) y redeploy del backend."
+                : "Vital API deshabilitada (VITAL_API_ENABLED=0)."
         });
     });
 
@@ -3303,11 +3434,111 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
             mcvCount: roster.mcvCount,
             playerInfoCount: roster.playerInfoCount || 0,
             manualExtraCount: roster.manualOnlyCount,
-            hint: configured
-                ? "Compartí el link con ?key= y la misma clave que VITAL_PUBLIC_ACCESS_KEY en Render."
-                : "Falta VITAL_PUBLIC_ACCESS_KEY en Render (mín. 12 caracteres). Sin eso la página pública responde 503."
+            hint: "Los miembros del roster entran con Steam en vital-rust.html (sin clave compartida). VITAL_PUBLIC_ACCESS_KEY queda solo como respaldo legacy en la API."
         });
     });
+
+    app.get("/api/auth/user/vital/access", authUser, async (req, res) => {
+        if (!vitalEnabled()) {
+            return res.json({
+                allowed: false,
+                enabled: false,
+                steamLinked: false,
+                inRoster: false,
+                hint: "Stats Vital no disponibles en este momento."
+            });
+        }
+        try {
+            const resolved = await resolveVitalMemberFromRequest(req);
+            if (!resolved.ok) {
+                return res.json({
+                    allowed: false,
+                    enabled: true,
+                    steamLinked: resolved.status !== 403 || Boolean(resolved.steamId64),
+                    inRoster: false,
+                    steamId64: resolved.steamId64 || null,
+                    error: resolved.error,
+                    hint: resolved.hint
+                });
+            }
+            return res.json({
+                allowed: true,
+                enabled: true,
+                steamLinked: true,
+                inRoster: true,
+                steamId64: resolved.steamId64,
+                displayName: resolved.displayName || null,
+                rosterSize: resolved.roster?.ids?.length || 0,
+                hint: null
+            });
+        } catch (e) {
+            console.error("vital member access:", e.message);
+            return res.status(500).json({ error: "Error al verificar acceso" });
+        }
+    });
+
+    app.get("/api/auth/user/vital/config", authVitalMember, (req, res) => {
+        const paths = apiPaths();
+        const servers = parseServers();
+        const configuredCount = servers.filter((s) => s.serverId).length;
+        return res.json({
+            enabled: vitalEnabled(),
+            configured: Boolean(paths.playersOverviewPost && paths.overview),
+            servers,
+            defaultServerKey: DEFAULT_SERVER_KEY,
+            mcvServerKeys: parseMcvServerKeys(),
+            serversConfigured: configuredCount,
+            cacheTtlSec: cacheTtlMs() / 1000,
+            disclaimer:
+                "Estadísticas del clan MCV vía Vital Rust. Solo miembros del roster con Steam vinculado.",
+            memberView: true,
+            viewerSteamId64: req.vitalMember?.steamId64 || null
+        });
+    });
+
+    app.get("/api/auth/user/vital/wipes", authVitalMember, async (req, res) => {
+        if (!vitalEnabled()) {
+            return res.status(503).json({ error: "Vital API deshabilitada" });
+        }
+        const server = resolveServer(req.query.server);
+        if (!server?.configured) {
+            return res.status(503).json({
+                error: server ? "Falta serverId en VITAL_SERVERS_JSON" : "Servidor inválido",
+                server
+            });
+        }
+        const paths = apiPaths();
+        if (!paths.wipes) {
+            return res.status(503).json({ error: "Sin VITAL_API_WIPES_PATH" });
+        }
+        try {
+            const url = fillTemplate(paths.wipes, buildVars(server.serverId, "null", 1, 1));
+            const { data, cached } = await fetchUpstream(url);
+            let wipes = extractWipesList(data)
+                .map(normalizeWipe)
+                .filter(Boolean);
+            try {
+                const curUrl = fillTemplate(paths.wipesCurrent, buildVars(server.serverId, "null", 0, 1));
+                const { data: curData } = await fetchUpstream(curUrl);
+                const currentId = String(curData?.data?.id || "").trim();
+                if (currentId) {
+                    wipes = wipes.map((w) => ({ ...w, current: w.id === currentId }));
+                }
+            } catch (e) {
+                console.warn("vital wipes/current:", e.message);
+            }
+            wipes.sort(function (a, b) {
+                if (a.current !== b.current) return a.current ? -1 : 1;
+                return (b.startMs || 0) - (a.startMs || 0);
+            });
+            return res.json({ server, wipes, cached });
+        } catch (e) {
+            console.error("vital member wipes:", e.message);
+            return res.status(502).json({ error: e.message || "Error al listar wipes" });
+        }
+    });
+
+    app.get("/api/auth/user/vital/clan", authVitalMember, (req, res) => handleVitalClanQuery(req, res, "member"));
 
     app.get("/api/public/vital/config", authVitalPublic, (req, res) => {
         const paths = apiPaths();
@@ -3369,79 +3600,7 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         }
     });
 
-    app.get("/api/public/vital/clan", authVitalPublic, async (req, res) => {
-        if (!vitalEnabled()) {
-            return res.status(503).json({ error: "Vital API deshabilitada" });
-        }
-        const server = resolveServer(req.query.server);
-        if (!server?.configured) {
-            return res.status(503).json({
-                error: server ? "Falta serverId en VITAL_SERVERS_JSON" : "Servidor inválido",
-                server
-            });
-        }
-        const wipeId = resolveWipeIdParam(req);
-        if (!wipeId) {
-            return res.status(400).json({ error: "Falta wipeId (elegí wipe en el panel)" });
-        }
-        const paths = apiPaths();
-        try {
-            const roster = await loadClanSteamIds(getPool);
-            const clanIds = roster.ids;
-            const manualOnlySet = new Set(roster.manualIds);
-            if (!clanIds.length) {
-                return res.json({
-                    server,
-                    wipeId,
-                    rosterSize: 0,
-                    players: [],
-                    notFound: [],
-                    message: "Sin jugadores en el roster del clan."
-                });
-            }
-            const refresh = String(req.query.refresh || "").trim() === "1";
-            const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
-            const foundSet = new Set(matched.map((p) => p.steamId64));
-            const notFound = clanIds.filter((id) => !foundSet.has(id));
-            for (const p of matched) {
-                if (manualOnlySet.has(p.steamId64)) {
-                    p.rosterSource = "manual";
-                    const note = roster.manualLabels[p.steamId64];
-                    if (note) {
-                        p.rosterNote = note;
-                    }
-                } else {
-                    p.rosterSource = "mcv";
-                }
-            }
-            matched.sort((a, b) => b.killsT30 - a.killsT30 || b.kills - a.kills || b.kdr - a.kdr);
-            const hint =
-                clanIds.length && !matched.length
-                    ? "Vital no devolvió filas para este wipe/servidor. Probá el wipe actual u otro servidor."
-                    : null;
-            return res.json({
-                server,
-                wipeId,
-                rosterSize: clanIds.length,
-                playerInfoCount: roster.playerInfoCount || 0,
-                players: matched.map(sanitizeVitalPlayerPublic),
-                notFound,
-                hint,
-                vitalCache: buildVitalCacheMeta()
-            });
-        } catch (e) {
-            console.error("vital public clan:", e.message);
-            const status = Number(e.status);
-            const code = status === 408 || status === 429 || status === 504 ? 503 : 502;
-            return res.status(code).json({
-                error: e.message || "Error Vital",
-                hint:
-                    status === 408
-                        ? "Vital tardó demasiado. Reintentá en unos segundos o sin «Actualizar stats» forzado."
-                        : undefined
-            });
-        }
-    });
+    app.get("/api/public/vital/clan", authVitalPublic, (req, res) => handleVitalClanQuery(req, res, "public"));
 
     app.get("/api/auth/user/vital-stats", authUser, async (req, res) => {
         const pool = getPool();
@@ -3548,6 +3707,8 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
 module.exports = {
     registerVitalRustApi,
     authVitalPublic,
+    authVitalMember,
+    resolveVitalMemberFromRequest,
     vitalPublicAccessKey,
     isVitalPublicConfigured,
     ensurePlayerInfoTable,

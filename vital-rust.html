@@ -12,9 +12,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v5">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
+    <script src="mcv-user-auth.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=3"></script>
 </head>
 <body class="grain vital-rust-page" data-mcv-page="vital-rust">
 
@@ -27,19 +29,17 @@
             <span>// Clan MCV</span>
         </div>
         <h1 class="vital-rust-title">Estadísticas <span>Vital Rust</span></h1>
-        <p class="vital-rust-lead">Stats del roster MCV por servidor y wipe. Acceso con el link privado del staff.</p>
+        <p class="vital-rust-lead">Stats del roster MCV por servidor y wipe. Solo entra quien esté cargado en el panel con su Steam.</p>
     </div>
 
     <section id="vital-rust-gate" class="vital-rust-gate card-surface">
         <h2>Acceso al panel</h2>
-        <p id="vital-rust-gate-hint" class="vital-rust-gate-hint">Pegá la clave que viene en el link privado (<code>?key=…</code>) o abrí el link completo que te pasaron.</p>
-        <form id="vital-rust-gate-form" class="vital-rust-gate-form">
-            <label class="vital-rust-gate-label">
-                <span>Clave de acceso</span>
-                <input id="vital-rust-key-input" class="admin-input" type="password" autocomplete="off" placeholder="Clave del link" />
-            </label>
-            <button type="submit" class="btn-primary-small">Entrar</button>
-        </form>
+        <p id="vital-rust-gate-hint" class="vital-rust-gate-hint">Entrá con Steam. Tu SteamID64 tiene que figurar en el roster que carga el staff (Info jugadores / extras).</p>
+        <p id="vital-rust-gate-denied" class="vital-rust-gate-hint is-error" hidden></p>
+        <div class="vital-rust-gate-form cuenta-oauth">
+            <a id="vital-rust-steam" class="oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
+        </div>
+        <p class="vital-rust-gate-hint">¿Entraste con Google? <a href="cuenta.html?next=vital-rust.html">Vinculá Steam en Mi cuenta</a> primero.</p>
     </section>
 
     <div id="vital-rust-app" class="vital-rust-app card-surface" hidden>
@@ -55,6 +55,7 @@
             </label>
             <button type="button" class="btn-primary-small" id="btn-vital-refresh" title="Vuelve a consultar Vital (puede tardar). Al cambiar wipe se carga solo con caché.">Forzar Vital</button>
             <button type="button" class="btn-outline" id="btn-vital-export">Exportar CSV</button>
+            <button type="button" class="btn-outline" id="vital-rust-logout">Salir</button>
         </div>
 
         <p id="vital-roster-meta" class="admin-form-hint"></p>
@@ -103,6 +104,6 @@
 </main>
 
 <script src="mcv-layout.js?v=2026-06-11-v4" defer></script>
-<script src="vital-rust-view.js?v=2026-06-11-v6"></script>
+<script src="vital-rust-view.js?v=2026-06-11-v7"></script>
 </body>
 </html>

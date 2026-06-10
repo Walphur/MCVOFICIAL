@@ -1,10 +1,9 @@
 /**
- * Vital Rust clan stats — vista pública (acceso por ?key= en URL).
+ * Vital Rust clan stats — acceso solo con Steam del roster MCV.
  */
 (function (global) {
     "use strict";
 
-    var STORAGE_KEY = "mcv_vital_public_key_v1";
     var STATS_CACHE_KEY = "mcv_vital_stats_cache_v1";
     var WIPE_PREF_KEY = "mcv_vital_wipe_pref_v1";
     var sortKey = "killsT30";
@@ -35,29 +34,53 @@
             : String(global.location.origin || "").replace(/\/$/, "");
     }
 
-    function accessKey() {
-        try {
-            var fromUrl = new URLSearchParams(global.location.search).get("key");
-            if (fromUrl && String(fromUrl).trim()) {
-                var k = String(fromUrl).trim();
-                global.sessionStorage.setItem(STORAGE_KEY, k);
-                return k;
-            }
-        } catch (e) {}
-        try {
-            return global.sessionStorage.getItem(STORAGE_KEY) || "";
-        } catch (e2) {
-            return "";
+    function userAuthHeaders() {
+        if (typeof global.mcvUserAuthHeaders === "function") {
+            return global.mcvUserAuthHeaders();
+        }
+        return { "Content-Type": "application/json" };
+    }
+
+    function hasUserSession() {
+        return typeof global.mcvUserToken === "function" && !!global.mcvUserToken();
+    }
+
+    function vitalFetch(path, opts) {
+        opts = opts || {};
+        return fetch(apiBase() + path, {
+            method: opts.method || "GET",
+            headers: userAuthHeaders(),
+            cache: "no-store"
+        }).then(function (r) {
+            return r.json().then(function (d) {
+                return { ok: r.ok, status: r.status, d: d };
+            });
+        });
+    }
+
+    function setGateHint(msg, isErr) {
+        var hint = document.getElementById("vital-rust-gate-hint");
+        var denied = document.getElementById("vital-rust-gate-denied");
+        if (hint && msg) {
+            hint.textContent = msg;
+            hint.className = "vital-rust-gate-hint" + (isErr ? " is-error" : "");
+        }
+        if (denied) {
+            denied.hidden = !isErr;
+            if (isErr && msg) denied.textContent = msg;
         }
     }
 
-    function accessKeyIssue(key) {
-        var k = String(key || "").trim();
-        if (!k) return "Falta la clave. Abrí el link completo que te pasó el staff (?key=…).";
-        if (k.length < 12) {
-            return "La clave es demasiado corta (mín. 12 caracteres). Pedí el link actualizado al staff; no uses claves de prueba tipo abc123.";
-        }
-        return "";
+    function bindSteamLogin() {
+        if (typeof global.mcvBindPublicOAuthButtons !== "function") return;
+        global.mcvBindPublicOAuthButtons({
+            api: apiBase(),
+            next: "vital-rust.html",
+            steamEl: "vital-rust-steam",
+            googleEl: null,
+            opts: { steamEnabled: true, googleEnabled: false },
+            linkJwt: hasUserSession() ? global.mcvUserToken() : ""
+        });
     }
 
     function formatApiError(x, fallback) {
@@ -65,22 +88,6 @@
         var msg = d.error || d.message || fallback || "Error";
         if (d.hint) msg += " " + d.hint;
         return msg;
-    }
-
-    function vitalFetch(path, opts) {
-        opts = opts || {};
-        var key = accessKey();
-        var sep = path.indexOf("?") >= 0 ? "&" : "?";
-        var url = apiBase() + path + sep + "key=" + encodeURIComponent(key);
-        return fetch(url, {
-            method: opts.method || "GET",
-            headers: opts.headers || {},
-            cache: "no-store"
-        }).then(function (r) {
-            return r.json().then(function (d) {
-                return { ok: r.ok, status: r.status, d: d };
-            });
-        });
     }
 
     function showGate(show) {
@@ -361,7 +368,7 @@
         var sel = document.getElementById("vital-server-select");
         var wipeSel = document.getElementById("vital-wipe-select");
         if (!sel || !wipeSel) return Promise.resolve();
-        return vitalFetch("/api/public/vital/wipes?server=" + encodeURIComponent(sel.value)).then(function (x) {
+        return vitalFetch("/api/auth/user/vital/wipes?server=" + encodeURIComponent(sel.value)).then(function (x) {
             if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : "wipes");
             var html = '<option value="null">Total</option>';
             (x.d.wipes || []).forEach(function (w) {
@@ -381,13 +388,17 @@
     }
 
     function loadConfig() {
-        return vitalFetch("/api/public/vital/config").then(function (x) {
+        return vitalFetch("/api/auth/user/vital/config").then(function (x) {
             if (x.status === 401) {
-                try {
-                    global.sessionStorage.removeItem(STORAGE_KEY);
-                } catch (e) {}
+                if (typeof global.mcvUserLogout === "function") global.mcvUserLogout();
                 showGate(true);
-                throw new Error("Clave incorrecta. Pedí el link actualizado al staff.");
+                setGateHint("Sesión expirada. Volvé a entrar con Steam.", true);
+                throw new Error("Sesión expirada");
+            }
+            if (x.status === 403) {
+                showGate(true);
+                setGateHint(formatApiError(x, "Sin acceso al roster"), true);
+                throw new Error(formatApiError(x, "Sin acceso"));
             }
             if (!x.ok) throw new Error(formatApiError(x, "config"));
             showGate(false);
@@ -456,11 +467,18 @@
             (refresh ? "1" : "0") +
             "&_=" +
             Date.now();
-        return vitalFetch("/api/public/vital/clan" + q).then(function (x) {
+        return vitalFetch("/api/auth/user/vital/clan" + q).then(function (x) {
             if (seq !== loadSeq) return;
             if (x.status === 401) {
+                if (typeof global.mcvUserLogout === "function") global.mcvUserLogout();
                 showGate(true);
-                throw new Error("Clave inválida");
+                setGateHint("Sesión expirada. Volvé a entrar con Steam.", true);
+                throw new Error("Sesión expirada");
+            }
+            if (x.status === 403) {
+                showGate(true);
+                setGateHint(formatApiError(x, "Sin acceso al roster"), true);
+                throw new Error(formatApiError(x, "Sin acceso"));
             }
             if (!x.ok) {
                 var errMsg = formatApiError(x, "Error al cargar stats");
@@ -520,49 +538,75 @@
         a.click();
     }
 
-    function tryUnlock(fromInput) {
-        var key = String(fromInput || accessKey()).trim();
-        var keyErr = accessKeyIssue(key);
-        if (keyErr) {
-            banner(keyErr, true);
+    function checkMemberAccess() {
+        if (!hasUserSession()) {
             showGate(true);
-            return Promise.resolve();
+            setGateHint("Entrá con Steam. Solo jugadores del roster MCV pueden ver las stats del clan.", false);
+            bindSteamLogin();
+            return Promise.resolve(false);
         }
-        try {
-            global.sessionStorage.setItem(STORAGE_KEY, key);
-        } catch (e) {}
-        if (fromInput) {
-            var u = new URL(global.location.href);
-            u.searchParams.set("key", key);
-            global.history.replaceState({}, "", u.pathname + u.search);
-        }
-        return loadConfig().then(function () {
-            return loadClanStats({ forceRefresh: false });
+        return vitalFetch("/api/auth/user/vital/access").then(function (x) {
+            if (x.status === 401) {
+                if (typeof global.mcvUserLogout === "function") global.mcvUserLogout();
+                showGate(true);
+                setGateHint("Sesión expirada. Volvé a entrar con Steam.", true);
+                bindSteamLogin();
+                return false;
+            }
+            var d = x.d || {};
+            if (!x.ok || !d.allowed) {
+                showGate(true);
+                var msg = formatApiError(x, "No tenés acceso a las stats del clan");
+                if (d.hint) msg = (d.error || msg) + " " + d.hint;
+                setGateHint(msg, true);
+                bindSteamLogin();
+                return false;
+            }
+            setGateHint(
+                "Acceso OK" + (d.displayName ? " — " + d.displayName : "") + (d.steamId64 ? " (" + d.steamId64 + ")" : ""),
+                false
+            );
+            return true;
+        });
+    }
+
+    function tryUnlock() {
+        return checkMemberAccess().then(function (ok) {
+            if (!ok) return;
+            return loadConfig().then(function () {
+                return loadClanStats({ forceRefresh: false });
+            });
         }).catch(function (e) {
             banner((e && e.message) ? e.message : "No se pudo acceder", true);
         });
     }
 
     function init() {
+        if (typeof global.mcvCaptureUserTokenFromUrl === "function") {
+            global.mcvCaptureUserTokenFromUrl();
+        }
         loadPersistedStatsCache();
-        var gateForm = document.getElementById("vital-rust-gate-form");
+        bindSteamLogin();
         var btnRefresh = document.getElementById("btn-vital-refresh");
         var btnExport = document.getElementById("btn-vital-export");
         var keySel = document.getElementById("vital-sort-key");
         var dirSel = document.getElementById("vital-sort-dir");
+        var btnLogout = document.getElementById("vital-rust-logout");
 
-        if (gateForm) {
-            gateForm.addEventListener("submit", function (ev) {
-                ev.preventDefault();
-                var input = document.getElementById("vital-rust-key-input");
-                tryUnlock(input ? input.value : "");
+        if (btnLogout) {
+            btnLogout.addEventListener("click", function () {
+                if (typeof global.mcvUserLogout === "function") global.mcvUserLogout();
+                configLoaded = false;
+                showGate(true);
+                setGateHint("Sesión cerrada. Entrá de nuevo con Steam.", false);
+                bindSteamLogin();
             });
         }
         if (btnRefresh) {
             btnRefresh.addEventListener("click", function () {
                 forceRefreshNext = true;
                 if (!configLoaded) {
-                    loadConfig().then(function () {
+                    tryUnlock().then(function () {
                         return loadClanStats({ forceRefresh: true });
                     }).catch(function () {});
                 } else {
@@ -582,23 +626,16 @@
 
         vitalFetch("/api/public/vital/status").then(function (x) {
             if (x.ok && x.d && !x.d.enabled) {
-                var hint = document.getElementById("vital-rust-gate-hint");
-                if (hint) {
-                    hint.textContent = x.d.hint || "El acceso por link aún no está activo en el servidor (falta VITAL_PUBLIC_ACCESS_KEY en Render).";
-                }
+                setGateHint(x.d.hint || "Stats Vital no disponibles en el servidor.", true);
             }
         }).catch(function () {});
 
-        if (accessKey()) {
-            tryUnlock().catch(function () {
-                showGate(true);
-            });
-        } else {
+        tryUnlock().catch(function () {
             showGate(true);
-        }
+        });
     }
 
-    global.McvVitalRust = { init: init, accessKey: accessKey };
+    global.McvVitalRust = { init: init, checkMemberAccess: checkMemberAccess };
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", init);
     } else {
