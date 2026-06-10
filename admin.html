@@ -13,10 +13,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026-06-11-v3">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v3">
-    <script src="mcv-assets.js?v=2026-06-11-v3"></script>
-    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v3">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v4">
+    <script src="mcv-assets.js?v=2026-06-11-v4"></script>
+    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v4">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -3678,8 +3678,7 @@
         }
         var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
         var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
-        var wideCls = (statId === 'hours' || statId === 'kdr') ? ' vital-perf-stat-card--wide' : '';
-        return '<article class="vital-perf-stat-card' + wideCls + '">' +
+        return '<article class="vital-perf-stat-card">' +
             '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
             '<div class="vital-perf-stat-card__main">' +
             '<h5 class="vital-perf-stat-card__title">' + esc(statLabel) + leader + '</h5>' +
@@ -3707,7 +3706,7 @@
         }
         var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
         var leader = (scrapB.isLeader || buildingB.isLeader) ? ' <span class="vital-tier-leader">líder</span>' : '';
-        return '<article class="vital-perf-stat-card vital-perf-stat-card--wide vital-perf-stat-card--merged">' +
+        return '<article class="vital-perf-stat-card vital-perf-stat-card--merged">' +
             '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
             '<div class="vital-perf-stat-card__main">' +
             '<h5 class="vital-perf-stat-card__title">Scrap · Building' + leader + '</h5>' +
