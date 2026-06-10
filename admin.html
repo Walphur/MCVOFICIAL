@@ -14,8 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=65">
-    <meta name="mcv-admin-build" content="2026-06-02-admin-palette-v15">
+    <link rel="stylesheet" href="style-admin.css?v=67">
+    <meta name="mcv-admin-build" content="2026-06-10-admin-ui-cleanup-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -291,7 +291,7 @@
                 <aside class="vital-sidebar vital-sidebar--compact">
                     <div class="vital-sidebar-brand">
                         <img src="logo.png" alt="MCV" width="22" height="22" />
-                        <strong>MCV OPS</strong>
+                        <strong>MCV SYSTEM</strong>
                     </div>
                     <div class="vital-sidebar-status" aria-label="Estado del sistema">
                         <div id="vital-health-bar" class="vital-health-bar vital-health-bar--compact" hidden aria-live="polite"></div>
@@ -314,13 +314,11 @@
                         <button type="button" class="vital-nav-item" data-vital-subtab="importacion">Importación</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="logs">Logs</button>
                     </nav>
-                    <div id="vital-member-stats" class="vital-sidebar-stats" aria-label="Resumen roster"></div>
+                    <div id="vital-member-stats" class="vital-sidebar-stats" hidden aria-hidden="true"></div>
                     <details class="vital-sidebar-tools">
                         <summary>Herramientas</summary>
                         <div class="vital-sidebar-tools__body">
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar Excel</button>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-copy" data-i18n="admin.vitalDashboardCopy">Copiar resumen</button>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-names" data-i18n="admin.vitalSyncNames">Nombres Vital</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
                             <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" data-i18n="admin.vitalResetScoresAll">Reiniciar todos los puntos</button>
                             <button type="button" class="btn-outline btn-sm" id="btn-vital-reset-hours-all" data-i18n="admin.vitalResetHoursAll">Borrar todas las horas</button>
@@ -330,18 +328,10 @@
                 </aside>
                 <div class="vital-app-main">
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
-                    <div class="vital-split">
+                    <div class="vital-split vital-split--with-filters">
                         <div class="vital-member-panel">
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
-                                <div class="vital-quick-inline" id="vital-quick-filters" title="Podés combinar varios filtros a la vez">
-                                    <button type="button" class="vital-qchip is-active" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Jugadores sin horas de playtime Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
-                                    <button type="button" class="vital-qchip" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↕</span></button>
-                                </div>
                                 <div class="vital-member-toolbar__actions">
                                     <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
                                     <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
@@ -525,13 +515,20 @@
                                 </footer>
                             </div>
                         </div>
+                        <aside class="vital-filter-rail" id="vital-quick-filters" aria-label="Filtros de lista" title="Filtrá la lista de jugadores">
+                            <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
+                            <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
+                            <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
+                            <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                            <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
+                            <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
+                        </aside>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="extras" style="display:none;">
                     <div class="vital-page-simple">
                         <h4 data-i18n="admin.vitalExtraTitle">Jugadores extra (roster Vital)</h4>
-                        <p class="admin-form-hint admin-readable" data-i18n="admin.vitalExtraHint">SteamID64 de quienes juegan con MCV. Al agregar, se crean también en la lista Jugadores (estado Invitado al wipe). El link público Vital suma extras + jugadores activos en wipe.</p>
-                        <p class="admin-form-hint admin-readable">Link público del equipo: <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">vital-rust.html</a></p>
+                        <p class="admin-form-hint admin-readable">Pegá SteamID64 (uno o varios). Se crean en Jugadores como invitados al wipe. <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">Link público</a></p>
                         <p id="vital-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
                             <label class="vital-extra-field vital-extra-field-wide">
@@ -600,7 +597,7 @@
     <dialog id="vital-compliance-dlg" class="admin-dialog vital-compliance-dlg">
         <div class="admin-dialog-box vital-compliance-box">
             <header class="vital-compliance-head">
-                <p class="vital-compliance-kicker">MCV OPS</p>
+                <p class="vital-compliance-kicker">MCV SYSTEM</p>
                 <h3 class="vital-compliance-title" id="vital-compliance-title">Pendientes del wipe</h3>
                 <p class="vital-compliance-sub" id="vital-compliance-sub"></p>
             </header>
@@ -700,10 +697,29 @@
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    var adminBannerTimer = null;
     function banner(msg, isErr) {
         var el = document.getElementById('admin-banner');
-        el.textContent = msg || '';
-        el.style.color = isErr ? 'var(--red)' : 'var(--muted)';
+        if (!el) return;
+        if (adminBannerTimer) {
+            clearTimeout(adminBannerTimer);
+            adminBannerTimer = null;
+        }
+        if (!msg) {
+            el.textContent = '';
+            el.className = 'admin-banner';
+            el.hidden = true;
+            return;
+        }
+        el.hidden = false;
+        el.textContent = msg;
+        el.className = 'admin-banner' + (isErr ? ' is-error' : ' is-success');
+        adminBannerTimer = setTimeout(function () {
+            el.textContent = '';
+            el.className = 'admin-banner';
+            el.hidden = true;
+            adminBannerTimer = null;
+        }, isErr ? 12000 : 10000);
     }
 
     function loadSiteStatus() {
@@ -1725,11 +1741,23 @@
         } catch (e) {}
     }
 
+    function scheduleAutoHideEl(el, ms) {
+        if (!el) return;
+        if (el._autoHideTimer) clearTimeout(el._autoHideTimer);
+        el.hidden = false;
+        el._autoHideTimer = setTimeout(function () {
+            el.textContent = '';
+            el.hidden = true;
+            el._autoHideTimer = null;
+        }, ms || 10000);
+    }
+
     function updateVitalExtraCount(n, persisted) {
         var el = document.getElementById('vital-extra-count');
         if (!el) return;
         if (!n) {
             el.textContent = '';
+            el.hidden = true;
             return;
         }
         var msg = vitalLabel('admin.vitalExtraCount', '{n} guardados en el servidor').replace('{n}', String(n));
@@ -1737,6 +1765,8 @@
             msg += ' · ' + vitalLabel('admin.vitalExtraLocalOnly', 'copia local (sin BD)');
         }
         el.textContent = msg;
+        el.className = 'admin-form-hint vital-extra-count is-flash-ok';
+        scheduleAutoHideEl(el, 10000);
     }
 
     function vitalLabel(key, fallback) {
@@ -1942,6 +1972,7 @@
             'admin.vitalExtraMissingHint',
             '{n} extra(s) sin ficha en Jugadores. Usá «Cargar extras en Jugadores».'
         ).replace('{n}', String(n));
+        scheduleAutoHideEl(el, 12000);
     }
 
     function syncVitalExtrasToPlayerInfo(opts) {
@@ -2027,8 +2058,8 @@
     var vitalSelectedRoles = [];
     var vitalSelectedSteam = '';
     var vitalDetailTab = 'general';
-    var vitalListCohorts = {};
-    var vitalPointsSort = null;
+    var vitalListCohorts = { active: true };
+    var vitalPointsSort = 'desc';
     var vitalConfirmResolve = null;
 
     function getActiveVitalCohorts() {
@@ -3555,12 +3586,30 @@
         }, 350);
     }
 
+    var vitalSyncStatusTimer = null;
     function setVitalTierSyncStatus(msg, isError) {
         var el = document.getElementById('vital-tier-sync-status');
-        if (el) {
-            el.textContent = msg || '';
-            el.classList.toggle('is-error', !!isError);
+        if (!el) return;
+        if (vitalSyncStatusTimer) {
+            clearTimeout(vitalSyncStatusTimer);
+            vitalSyncStatusTimer = null;
         }
+        if (!msg) {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-error', 'is-ok');
+            return;
+        }
+        el.hidden = false;
+        el.textContent = msg;
+        el.classList.toggle('is-error', !!isError);
+        el.classList.toggle('is-ok', !isError);
+        vitalSyncStatusTimer = setTimeout(function () {
+            el.textContent = '';
+            el.hidden = true;
+            el.classList.remove('is-error', 'is-ok');
+            vitalSyncStatusTimer = null;
+        }, isError ? 12000 : 10000);
     }
 
     function buildVitalAdjustStatCard(label, pts, subtitle, cardClass) {
@@ -4330,12 +4379,8 @@
             });
         }
         var btnDashExport = document.getElementById('btn-vital-dashboard-export');
-        var btnDashCopy = document.getElementById('btn-vital-dashboard-copy');
-        var btnSyncNames = document.getElementById('btn-vital-sync-names');
         var btnSyncPlaytime = document.getElementById('btn-vital-sync-playtime');
         if (btnDashExport) btnDashExport.addEventListener('click', exportVitalDashboardExcel);
-        if (btnDashCopy) btnDashCopy.addEventListener('click', copyVitalDashboardSummary);
-        if (btnSyncNames) btnSyncNames.addEventListener('click', function () { syncVitalDisplayNames().catch(function () {}); });
         if (btnSyncPlaytime) btnSyncPlaytime.addEventListener('click', function () { syncDiscordPlaytime().catch(function () {}); });
         var btnComplianceReport = document.getElementById('btn-vital-compliance-report');
         var btnResetScoresAll = document.getElementById('btn-vital-reset-scores-all');

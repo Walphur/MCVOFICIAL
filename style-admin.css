@@ -6351,5 +6351,192 @@ select.vital-input-compact {
 }
 .vital-sidebar-tools__body .btn-primary-small.btn-sm {
     width: 100%;
-    margin-top: 4px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+/* ── Admin UI cleanup: banners temporales, filtros derecha, paleta MCV ── */
+.admin-banner[hidden] {
+    display: none !important;
+}
+.admin-banner.is-success {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: opacity 0.35s ease;
+}
+.admin-banner.is-error {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: opacity 0.35s ease;
+}
+.vital-tier-sync-status[hidden] {
+    display: none !important;
+}
+.vital-tier-sync-status.is-ok {
+    color: #86efac;
+}
+.vital-tier-sync-status.is-error {
+    color: #fca5a5;
+}
+.vital-split--with-filters {
+    grid-template-columns: minmax(260px, 34%) minmax(0, 1fr) 112px !important;
+}
+.vital-filter-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 8px 14px;
+    background: #090909;
+    border-left: 1px solid rgba(250, 166, 26, 0.14);
+    overflow-y: auto;
+    min-height: 0;
+    flex-shrink: 0;
+}
+.vital-filter-rail .vital-qchip {
+    width: 100%;
+    min-height: 40px;
+    height: auto;
+    padding: 7px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    line-height: 1.2;
+}
+.vital-filter-rail .vital-qchip-label {
+    font-size: 11px;
+    font-weight: 600;
+}
+.vital-filter-rail .vital-qchip-count {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
+}
+.vital-member-toolbar--compact {
+    align-items: center;
+}
+.vital-member-toolbar--compact #vital-info-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.vital-member-toolbar__actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.vital-dtab.active::after {
+    background: var(--primary) !important;
+    background-image: none !important;
+}
+.vital-dtab.active {
+    color: #fff7ed;
+    border-bottom: 2px solid var(--primary);
+}
+.vital-dtab:hover {
+    color: #fde68a;
+}
+.vital-controls,
+.vital-rust-controls {
+    align-items: center;
+}
+.vital-controls label,
+.vital-sort-bar label,
+.vital-rust-controls label {
+    margin-bottom: 0;
+}
+.vital-controls select,
+.vital-sort-bar select,
+.vital-rust-controls select,
+.vital-rust-page .admin-input[type="search"],
+select.admin-input {
+    padding-right: 36px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #090909;
+}
+.vital-sidebar-tools {
+    margin-top: auto;
+    padding-bottom: 14px;
+}
+.vital-sidebar-tools__body {
+    padding-bottom: 14px;
+    max-height: min(42vh, 320px);
+    overflow-y: auto;
+}
+.vital-extra-count.is-flash-ok {
+    color: #86efac;
+}
+.vital-extra-missing-hint {
+    color: #fca5a5;
+}
+.vital-rust-banner[hidden],
+.vital-cache-meta[hidden],
+#vital-roster-meta.is-transient-hidden {
+    display: none !important;
+}
+@media (max-width: 1100px) {
+    .vital-split--with-filters {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+    .vital-filter-rail {
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-left: none;
+        border-top: 1px solid rgba(250, 166, 26, 0.14);
+        order: 3;
+    }
+    .vital-filter-rail .vital-qchip {
+        width: auto;
+        min-width: 72px;
+        flex-direction: row;
+        gap: 6px;
+        min-height: 32px;
+    }
+}
+.vital-app-shell .btn-primary-small,
+.vital-pro-panel .btn-primary-small,
+.vital-rust-page .btn-primary-small {
+    background: var(--primary) !important;
+    background-image: none !important;
+    color: #0a0a0a !important;
+    border: none !important;
+    font-weight: 600;
+}
+.vital-app-shell .btn-primary-small:hover,
+.vital-pro-panel .btn-primary-small:hover,
+.vital-rust-page .btn-primary-small:hover {
+    filter: brightness(1.06);
+    transform: none;
+    box-shadow: 0 4px 14px rgba(250, 166, 26, 0.28) !important;
+}
+.vital-app-shell .vital-qchip.is-active,
+.vital-filter-rail .vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.16) !important;
+    border-color: rgba(250, 166, 26, 0.42) !important;
+    color: #fff7ed !important;
+    box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+.ops-member-row.is-active {
+    box-shadow: inset 3px 0 0 var(--primary) !important;
+}
+.vital-nav-item.active {
+    box-shadow: inset 2px 0 0 var(--primary) !important;
 }

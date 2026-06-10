@@ -90,12 +90,39 @@
         if (app) app.hidden = show;
     }
 
+    var bannerTimer = null;
     function banner(msg, isErr) {
         var el = document.getElementById("vital-rust-banner");
         if (!el) return;
-        el.textContent = msg || "";
+        if (bannerTimer) {
+            clearTimeout(bannerTimer);
+            bannerTimer = null;
+        }
+        if (!msg) {
+            el.textContent = "";
+            el.className = "vital-rust-banner";
+            el.hidden = true;
+            return;
+        }
+        el.textContent = msg;
         el.className = "vital-rust-banner" + (isErr ? " is-error" : " is-ok");
-        el.hidden = !msg;
+        el.hidden = false;
+        bannerTimer = setTimeout(function () {
+            el.textContent = "";
+            el.className = "vital-rust-banner";
+            el.hidden = true;
+            bannerTimer = null;
+        }, isErr ? 12000 : 10000);
+    }
+
+    function scheduleTransientMeta(el, ms) {
+        if (!el) return;
+        if (el._transientTimer) clearTimeout(el._transientTimer);
+        el.classList.remove("is-transient-hidden");
+        el._transientTimer = setTimeout(function () {
+            el.classList.add("is-transient-hidden");
+            el._transientTimer = null;
+        }, ms || 10000);
     }
 
     function formatCacheMeta(cache) {
@@ -177,6 +204,7 @@
         var text = formatCacheMeta(cache);
         el.textContent = text;
         el.hidden = !text;
+        if (text) scheduleTransientMeta(el, 10000);
     }
 
     function statsCacheKey() {
@@ -192,8 +220,10 @@
                 (data.players || []).length +
                 " de " +
                 (data.rosterSize || 0) +
-                " jugadores con datos · " +
+                " con datos · " +
                 ((data.server && data.server.label) || (sel && sel.value) || "");
+            meta.classList.remove("is-transient-hidden");
+            scheduleTransientMeta(meta, 10000);
         }
         renderCards(data.players || []);
         var nf = document.getElementById("vital-not-found");
