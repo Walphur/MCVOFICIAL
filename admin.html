@@ -14,8 +14,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=67">
-    <meta name="mcv-admin-build" content="2026-06-10-admin-ui-cleanup-v1">
+    <link rel="stylesheet" href="style-admin.css?v=68">
+    <meta name="mcv-admin-build" content="2026-06-10-admin-ui-cleanup-v2">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -314,7 +314,14 @@
                         <button type="button" class="vital-nav-item" data-vital-subtab="importacion">Importación</button>
                         <button type="button" class="vital-nav-item" data-vital-subtab="logs">Logs</button>
                     </nav>
-                    <div id="vital-member-stats" class="vital-sidebar-stats" hidden aria-hidden="true"></div>
+                    <div id="vital-quick-filters" class="vital-sidebar-filters" aria-label="Filtros de lista" title="Filtrá la lista de jugadores">
+                        <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
+                        <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
+                        <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
+                        <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                        <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
+                        <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
+                    </div>
                     <details class="vital-sidebar-tools">
                         <summary>Herramientas</summary>
                         <div class="vital-sidebar-tools__body">
@@ -328,7 +335,7 @@
                 </aside>
                 <div class="vital-app-main">
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
-                    <div class="vital-split vital-split--with-filters">
+                    <div class="vital-split">
                         <div class="vital-member-panel">
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
@@ -510,19 +517,11 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <button type="button" class="btn-primary-small vital-save-btn" id="btn-vital-info-save">Guardar cambios</button>
+                                        <button type="button" class="btn-outline btn-sm vital-save-btn" id="btn-vital-info-save">Guardar</button>
                                     </div>
                                 </footer>
                             </div>
                         </div>
-                        <aside class="vital-filter-rail" id="vital-quick-filters" aria-label="Filtros de lista" title="Filtrá la lista de jugadores">
-                            <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
-                            <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
-                            <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
-                            <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
-                            <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
-                            <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
-                        </aside>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="extras" style="display:none;">
@@ -2299,21 +2298,7 @@
     }
 
     function renderVitalMemberStats() {
-        var kpiBox = document.getElementById('vital-member-stats');
-        if (!kpiBox) return;
-        var rows = vitalInfoRows || [];
-        var active = rows.filter(function (r) { return r.statusTag === 'mcv_active' || r.statusTag === 'admin'; }).length;
-        var paused = rows.filter(function (r) { return isPlayerPaused(r); }).length;
-        var strikes = rows.filter(function (r) { return Number(r.strikes || 0) > 0; }).length;
-        var kpis = [
-            { label: 'Total', value: rows.length },
-            { label: 'Activos', value: active },
-            { label: 'Pausados', value: paused },
-            { label: 'Strikes', value: strikes }
-        ];
-        kpiBox.innerHTML = kpis.map(function (k) {
-            return '<div class="vital-sidebar-stat"><span>' + esc(k.label) + '</span><strong>' + esc(String(k.value)) + '</strong></div>';
-        }).join('');
+        renderVitalQuickFilterCounts();
     }
 
     function buildVitalDashboardRows() {

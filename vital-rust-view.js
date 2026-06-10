@@ -339,11 +339,9 @@
             html += statCard("HQ", fmtNum(p.farmHqMetal), hi === "farmHqMetal");
             html += statCard("Madera", fmtNum(p.farmWood), hi === "farmWood");
             html += "</div></section>";
-            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">Scrap</h5><div class="vital-stat-group-grid">';
+            html += '<section class="vital-stat-group vital-stat-group--scrap"><h5 class="vital-stat-group-title">Scrap · Building</h5><div class="vital-stat-group-grid">';
             html += statCard("Loteado", fmtNum(p.scrapLooted), hi === "scrapLooted");
             html += statCard("Reciclado", fmtNum(p.scrapRecycled), hi === "scrapRecycled");
-            html += "</div></section>";
-            html += '<section class="vital-stat-group vital-stat-group--build"><h5 class="vital-stat-group-title">Building</h5><div class="vital-stat-group-grid">';
             html += statCard("Bloques", fmtNum(p.building), hi === "building");
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--deploy"><h5 class="vital-stat-group-title">Base</h5><div class="vital-stat-group-grid">';

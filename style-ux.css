@@ -937,24 +937,25 @@ a:not(.btn-primary):not(.btn-secondary) {
     overflow: hidden;
     border: 1px solid rgba(250, 166, 26, 0.22);
     background: #050505;
-    max-height: 380px;
+    max-height: 240px;
+    width: 100%;
 }
 .winner-poster-wrap--recap {
     height: auto;
-    max-height: 380px;
+    max-height: 240px;
     align-self: start;
 }
 .winner-poster-wrap--photo {
     display: flex;
     align-items: center;
     justify-content: center;
-    max-height: 380px;
-    aspect-ratio: 3 / 4;
+    max-height: 240px;
+    aspect-ratio: 4 / 5;
 }
 .winner-poster-wrap--photo img {
     width: 100%;
-    height: 100%;
-    max-height: 380px;
+    height: auto;
+    max-height: 240px;
     min-height: 0;
     object-fit: cover;
     object-position: center center;
@@ -963,8 +964,8 @@ a:not(.btn-primary):not(.btn-secondary) {
 .winner-poster-iframe-shell {
     position: relative;
     width: 100%;
-    max-height: 380px;
-    aspect-ratio: 3 / 4;
+    max-height: 240px;
+    aspect-ratio: 4 / 5;
     overflow: hidden;
 }
 .winner-poster-iframe-shell iframe.winner-poster-embed {
