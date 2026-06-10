@@ -294,7 +294,9 @@
                         { label: "Kills wipe", val: fmtNum(p.kills) },
                         { label: "Deaths", val: fmtNum(p.deaths) },
                         { label: "Kill T3", val: fmtNum(p.killsT30) },
-                        { label: "Rockets", val: fmtNum(p.rocketsFired) }
+                        { label: "Death T3", val: fmtNum(p.deathsT3) },
+                        { label: "Rockets", val: fmtNum(p.rocketsFired) },
+                        { label: "Raid dmg", val: fmtNum(p.raidingDamage) }
                     ]
                 },
                 {
@@ -314,11 +316,15 @@
                     ]
                 }
             ];
-            if (p.building != null && Number(p.building) > 0) {
-                groups.push({
-                    title: "Building",
-                    cells: [{ label: "Bloques", val: fmtNum(p.building) }]
-                });
+            if ((p.building != null && Number(p.building) > 0) || Number(p.craftedTotal) > 0) {
+                var buildCells = [];
+                if (p.building != null && Number(p.building) > 0) {
+                    buildCells.push({ label: "Bloques", val: fmtNum(p.building) });
+                }
+                if (Number(p.craftedTotal) > 0) {
+                    buildCells.push({ label: "Crafteados", val: fmtNum(p.craftedTotal) });
+                }
+                groups.push({ title: "Building / Craft", cells: buildCells });
             }
             var baseCells = [];
             if (Number(p.deployableAutoturrets) > 0) {

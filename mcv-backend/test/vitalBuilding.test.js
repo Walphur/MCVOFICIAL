@@ -22,6 +22,15 @@ test("deployablesTotalFromVital suma deployables por separado", () => {
     assert.equal(total, 8);
 });
 
+test("craftedTotalFromVital suma ítems crafteados en pve.crafted", () => {
+    const vitalRustApi = require("../vitalRustApi");
+    const total = vitalRustApi.craftedTotalFromVital({
+        crafted: { bandage: "100", gunpowder: "500", "syringe.medical": "25" },
+        scrapRecycled: "999"
+    });
+    assert.equal(total, 625);
+});
+
 test("extractDeployableStats separa torretas, huerto y colocación", () => {
     const vitalRustApi = require("../vitalRustApi");
     const stats = vitalRustApi.extractDeployableStats({

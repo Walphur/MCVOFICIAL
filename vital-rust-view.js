@@ -331,7 +331,9 @@
             html += statCard("Kills", fmtNum(p.kills), hi === "kills");
             html += statCard("Deaths", fmtNum(p.deaths), hi === "deaths");
             html += statCard("Kill T3", fmtNum(p.killsT30), hi === "killsT30");
+            html += statCard("Death T3", fmtNum(p.deathsT3), hi === "deathsT3");
             html += statCard("Rockets", fmtNum(p.rocketsFired), hi === "rocketsFired");
+            html += statCard("Raid dmg", fmtNum(p.raidingDamage), hi === "raidingDamage");
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--farm"><h5 class="vital-stat-group-title">Farming</h5><div class="vital-stat-group-grid">';
             html += statCard("Azufre", fmtNum(p.farmSulfur), hi === "farmSulfur");
@@ -339,10 +341,13 @@
             html += statCard("HQ", fmtNum(p.farmHqMetal), hi === "farmHqMetal");
             html += statCard("Madera", fmtNum(p.farmWood), hi === "farmWood");
             html += "</div></section>";
-            html += '<section class="vital-stat-group vital-stat-group--scrap"><h5 class="vital-stat-group-title">Scrap · Building</h5><div class="vital-stat-group-grid">';
+            html += '<section class="vital-stat-group"><h5 class="vital-stat-group-title">Scrap</h5><div class="vital-stat-group-grid">';
             html += statCard("Loteado", fmtNum(p.scrapLooted), hi === "scrapLooted");
             html += statCard("Reciclado", fmtNum(p.scrapRecycled), hi === "scrapRecycled");
+            html += "</div></section>";
+            html += '<section class="vital-stat-group vital-stat-group--build"><h5 class="vital-stat-group-title">Building</h5><div class="vital-stat-group-grid">';
             html += statCard("Bloques", fmtNum(p.building), hi === "building");
+            html += statCard("Crafteados", fmtNum(p.craftedTotal), hi === "craftedTotal");
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--deploy"><h5 class="vital-stat-group-title">Base</h5><div class="vital-stat-group-grid">';
             html += statCard("Torretas", fmtNum(p.deployableAutoturrets), hi === "deployableAutoturrets");
@@ -500,9 +505,9 @@
     function exportCsv() {
         if (!clanRows.length) return;
         var h = [
-            "name", "steamId64", "kdr", "kills", "deaths", "killsT30", "rocketsFired",
+            "name", "steamId64", "kdr", "kills", "deaths", "killsT30", "deathsT3", "rocketsFired", "raidingDamage",
             "farmSulfur", "farmMetal", "farmHqMetal", "farmWood", "scrapLooted", "scrapRecycled",
-            "building", "deployableAutoturrets", "deployablePlantation", "deployableCraftPlace"
+            "building", "craftedTotal", "deployableAutoturrets", "deployablePlantation", "deployableCraftPlace"
         ];
         var rows = sortPlayers(clanRows).map(function (p) {
             return h.map(function (k) {

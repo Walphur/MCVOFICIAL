@@ -503,8 +503,11 @@ function normalizePlayer(row) {
         kills,
         deaths,
         killsT30: num(combat.killsT3 ?? combat.killsT30 ?? row.killsT30 ?? row.kills_t30),
+        deathsT3: num(combat.deathsT3 ?? combat.deathsT30 ?? row.deathsT3 ?? row.deaths_t3),
         kdr,
         rocketsFired: num(raiding.rockets ?? row.rocketsFired ?? row.rockets_fired ?? row.rockets),
+        raidingDamage: num(raiding.damage ?? row.raidingDamage ?? row.raidDamage),
+        craftedTotal: craftedTotalFromVital(pve),
         farmSulfur: farmGathered(gathered, ["sulfur.ore", "sulfur"]),
         farmMetal: farmGathered(gathered, ["metal.ore", "metal"]),
         farmHqMetal: farmGathered(gathered, ["hq.metal.ore", "hq.metal"]),
@@ -697,6 +700,14 @@ function scrapRecycled(pve) {
         return 0;
     }
     return num(pve.scrapRecycled);
+}
+
+/** Total de ítems crafteados (suma de statistics.pve.crafted). */
+function craftedTotalFromVital(pve) {
+    if (!pve || typeof pve !== "object") {
+        return 0;
+    }
+    return Math.round(sumNumericObjectValues(pve.crafted));
 }
 
 function sumNumericObjectValues(obj) {
@@ -3557,6 +3568,7 @@ module.exports = {
     invalidateVitalPostCacheForScope,
     postCacheBodyFromKey,
     buildingTotalFromVital,
+    craftedTotalFromVital,
     deployablesTotalFromVital,
     extractDeployableStats,
     fetchTierScoresPayload
