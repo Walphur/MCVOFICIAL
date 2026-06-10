@@ -316,15 +316,11 @@
                     ]
                 }
             ];
-            if ((p.building != null && Number(p.building) > 0) || Number(p.craftedTotal) > 0) {
-                var buildCells = [];
-                if (p.building != null && Number(p.building) > 0) {
-                    buildCells.push({ label: "Bloques", val: fmtNum(p.building) });
-                }
-                if (Number(p.craftedTotal) > 0) {
-                    buildCells.push({ label: "Crafteados", val: fmtNum(p.craftedTotal) });
-                }
-                groups.push({ title: "Building / Craft", cells: buildCells });
+            if (p.building != null && Number(p.building) > 0) {
+                groups.push({
+                    title: "Building",
+                    cells: [{ label: "Bloques", val: fmtNum(p.building) }]
+                });
             }
             var baseCells = [];
             if (Number(p.deployableAutoturrets) > 0) {

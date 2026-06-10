@@ -347,7 +347,6 @@
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--build"><h5 class="vital-stat-group-title">Building</h5><div class="vital-stat-group-grid">';
             html += statCard("Bloques", fmtNum(p.building), hi === "building");
-            html += statCard("Crafteados", fmtNum(p.craftedTotal), hi === "craftedTotal");
             html += "</div></section>";
             html += '<section class="vital-stat-group vital-stat-group--deploy"><h5 class="vital-stat-group-title">Base</h5><div class="vital-stat-group-grid">';
             html += statCard("Torretas", fmtNum(p.deployableAutoturrets), hi === "deployableAutoturrets");
@@ -507,7 +506,7 @@
         var h = [
             "name", "steamId64", "kdr", "kills", "deaths", "killsT30", "deathsT3", "rocketsFired", "raidingDamage",
             "farmSulfur", "farmMetal", "farmHqMetal", "farmWood", "scrapLooted", "scrapRecycled",
-            "building", "craftedTotal", "deployableAutoturrets", "deployablePlantation", "deployableCraftPlace"
+            "building", "deployableAutoturrets", "deployablePlantation", "deployableCraftPlace"
         ];
         var rows = sortPlayers(clanRows).map(function (p) {
             return h.map(function (k) {
