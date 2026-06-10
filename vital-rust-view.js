@@ -61,9 +61,11 @@
     function setGateHint(msg, isErr) {
         var hint = document.getElementById("vital-rust-gate-hint");
         var denied = document.getElementById("vital-rust-gate-denied");
-        if (hint && msg) {
-            hint.textContent = msg;
-            hint.className = "vital-rust-gate-hint" + (isErr ? " is-error" : "");
+        if (hint) {
+            if (!isErr && msg) {
+                hint.textContent = msg;
+            }
+            hint.className = "vital-rust-gate-hint";
         }
         if (denied) {
             denied.hidden = !isErr;

@@ -171,6 +171,9 @@ CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (statu
 `;
 const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
 
+/** Pool inyectado desde registerVitalRustApi (funciones fuera del register no tienen closure). */
+let boundGetPool = () => null;
+
 function vitalPublicAccessKey() {
     return String(process.env.VITAL_PUBLIC_ACCESS_KEY || "").trim();
 }
@@ -196,7 +199,7 @@ function authVitalPublic(req, res, next) {
 }
 
 async function resolveVitalMemberFromRequest(req) {
-    const pool = getPool();
+    const pool = boundGetPool();
     if (!pool) {
         return { ok: false, status: 503, error: "Base de datos no disponible" };
     }
@@ -213,7 +216,7 @@ async function resolveVitalMemberFromRequest(req) {
             hint: "Entrá con Steam (no solo Google). Si ya usás Google, vinculá Steam desde Mi cuenta."
         };
     }
-    const roster = await loadClanSteamIds(getPool);
+    const roster = await loadClanSteamIds(boundGetPool);
     if (!roster.ids.includes(steamId)) {
         return {
             ok: false,
@@ -268,7 +271,7 @@ async function handleVitalClanQuery(req, res, logLabel) {
     }
     const paths = apiPaths();
     try {
-        const roster = await loadClanSteamIds(getPool);
+        const roster = await loadClanSteamIds(boundGetPool);
         const clanIds = roster.ids;
         const manualOnlySet = new Set(roster.manualIds);
         if (!clanIds.length) {
@@ -2205,6 +2208,7 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
 }
 
 function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChannelId }) {
+    boundGetPool = typeof getPool === "function" ? getPool : () => null;
     app.get("/api/admin/vital/config", authAdmin, (req, res) => {
         const paths = apiPaths();
         const servers = parseServers();
