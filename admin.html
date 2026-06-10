@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v5">
     <script src="mcv-assets.js?v=2026-06-11-v4"></script>
-    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v4">
+    <meta name="mcv-admin-build" content="2026-06-11-admin-scrap-building-split-v5">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -2151,6 +2151,17 @@
         building: 'Building'
     };
 
+    var VITAL_TIER_STAT_ORDER = [
+        'killsT30',
+        'kdr',
+        'hours',
+        'farmWood',
+        'farmMetal',
+        'farmSulfur',
+        'scrapLooted',
+        'building'
+    ];
+
     function getPlayerPoints(row) {
         if (!row) return 0;
         return Number(row.performanceScore != null ? row.performanceScore : (row.tierScore != null ? row.tierScore : (getVitalTierForSteam(row.steamId64).total || 0)));
@@ -3210,6 +3221,30 @@
         return formatVitalTierStatValue(key, raw);
     }
 
+    function formatVitalTierProgressText(statId, rawVal) {
+        var val = formatVitalTierStatValue(statId, rawVal);
+        var progress = getStatTierProgress(statId, rawVal);
+        if (statId === 'scrapLooted') {
+            if (progress && progress.targetMin != null) {
+                return 'Loteado ' + val + ' / ' + formatVitalTierThreshold(statId, progress.targetMin) + ' requeridos';
+            }
+            return 'Loteado ' + val + ' logrado';
+        }
+        if (statId === 'building') {
+            if (progress && progress.targetMin != null) {
+                return 'Bloques ' + val + ' / ' + formatVitalTierThreshold(statId, progress.targetMin) + ' requeridos';
+            }
+            return 'Bloques ' + val + ' logrado';
+        }
+        if (progress && progress.targetMin != null) {
+            return val + ' / ' + formatVitalTierThreshold(statId, progress.targetMin) + ' requeridos';
+        }
+        if (statId === 'kdr') {
+            return 'Valor: ' + val;
+        }
+        return val + ' logrado';
+    }
+
     function ensureVitalTierConfigCache(serverKey) {
         serverKey = serverKey === 'eu-monthly' ? 'eu-monthly' : 'eu-medium';
         if (vitalTierConfigCache[serverKey]) {
@@ -3659,63 +3694,6 @@
         return html;
     }
 
-    function buildVitalBreakdownStatCard(b, tier) {
-        var statId = b.id;
-        var statLabel = VITAL_TIER_STAT_LABELS[statId] || b.label;
-        var rawVal = tier.values && tier.values[statId] != null ? tier.values[statId] : null;
-        var val = formatVitalTierStatValue(statId, rawVal);
-        var pts = Number(b.points || 0);
-        var iconCls = vitalStatIconClass(pts, b.isLeader);
-        var progress = getStatTierProgress(statId, rawVal);
-        var progressHtml = '';
-        if (progress && progress.targetMin != null) {
-            progressHtml = '<span class="vital-perf-stat-card__progress">' +
-                esc(val) + ' / ' + esc(formatVitalTierThreshold(statId, progress.targetMin)) + ' requeridos</span>';
-        } else if (statId === 'kdr') {
-            progressHtml = '<span class="vital-perf-stat-card__progress">Valor: ' + esc(val) + '</span>';
-        } else {
-            progressHtml = '<span class="vital-perf-stat-card__progress">' + esc(val) + ' logrado</span>';
-        }
-        var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
-        var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
-        return '<article class="vital-perf-stat-card">' +
-            '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
-            '<div class="vital-perf-stat-card__main">' +
-            '<h5 class="vital-perf-stat-card__title">' + esc(statLabel) + leader + '</h5>' +
-            progressHtml +
-            '</div>' +
-            '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
-            '</article>';
-    }
-
-    function buildVitalMergedScrapBuildingCard(scrapB, buildingB, tier) {
-        var scrapRaw = tier.values && tier.values.scrapLooted != null ? tier.values.scrapLooted : null;
-        var buildRaw = tier.values && tier.values.building != null ? tier.values.building : null;
-        var scrapVal = formatVitalTierStatValue('scrapLooted', scrapRaw);
-        var buildVal = formatVitalTierStatValue('building', buildRaw);
-        var pts = Number(scrapB.points || 0) + Number(buildingB.points || 0);
-        var iconCls = vitalStatIconClass(pts, scrapB.isLeader || buildingB.isLeader);
-        var scrapProg = getStatTierProgress('scrapLooted', scrapRaw);
-        var progressHtml = '';
-        if (scrapProg && scrapProg.targetMin != null) {
-            progressHtml = '<span class="vital-perf-stat-card__progress">' +
-                'Loteado ' + esc(scrapVal) + ' / ' + esc(formatVitalTierThreshold('scrapLooted', scrapProg.targetMin)) +
-                ' · Bloques ' + esc(buildVal) + '</span>';
-        } else {
-            progressHtml = '<span class="vital-perf-stat-card__progress">Loteado ' + esc(scrapVal) + ' · Bloques ' + esc(buildVal) + '</span>';
-        }
-        var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
-        var leader = (scrapB.isLeader || buildingB.isLeader) ? ' <span class="vital-tier-leader">líder</span>' : '';
-        return '<article class="vital-perf-stat-card vital-perf-stat-card--merged">' +
-            '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
-            '<div class="vital-perf-stat-card__main">' +
-            '<h5 class="vital-perf-stat-card__title">Scrap · Building' + leader + '</h5>' +
-            progressHtml +
-            '</div>' +
-            '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
-            '</article>';
-    }
-
     function renderVitalTierPlayerBreakdown(steamId) {
         var box = document.getElementById('vital-tier-player-breakdown');
         if (!box) return;
@@ -3747,21 +3725,30 @@
         }
 
         ensureVitalTierConfigCache(vitalTierServerKey()).finally(function () {
-            var rawStats = (tier.breakdown || []).filter(function (b) {
-                return String(b.id || '').indexOf('extra_') !== 0;
+            var breakdownById = {};
+            (tier.breakdown || []).forEach(function (b) {
+                if (String(b.id || '').indexOf('extra_') === 0) return;
+                breakdownById[b.id] = b;
             });
-            var buildingB = null;
-            rawStats.forEach(function (b) {
-                if (b.id === 'building') buildingB = b;
-            });
-            var statCards = rawStats.map(function (b) {
-                if (b.id === 'building' && buildingB && rawStats.some(function (x) { return x.id === 'scrapLooted'; })) {
-                    return '';
-                }
-                if (b.id === 'scrapLooted' && buildingB) {
-                    return buildVitalMergedScrapBuildingCard(b, buildingB, tier);
-                }
-                return buildVitalBreakdownStatCard(b, tier);
+            var statCards = VITAL_TIER_STAT_ORDER.map(function (statId) {
+                var b = breakdownById[statId];
+                if (!b) return '';
+                var statLabel = VITAL_TIER_STAT_LABELS[statId] || b.label;
+                var rawVal = tier.values && tier.values[statId] != null ? tier.values[statId] : b.raw;
+                var pts = Number(b.points || 0);
+                var iconCls = vitalStatIconClass(pts, b.isLeader);
+                var progressHtml = '<span class="vital-perf-stat-card__progress">' +
+                    esc(formatVitalTierProgressText(statId, rawVal)) + '</span>';
+                var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
+                var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
+                return '<article class="vital-perf-stat-card" data-vital-stat="' + escAttr(statId) + '">' +
+                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+                    '<div class="vital-perf-stat-card__main">' +
+                    '<h5 class="vital-perf-stat-card__title">' + esc(statLabel) + leader + '</h5>' +
+                    progressHtml +
+                    '</div>' +
+                    '<span class="vital-perf-stat-card__pts' + ptsCls + '">' + esc(pts > 0 ? '+' + pts : String(pts)) + ' pts</span>' +
+                    '</article>';
             }).join('');
 
             var extraCards = buildVitalExtraCardsHtml(tier);
