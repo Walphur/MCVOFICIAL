@@ -4455,6 +4455,9 @@ select.vital-input-compact option {
     padding: 22px 24px;
     box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.55);
 }
+.vital-rust-gate {
+    max-width: 420px;
+}
 .vital-rust-gate h2 {
     margin: 0 0 8px;
     font-size: 1.25rem;
@@ -4466,10 +4469,44 @@ select.vital-input-compact option {
     color: #9ca8b8;
     font-size: 0.92rem;
     line-height: 1.5;
-    margin: 0 0 16px;
+    margin: 0 0 14px;
 }
 .vital-rust-gate-hint.is-error {
-    color: #A94442;
+    color: #c96a68;
+    margin-bottom: 12px;
+}
+.vital-rust-gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+.vital-rust-gate-steam {
+    width: auto;
+    min-width: 0;
+    padding: 9px 18px;
+    font-size: 0.86rem;
+    box-shadow: 0 6px 18px rgba(250, 166, 26, 0.16);
+}
+.vital-rust-gate-link {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #8a96a6;
+}
+.vital-rust-gate-link a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(250, 166, 26, 0.35);
+    transition: color 0.2s, border-color 0.2s;
+}
+.vital-rust-gate-link a:hover {
+    color: #ffc04f;
+    border-bottom-color: rgba(250, 166, 26, 0.75);
+}
+.vital-rust-gate-link a:visited {
+    color: var(--primary);
 }
 .vital-rust-gate-form {
     display: flex;

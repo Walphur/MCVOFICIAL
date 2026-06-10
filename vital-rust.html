@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v5">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v6">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
@@ -36,10 +36,10 @@
         <h2>Acceso al panel</h2>
         <p id="vital-rust-gate-hint" class="vital-rust-gate-hint">Entrá con Steam. Tu SteamID64 tiene que figurar en el roster que carga el staff (Info jugadores / extras).</p>
         <p id="vital-rust-gate-denied" class="vital-rust-gate-hint is-error" hidden></p>
-        <div class="vital-rust-gate-form cuenta-oauth">
-            <a id="vital-rust-steam" class="oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
+        <div class="vital-rust-gate-actions">
+            <a id="vital-rust-steam" class="oauth-btn oauth-btn--steam vital-rust-gate-steam" href="#">Continuar con Steam</a>
         </div>
-        <p class="vital-rust-gate-hint">¿Entraste con Google? <a href="cuenta.html?next=vital-rust.html">Vinculá Steam en Mi cuenta</a> primero.</p>
+        <p class="vital-rust-gate-link">¿Entraste con Google? <a href="cuenta.html?next=vital-rust.html">Vinculá Steam en Mi cuenta</a> primero.</p>
     </section>
 
     <div id="vital-rust-app" class="vital-rust-app card-surface" hidden>
