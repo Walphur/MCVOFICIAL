@@ -2317,3 +2317,60 @@ a[href*="discord.gg"] .mcv-discord-icon,
     visibility: hidden;
     pointer-events: none;
 }
+
+/* —— UI polish v2026-06-11 —— */
+.bottom-cta.home-cta {
+    padding: 56px 20px;
+}
+.home-cta .btn-primary {
+    font-size: 0.92rem;
+    padding: 11px 20px;
+    letter-spacing: 0.08em;
+    max-width: 300px;
+    margin: 0 auto;
+    font-weight: 700;
+}
+.home-cta .btn-primary i,
+.home-cta .btn-primary .mcv-discord-icon {
+    width: 1.1em;
+    height: 1.1em;
+}
+.home-media-grid {
+    max-width: 920px;
+    margin: 0 auto;
+}
+.media-embed-frame {
+    max-height: 260px;
+}
+.media-embed-label {
+    text-decoration: none !important;
+    color: var(--primary) !important;
+    font-size: 1.1rem;
+    padding: 10px 14px;
+}
+.media-embed-fallback-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--primary);
+    text-decoration: none;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+}
+.media-embed-card--fallback-vid .media-embed-frame::after {
+    content: "TikTok";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+}

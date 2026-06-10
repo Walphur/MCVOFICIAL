@@ -13,9 +13,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=29">
-    <link rel="stylesheet" href="style-admin.css?v=69">
-    <meta name="mcv-admin-build" content="2026-06-10-admin-ui-cleanup-v2">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v1">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v1">
+    <script src="mcv-assets.js?v=2026-06-11-v1"></script>
+    <meta name="mcv-admin-build" content="2026-06-11-admin-ui-v1">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -3485,20 +3486,29 @@
         }
         var html = '';
         var stackBatch = [];
-        function flushStackBatch() {
-            if (!stackBatch.length) return;
-            html += '<div class="vital-extra-stack-group">' + stackBatch.join('') + '</div>';
-            stackBatch = [];
+        var bottomRow = [];
+        function flushBottomRow() {
+            if (!bottomRow.length && !stackBatch.length) return;
+            html += '<div class="vital-extra-bottom-row">';
+            bottomRow.forEach(function (chunk) { html += chunk; });
+            if (stackBatch.length) {
+                html += '<div class="vital-extra-stack-group">' + stackBatch.join('') + '</div>';
+                stackBatch = [];
+            }
+            html += '</div>';
+            bottomRow = [];
         }
         vitalExtraCatalog.forEach(function (item) {
             if (item.stackable) {
                 stackBatch.push(renderVitalExtraStackItem(item));
+            } else if (item.key === 'leeeech') {
+                bottomRow.push(renderVitalExtraToggleItem(item));
             } else {
-                flushStackBatch();
+                flushBottomRow();
                 html += renderVitalExtraToggleItem(item);
             }
         });
-        flushStackBatch();
+        flushBottomRow();
         box.innerHTML = html;
     }
 

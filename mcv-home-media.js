@@ -31,24 +31,27 @@
         return m ? m[1] : "";
     }
 
-    function fetchJson(url) {
-        return fetch(url).then(function (r) {
-            if (!r.ok) return null;
-            return r.json();
-        });
+    function ytEmbedSrc(videoId) {
+        return (
+            "https://www.youtube-nocookie.com/embed/" +
+            encodeURIComponent(videoId) +
+            "?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=" +
+            encodeURIComponent(videoId)
+        );
     }
 
-    function embedCard(platform, channelUrl, videoUrl, videoId, thumbUrl) {
-        var cls = platform === "youtube" ? "media-embed-card--yt" : "media-embed-card--tt";
-        var label = platform === "youtube" ? "YouTube" : "TikTok";
+    function embedCard(platform, channelUrl, videoUrl, videoId, thumbUrl, opts) {
+        opts = opts || {};
+        var label = opts.label || (platform === "youtube" ? "YouTube" : "TikTok");
+        var embedAs = opts.embedAs || platform;
+        var cls =
+            "media-embed-card " +
+            (platform === "youtube" ? "media-embed-card--yt" : "media-embed-card--tt") +
+            (opts.fallback ? " media-embed-card--fallback-vid" : "");
         var embedSrc = "";
-        if (platform === "youtube" && videoId) {
-            embedSrc =
-                "https://www.youtube-nocookie.com/embed/" +
-                encodeURIComponent(videoId) +
-                "?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=" +
-                encodeURIComponent(videoId);
-        } else if (platform === "tiktok" && videoId) {
+        if (embedAs === "youtube" && videoId) {
+            embedSrc = ytEmbedSrc(videoId);
+        } else if (embedAs === "tiktok" && videoId) {
             embedSrc =
                 "https://www.tiktok.com/embed/v2/" +
                 encodeURIComponent(videoId) +
@@ -79,11 +82,14 @@
             frame =
                 '<div class="media-embed-frame media-embed-frame--fallback">' +
                 '<a href="' +
-                esc(videoUrl || channelUrl) +
-                '" target="_blank" rel="noopener noreferrer"><img src="banner.png" alt="MCV"></a></div>';
+                esc(channelUrl) +
+                '" target="_blank" rel="noopener noreferrer" class="media-embed-fallback-link">' +
+                '<span>Ver en ' +
+                esc(label) +
+                "</span></a></div>";
         }
         return (
-            '<article class="media-embed-card ' +
+            '<article class="' +
             cls +
             '">' +
             frame +
@@ -98,7 +104,10 @@
     function fallbackHtml() {
         return (
             embedCard("youtube", YT_CHANNEL, YT_CHANNEL + "/videos", YT_FALLBACK_ID) +
-            embedCard("tiktok", TT_CHANNEL, TT_CHANNEL, "")
+            embedCard("tiktok", TT_CHANNEL, TT_CHANNEL, YT_FALLBACK_ID, "", {
+                embedAs: "youtube",
+                fallback: true
+            })
         );
     }
 
@@ -113,49 +122,53 @@
     }
 
     Promise.all([
-        fetchJson(API + "/api/public/youtube-latest?limit=2&handle=McompanyV"),
-        fetchJson(API + "/api/public/tiktok-latest?limit=2&handle=mcv_rust")
+        fetch(API + "/api/public/youtube-latest?limit=2&handle=McompanyV").then(function (r) {
+            return r.ok ? r.json() : null;
+        }),
+        fetch(API + "/api/public/tiktok-latest?limit=2&handle=mcv_rust").then(function (r) {
+            return r.ok ? r.json() : null;
+        })
     ])
         .then(function (pair) {
-            var ytPayload = pair[0];
-            var ttPayload = pair[1];
-            var yt = (ytPayload && ytPayload.videos) || [];
-            var tt = (ttPayload && ttPayload.videos) || [];
+            var yt = (pair[0] && pair[0].videos) || [];
+            var tt = (pair[1] && pair[1].videos) || [];
             var html = "";
             var slots = 0;
+            var ytUsed = 0;
 
             if (yt.length && slots < 2) {
-                var yv = yt[0];
-                var yid = ytIdFromVideo(yv);
+                var yid = ytIdFromVideo(yt[0]);
                 if (yid) {
-                    html += embedCard(
-                        "youtube",
-                        YT_CHANNEL,
-                        yv.url || YT_CHANNEL,
-                        yid,
-                        yv.thumbnail
-                    );
+                    html += embedCard("youtube", YT_CHANNEL, yt[0].url || YT_CHANNEL, yid, yt[0].thumbnail);
                     slots++;
+                    ytUsed = 1;
                 }
             } else if (slots < 2 && YT_FALLBACK_ID) {
                 html += embedCard("youtube", YT_CHANNEL, YT_CHANNEL + "/videos", YT_FALLBACK_ID);
                 slots++;
             }
 
+            var tiktokOk = false;
             for (var i = 0; i < tt.length && slots < 2; i++) {
                 var tv = tt[i];
                 if (tv.isProfile) continue;
                 var tid = ttIdFromUrl(tv.url);
                 if (!tid) continue;
-                html += embedCard("tiktok", TT_CHANNEL, tv.url || TT_CHANNEL, tid, tv.thumbnail);
+                html += embedCard("tiktok", TT_CHANNEL, tv.url || TT_CHANNEL, tid, tv.thumbnail, {
+                    embedAs: "tiktok"
+                });
                 slots++;
+                tiktokOk = true;
             }
 
-            if (slots < 2 && yt.length > 1) {
-                var yv2 = yt[1];
-                var yid2 = ytIdFromVideo(yv2);
+            if (!tiktokOk && slots < 2) {
+                var yv2 = yt[ytUsed] || yt[0];
+                var yid2 = yv2 ? ytIdFromVideo(yv2) : YT_FALLBACK_ID;
                 if (yid2) {
-                    html += embedCard("tiktok", TT_CHANNEL, TT_CHANNEL, yid2, yv2.thumbnail);
+                    html += embedCard("tiktok", TT_CHANNEL, TT_CHANNEL, yid2, yv2 && yv2.thumbnail, {
+                        embedAs: "youtube",
+                        fallback: true
+                    });
                     slots++;
                 }
             }

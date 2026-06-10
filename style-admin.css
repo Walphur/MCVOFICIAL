@@ -2402,9 +2402,9 @@ details.vital-extra-panel .vital-extra-list {
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
     width: 100%;
     max-width: none;
-    max-height: 240px;
-    height: auto;
-    align-self: start;
+    max-height: 200px !important;
+    height: auto !important;
+    align-self: start !important;
     display: flex;
     flex-direction: column;
 }
@@ -6684,4 +6684,128 @@ select.admin-input {
     .vital-sidebar-filters {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+}
+
+/* —— Admin UI v3: botones limpios —— */
+.vital-detail-tabs {
+    gap: 0 !important;
+    padding: 0 10px !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.admin-body .vital-app-shell .vital-dtab {
+    padding: 9px 12px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #7d8a9a !important;
+    box-shadow: none !important;
+    position: relative !important;
+}
+.admin-body .vital-app-shell .vital-dtab::after {
+    display: none !important;
+}
+.admin-body .vital-app-shell .vital-dtab:hover {
+    color: #e4e8ee !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+.admin-body .vital-app-shell .vital-dtab.active {
+    color: #f4f4f5 !important;
+    background: transparent !important;
+    border-bottom-color: #fbbf24 !important;
+    box-shadow: none !important;
+}
+.vital-nav-item {
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid transparent !important;
+    margin: 1px 0 !important;
+}
+.vital-nav-item.active {
+    background: rgba(250, 166, 26, 0.1) !important;
+    border-color: rgba(250, 166, 26, 0.28) !important;
+    box-shadow: none !important;
+    color: #fde68a !important;
+}
+.vital-sidebar-filters {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    padding: 6px 8px !important;
+}
+.vital-sidebar-filters .vital-qchip {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    height: auto !important;
+    padding: 4px 7px !important;
+    border-radius: 5px !important;
+    gap: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+.vital-sidebar-filters .vital-qchip-label {
+    font-size: 10px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 500 !important;
+}
+.vital-sidebar-filters .vital-qchip-count {
+    font-size: 10px !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    min-width: 1.1rem !important;
+}
+.vital-sidebar-filters .vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.12) !important;
+    border-color: rgba(250, 166, 26, 0.35) !important;
+    color: #fde68a !important;
+    box-shadow: none !important;
+}
+.vital-sidebar-filters .vital-qchip.is-active .vital-qchip-count {
+    background: rgba(250, 166, 26, 0.28) !important;
+}
+.vital-extra-bottom-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+}
+.vital-extra-bottom-row > .vital-extra-toggle {
+    flex: 0 0 auto;
+}
+.vital-extra-bottom-row > .vital-extra-stack-group {
+    flex: 1 1 auto;
+    min-width: min(100%, 280px);
+}
+.vital-extra-toggle {
+    padding: 5px 8px !important;
+    font-size: 0.68rem !important;
+    gap: 5px !important;
+}
+.vital-extra-stack {
+    padding: 5px 8px !important;
+    gap: 6px !important;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.vital-extra-stack__btn {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 0.85rem !important;
+}
+.vital-extra-stack__meta {
+    gap: 4px !important;
+}
+.vital-extra-stack__label,
+.vital-extra-stack__pts {
+    font-size: 0.68rem !important;
 }

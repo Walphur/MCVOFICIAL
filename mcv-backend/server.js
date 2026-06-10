@@ -927,7 +927,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-06-10-ui-cleanup-v2",
+        build: "2026-06-11-ui-v1",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),
@@ -979,12 +979,15 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(UPLOAD_ROOT));
-/** Admin: sin caché agresiva (Cloudflare/navegador); así aparece Vital Rust tras deploy. */
+/** HTML/CSS/JS: sin caché agresiva — F5 debe traer assets nuevos tras deploy. */
 app.use((req, res, next) => {
     const p = String(req.path || "");
+    if (/\.(html?|css|js)$/i.test(p) || p === "/sw.js" || p === "/") {
+        res.setHeader("Cache-Control", "no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+    }
     if (p === "/admin.html" || p === "/login.html" || p === "/cuenta.html" || p === "/sw.js") {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-        res.setHeader("Pragma", "no-cache");
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
     }
     next();

@@ -17,6 +17,10 @@
     }
 
     var base = basePath();
+    var assetV =
+        typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
+            ? window.MCV_ASSET_V
+            : "2026-06-11-v1";
 
     var NAV_ITEMS = [
         { id: "index", href: "index.html", i18n: "nav.clan", label: "Clan" },
@@ -283,13 +287,13 @@
         if (!document.querySelector("link[data-mcv-ux-css]")) {
             var link = document.createElement("link");
             link.rel = "stylesheet";
-            link.href = base + "style-ux.css?v=4";
+            link.href = base + "style-ux.css?v=" + assetV;
             link.setAttribute("data-mcv-ux-css", "1");
             document.head.appendChild(link);
         }
         if (!document.querySelector("script[data-mcv-ux-js]")) {
             var script = document.createElement("script");
-            script.src = base + "mcv-ui.js?v=3";
+            script.src = base + "mcv-ui.js?v=" + assetV;
             script.defer = true;
             script.setAttribute("data-mcv-ux-js", "1");
             document.body.appendChild(script);
@@ -304,7 +308,7 @@
             return;
         }
         var script = document.createElement("script");
-        script.src = base + "mcv-icons.js?v=1";
+        script.src = base + "mcv-icons.js?v=" + assetV;
         script.defer = true;
         script.setAttribute("data-mcv-icons", "1");
         script.onload = function () {
