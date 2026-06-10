@@ -1773,12 +1773,12 @@ body.tournament-page {
 .equipo-card-soc-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
-    padding-top: 8px;
-    margin-top: auto;
+    padding-top: 6px;
+    margin-top: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    min-height: 56px;
+    min-height: 38px;
 }
 .equipo-soc {
     display: inline-flex;
@@ -2296,28 +2296,28 @@ a[href*="discord.gg"] .mcv-discord-icon,
     color: #fff;
 }
 
-/* —— Equipo: cards compactas, misma altura por fila —— */
+/* —— Equipo: cards compactas sin espacio muerto —— */
 .equipo-roster-grid {
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-    align-items: stretch;
+    gap: 10px;
+    align-items: start;
 }
 .equipo-card {
-    height: 100%;
+    height: auto;
     min-height: 0;
-    gap: 8px;
-    padding: 11px 12px 10px;
+    gap: 6px;
+    padding: 10px 11px 9px;
     overflow: hidden;
 }
 .equipo-card-top {
     flex: 0 0 auto;
 }
 .equipo-card-soc-row {
-    margin-top: auto;
-    min-height: 40px;
-    max-height: 40px;
+    margin-top: 0;
+    min-height: 38px;
+    max-height: none;
     align-items: center;
-    padding-top: 6px;
+    padding-top: 5px;
     overflow: hidden;
 }
 .equipo-card-soc-row--empty {

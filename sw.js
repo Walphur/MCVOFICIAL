@@ -1,5 +1,5 @@
 /* MCV — service worker: solo imágenes en caché; HTML/CSS/JS siempre red */
-const CACHE = "mcv-static-v53";
+const CACHE = "mcv-static-v54";
 const PRECACHE = ["./logo.png", "./manifest.webmanifest"];
 
 function isMutableAsset(pathname) {

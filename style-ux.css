@@ -256,9 +256,9 @@ a:not(.btn-primary):not(.btn-secondary) {
     transition: transform 0.22s var(--ease-mcv), border-color 0.22s, box-shadow 0.22s;
 }
 .equipo-card:hover {
-    transform: translateY(-4px);
+    transform: none;
     border-color: rgba(250, 166, 26, 0.5);
-    box-shadow: 0 0 28px rgba(250, 166, 26, 0.12);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 20px rgba(250, 166, 26, 0.1);
 }
 .equipo-card-avatar,
 .equipo-card-avatar-link img {
