@@ -1,35 +1,7 @@
 "use strict";
 
 const axios = require("axios");
-const jwt = require("jsonwebtoken");
-
-function jwtSecret() {
-    const s = String(process.env.JWT_SECRET || "").trim();
-    if (!s || s.length < 12) {
-        return null;
-    }
-    return s;
-}
-
-function authAdmin(req, res, next) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
-    }
-    const h = req.headers.authorization;
-    if (!h || !h.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-    try {
-        const decoded = jwt.verify(h.slice(7), secret);
-        if (!decoded || decoded.role !== "admin") {
-            return res.status(403).json({ error: "Prohibido" });
-        }
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token inválido o expirado" });
-    }
-}
+const { authAdmin } = require("./auth");
 
 function normalizeOptionalUrl(raw) {
     const s = String(raw == null ? "" : raw).trim();

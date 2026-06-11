@@ -212,6 +212,83 @@ CREATE INDEX IF NOT EXISTS idx_team_roster_status ON team_roster_submissions (st
 CREATE INDEX IF NOT EXISTS idx_team_roster_created ON team_roster_submissions (created_at DESC);
 
 -- split
+-- SteamID64 extra para stats Vital (jugadores en prueba / aún no en roster MCV)
+CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    label TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_vital_extra_created ON vital_extra_steam_ids (created_at DESC);
+
+-- split
+-- Info interna de jugadores para staff (BM, strikes, estado wipe, vouch, etc.)
+CREATE TABLE IF NOT EXISTS player_info_profiles (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    display_name VARCHAR(120),
+    bm_url TEXT,
+    status_tag VARCHAR(24) NOT NULL DEFAULT 'wipe_guest'
+        CHECK (status_tag IN ('admin', 'mcv_active', 'mcv_inactive', 'mcv_strikes', 'wipe_guest')),
+    role_label VARCHAR(160),
+    strikes SMALLINT NOT NULL DEFAULT 0 CHECK (strikes >= 0 AND strikes <= 3),
+    strike_notes TEXT,
+    entry_date DATE,
+    vouch_by VARCHAR(120),
+    wipe_phase VARCHAR(24) NOT NULL DEFAULT 'unknown'
+        CHECK (wipe_phase IN ('inicio', 'late', 'no_juega', 'unknown')),
+    hours_played INT,
+    combats_lost INT NOT NULL DEFAULT 0 CHECK (combats_lost >= 0 AND combats_lost <= 9999),
+    minis_lost INT NOT NULL DEFAULT 0 CHECK (minis_lost >= 0 AND minis_lost <= 9999),
+    performance_score INT NOT NULL DEFAULT 0,
+    contribution TEXT,
+    warnings TEXT,
+    mt_team BOOLEAN NOT NULL DEFAULT FALSE,
+    paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
+
+-- split
+CREATE TABLE IF NOT EXISTS mcv_vital_roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_mcv_vital_roles_sort ON mcv_vital_roles (sort_order ASC, name ASC);
+
+-- split
+CREATE TABLE IF NOT EXISTS player_info_role_links (
+    steam_id64 VARCHAR(17) NOT NULL,
+    role_name VARCHAR(120) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (steam_id64, role_name)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_info_role_links_role ON player_info_role_links (role_name);
+
+-- split
+CREATE TABLE IF NOT EXISTS player_score_events (
+    id SERIAL PRIMARY KEY,
+    steam_id64 VARCHAR(17) NOT NULL,
+    delta INT NOT NULL,
+    reason TEXT,
+    category VARCHAR(32) NOT NULL DEFAULT 'manual',
+    balance_after INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_score_events_steam ON player_score_events (steam_id64, created_at DESC);
+
+-- split
 CREATE TABLE IF NOT EXISTS support_tickets (
     id SERIAL PRIMARY KEY,
     ticket_type VARCHAR(32) NOT NULL
@@ -227,3 +304,61 @@ CREATE TABLE IF NOT EXISTS support_tickets (
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON support_tickets (status, created_at DESC);
+
+-- split
+-- Encuestas de asistencia al wipe (Accept / Decline / Late en Discord)
+CREATE TABLE IF NOT EXISTS wipe_attendance_polls (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    event_note TEXT,
+    discord_channel_id VARCHAR(32) NOT NULL,
+    discord_message_id VARCHAR(32) NOT NULL,
+    roster_source VARCHAR(24) NOT NULL DEFAULT 'wipe_list'
+        CHECK (roster_source IN ('wipe_list', 'discord_role')),
+    created_by_discord_id VARCHAR(32),
+    closed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_wipe_attendance_polls_channel ON wipe_attendance_polls (discord_channel_id, created_at DESC);
+
+-- split
+CREATE TABLE IF NOT EXISTS wipe_attendance_responses (
+    poll_id INT NOT NULL REFERENCES wipe_attendance_polls(id) ON DELETE CASCADE,
+    discord_user_id VARCHAR(32) NOT NULL,
+    discord_username TEXT,
+    status VARCHAR(16) NOT NULL CHECK (status IN ('accepted', 'declined', 'late')),
+    excuse_text TEXT,
+    responded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (poll_id, discord_user_id)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_wipe_attendance_responses_poll ON wipe_attendance_responses (poll_id, status);
+
+-- split
+CREATE TABLE IF NOT EXISTS site_users (
+    id SERIAL PRIMARY KEY,
+    steam_id64 VARCHAR(20) UNIQUE,
+    google_sub VARCHAR(128) UNIQUE,
+    google_email VARCHAR(254),
+    display_name VARCHAR(120) NOT NULL DEFAULT '',
+    avatar_url TEXT,
+    auth_provider VARCHAR(16) NOT NULL CHECK (auth_provider IN ('steam', 'google')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_login_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CHECK (steam_id64 IS NOT NULL OR google_sub IS NOT NULL)
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_site_users_steam ON site_users (steam_id64) WHERE steam_id64 IS NOT NULL;
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_site_users_google ON site_users (google_sub) WHERE google_sub IS NOT NULL;
+
+-- split
+ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS site_user_id INT REFERENCES site_users(id);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets (site_user_id, created_at DESC);

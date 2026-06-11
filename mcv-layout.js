@@ -17,14 +17,19 @@
     }
 
     var base = basePath();
+    var assetV =
+        typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
+            ? window.MCV_ASSET_V
+            : "2026-06-11-v1";
 
     var NAV_ITEMS = [
-        { id: "index", href: "index.html", i18n: "nav.clan" },
-        { id: "events", href: "events.html", i18n: "nav.torneos" },
-        { id: "team", href: "equipo/", i18n: "nav.team", also: ["teamForm"] },
-        { id: "bot", href: "bot.html", i18n: "nav.bot" },
-        { id: "tickets", href: "tickets.html", i18n: "nav.tickets" },
-        { id: "live", href: "live.html", i18n: "nav.streams", live: true }
+        { id: "index", href: "index.html", i18n: "nav.clan", label: "Clan" },
+        { id: "events", href: "events.html", i18n: "nav.torneos", label: "Torneos" },
+        { id: "team", href: "equipo/", i18n: "nav.team", label: "Equipo", also: ["teamForm"] },
+        { id: "bot", href: "bot.html", i18n: "nav.bot", label: "Bot" },
+        { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
+        { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
+        { id: "live", href: "live.html", i18n: "nav.streams", label: "Streams", live: true }
     ];
 
     function isActive(item) {
@@ -69,8 +74,8 @@
             var inner = item.live
                 ? '<span class="live-dot pulse-red"></span><span data-i18n="' +
                   item.i18n +
-                  '">Streams</span>'
-                : '<span data-i18n="' + item.i18n + '"></span>';
+                  '">' + (item.label || "Streams") + "</span>"
+                : '<span data-i18n="' + item.i18n + '">' + (item.label || "") + "</span>";
             links +=
                 '<li><a href="' +
                 base +
@@ -156,6 +161,25 @@
         initMobileNav(nav);
     }
 
+    function footerPulseHtml() {
+        return (
+            '<div class="footer-pulse" aria-label="Estado MCV">' +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.lastTournament">Último torneo</span>' +
+            '<span class="footer-pulse-value" id="footer-last-tournament">—</span>' +
+            "</div>" +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.discordMembers">Miembros Discord</span>' +
+            '<span class="footer-pulse-value" id="footer-discord-members">—</span>' +
+            "</div>" +
+            '<div class="footer-pulse-item">' +
+            '<span class="footer-pulse-label" data-i18n="footer.serverStatus">Estado servidor</span>' +
+            '<span class="footer-pulse-value" id="footer-server-status">—</span>' +
+            "</div>" +
+            "</div>"
+        );
+    }
+
     function footerFullHtml() {
         return (
             '<div class="footer-content">' +
@@ -196,6 +220,8 @@
             '<a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>' +
             "</div>" +
             "</div>" +
+            "</div>" +
+            footerPulseHtml() +
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
@@ -206,10 +232,37 @@
         );
     }
 
+    function relocateFooterPulse(footer) {
+        if (!footer) return;
+        var content = footer.querySelector(".footer-content");
+        var pulse = footer.querySelector(".footer-pulse");
+        if (!pulse || !content || !content.contains(pulse)) return;
+        content.after(pulse);
+    }
+
+    function injectFooterPulse(footer) {
+        if (!footer) return;
+        relocateFooterPulse(footer);
+        if (footer.querySelector(".footer-pulse")) return;
+        var pulse = document.createElement("div");
+        pulse.innerHTML = footerPulseHtml();
+        var node = pulse.firstElementChild;
+        var content = footer.querySelector(".footer-content");
+        var bottom = footer.querySelector(".footer-bottom");
+        if (content) content.after(node);
+        else if (bottom) footer.insertBefore(node, bottom);
+        else footer.appendChild(node);
+    }
+
     function ensureFooter() {
         var existing = document.querySelector("footer.footer");
         if (existing) {
-            if (existing.querySelector(".footer-content") || existing.classList.contains("footer-bottom--solo")) {
+            if (existing.querySelector(".footer-content")) {
+                injectFooterPulse(existing);
+                return;
+            }
+            if (existing.classList.contains("footer-bottom--solo")) {
+                injectFooterPulse(existing);
                 return;
             }
             existing.innerHTML = footerFullHtml();
@@ -230,11 +283,52 @@
         });
     }
 
+    function ensureUxAssets() {
+        if (!document.querySelector("link[data-mcv-ux-css]")) {
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = base + "style-ux.css?v=" + assetV;
+            link.setAttribute("data-mcv-ux-css", "1");
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector("script[data-mcv-ux-js]")) {
+            var script = document.createElement("script");
+            script.src = base + "mcv-ui.js?v=" + assetV;
+            script.defer = true;
+            script.setAttribute("data-mcv-ux-js", "1");
+            document.body.appendChild(script);
+        }
+    }
+
+    function ensureIconsScript() {
+        if (document.querySelector("script[data-mcv-icons]")) {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+            return;
+        }
+        var script = document.createElement("script");
+        script.src = base + "mcv-icons.js?v=" + assetV;
+        script.defer = true;
+        script.setAttribute("data-mcv-icons", "1");
+        script.onload = function () {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+        };
+        document.body.appendChild(script);
+    }
+
     function boot() {
         ensureSkipLink();
+        ensureUxAssets();
         ensureManifest();
         ensureNavbar();
         ensureFooter();
+        var footers = document.querySelectorAll("footer.footer");
+        for (var fi = 0; fi < footers.length; fi++) {
+            injectFooterPulse(footers[fi]);
+        }
         registerServiceWorker();
         if (typeof window.mcvI18n !== "undefined" && window.mcvI18n.apply) {
             window.mcvI18n.apply();
@@ -242,6 +336,12 @@
         if (typeof lucide !== "undefined" && lucide.createIcons) {
             lucide.createIcons();
         }
+        ensureIconsScript();
+        setTimeout(function () {
+            if (typeof window.mcvPatchDiscordIcons === "function") {
+                window.mcvPatchDiscordIcons();
+            }
+        }, 50);
     }
 
     if (document.readyState === "loading") {

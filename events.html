@@ -9,7 +9,7 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=29">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
     <meta name="description" content="Torneos Rust de MCV: calendario, inscripciones, campeones e historial.">
     <meta property="og:title" content="MCV — Torneos">
     <meta property="og:description" content="Calendario competitivo, inscripciones web y hall of fame del clan.">
@@ -17,12 +17,14 @@
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=3" defer></script>
+    <script src="mcv-layout.js?v=2026-06-11-v4" defer></script>
 </head>
 <body class="grain events-page" data-mcv-page="events">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
 <section class="events-hero">
+    <div class="events-hero-bg" aria-hidden="true"></div>
+    <div class="events-hero-overlay" aria-hidden="true"></div>
     <div class="events-hero-inner">
         <div class="section-label centered-label">
             <div class="yellow-line"></div>
@@ -39,6 +41,7 @@
 </section>
 
 
+<div id="events-api-banner" class="events-api-banner-wrap" hidden></div>
 <section class="events-stats-strip">
     <div class="events-stat">
         <span class="events-stat-num" id="stat-hosted">—</span>
@@ -178,12 +181,9 @@
                 : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
         var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
         var actions =
-            '<div class="events-card-actions">' +
-            '<a class="events-card-link" href="' +
-            esc(slugQ) +
-            '">' +
-            esc(T('events.cardDetail')) +
-            '</a>';
+            '<div class="events-card-actions' +
+            (open ? ' events-card-actions--open' : '') +
+            '">';
         if (open) {
             actions +=
                 '<a class="events-card-register btn-primary" href="' +
@@ -192,21 +192,64 @@
                 esc(T('events.cardRegister')) +
                 '</a>';
         }
-        actions += '</div>';
+        actions +=
+            '<a class="events-card-link" href="' +
+            esc(slugQ) +
+            '">' +
+            esc(T('events.cardDetail')) +
+            '</a></div>';
         var champPrefix = T('events.championPrefix');
+        var pastDetails = '';
+        if (isPast) {
+            pastDetails =
+                '<div class="events-card-past-details">' +
+                (winner
+                    ? '<span>' + esc(T('events.pastChampion')) + ' <strong>' + esc(winner) + '</strong></span>'
+                    : '') +
+                (t.match_day_display
+                    ? '<span>' + esc(T('events.pastDate')) + ' <strong>' + esc(t.match_day_display) + '</strong></span>'
+                    : '') +
+                '<span>' +
+                esc(T('events.pastTeams')) +
+                ' <strong>' +
+                esc(teamsCountLabel(t)) +
+                '</strong></span>' +
+                (t.prize_pool_text
+                    ? '<span>' + esc(T('events.pastPrize')) + ' <strong>' + esc(t.prize_pool_text) + '</strong></span>'
+                    : '') +
+                '</div>';
+        }
         return (
             '<article class="events-card">' + poster +
             '<div class="events-card-body">' + badge +
             '<h3>' + esc(t.title) + '</h3>' +
-            '<p class="events-card-meta">' + esc(t.format_label || '') + ' · ' + esc(t.match_day_display || '') + '</p>' +
-            (t.prize_pool_text ? '<p class="events-card-prize">' + esc(t.prize_pool_text) + '</p>' : '') +
-            (isPast && winner ? '<p class="events-card-winner">' + esc(champPrefix) + '<strong>' + esc(winner) + '</strong></p>' : '') +
+            '<p class="events-card-meta">' + esc(t.format_label || '') + (t.match_day_display && !isPast ? ' · ' + esc(t.match_day_display) : '') + '</p>' +
+            (t.prize_pool_text && !isPast ? '<p class="events-card-prize">' + esc(t.prize_pool_text) + '</p>' : '') +
+            pastDetails +
             actions + '</div></article>'
         );
     }
 
-    function renderEmpty(el, msg) {
+    function renderEmpty(el, msg, withDiscord) {
+        if (withDiscord) {
+            el.innerHTML =
+                '<div class="events-empty-card">' +
+                '<p>' +
+                esc(msg) +
+                '</p><a class="btn-primary" href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">' +
+                esc(T('events.emptyDiscord')) +
+                '</a></div>';
+            return;
+        }
         el.innerHTML = '<p class="events-empty">' + esc(msg) + '</p>';
+    }
+
+    function teamsCountLabel(t) {
+        if (t.display_slots_num != null && t.display_slots_max != null) {
+            return String(t.display_slots_num) + '/' + String(t.display_slots_max);
+        }
+        if (t.max_teams != null) return String(t.max_teams);
+        return '—';
     }
 
     function hofCard(t) {
@@ -291,7 +334,7 @@
                 heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(upcoming[0].slug);
             }
             if (!upcoming.length) {
-                renderEmpty(up, T('events.emptyUp'));
+                renderEmpty(up, T('events.emptyUpScheduled'), true);
             } else {
                 up.innerHTML = upcoming.map(function (t) { return card(t, false); }).join('');
                 hydrateImgurAlbumPosters(up);
@@ -316,7 +359,13 @@
             lucide.createIcons();
         })
         .catch(function () {
-            renderEmpty(document.getElementById('upcoming-list'), T('events.connectFail'));
+            var failMsg = T('ui.eventsApiFail');
+            var banner = document.getElementById('events-api-banner');
+            if (banner && typeof mcvShowApiBanner === 'function') {
+                banner.hidden = false;
+                mcvShowApiBanner(banner, failMsg);
+            }
+            renderEmpty(document.getElementById('upcoming-list'), failMsg, true);
             renderEmpty(document.getElementById('past-list'), '');
         });
 

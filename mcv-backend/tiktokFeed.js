@@ -3,6 +3,8 @@
 const axios = require("axios");
 
 const CACHE_MS = 1000 * 60 * 20;
+const BROWSER_UA =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 const cache = new Map();
 
 function uniqueVideoIdsFromHtml(html, limit) {
@@ -20,7 +22,7 @@ async function oembedForUrl(url) {
         const res = await axios.get("https://www.tiktok.com/oembed", {
             params: { url },
             timeout: 12000,
-            headers: { "User-Agent": "MCV-Site/1.0 (+https://mcvoficial.com)" }
+            headers: { "User-Agent": BROWSER_UA, Accept: "text/html,application/json" }
         });
         const d = res.data || {};
         return {
@@ -42,7 +44,7 @@ async function fetchLatestVideos(handle, limit) {
         .replace(/^@/, "")
         .trim();
     let videoUrls = String(process.env.TIKTOK_VIDEO_URLS || "")
-        .split(",")
+        .split(/[,\n]/)
         .map((s) => s.trim())
         .filter((s) => /tiktok\.com\/.+\/video\//i.test(s))
         .slice(0, lim);
@@ -51,7 +53,7 @@ async function fetchLatestVideos(handle, limit) {
         try {
             const res = await axios.get("https://www.tiktok.com/@" + encodeURIComponent(h), {
                 timeout: 12000,
-                headers: { "User-Agent": "MCV-Site/1.0 (+https://mcvoficial.com)" },
+                headers: { "User-Agent": BROWSER_UA, Accept: "text/html,application/json" },
                 maxRedirects: 5,
                 validateStatus: (s) => s >= 200 && s < 400
             });

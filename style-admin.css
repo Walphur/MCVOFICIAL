@@ -7,6 +7,126 @@
     background: var(--background);
     padding: 24px;
 }
+.login-turnstile {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0 4px;
+    min-height: 65px;
+}
+.login-oauth {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 18px;
+    width: 100%;
+}
+.login-oauth__sep {
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 2px 0 4px;
+}
+.login-oauth__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    text-decoration: none;
+}
+.login-oauth__btn[hidden] {
+    display: none !important;
+}
+.cuenta-section .cuenta-intro {
+    color: var(--muted);
+    max-width: 52ch;
+    margin-bottom: 1.5rem;
+}
+.cuenta-card {
+    max-width: 420px;
+}
+.cuenta-dashboard .cuenta-card {
+    max-width: none;
+}
+.cuenta-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.cuenta-oauth__btn {
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+.cuenta-hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 14px;
+}
+.cuenta-profile-head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.cuenta-avatar {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    object-fit: cover;
+}
+.cuenta-meta {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 4px 0 0;
+}
+.tickets-auth-gate {
+    padding: 18px 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(250, 166, 26, 0.35);
+    border-radius: 8px;
+    background: rgba(250, 166, 26, 0.08);
+}
+.tickets-auth-gate__title {
+    margin: 0 0 6px;
+    font-weight: 600;
+}
+.tickets-auth-gate__hint {
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+.tickets-auth-gate__alt {
+    margin: 12px 0 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-align: center;
+}
+.tickets-auth-gate a {
+    color: var(--primary);
+    font-weight: 600;
+}
+.tickets-auth-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.tickets-auth-oauth__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+.tickets-auth-oauth__btn[hidden] {
+    display: none !important;
+}
+
 .login-container {
     width: min(420px, 100%);
     background: linear-gradient(165deg, rgba(255,255,255,.04), rgba(255,255,255,.01)), var(--input-bg);
@@ -56,6 +176,23 @@
     line-height: 1.5;
 }
 .login-hint code { color: var(--primary); font-size: 0.85em; }
+.login-hint-oauth {
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid rgba(250, 166, 26, 0.25);
+    border-radius: 6px;
+    background: rgba(250, 166, 26, 0.06);
+}
+.login-hint-oauth code {
+    display: block;
+    margin-top: 8px;
+    word-break: break-all;
+    color: var(--primary);
+    font-size: 0.72rem;
+}
+.login-hint-oauth a {
+    color: var(--primary);
+}
 .login-footer-links {
     display: flex;
     flex-wrap: wrap;
@@ -125,7 +262,20 @@
     margin: 0 0 18px;
     max-width: 72ch;
 }
-.admin-tabs { flex-wrap: wrap; gap: 10px; }
+.admin-tabs {
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+}
+.admin-tabs .tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 .admin-tabs .tab {
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 600;
@@ -418,6 +568,920 @@
 }
 .admin-table th { color: var(--muted); font-family: "IBM Plex Sans", sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
+.vital-build-line {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 12px;
+}
+.vital-extra-panel {
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    background: rgba(250, 166, 26, 0.06);
+}
+.vital-extra-heading {
+    margin: 0;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+}
+details.vital-extra-panel .vital-extra-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: flex-end;
+    margin: 10px 0 12px;
+}
+.vital-extra-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+.vital-extra-field .admin-input {
+    width: 100%;
+    padding: 10px;
+    background: #050505;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 6px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+}
+.vital-extra-field-wide {
+    flex: 1 1 100%;
+}
+.vital-extra-missing-hint {
+    margin: 0 0 8px;
+    color: #fde68a;
+}
+.vital-extra-textarea {
+    min-height: 88px;
+    resize: vertical;
+    line-height: 1.45;
+}
+details.vital-extra-panel .vital-extra-count {
+    margin: 0 0 8px;
+    color: var(--primary);
+}
+details.vital-extra-panel .vital-extra-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-extra-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #050505;
+    font-size: 0.85rem;
+}
+.vital-extra-item code {
+    font-family: "JetBrains Mono", monospace;
+    color: var(--primary);
+}
+.vital-extra-mcv {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.vital-extra-del {
+    margin-left: auto;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+}
+.vital-pro-panel {
+    background: radial-gradient(circle at top, rgba(250, 166, 26, 0.05), rgba(0, 0, 0, 0) 35%);
+}
+.vital-app-shell {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 14px;
+}
+.vital-sidebar {
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(14, 20, 33, 0.75);
+    border-radius: 14px;
+    padding: 10px;
+    height: fit-content;
+    position: sticky;
+    top: 84px;
+}
+.vital-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.vital-sidebar-brand strong { display: block; font-size: 0.88rem; }
+.vital-sidebar-brand small { color: #94a3b8; font-size: 0.72rem; }
+.vital-sidebar-nav {
+    display: grid;
+    gap: 6px;
+}
+.vital-nav-item {
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.02);
+    color: #cbd5e1;
+    text-align: left;
+    border-radius: 10px;
+    padding: 8px 9px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.vital-nav-item.active {
+    background: rgba(255,122,0,0.14);
+    border-color: rgba(255,122,0,0.4);
+    color: #fff;
+}
+.vital-app-main {
+    min-width: 0;
+}
+.vital-pro-panel .admin-form-title {
+    letter-spacing: 0.03em;
+}
+.vital-pro-panel .admin-form-hint {
+    color: #9a9a9a;
+}
+.vital-info-toolbar,
+.vital-info-form {
+    display: grid;
+    gap: 10px;
+    margin: 10px 0;
+}
+.vital-info-toolbar {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    position: sticky;
+    top: 8px;
+    z-index: 4;
+    background: rgba(8, 8, 8, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px;
+    backdrop-filter: blur(4px);
+}
+.vital-info-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.vital-info-block {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(20, 20, 20, 0.9), rgba(10, 10, 10, 0.92));
+    padding: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vital-info-block h4 {
+    margin: 0 0 8px;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8f8f8f;
+}
+.vital-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+}
+.vital-info-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.vital-role-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    align-content: flex-start;
+    padding-top: 21px;
+}
+.vital-role-chip {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 5px 10px;
+    background: #0a0a0a;
+    color: #d6d6d6;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, transform .15s ease;
+}
+.vital-role-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+.vital-info-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.vital-pro-panel .admin-input {
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 7px;
+}
+.vital-info-full {
+    grid-column: 1 / -1;
+}
+.vital-info-checkbox {
+    display: flex;
+    align-items: center !important;
+    justify-content: flex-start;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #c9c9c9;
+    min-height: 36px;
+    margin-top: 20px;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0 10px;
+    background: rgba(255, 255, 255, 0.01);
+}
+.vital-info-checkbox input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+}
+.vital-status-chip {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+.chip-admin { background: rgba(40, 167, 69, 0.2); color: #8bf1a0; border: 1px solid #2b9d45; }
+.chip-mcv-active { background: rgba(123, 70, 255, 0.2); color: #c5a7ff; border: 1px solid #7a4dff; }
+.chip-mcv-inactive { background: rgba(20, 20, 20, 0.9); color: #d0d0d0; border: 1px solid #444; }
+.chip-mcv-strikes { background: rgba(220, 53, 69, 0.2); color: #ff9aa5; border: 1px solid #d44152; }
+.chip-wipe-guest { background: rgba(255, 255, 255, 0.12); color: #f1f1f1; border: 1px solid #aaa; }
+.vital-info-row td:first-child {
+    border-left: 4px solid transparent;
+}
+.vital-info-row--admin td:first-child { border-left-color: #30c85b; }
+.vital-info-row--mcv_active td:first-child { border-left-color: #8b5dff; }
+.vital-info-row--mcv_inactive td:first-child { border-left-color: #777; }
+.vital-info-row--mcv_strikes td:first-child { border-left-color: #df4253; }
+.vital-info-row--wipe_guest td:first-child { border-left-color: #cfcfcf; }
+.vital-pause-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #cf9d1d;
+    color: #ffcf5a;
+    background: rgba(207, 157, 29, 0.15);
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+.vital-info-table {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.83rem;
+}
+.vital-info-table thead th {
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #bcbcbc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.vital-info-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.015);
+}
+.vital-info-table .row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.vital-info-table .row-actions .btn-outline {
+    padding: 4px 8px;
+    font-size: 0.68rem;
+}
+.vital-pro-panel .btn-outline,
+.vital-pro-panel .btn-primary-small {
+    min-height: 36px;
+    border-radius: 8px;
+}
+@media (min-width: 1280px) {
+    .vital-pro-panel .vital-info-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .vital-pro-panel .vital-info-block:last-of-type {
+        grid-column: 1 / -1;
+    }
+    .vital-pro-panel .vital-info-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ===== Vital SaaS Premium redesign ===== */
+.admin-body {
+    background: #0b0f14;
+    color: #f3f4f6;
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+}
+.admin-main {
+    max-width: 1380px;
+    padding: 26px 22px 70px;
+}
+.admin-navbar {
+    background: rgba(11, 15, 20, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.admin-tabs .tab {
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(17, 24, 39, 0.65);
+}
+.admin-tabs .tab.active {
+    background: rgba(255, 122, 0, 0.16);
+    border-color: rgba(255, 122, 0, 0.45);
+    color: #fff6ef;
+}
+.vital-pro-panel {
+    background: linear-gradient(180deg, rgba(20, 28, 43, 0.62), rgba(16, 22, 36, 0.58));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.03);
+    backdrop-filter: blur(5px);
+}
+.vital-pro-panel .admin-form-title {
+    font-family: "Rajdhani", "Inter", sans-serif;
+    font-size: 1.9rem;
+    letter-spacing: 0.04em;
+}
+.vital-subtabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 14px;
+}
+.vital-subtab {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(17, 24, 39, 0.9);
+    color: #d1d5db;
+    padding: 9px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s ease;
+}
+.vital-subtab:hover {
+    background: #1f2937;
+    border-color: rgba(255, 122, 0, 0.35);
+}
+.vital-subtab.active {
+    background: linear-gradient(180deg, rgba(255, 122, 0, 0.2), rgba(255, 122, 0, 0.1));
+    color: #fff;
+    border-color: rgba(255, 122, 0, 0.52);
+    box-shadow: 0 0 0 1px rgba(255, 122, 0, 0.2) inset;
+}
+.vital-info-toolbar {
+    top: 74px;
+    background: rgba(18, 25, 40, 0.72);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.vital-info-form {
+    gap: 12px;
+}
+.vital-info-form-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 7fr 5fr;
+}
+.vital-info-block {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.62), rgba(17, 24, 39, 0.42));
+    border-radius: 16px;
+    padding: 13px;
+}
+.vital-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+}
+.vital-pro-panel .admin-input,
+.vital-pro-panel select.admin-input,
+.vital-pro-panel input.admin-input {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(39, 51, 70, 0.45);
+    color: #f9fafb;
+    min-height: 40px;
+    border-radius: 12px;
+}
+.vital-pro-panel .admin-input::placeholder {
+    color: #9ca3af;
+}
+.vital-pro-panel .admin-input:focus {
+    border-color: rgba(255, 122, 0, 0.75);
+    box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.16);
+}
+.btn-primary-small {
+    background: linear-gradient(180deg, #ff8f2b, #ff7a00);
+    color: #171717;
+    border: none;
+}
+.btn-primary-small:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(255,122,0,0.25);
+}
+.btn-outline {
+    background: rgba(17, 24, 39, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.btn-outline:hover {
+    background: #1f2937;
+}
+.vital-overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+}
+.vital-overview-card {
+    background: rgba(17, 24, 39, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+}
+.vital-overview-card p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.vital-overview-card strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.5rem;
+    color: #f9fafb;
+}
+.vital-info-table {
+    border-radius: 12px;
+    border: none;
+}
+.vital-info-table thead th {
+    background: rgba(20, 28, 43, 0.88);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.vital-info-table tbody td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top: none;
+}
+.vital-info-table tbody tr:hover {
+    background: rgba(31, 41, 55, 0.52) !important;
+}
+.vital-info-table tbody tr {
+    transition: background .16s ease, transform .12s ease;
+}
+.vital-info-table tbody tr + tr td {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.vital-player-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.vital-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(255,122,0,0.3), rgba(255,122,0,0.1));
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.vital-icon-btn {
+    width: 30px;
+    min-height: 30px !important;
+    height: 30px;
+    border-radius: 9px !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.vital-wipe-badge,
+.vital-strike-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+.wipe-inicio { background: rgba(34,197,94,0.2); color: #9ef7b9; }
+.wipe-late { background: rgba(96,165,250,0.2); color: #b9dbff; }
+.wipe-no-juega { background: rgba(156,163,175,0.22); color: #e5e7eb; }
+.wipe-unknown { background: rgba(255,255,255,0.14); color: #f3f4f6; }
+.strike-none { background: rgba(255,255,255,0.12); color: #d1d5db; }
+.strike-low { background: rgba(245,158,11,0.2); color: #fcd78a; }
+.strike-high { background: rgba(239,68,68,0.24); color: #ffb4b4; }
+.vital-table-shell {
+    margin-top: 12px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(17,24,39,.63), rgba(17,24,39,.46));
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 12px;
+}
+.vital-table-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.vital-table-header h4 {
+    margin: 0;
+    font-family: "Rajdhani", "Inter", sans-serif;
+    font-size: 1.05rem;
+}
+.vital-table-header p {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.78rem;
+}
+.vital-table-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.vital-quick-filters {
+    display: flex;
+    gap: 6px;
+}
+.vital-chip {
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.02);
+    color: #cbd5e1;
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.vital-chip.is-active {
+    border-color: rgba(255,122,0,0.45);
+    background: rgba(255,122,0,0.14);
+    color: #fff4eb;
+}
+.vital-density {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #94a3b8;
+    font-size: 0.72rem;
+}
+.vital-density .admin-input {
+    min-height: 30px !important;
+    height: 30px;
+    padding: 2px 8px;
+    border-radius: 8px !important;
+}
+.vital-cols-menu {
+    position: relative;
+}
+.vital-cols-menu summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    background: rgba(255,255,255,0.02);
+}
+.vital-cols-menu[open] {
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 8px;
+}
+.vital-cols-menu[open] summary {
+    margin-bottom: 6px;
+}
+.vital-cols-menu label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    color: #cbd5e1;
+    padding: 2px 0;
+}
+.vital-table-skeleton {
+    display: grid;
+    gap: 8px;
+}
+.vital-player-summary {
+    margin: 8px 0 10px;
+}
+.vital-player-summary-card {
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(20,28,43,0.78), rgba(14,20,33,0.85));
+    padding: 12px;
+}
+.vital-summary-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.vital-summary-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    background: rgba(255,122,0,0.2);
+    color: #fff;
+}
+.vital-summary-head h4 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+.vital-summary-head p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+.vital-summary-meta {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.vital-meta-pill {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    color: #dbe2ea;
+}
+.vital-player-summary-empty {
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 10px;
+    color: #94a3b8;
+    font-size: 0.82rem;
+}
+.vital-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.vital-kpi {
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 8px;
+    background: rgba(255,255,255,0.02);
+}
+.vital-kpi small {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.68rem;
+}
+.vital-kpi strong {
+    font-size: 1rem;
+}
+.vital-rows-list {
+    display: grid;
+    gap: 8px;
+}
+.vital-row-card {
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(17,24,39,0.58);
+    display: grid;
+    gap: 8px;
+}
+.vital-row-card:hover {
+    background: rgba(31,41,55,0.56);
+}
+.vital-row-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.vital-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    color: #d1d5db;
+    font-size: 0.8rem;
+}
+.vital-row-meta > span {
+    padding: 2px 0;
+}
+.vital-table-skeleton .sk-row {
+    height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    background-size: 300% 100%;
+    animation: vitalShimmer 1.2s infinite linear;
+}
+@keyframes vitalShimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+.vital-summary-list {
+    display: grid;
+    gap: 8px;
+}
+.vital-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(17, 24, 39, 0.75);
+}
+.vital-summary-item span {
+    color: #d1d5db;
+}
+.vital-summary-item strong {
+    color: #fff;
+}
+.vital-activity-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+.vital-log-item {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: rgba(17, 24, 39, 0.72);
+}
+.vital-log-time {
+    color: #9ca3af;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+}
+.vital-log-msg {
+    color: #e5e7eb;
+    font-size: 0.84rem;
+}
+.vital-log-ok { border-left: 3px solid #22c55e; }
+.vital-log-warn { border-left: 3px solid #f97316; }
+.vital-log-info { border-left: 3px solid #60a5fa; }
+.vital-log-empty {
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+@media (max-width: 760px) {
+    .vital-app-shell {
+        grid-template-columns: 1fr;
+    }
+    .vital-sidebar {
+        position: static;
+    }
+    .vital-subtabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+    }
+    .vital-subtab {
+        white-space: nowrap;
+    }
+    .vital-info-toolbar {
+        position: static;
+    }
+}
+@media (min-width: 1100px) {
+    .vital-info-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .vital-info-block--identity { grid-column: 1; }
+    .vital-info-block--status { grid-column: 2; }
+    .vital-info-block--tracking { grid-column: 1 / -1; }
+    .vital-info-actions {
+        position: sticky;
+        bottom: 10px;
+        z-index: 3;
+        justify-content: flex-end;
+    }
+}
+@media (max-width: 1200px) {
+    .vital-info-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .vital-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+[data-density="compact"] .vital-info-table tbody td {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    font-size: 0.78rem;
+}
+[data-density="compact"] .vital-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 0.62rem;
+}
+[data-density="compact"] .vital-icon-btn {
+    width: 26px;
+    height: 26px;
+    min-height: 26px !important;
+}
+.vital-icon-btn[data-tooltip] {
+    position: relative;
+}
+.vital-icon-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%) scale(.96);
+    background: rgba(10, 14, 20, 0.95);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #e5e7eb;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    line-height: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: .15s ease;
+    white-space: nowrap;
+}
+.vital-icon-btn[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+.vital-player-badge {
+    display: inline-block;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    vertical-align: middle;
+}
+.vital-player-note {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
 .vital-controls {
     display: flex;
     flex-wrap: wrap;
@@ -440,31 +1504,171 @@
     color: var(--foreground);
     border-radius: 6px;
 }
-.vital-overview-grid {
+.vital-sort-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    align-items: flex-end;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #050505;
+}
+.vital-sort-bar label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.vital-sort-bar select {
+    min-width: 160px;
+    padding: 8px 10px;
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    border-radius: 6px;
+}
+.vital-players-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    margin-bottom: 16px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+@media (min-width: 1100px) {
+    .vital-players-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+.vital-player-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0;
+    background: linear-gradient(165deg, #0c0c0c 0%, #050505 55%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.vital-player-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(250, 166, 26, 0.04);
+}
+.vital-player-rank {
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.5rem;
+    color: var(--primary);
+    min-width: 2rem;
+    line-height: 1;
+}
+.vital-player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.vital-player-ident {
+    min-width: 0;
+}
+.vital-player-name {
+    margin: 0 0 4px;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--foreground);
+}
+.vital-player-steam {
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-decoration: none;
+}
+.vital-player-steam:hover {
+    color: var(--primary);
+}
+.vital-player-body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.vital-stat-group-title {
+    margin: 0 0 8px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+}
+.vital-stat-group-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+.vital-stat-group--combat .vital-stat-group-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.vital-stat-group--farm .vital-stat-group-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.vital-stat-group--build .vital-stat-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.vital-stat-group--deploy .vital-stat-group-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+    .vital-stat-group--combat .vital-stat-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .vital-stat-group--farm .vital-stat-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .vital-stat-group--deploy .vital-stat-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 520px) {
+    .vital-stat-group-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 .vital-stat-card {
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 12px;
+    padding: 8px 8px;
     background: #050505;
+    min-width: 0;
+}
+.vital-stat-card--hi {
+    border-color: var(--primary);
+    background: rgba(250, 166, 26, 0.08);
+    box-shadow: 0 0 0 1px rgba(250, 166, 26, 0.15);
 }
 .vital-stat-label {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     color: var(--muted);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .vital-stat-value {
     font-family: "Bebas Neue", sans-serif;
-    font-size: 1.6rem;
+    font-size: 1.22rem;
+    line-height: 1.05;
     color: var(--primary);
     font-weight: 400;
+    word-break: break-word;
 }
 .row-actions { white-space: nowrap; }
 .admin-steam-cell {
@@ -498,6 +1702,50 @@
     gap: 10px;
     margin-top: 16px;
     justify-content: flex-end;
+}
+.admin-confirm-dialog .admin-dialog-box {
+    text-align: center;
+    max-width: 420px;
+}
+.admin-confirm-dialog__icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+}
+.admin-confirm-dialog__icon.is-danger {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.admin-confirm-dialog__title {
+    margin: 0 0 10px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+.admin-confirm-dialog__message {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--muted);
+}
+.admin-confirm-dialog.is-danger .admin-confirm-dialog__title {
+    color: #fecaca;
+}
+.admin-confirm-dialog .admin-dialog-actions {
+    justify-content: center;
+    margin-top: 22px;
 }
 #team-roster-edit-fields label {
     display: flex;
@@ -1154,29 +2402,30 @@
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
     width: 100%;
     max-width: none;
-    height: 100%;
-    align-self: stretch;
+    max-height: 200px !important;
+    height: auto !important;
+    align-self: start !important;
     display: flex;
     flex-direction: column;
 }
 
 .winner-poster-wrap--photo {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: center;
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
-    height: 100%;
-    aspect-ratio: auto;
+    max-height: 240px;
+    aspect-ratio: 4 / 5;
 }
 
 .winner-poster-wrap--photo img {
     width: 100%;
-    height: 100%;
-    min-height: 100%;
-    max-height: none;
+    height: auto;
+    min-height: 0;
+    max-height: 240px;
     object-fit: cover;
-    object-position: center top;
+    object-position: center center;
     display: block;
     background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(45, 38, 22, 0.55) 0%, #050505 72%);
 }
@@ -1184,11 +2433,10 @@
 .winner-poster-iframe-shell {
     position: relative;
     width: 100%;
-    flex: 1;
-    min-height: 200px;
-    height: 100%;
-    aspect-ratio: auto;
-    max-height: none;
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: 240px;
+    aspect-ratio: 4 / 5;
     background: #030303;
     overflow: hidden;
     border-radius: 12px;
@@ -1528,3 +2776,4332 @@
     box-sizing: border-box;
 }
 
+
+
+details.vital-extra-panel > summary {
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    padding: 2px 0;
+}
+
+details.vital-extra-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.vital-extra-panel > summary::after {
+    content: "▾";
+    float: right;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+details.vital-extra-panel:not([open]) > summary::after {
+    content: "▸";
+}
+
+details.vital-extra-panel[open] {
+    margin-top: 14px;
+}
+
+details.vital-extra-panel > :not(summary) {
+    margin-top: 10px;
+}
+
+/* —— Vital Info: workspace split (list + detail) —— */
+.vital-pro-panel .data-area {
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+#vital-info-panel .vital-pro-panel {
+    font-family: "Inter", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.011em;
+}
+.vital-app-shell {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 0;
+    min-height: calc(100vh - 220px);
+    height: auto;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #0b0f14;
+    font-family: "Inter", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    letter-spacing: -0.011em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.vital-app-shell button,
+.vital-app-shell input,
+.vital-app-shell select,
+.vital-app-shell textarea {
+    font-family: inherit;
+}
+/* style.css aplica Bebas Neue a todos los <button> — reset en el workspace Vital */
+.admin-body .vital-app-shell button,
+.admin-body .vital-app-shell .vital-member-row,
+.admin-body .vital-app-shell .vital-nav-item,
+.admin-body .vital-app-shell .vital-dtab,
+.admin-body .vital-app-shell .vital-qchip,
+.admin-body .vital-app-shell .vital-icon-only,
+.admin-body .vital-app-shell .vital-role-chip,
+.admin-body .vital-app-shell .vital-segment__btn {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 500 !important;
+}
+.admin-body .vital-app-shell h2,
+.admin-body .vital-app-shell h3,
+.admin-body .vital-app-shell h4 {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 500 !important;
+}
+.admin-body .vital-app-shell .vital-member-row .vital-member-name,
+.admin-body .vital-app-shell .vital-member-row .vital-member-sub {
+    font-family: inherit !important;
+    text-transform: none !important;
+}
+.admin-body .vital-app-shell input,
+.admin-body .vital-app-shell select,
+.admin-body .vital-app-shell textarea {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+.admin-body .vital-app-shell .vital-dtab.active {
+    font-weight: 500 !important;
+}
+.vital-sidebar--compact {
+    padding: 10px 8px;
+    background: #080c12;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    padding: 2px 6px 10px;
+    gap: 8px;
+}
+.vital-sidebar--compact .vital-sidebar-brand strong {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.vital-nav-item {
+    padding: 9px 12px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #c8d0dc;
+    font-weight: 500;
+    line-height: 1.35;
+    text-transform: none;
+    letter-spacing: -0.01em;
+}
+.vital-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f3f4f6;
+}
+.vital-nav-item.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: inset 2px 0 0 #ff7a00;
+}
+.vital-app-main {
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.vital-subpanel--jugadores {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.vital-split {
+    display: grid;
+    grid-template-columns: minmax(320px, 36%) minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    gap: 0;
+}
+.vital-member-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    background: #0d1118;
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset -12px 0 20px -18px rgba(0, 0, 0, 0.65);
+}
+.vital-health-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 0 0 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-health-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.vital-health-pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.vital-health-pill.is-ok {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+}
+.vital-health-pill.is-bad {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.vital-health-cache {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+.vital-wipe-dashboard,
+.vital-ops-dashboard {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    max-height: min(280px, 36vh);
+    overflow-y: auto;
+}
+.vital-dashboard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.vital-tier-score-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-tier-score-bar__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+.vital-tier-preview {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: 180px;
+    overflow: auto;
+}
+.vital-tier-preview.is-open {
+    display: block;
+}
+.vital-tier-preview__meta {
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+.vital-tier-preview__table-wrap {
+    overflow-x: auto;
+}
+.vital-tier-preview__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+.vital-tier-preview__table th,
+.vital-tier-preview__table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: top;
+}
+.vital-tier-preview__table th {
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 600;
+}
+.vital-tier-preview__pts strong {
+    color: #86efac;
+}
+.vital-tier-preview__detail {
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 420px;
+}
+.vital-tier-sync-status {
+    font-size: 0.76rem;
+    color: rgba(134, 239, 172, 0.85);
+}
+.vital-tier-sync-status.is-error {
+    color: #fecaca;
+}
+.vital-tier-auto-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.vital-tier-auto-total {
+    margin: 0 0 12px;
+    font-size: 1rem;
+}
+.vital-tier-auto-total strong {
+    color: #86efac;
+    font-size: 1.35rem;
+}
+.vital-tier-player-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+.vital-tier-player-table th,
+.vital-tier-player-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: left;
+}
+.vital-tier-stat-pts.is-plus { color: #86efac; }
+.vital-tier-stat-pts.is-minus { color: #fecaca; }
+.vital-tier-stat-val {
+    font-family: "JetBrains Mono", monospace;
+    color: rgba(255, 255, 255, 0.75);
+}
+.vital-tier-leader {
+    font-size: 0.72rem;
+    color: #fde68a;
+    margin-left: 4px;
+}
+.vital-member-pts-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    min-width: 2.5rem;
+    text-align: right;
+    font-weight: 700;
+    color: #86efac;
+    font-size: 0.85rem;
+    align-self: center;
+}
+.vital-member-pts {
+    color: #86efac;
+}
+.vital-tier-rank-row {
+    cursor: pointer;
+}
+.vital-tier-rank-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+.vital-tier-config-help {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+.vital-tier-config-help summary {
+    cursor: pointer;
+    color: #fde68a;
+    margin-bottom: 8px;
+}
+.vital-tier-config-view {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+.vital-tier-config-cat {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.78rem;
+}
+.vital-tier-config-cat strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+.vital-tier-config-cat span {
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.35;
+}
+.vital-tier-period-label {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    color: #93c5fd;
+}
+.vital-tier-config-note {
+    font-weight: normal;
+    color: rgba(147, 197, 253, 0.85);
+    font-size: 0.78rem;
+}
+.vital-tier-rank-row.is-skipped {
+    opacity: 0.55;
+}
+.vital-extra-points-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.vital-extra-toggle {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: border-color 0.15s, background 0.15s;
+}
+.vital-extra-toggle:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.07);
+}
+.vital-extra-toggle.is-on {
+    border-color: rgba(34, 197, 94, 0.55);
+    background: rgba(34, 197, 94, 0.12);
+}
+.vital-extra-toggle.is-on.is-minus {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+}
+.vital-extra-toggle__label {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.vital-extra-toggle__pts {
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 1;
+}
+.vital-extra-toggle.is-plus .vital-extra-toggle__pts { color: #86efac; }
+.vital-extra-toggle.is-minus .vital-extra-toggle__pts { color: #fecaca; }
+.vital-extra-stack-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+.vital-extra-stack-group .vital-extra-stack {
+    flex: 1 1 auto;
+    min-width: min(100%, 220px);
+}
+.vital-extra-stack {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 9px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.72rem;
+    line-height: 1.2;
+}
+.vital-extra-stack.is-on.is-minus {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+}
+.vital-extra-stack__controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.vital-extra-stack__btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+}
+.vital-extra-stack__btn:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.32);
+    background: rgba(255, 255, 255, 0.1);
+}
+.vital-extra-stack__btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.vital-extra-stack__count {
+    min-width: 1.4rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+.vital-extra-stack__meta {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 5px;
+    min-width: 0;
+}
+.vital-extra-stack__label {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.vital-extra-stack__pts {
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 1;
+    color: #fecaca;
+    white-space: nowrap;
+}
+.vital-extra-points-status {
+    margin: 8px 0 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+.vital-extra-points-status.is-error {
+    color: #fecaca;
+}
+.btn-danger-outline {
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    color: #fecaca !important;
+}
+.btn-danger-outline:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+}
+.btn-danger-solid,
+.admin-confirm-dialog .admin-confirm-dialog__confirm.btn-danger-outline {
+    background: linear-gradient(180deg, #dc2626, #b91c1c) !important;
+    border-color: rgba(248, 113, 113, 0.65) !important;
+    color: #fff !important;
+    font-weight: 600;
+    min-width: 120px;
+}
+.btn-danger-solid:hover,
+.admin-confirm-dialog .admin-confirm-dialog__confirm.btn-danger-outline:hover {
+    background: linear-gradient(180deg, #ef4444, #dc2626) !important;
+    color: #fff !important;
+    filter: none;
+}
+.vital-score-player-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.vital-score-player-actions .admin-form-hint {
+    margin: 0;
+    font-size: 0.78rem;
+}
+.vital-score-ev {
+    grid-template-columns: auto 1fr auto auto;
+}
+.vital-score-ev__del {
+    border: none;
+    background: transparent;
+    color: #fecaca;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0 4px;
+}
+.vital-score-ev__del:hover {
+    color: #fff;
+}
+.vital-score-ev.is-reset .vital-score-ev__delta {
+    color: #93c5fd;
+}
+.vital-cache-meta {
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.82rem;
+}
+.vital-score-total {
+    font-size: 1.1rem;
+    margin: 0 0 12px;
+}
+.vital-score-total strong {
+    color: #fbbf24;
+    font-size: 1.35rem;
+}
+.vital-score-custom {
+    align-items: end;
+    margin-bottom: 14px;
+}
+.vital-score-history {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.vital-score-ev {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.82rem;
+}
+.vital-score-ev__delta {
+    font-weight: 700;
+    min-width: 3rem;
+}
+.vital-score-ev.is-plus .vital-score-ev__delta { color: #86efac; }
+.vital-score-ev.is-minus .vital-score-ev__delta { color: #fecaca; }
+.vital-score-ev__time {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.72rem;
+}
+.vital-roles-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+.vital-roles-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.vital-roles-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-roles-item__name {
+    font-weight: 600;
+    flex: 1 1 200px;
+}
+.vital-roles-item__meta {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.ws-badge--hi {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fde68a;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+}
+.vital-member-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+}
+.vital-member-stat {
+    text-align: center;
+    padding: 6px 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+.vital-member-stat span {
+    display: block;
+    font-size: 11px;
+    color: #9ca8b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.vital-member-stat strong {
+    display: block;
+    font-size: 18px;
+    color: #fafafa;
+    margin-top: 4px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+.vital-member-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    align-items: center;
+    flex-shrink: 0;
+}
+.vital-input-compact {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    color: #f3f4f6;
+    min-width: 0;
+}
+select.vital-input-compact {
+    color-scheme: dark;
+    cursor: pointer;
+}
+select.vital-input-compact option {
+    background: #1a2230;
+    color: #f3f4f6;
+}
+.vital-input-compact::placeholder {
+    color: #a8b4c4;
+}
+.vital-input-compact:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 122, 0, 0.35);
+    background: rgba(255, 255, 255, 0.07);
+}
+#vital-info-search {
+    flex: 1 1 100%;
+}
+.vital-quick-inline {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+.vital-qchip {
+    height: 30px;
+    padding: 0 11px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: #d8dee8;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    cursor: pointer;
+}
+.vital-qchip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+}
+.vital-qchip.is-active {
+    background: rgba(255, 122, 0, 0.14);
+    border-color: rgba(255, 122, 0, 0.45);
+    color: #fff7ed;
+}
+.vital-icon-only {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid rgba(250, 166, 26, 0.22);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f4f4f5;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+}
+.vital-icon-only:hover {
+    background: rgba(250, 166, 26, 0.12);
+    border-color: rgba(250, 166, 26, 0.45);
+    color: var(--primary);
+}
+.vital-icon-glyph {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif !important;
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+.vital-member-list {
+    flex: 1 1 220px;
+    overflow: auto;
+    padding: 10px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 220px;
+}
+.vital-member-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 14px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.vital-member-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+.vital-member-row.is-active {
+    background: rgba(255, 122, 0, 0.08);
+    box-shadow: inset 3px 0 0 #ff7a00;
+}
+.vital-member-row.is-active .vital-member-name {
+    font-weight: 500;
+    color: #ffffff;
+}
+.vital-member-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f9fafb;
+}
+.vital-member-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 1px;
+}
+.vital-member-name {
+    display: block;
+    font-size: 16px;
+    font-weight: 500;
+    color: #f5f5f5;
+    line-height: 1.4;
+    letter-spacing: -0.012em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-member-sub {
+    display: block;
+    font-size: 12px;
+    color: #9ca8b8;
+    line-height: 1.45;
+    font-weight: 400;
+}
+.vital-detail-panel,
+.vital-detail-workspace {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #0b0f14;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: inset 10px 0 18px -16px rgba(0, 0, 0, 0.5);
+}
+.vital-detail-empty[hidden],
+.vital-detail-content[hidden] {
+    display: none !important;
+}
+.vital-detail-panel.has-selection .vital-detail-empty {
+    display: none !important;
+}
+.vital-detail-panel:not(.has-selection) .vital-detail-content {
+    display: none !important;
+}
+.vital-detail-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    color: #9ca3af;
+    padding: 28px 24px;
+    min-height: 100%;
+}
+.vital-detail-empty-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #f3f4f6;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+}
+.vital-detail-empty-hint {
+    font-size: 14px;
+    color: #b8c4d4;
+    line-height: 1.5;
+    opacity: 1;
+}
+.vital-detail-content {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    align-content: start;
+}
+.vital-detail-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+.vital-workspace-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+.vital-workspace-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 1.15rem;
+    font-weight: 500;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+    color: #fff;
+    flex-shrink: 0;
+}
+.vital-workspace-title {
+    flex: 1;
+    min-width: 0;
+}
+.vital-workspace-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.vital-workspace-title h2 {
+    margin: 0;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    line-height: 1.28;
+    color: #fafafa;
+}
+.vital-workspace-bm {
+    font-size: 13px;
+    font-weight: 500;
+    color: #93c5fd;
+    text-decoration: none;
+}
+.vital-workspace-steam {
+    display: block;
+    margin: 6px 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #a8b4c4;
+    font-family: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    font-weight: 400;
+}
+.vital-workspace-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.ws-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #eceff4;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.3;
+}
+.ws-badge--mcv_active { color: #ddd6fe; background: rgba(139, 92, 246, 0.14); }
+.ws-badge--admin { color: #bbf7d0; background: rgba(34, 197, 94, 0.12); }
+.ws-badge--mcv_strikes,
+.ws-badge--strike { color: #fecaca; background: rgba(239, 68, 68, 0.12); }
+.ws-badge--pause { color: #d1d5db; background: rgba(107, 114, 128, 0.25); }
+.vital-detail-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.12);
+}
+.vital-dtab {
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: #a8b4c4;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: 0;
+    transition: color 0.12s ease, border-color 0.12s ease;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    line-height: 1.3;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.vital-dtab:hover {
+    color: #e8edf4;
+}
+.vital-dtab.active {
+    color: #ffffff;
+    font-weight: 500;
+    border-bottom-color: #fbbf24;
+}
+.vital-detail-body {
+    overflow: auto;
+    padding: 20px 24px 24px;
+    min-height: 0;
+    align-self: stretch;
+}
+.vital-detail-pane {
+    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+    align-content: start;
+}
+.vital-detail-pane.active {
+    display: grid;
+}
+.vital-detail-pane[data-detail-pane="strikes"],
+.vital-detail-pane[data-detail-pane="notes"],
+.vital-detail-pane[data-detail-pane="logs"],
+.vital-detail-pane[data-detail-pane="puntos"],
+.vital-detail-pane[data-detail-pane="combats"],
+.vital-detail-pane[data-detail-pane="minis"] {
+    grid-template-columns: 1fr;
+}
+.vital-roles-selected {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+    margin-bottom: 8px;
+    padding: 6px 0;
+}
+.vital-roles-empty {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 122, 0, 0.15);
+    border: 1px solid rgba(255, 122, 0, 0.35);
+    color: #fde68a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    max-width: 100%;
+}
+.vital-role-tag__rm {
+    border: none;
+    background: transparent;
+    color: #fecaca;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0 2px;
+}
+.vital-role-chip.is-on {
+    background: rgba(255, 122, 0, 0.22);
+    border-color: rgba(255, 122, 0, 0.55);
+    color: #fde68a;
+}
+.vital-detail-content {
+    min-width: 0;
+    width: 100%;
+}
+.vital-detail-workspace {
+    min-width: 0;
+}
+.vital-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.vital-field span {
+    font-size: 13px;
+    color: #b8c4d4;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    line-height: 1.4;
+}
+.vital-field .admin-input,
+.vital-field select.admin-input,
+.vital-field textarea.admin-input {
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 400;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(30, 38, 52, 0.85);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    color: #fafafa;
+    transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.vital-field .admin-input::placeholder,
+.vital-field textarea.admin-input::placeholder {
+    color: #a8b4c4;
+    opacity: 1;
+}
+.vital-field select.admin-input {
+    color-scheme: dark;
+}
+.vital-field select.admin-input option {
+    background: #1a2230;
+    color: #f3f4f6;
+}
+.vital-field .admin-input:focus,
+.vital-field select.admin-input:focus,
+.vital-field textarea.admin-input:focus {
+    outline: none;
+    background: rgba(36, 46, 62, 0.95);
+    border-color: rgba(255, 122, 0, 0.55);
+    box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.14);
+}
+.vital-field textarea.admin-input {
+    min-height: 100px;
+    padding: 12px 14px;
+    resize: vertical;
+}
+.vital-field-check {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    grid-column: 1 / -1;
+}
+.vital-field-check span {
+    font-size: 14px;
+    color: #e8edf4;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    line-height: 1.45;
+}
+.vital-role-presets {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.vital-detail-body .vital-role-chip {
+    font-size: 13px;
+    font-weight: 500;
+    color: #e8edf4;
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 7px 13px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.vital-detail-body .btn-outline.btn-sm {
+    font-size: 14px;
+    font-weight: 500;
+    color: #f3f4f6;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 8px 14px;
+    line-height: 1.4;
+}
+.vital-detail-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(8, 12, 18, 0.92);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+}
+.vital-detail-footer__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.vital-detail-footer__delete {
+    flex-shrink: 0;
+}
+.vital-detail-footer .btn-primary-small,
+.vital-detail-footer .btn-outline {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.vital-detail-footer .btn-primary-small {
+    min-width: 108px;
+    flex-shrink: 0;
+}
+.vital-detail-footer__delete.btn-danger-outline {
+    color: #fecaca !important;
+}
+.vital-detail-footer__delete.btn-danger-outline:hover {
+    background: rgba(239, 68, 68, 0.14) !important;
+    border-color: rgba(248, 113, 113, 0.55) !important;
+    color: #fff !important;
+}
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+}
+.vital-page-simple {
+    padding: 22px 24px;
+    max-width: 720px;
+}
+.vital-app-shell .vital-page-simple h4 {
+    margin: 0 0 10px;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: #f3f4f6;
+    line-height: 1.35;
+}
+.vital-app-shell .vital-page-simple .admin-form-hint {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #a8b4c4;
+}
+.vital-app-shell .vital-activity-log .vital-log-time {
+    font-size: 12px;
+    color: #9ca8b8;
+}
+.vital-app-shell .vital-activity-log .vital-log-msg,
+.vital-app-shell .vital-activity-log--compact .vital-log-item span:last-child {
+    font-size: 14px;
+    line-height: 1.45;
+    color: #e8edf4;
+}
+
+/* —— Vital premium polish (depth, sections, controls) —— */
+.vital-app-shell {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 24px 48px -32px rgba(0, 0, 0, 0.55);
+}
+.vital-member-panel {
+    background: linear-gradient(180deg, #0e131b 0%, #0c1017 100%);
+}
+.vital-detail-workspace {
+    background: linear-gradient(180deg, #0c1018 0%, #0a0e14 100%);
+}
+.vital-member-stat {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+.vital-member-row {
+    border: 1px solid transparent;
+    border-radius: 12px;
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+}
+.vital-member-row:hover {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.45);
+    transform: translateY(-1px);
+}
+.vital-member-row.is-active {
+    background: linear-gradient(90deg, rgba(255, 122, 0, 0.12) 0%, rgba(255, 122, 0, 0.04) 100%);
+    border-color: rgba(255, 122, 0, 0.22);
+    box-shadow:
+        inset 3px 0 0 #ff7a00,
+        0 6px 20px -10px rgba(255, 122, 0, 0.25);
+    transform: none;
+}
+.vital-member-avatar {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.4);
+}
+.vital-workspace-avatar {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.45);
+}
+.vital-detail-header {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+}
+.ws-badge--status {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 5px 9px;
+    border-radius: 999px;
+}
+.ws-badge--status.ws-badge--admin { color: #bbf7d0; background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.35); }
+.ws-badge--status.ws-badge--mcv_active { color: #e9d5ff; background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.35); }
+.ws-badge--status.ws-badge--mcv_inactive { color: #d4d4d8; background: rgba(113, 113, 122, 0.25); border-color: rgba(161, 161, 170, 0.2); }
+.ws-badge--status.ws-badge--mcv_strikes { color: #fecaca; background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.35); }
+.ws-badge--status.ws-badge--wipe_guest { color: #e4e4e7; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.12); }
+.ws-badge--status.ws-badge--pause { color: #fde68a; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); }
+.ws-badge--strike {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.14);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    border-radius: 8px;
+    padding: 5px 10px;
+}
+.ws-badge--role {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: #e0e7ff;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(129, 140, 248, 0.28);
+    border-radius: 8px;
+    padding: 5px 10px;
+    max-width: 100%;
+}
+.ws-badge--meta {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #a8b4c4;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+.vital-detail-tabs {
+    gap: 0;
+    padding: 0 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-dtab {
+    padding: 13px 20px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+    border-bottom: none;
+    position: relative;
+}
+.vital-dtab.active {
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+}
+.vital-dtab.active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: linear-gradient(90deg, #ff9a3d, #ff7a00);
+}
+.vital-detail-pane[data-detail-pane="general"].active {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.vital-detail-pane[data-detail-pane="general"] {
+    grid-template-columns: 1fr;
+}
+.vital-form-section {
+    padding: 18px 0 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.vital-form-section:last-child {
+    border-bottom: none;
+    padding-bottom: 8px;
+}
+.vital-form-section--solo {
+    padding-top: 4px;
+    border-bottom: none;
+}
+.vital-form-section__head {
+    margin-bottom: 14px;
+}
+.vital-form-section__title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8b98a8;
+}
+.vital-form-section__hint {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #7d8a9a;
+    font-weight: 400;
+}
+.vital-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 18px;
+}
+.vital-form-grid--single {
+    grid-template-columns: 1fr;
+}
+.vital-field--wide {
+    grid-column: 1 / -1;
+}
+.vital-field--action {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 7px;
+}
+.vital-field__action-label {
+    font-size: 13px;
+    color: #b8c4d4;
+    font-weight: 500;
+}
+.vital-role-presets {
+    margin-top: 2px;
+}
+.vital-field .admin-input,
+.vital-field select.admin-input,
+.vital-field textarea.admin-input {
+    border-radius: 10px;
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(22, 28, 38, 0.9);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.vital-field .admin-input:hover,
+.vital-field select.admin-input:hover,
+.vital-field textarea.admin-input:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(28, 36, 48, 0.95);
+}
+.vital-field .admin-input:focus,
+.vital-field select.admin-input:focus,
+.vital-field textarea.admin-input:focus {
+    border-color: rgba(255, 140, 60, 0.55);
+    background: rgba(32, 40, 54, 1);
+    box-shadow:
+        0 0 0 3px rgba(255, 122, 0, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+.vital-detail-footer {
+    margin-top: auto;
+    padding: 16px 22px;
+    gap: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(10, 14, 20, 0.72);
+    backdrop-filter: blur(14px) saturate(1.2);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    box-shadow:
+        0 -1px 0 rgba(255, 255, 255, 0.04) inset,
+        0 -12px 32px -16px rgba(0, 0, 0, 0.5);
+}
+.vital-detail-footer__actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.vital-wipe-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px 4px 4px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-wipe-control__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b98a8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-left: 8px;
+}
+.vital-segment {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 2px;
+}
+.vital-segment.is-paused {
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.15) inset;
+}
+.vital-segment__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #9ca8b8;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.vital-segment__btn:hover {
+    color: #e8edf4;
+    background: rgba(255, 255, 255, 0.06);
+}
+.vital-segment__btn.is-active {
+    color: #fafafa;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px -4px rgba(0, 0, 0, 0.4);
+}
+.vital-segment__btn[data-wipe-state="paused"].is-active {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fde68a;
+}
+.vital-segment__btn[data-wipe-state="active"].is-active {
+    background: rgba(34, 197, 94, 0.14);
+    color: #bbf7d0;
+}
+.vital-segment__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.vital-segment__dot--active {
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.55);
+}
+.vital-segment__dot--paused {
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.45);
+}
+.vital-detail-footer .btn-primary-small {
+    min-height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px -4px rgba(255, 122, 0, 0.45);
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body) {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body):hover {
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body)::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body)::-webkit-scrollbar-track {
+    background: transparent;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body)::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body):hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.vital-app-shell :is(.vital-member-list, .vital-detail-body)::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+.vital-activity-log--compact .vital-log-item {
+    grid-template-columns: 52px 1fr;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+@media (max-width: 1100px) {
+    .vital-app-shell {
+        height: auto;
+        min-height: 70vh;
+    }
+    .vital-split {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .vital-member-panel {
+        max-height: 340px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        box-shadow: none;
+    }
+    .vital-detail-panel {
+        min-height: 420px;
+        box-shadow: none;
+    }
+}
+@media (max-width: 800px) {
+    .vital-app-shell {
+        grid-template-columns: 1fr;
+    }
+    .vital-sidebar--compact {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .vital-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .vital-member-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .vital-detail-pane.active {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— Vital Rust página pública (link con clave) —— */
+.vital-rust-page {
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+}
+.vital-rust-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 72px 20px 80px;
+}
+.vital-rust-hero {
+    margin-bottom: 28px;
+}
+.vital-rust-title {
+    font-family: "Inter", system-ui, sans-serif;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 0.15em 0;
+    text-transform: none;
+}
+.vital-rust-title span {
+    color: var(--primary);
+}
+.vital-rust-lead {
+    color: #a8b4c4;
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 52ch;
+    margin: 0;
+}
+.card-surface {
+    background: linear-gradient(180deg, rgba(18, 24, 36, 0.92), rgba(12, 16, 24, 0.88));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.55);
+}
+.vital-rust-gate {
+    max-width: 420px;
+}
+.vital-rust-gate h2 {
+    margin: 0 0 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: -0.02em;
+}
+.vital-rust-gate-hint {
+    color: #9ca8b8;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin: 0 0 14px;
+}
+.vital-rust-gate-hint.is-error {
+    color: #c96a68;
+    margin-bottom: 12px;
+}
+.vital-rust-gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+.vital-rust-gate-steam {
+    width: auto;
+    min-width: 0;
+    padding: 9px 18px;
+    font-size: 0.86rem;
+    box-shadow: 0 6px 18px rgba(250, 166, 26, 0.16);
+}
+.vital-rust-gate-link {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #8a96a6;
+}
+.vital-rust-gate-link a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(250, 166, 26, 0.35);
+    transition: color 0.2s, border-color 0.2s;
+}
+.vital-rust-gate-link a:hover {
+    color: #ffc04f;
+    border-bottom-color: rgba(250, 166, 26, 0.75);
+}
+.vital-rust-gate-link a:visited {
+    color: var(--primary);
+}
+.vital-rust-gate-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.vital-rust-gate-label {
+    flex: 1 1 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #c8d0dc;
+}
+.vital-rust-app {
+    margin-top: 20px;
+}
+.vital-rust-banner {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.vital-rust-banner.is-ok {
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+.vital-rust-banner.is-error {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.28);
+}
+.vital-public-access-status.is-ok {
+    color: #bbf7d0;
+}
+.vital-public-access-status.is-warn {
+    color: #fecaca;
+}
+.vital-rust-controls {
+    margin-top: 8px;
+}
+.vital-rust-page .vital-player-name,
+.vital-rust-page .vital-stat-group-title,
+.vital-rust-page button {
+    font-family: "Inter", system-ui, sans-serif !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+.vital-rust-details {
+    margin-top: 18px;
+}
+
+/* —— Admin UX polish (solo presentación) —— */
+.admin-tabs {
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+}
+.admin-tabs .tab {
+    position: relative;
+    transition: color 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-bottom: -1px;
+}
+.admin-tabs .tab:hover {
+    color: var(--foreground);
+    background: rgba(250, 166, 26, 0.06);
+}
+.admin-tabs .tab.active {
+    color: var(--primary);
+    background: rgba(250, 166, 26, 0.1);
+    border-color: var(--border);
+    border-bottom-color: var(--background);
+}
+.admin-tabs .tab.active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 0;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px 2px 0 0;
+}
+
+.admin-table-wrap {
+    overflow: auto;
+    max-height: min(70vh, 720px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #0d0d0d;
+    box-shadow: 0 1px 0 var(--border);
+}
+.admin-table tbody tr {
+    transition: background 0.18s ease;
+}
+.admin-table tbody tr:hover {
+    background: rgba(250, 166, 26, 0.06);
+}
+
+.admin-stack-form {
+    gap: 14px;
+}
+.admin-stack-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.admin-form-hint,
+.admin-zone-eyebrow {
+    opacity: 0.92;
+}
+
+.admin-dash-charts {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25);
+}
+.admin-dash-charts-title {
+    margin: 0 0 14px;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+}
+.admin-chart-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 180px) 1fr 48px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.admin-chart-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.admin-chart-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+.admin-chart-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(250, 166, 26, 0.55), var(--primary));
+    transition: width 0.35s ease;
+}
+.admin-chart-value {
+    text-align: right;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 1.1rem;
+    color: var(--foreground);
+}
+
+.admin-site-status .admin-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.admin-tournament-toolbar {
+    margin-bottom: 14px;
+    padding: 12px 16px;
+}
+.admin-tournament-toolbar .admin-summary-line {
+    margin: 0;
+}
+.admin-tagline-only {
+    margin: 0 0 4px;
+}
+    overflow: auto;
+    max-height: min(72vh, 700px);
+    border-radius: 10px;
+}
+#vital-info-panel > .data-area.vital-pro-panel {
+    max-height: none;
+    overflow: visible;
+}
+
+/* —— Vital UI modo simple —— */
+.vital-mode-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-mode-toggle {
+    display: inline-flex;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.vital-mode-btn {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+}
+.vital-mode-btn.is-active {
+    background: rgba(250, 166, 26, 0.2);
+    color: #fcd34d;
+}
+.vital-mode-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.vital-app-shell.is-simple-mode .vital-advanced-only {
+    display: none !important;
+}
+.vital-wipe-checklist {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.vital-wipe-checklist__title {
+    margin: 0 0 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #93c5fd;
+}
+.vital-wipe-checklist__steps {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+}
+.vital-dashboard-primary {
+    margin: 10px 0;
+}
+.vital-btn-update-all {
+    width: 100%;
+    max-width: 420px;
+    padding: 12px 18px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+}
+.vital-global-period-label {
+    margin: 6px 0 0;
+    font-size: 0.78rem;
+    color: #93c5fd;
+}
+.vital-dashboard-more summary {
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 8px;
+}
+.vital-qchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.vital-qchip-count {
+    display: inline-flex;
+    min-width: 1.25rem;
+    justify-content: center;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.vital-qchip.is-active .vital-qchip-count {
+    background: rgba(250, 166, 26, 0.35);
+}
+.vital-member-row.is-paused-row {
+    opacity: 0.72;
+}
+.vital-member-row.is-paused-row .vital-member-avatar {
+    filter: grayscale(0.6);
+}
+.vital-member-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+    background: rgba(255, 255, 255, 0.35);
+}
+.vital-member-status-dot.is-paused {
+    background: #f87171;
+}
+.vital-member-status-dot.ws-badge--mcv_active,
+.vital-member-status-dot.ws-badge--admin {
+    background: #4ade80;
+}
+.vital-member-pts-badge.is-muted {
+    opacity: 0.45;
+}
+.vital-wipe-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.vital-wipe-hero__btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.vital-wipe-hero__btn--yes.is-active {
+    border-color: rgba(34, 197, 94, 0.6);
+    background: rgba(34, 197, 94, 0.15);
+}
+.vital-wipe-hero__btn--no.is-active {
+    border-color: rgba(239, 68, 68, 0.55);
+    background: rgba(239, 68, 68, 0.12);
+}
+.vital-wipe-hero__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+.vital-wipe-hero__text {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.vital-points-card {
+    margin-bottom: 14px;
+    padding: 16px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(250, 166, 26, 0.12), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(250, 166, 26, 0.25);
+}
+.vital-points-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.vital-points-card__label {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.vital-points-card__total {
+    margin: 2px 0 0;
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: 2.4rem;
+    line-height: 1;
+    color: #fcd34d;
+}
+.vital-points-card__total small {
+    font-size: 1rem;
+    opacity: 0.7;
+}
+.vital-points-card__badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+.vital-points-card__badge.is-active {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+}
+.vital-points-card__badge.is-paused {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fecaca;
+}
+.vital-points-card__period {
+    margin: 0 0 12px;
+    font-size: 0.78rem;
+    color: #93c5fd;
+}
+.vital-points-card__bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-points-card__bar-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr auto;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.78rem;
+}
+.vital-points-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+.vital-points-bar i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #86efac);
+}
+.vital-points-bar--manual i {
+    background: linear-gradient(90deg, #f59e0b, #fcd34d);
+}
+.vital-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.vital-breakdown-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 0.82rem;
+}
+.vital-breakdown-icon {
+    font-size: 1rem;
+    width: 1.25rem;
+    text-align: center;
+}
+.vital-breakdown-val {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.78rem;
+}
+.vital-breakdown-pts.is-plus { color: #86efac; font-weight: 700; }
+.vital-breakdown-pts.is-minus { color: #fecaca; font-weight: 700; }
+.vital-breakdown-skipped {
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #fecaca;
+    font-size: 0.85rem;
+    margin: 0;
+}
+.vital-extra-points-summary {
+    color: #86efac;
+    font-weight: 600;
+}
+@media (max-width: 720px) {
+    .vital-wipe-hero {
+        grid-template-columns: 1fr;
+    }
+    .vital-points-card__bar-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Vital performance dashboard (pestaña Puntos) ── */
+.vital-perf-section .vital-form-section__title {
+    color: rgba(255, 255, 255, 0.92);
+}
+.vital-perf-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.vital-perf-hero {
+    text-align: center;
+    padding: 20px 16px 18px;
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(212, 164, 55, 0.14), rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(212, 164, 55, 0.28);
+}
+.vital-perf-hero__label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(212, 164, 55, 0.85);
+    margin-bottom: 6px;
+}
+.vital-perf-hero__score {
+    font-family: "Bebas Neue", Impact, sans-serif;
+    font-size: clamp(2.6rem, 6vw, 3.6rem);
+    line-height: 1;
+    color: #D4A437;
+    letter-spacing: 0.02em;
+}
+.vital-perf-hero__score.is-low { color: #A94442; }
+.vital-perf-hero__score.is-mid { color: #D4A437; }
+.vital-perf-hero__score.is-high { color: #2E8B57; }
+.vital-perf-hero__score.is-paused {
+    font-size: 1.4rem;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-perf-hero__status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.vital-perf-hero__status.is-low {
+    background: rgba(169, 68, 66, 0.18);
+    color: #e8a4a2;
+    border: 1px solid rgba(169, 68, 66, 0.35);
+}
+.vital-perf-hero__status.is-mid {
+    background: rgba(212, 164, 55, 0.15);
+    color: #e8cc7a;
+    border: 1px solid rgba(212, 164, 55, 0.3);
+}
+.vital-perf-hero__status.is-high {
+    background: rgba(46, 139, 87, 0.16);
+    color: #8fd4a8;
+    border: 1px solid rgba(46, 139, 87, 0.35);
+}
+.vital-perf-hero__period {
+    margin: 10px 0 0;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+.vital-perf-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.vital-perf-metric {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.vital-perf-metric__label {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.62);
+    margin-bottom: 8px;
+}
+.vital-perf-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.vital-perf-bar i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2E8B57, #5cb87a);
+    transition: width 0.35s ease;
+}
+.vital-perf-bar--contrib i {
+    background: linear-gradient(90deg, #8b6914, #D4A437);
+}
+.vital-perf-metric__value {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.88);
+}
+.vital-perf-sw {
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.vital-perf-sw__title {
+    margin: 0 0 10px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+.vital-perf-sw__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.vital-perf-sw__heading {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+}
+.vital-perf-sw__heading.is-weak { color: #A94442; }
+.vital-perf-sw__heading.is-warn { color: #D4A437; }
+.vital-perf-sw__heading.is-strong { color: #2E8B57; }
+.vital-perf-sw__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.78);
+}
+.vital-perf-sw__list li {
+    padding: 3px 0;
+}
+.vital-perf-sw__empty {
+    color: rgba(255, 255, 255, 0.35);
+    font-style: italic;
+}
+.vital-perf-stat-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-perf-stat-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-perf-stat-card--extra {
+    border-style: dashed;
+    opacity: 0.92;
+}
+.vital-perf-stat-card--manual {
+    border-style: dashed;
+    border-color: rgba(212, 164, 55, 0.35);
+    opacity: 0.95;
+}
+.vital-perf-stat-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.vital-perf-stat-icon.is-weak {
+    background: rgba(169, 68, 66, 0.2);
+    color: #e8a4a2;
+    border: 1px solid rgba(169, 68, 66, 0.35);
+}
+.vital-perf-stat-icon.is-warn {
+    background: rgba(212, 164, 55, 0.18);
+    color: #e8cc7a;
+    border: 1px solid rgba(212, 164, 55, 0.32);
+}
+.vital-perf-stat-icon.is-strong {
+    background: rgba(46, 139, 87, 0.18);
+    color: #8fd4a8;
+    border: 1px solid rgba(46, 139, 87, 0.35);
+}
+.vital-perf-stat-card__title {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+}
+.vital-perf-stat-card__progress {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.52);
+}
+.vital-perf-stat-card__pts {
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.vital-perf-stat-card__pts.is-plus { color: #2E8B57; }
+.vital-perf-stat-card__pts.is-minus { color: #A94442; }
+.vital-perf-history {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.vital-perf-history-item {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-perf-history-item__head {
+    margin-bottom: 8px;
+}
+.vital-perf-history-item__time {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+.vital-perf-history-item__body {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.vital-perf-history-item__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+.vital-perf-history-item__text strong {
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 600;
+}
+.vital-perf-history-item__penalty {
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.vital-perf-history-item.is-minus .vital-perf-history-item__penalty { color: #A94442; }
+.vital-perf-history-item.is-plus .vital-perf-history-item__penalty { color: #2E8B57; }
+@media (max-width: 720px) {
+    .vital-perf-metrics,
+    .vital-perf-sw__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MCV OPS — Admin UX redesign (Linear / Discord / Vercel)
+   ═══════════════════════════════════════════════════════════ */
+.vital-app-shell {
+    --ops-bg: #0a0c10;
+    --ops-surface: #111318;
+    --ops-surface-2: #161920;
+    --ops-border: rgba(255, 255, 255, 0.08);
+    --ops-text: #eceef2;
+    --ops-text-muted: #8b939e;
+    --ops-text-subtle: #5c6570;
+    --ops-green: #3ecf8e;
+    --ops-green-dim: rgba(62, 207, 142, 0.14);
+    --ops-yellow: #f5c542;
+    --ops-yellow-dim: rgba(245, 197, 66, 0.14);
+    --ops-red: #f87171;
+    --ops-red-dim: rgba(248, 113, 113, 0.14);
+    --ops-blue: #5b9cf5;
+    --ops-blue-dim: rgba(91, 156, 245, 0.14);
+    --ops-gold: #d4a437;
+    --ops-radius: 10px;
+    --ops-radius-lg: 14px;
+    --ops-transition: 150ms ease;
+    font-family: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* Dashboard superior */
+.vital-ops-dashboard {
+    padding: 12px 12px 8px;
+    border-bottom: 1px solid var(--ops-border);
+    flex-shrink: 0;
+}
+.vital-ops-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.ops-kpi {
+    padding: 10px 12px;
+    border-radius: var(--ops-radius);
+    background: var(--ops-surface);
+    border: 1px solid var(--ops-border);
+    transition: border-color var(--ops-transition), background var(--ops-transition);
+}
+.ops-kpi:hover {
+    background: var(--ops-surface-2);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.ops-kpi__label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ops-text-subtle);
+    margin-bottom: 4px;
+}
+.ops-kpi__value {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ops-text);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+.ops-kpi--good .ops-kpi__value { color: var(--ops-green); }
+.ops-kpi--risk .ops-kpi__value { color: var(--ops-red); }
+.ops-kpi--info .ops-kpi__value { color: var(--ops-blue); }
+
+.vital-ops-spotlight {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.ops-spotlight {
+    padding: 10px 12px;
+    border-radius: var(--ops-radius);
+    border: 1px solid var(--ops-border);
+    background: var(--ops-surface);
+    transition: transform var(--ops-transition), border-color var(--ops-transition);
+}
+.ops-spotlight:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+.ops-spotlight__tag {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ops-text-subtle);
+    margin-bottom: 4px;
+}
+.ops-spotlight strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ops-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.ops-spotlight__pts {
+    font-size: 13px;
+    font-weight: 700;
+}
+.ops-spotlight__pts.is-positive { color: var(--ops-green); }
+.ops-spotlight__pts.is-negative { color: var(--ops-red); }
+.ops-spotlight--top { border-left: 3px solid var(--ops-green); }
+.ops-spotlight--low { border-left: 3px solid var(--ops-red); }
+
+.vital-ops-actions-drawer {
+    margin-top: 4px;
+}
+.vital-ops-actions-drawer > summary {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ops-text-muted);
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color var(--ops-transition);
+}
+.vital-ops-actions-drawer > summary:hover { color: var(--ops-text); }
+.vital-ops-actions-drawer[open] .vital-dashboard-actions {
+    margin-top: 8px;
+}
+
+/* Listado lateral */
+.ops-member-row {
+    display: grid;
+    grid-template-columns: 3px auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 10px 10px 6px;
+    border: 1px solid transparent;
+    border-radius: var(--ops-radius);
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--ops-transition), border-color var(--ops-transition), transform var(--ops-transition);
+}
+.ops-member-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.ops-member-row.is-active {
+    background: var(--ops-blue-dim);
+    border-color: rgba(91, 156, 245, 0.25);
+}
+.ops-member-rail {
+    width: 3px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--ops-text-subtle);
+}
+.ops-risk--excellent .ops-member-rail { background: var(--ops-green); }
+.ops-risk--good .ops-member-rail { background: var(--ops-blue); }
+.ops-risk--risk .ops-member-rail { background: var(--ops-yellow); }
+.ops-risk--critical .ops-member-rail { background: var(--ops-red); }
+.ops-risk--info .ops-member-rail { background: var(--ops-text-subtle); opacity: 0.5; }
+
+.ops-member-avatar,
+.ops-player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--ops-surface-2);
+    color: var(--ops-text);
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    transition: border-color var(--ops-transition);
+}
+.ops-risk-ring--excellent { border-color: rgba(62, 207, 142, 0.55); }
+.ops-risk-ring--good { border-color: rgba(91, 156, 245, 0.45); }
+.ops-risk-ring--risk { border-color: rgba(245, 197, 66, 0.55); }
+.ops-risk-ring--critical { border-color: rgba(248, 113, 113, 0.6); }
+.ops-risk-ring--info { border-color: rgba(139, 147, 158, 0.35); opacity: 0.75; }
+
+.ops-member-body { min-width: 0; }
+.ops-member-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ops-text);
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.ops-member-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--ops-text-muted);
+    line-height: 1.4;
+}
+.ops-member-score {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ops-text);
+    min-width: 2.5rem;
+    text-align: right;
+}
+.ops-member-score.is-positive { color: var(--ops-green); }
+.ops-member-score.is-negative { color: var(--ops-red); }
+.ops-member-score.is-muted { opacity: 0.45; }
+.ops-member-row.is-paused-row { opacity: 0.72; }
+
+/* Header jugador */
+.ops-player-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ops-border);
+}
+.ops-player-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 18px;
+    border-radius: 12px;
+}
+.ops-player-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.ops-player-title-row h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ops-text);
+    line-height: 1.25;
+}
+.ops-link {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ops-blue);
+    text-decoration: none;
+    transition: color var(--ops-transition);
+}
+.ops-link:hover { color: #7eb4ff; }
+.ops-player-steam {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ops-text-subtle);
+}
+.ops-player-meta {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--ops-text-muted);
+    line-height: 1.45;
+}
+.ops-player-score-block {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+.ops-player-score {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ops-text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* Pills de estado */
+.ops-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.ops-pill--excellent { background: var(--ops-green-dim); color: var(--ops-green); }
+.ops-pill--good { background: var(--ops-blue-dim); color: var(--ops-blue); }
+.ops-pill--risk { background: var(--ops-yellow-dim); color: var(--ops-yellow); }
+.ops-pill--critical { background: var(--ops-red-dim); color: var(--ops-red); }
+.ops-pill--info { background: rgba(255,255,255,0.06); color: var(--ops-text-muted); }
+
+/* Resumen automático jugador — removido */
+
+/* Timeline historial */
+.vital-timeline-wrap {
+    margin-top: 12px;
+}
+.vital-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 18px;
+    border-left: 2px solid var(--ops-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.vital-timeline-item {
+    position: relative;
+    padding: 0 0 14px 16px;
+}
+.vital-timeline-dot {
+    position: absolute;
+    left: -23px;
+    top: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ops-text-subtle);
+    border: 2px solid var(--ops-bg);
+    transition: background var(--ops-transition);
+}
+.vital-timeline-item.is-plus .vital-timeline-dot { background: var(--ops-green); }
+.vital-timeline-item.is-minus .vital-timeline-dot { background: var(--ops-red); }
+.vital-timeline-card {
+    padding: 12px 14px;
+    border-radius: var(--ops-radius);
+    background: var(--ops-surface);
+    border: 1px solid var(--ops-border);
+    transition: border-color var(--ops-transition), background var(--ops-transition);
+}
+.vital-timeline-card:hover {
+    background: var(--ops-surface-2);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+.vital-timeline-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.vital-timeline-card__head time {
+    font-size: 11px;
+    color: var(--ops-text-subtle);
+}
+.vital-timeline-card__delta {
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.vital-timeline-item.is-plus .vital-timeline-card__delta { color: var(--ops-green); }
+.vital-timeline-item.is-minus .vital-timeline-card__delta { color: var(--ops-red); }
+.vital-timeline-card__body {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.vital-timeline-card__body strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ops-text);
+    margin-bottom: 2px;
+}
+.vital-timeline-card__body p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--ops-text-muted);
+    line-height: 1.4;
+}
+
+/* Status hero puntos — nuevos estados */
+.vital-perf-hero__status.is-critical { background: var(--ops-red-dim); color: var(--ops-red); border: 1px solid rgba(248,113,113,0.3); }
+.vital-perf-hero__status.is-risk { background: var(--ops-yellow-dim); color: var(--ops-yellow); border: 1px solid rgba(245,197,66,0.3); }
+.vital-perf-hero__status.is-good { background: var(--ops-blue-dim); color: var(--ops-blue); border: 1px solid rgba(91,156,245,0.3); }
+.vital-perf-hero__status.is-excellent { background: var(--ops-green-dim); color: var(--ops-green); border: 1px solid rgba(62,207,142,0.3); }
+.vital-perf-hero__status.is-info { background: rgba(255,255,255,0.06); color: var(--ops-text-muted); border: 1px solid var(--ops-border); }
+.vital-perf-hero__score.is-critical { color: var(--ops-red); }
+.vital-perf-hero__score.is-risk { color: var(--ops-yellow); }
+.vital-perf-hero__score.is-good { color: var(--ops-blue); }
+.vital-perf-hero__score.is-excellent { color: var(--ops-green); }
+
+/* Sticky footer + save feedback */
+.vital-detail-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+}
+.vital-save-btn {
+    transition: background var(--ops-transition), transform var(--ops-transition), box-shadow var(--ops-transition);
+}
+.vital-save-btn.is-saved {
+    background: var(--ops-green) !important;
+    box-shadow: 0 0 0 3px var(--ops-green-dim);
+    transform: scale(1.02);
+}
+.vital-save-btn.is-error {
+    background: var(--ops-red) !important;
+    box-shadow: 0 0 0 3px var(--ops-red-dim);
+}
+
+/* Tabs — menos naranja, más neutro */
+.vital-dtab {
+    transition: color var(--ops-transition), background var(--ops-transition), border-color var(--ops-transition);
+}
+.vital-dtab.active {
+    color: var(--ops-text) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+.vital-qchip.is-active {
+    background: var(--ops-blue-dim) !important;
+    border-color: rgba(91, 156, 245, 0.4) !important;
+    color: #c8ddff !important;
+}
+
+/* Microinteracciones globales ops */
+.vital-app-shell .btn-outline,
+.vital-app-shell .btn-primary-small,
+.vital-app-shell .vital-perf-stat-card,
+.vital-app-shell .ops-kpi {
+    transition: background var(--ops-transition), border-color var(--ops-transition), color var(--ops-transition), transform var(--ops-transition);
+}
+.vital-perf-stat-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Responsive 1366x768 y 1920x1080 */
+@media (min-width: 1280px) {
+    .vital-split {
+        grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
+    }
+    .vital-ops-kpi-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1600px) {
+    .vital-split {
+        grid-template-columns: minmax(400px, 40%) minmax(0, 1fr);
+    }
+    .ops-player-score { font-size: 32px; }
+    .vital-detail-body { padding: 0 24px 16px; }
+}
+@media (max-width: 1100px) {
+    .vital-ops-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .vital-ops-spotlight { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+    .ops-player-header {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+    }
+    .ops-player-score-block {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+}
+
+/* ── Vital OPS layout cleanup (sin modo simple, sidebar estático) ── */
+.vital-sidebar--compact {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100vh - 220px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 12px;
+    scrollbar-gutter: stable;
+}
+.vital-sidebar-status {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
+    flex-shrink: 0;
+}
+.vital-health-bar--compact {
+    margin: 0 0 8px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+.vital-health-bar--compact .vital-health-items {
+    gap: 4px;
+}
+.vital-health-bar--compact .vital-health-pill {
+    font-size: 9px;
+    padding: 2px 6px;
+}
+.vital-sidebar-sync {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.vital-sidebar-sync .vital-input-compact {
+    width: 100%;
+    height: 32px;
+    font-size: 12px;
+}
+.vital-sidebar-sync .btn-outline.btn-sm {
+    width: 100%;
+    justify-content: center;
+    min-height: 32px;
+    font-size: 12px;
+}
+.vital-tier-mode {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+.vital-tier-mode-btn {
+    min-height: 28px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: #b8c2d0;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.vital-tier-mode-btn:hover {
+    border-color: rgba(250, 166, 26, 0.45);
+    color: #f3f6fa;
+}
+.vital-tier-mode-btn.is-active {
+    border-color: rgba(250, 166, 26, 0.75);
+    background: rgba(250, 166, 26, 0.14);
+    color: var(--primary);
+}
+.vital-tier-sync-status--compact {
+    display: block;
+    font-size: 10px;
+    line-height: 1.35;
+    margin-top: 4px;
+    max-height: 2.7em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-sidebar-nav {
+    flex: 0 0 auto;
+}
+.vital-sidebar-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px 10px;
+    margin-top: auto;
+    border-top: 1px solid var(--ops-border, rgba(255, 255, 255, 0.08));
+    flex-shrink: 0;
+}
+.vital-sidebar-stat {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+}
+.vital-sidebar-stat span {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ops-text-subtle, #5c6570);
+}
+.vital-sidebar-stat strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ops-text, #eceef2);
+    margin-top: 2px;
+}
+.vital-sidebar-tools {
+    flex-shrink: 0;
+    padding: 8px 10px 10px;
+    border-top: 1px solid rgba(250, 166, 26, 0.14);
+}
+.vital-sidebar-tools > summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #e4e4e7;
+    border: 1px solid rgba(250, 166, 26, 0.24);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.vital-sidebar-tools > summary::-webkit-details-marker {
+    display: none;
+}
+.vital-sidebar-tools > summary::after {
+    content: '▾';
+    font-size: 0.72rem;
+    line-height: 1;
+    color: var(--primary);
+    transition: transform 0.15s ease;
+}
+.vital-sidebar-tools:not([open]) > summary::after {
+    transform: rotate(-90deg);
+}
+.vital-sidebar-tools[open] > summary {
+    border-radius: 8px 8px 0 0;
+    border-bottom-color: transparent;
+    background: rgba(250, 166, 26, 0.08);
+    color: #fff7ed;
+}
+.vital-sidebar-tools__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(250, 166, 26, 0.24);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: rgba(0, 0, 0, 0.42);
+}
+.vital-sidebar-tools__body .btn-outline.btn-sm {
+    width: 100%;
+    min-height: 34px;
+    font-size: 11px;
+    justify-content: center;
+    text-align: center;
+    padding: 7px 10px;
+    border-radius: 7px;
+}
+.vital-sidebar-tools .vital-tier-preview {
+    max-height: none;
+    margin-top: 4px;
+}
+
+.ops-steam-avatar {
+    display: block;
+    object-fit: cover;
+    background: var(--ops-surface-2, #161920);
+}
+img.ops-member-avatar,
+img.ops-player-avatar {
+    border-radius: 9px;
+}
+
+#vital-info-panel > .data-area.vital-pro-panel {
+    max-height: none;
+    overflow: visible;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 220px);
+    min-height: 560px;
+    max-height: calc(100vh - 220px);
+}
+#vital-info-panel .vital-app-main,
+#vital-info-panel .vital-subpanel--jugadores {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#vital-info-panel .vital-split {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+#vital-info-panel .vital-member-panel {
+    min-height: 0;
+    height: 100%;
+}
+#vital-info-panel .vital-member-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+#vital-info-panel .vital-detail-panel,
+#vital-info-panel .vital-detail-workspace {
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+}
+#vital-info-panel .vital-detail-content {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    height: 100%;
+    min-height: 0;
+}
+#vital-info-panel .vital-detail-body {
+    overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"] {
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"].active {
+    display: grid;
+}
+#vital-info-panel .vital-detail-pane[data-detail-pane="logs"] .vital-timeline-wrap {
+    max-height: none;
+}
+
+@media (min-width: 1280px) {
+    .vital-split {
+        grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
+    }
+}
+@media (min-width: 1600px) {
+    .vital-split {
+        grid-template-columns: minmax(400px, 40%) minmax(0, 1fr);
+    }
+    #vital-info-panel .vital-app-shell {
+        grid-template-columns: 280px minmax(0, 1fr);
+    }
+}
+
+.vital-member-toolbar--compact {
+    padding: 8px 10px;
+    gap: 6px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.vital-member-toolbar--compact #vital-info-search {
+    flex: 1 1 100%;
+    min-width: 0;
+}
+.vital-member-toolbar--compact .vital-quick-inline {
+    flex: 1 1 100%;
+}
+.vital-member-toolbar__actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+.vital-member-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 6px 8px 10px;
+    gap: 4px;
+}
+.ops-member-row {
+    padding: 8px 8px 8px 4px;
+    gap: 8px;
+}
+.ops-member-row .ops-member-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+}
+.ops-member-row .ops-member-rail {
+    height: 30px;
+}
+.ops-member-name {
+    font-size: 13px;
+}
+.ops-member-sub {
+    font-size: 10px;
+}
+.ops-member-score {
+    font-size: 13px;
+}
+
+.vital-app-shell.is-simple-mode .vital-advanced-only {
+    display: revert !important;
+}
+
+#vital-tier-auto-section .vital-form-section__body {
+    padding-top: 8px;
+}
+#vital-tier-auto-section .vital-perf-stat-cards {
+    margin-top: 0;
+}
+
+/* —— Admin palette hard-lock: black + yellow/red only —— */
+.admin-btn-icon,
+.admin-tab-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+    overflow: visible;
+    pointer-events: none;
+}
+.admin-tab-icon {
+    width: 17px;
+    height: 17px;
+    opacity: 0.92;
+}
+.admin-btn-icon path,
+.admin-btn-icon circle,
+.admin-btn-icon rect,
+.admin-btn-icon line,
+.admin-btn-icon polyline,
+.admin-tab-icon path,
+.admin-tab-icon circle,
+.admin-tab-icon rect,
+.admin-tab-icon line,
+.admin-tab-icon polyline {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+.admin-actions .btn-outline,
+.admin-tabs .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.admin-tabs .tab .admin-tab-icon {
+    color: #e4e4e7;
+}
+.admin-tabs .tab:hover .admin-tab-icon,
+.admin-tabs .tab.active .admin-tab-icon {
+    color: var(--primary);
+    opacity: 1;
+}
+.btn-primary-small .admin-btn-icon path,
+.btn-primary-small .admin-btn-icon circle,
+.btn-primary-small .admin-btn-icon rect,
+.btn-primary-small .admin-btn-icon line,
+.btn-primary-small .admin-btn-icon polyline {
+    stroke: currentColor;
+}
+
+.admin-body {
+    background: #070707;
+    background-image:
+        radial-gradient(ellipse 92% 52% at 50% -8%, rgba(250, 166, 26, 0.14), transparent 56%),
+        radial-gradient(ellipse 72% 46% at 12% 120%, rgba(239, 68, 68, 0.09), transparent 60%);
+}
+.admin-navbar {
+    background: linear-gradient(180deg, rgba(7, 7, 7, 0.98), rgba(10, 10, 10, 0.9));
+    border-bottom-color: rgba(250, 166, 26, 0.2);
+}
+.btn-outline {
+    background: rgba(0, 0, 0, 0.48);
+    border-color: rgba(250, 166, 26, 0.3);
+    color: #f4f4f5;
+}
+.btn-outline:hover {
+    background: rgba(250, 166, 26, 0.1);
+    border-color: rgba(250, 166, 26, 0.55);
+    color: var(--primary);
+}
+.admin-tabs .tab {
+    background: rgba(0, 0, 0, 0.42);
+    border-color: rgba(250, 166, 26, 0.18);
+    color: #d4d4d8;
+}
+.admin-tabs .tab:hover {
+    background: rgba(250, 166, 26, 0.08);
+}
+.admin-tabs .tab.active {
+    color: var(--primary);
+    background: rgba(250, 166, 26, 0.14);
+    border-color: rgba(250, 166, 26, 0.36);
+}
+.vital-pro-panel,
+.vital-app-shell {
+    background: linear-gradient(180deg, rgba(12, 12, 12, 0.96), rgba(7, 7, 7, 0.95));
+    border-color: rgba(250, 166, 26, 0.22);
+}
+.vital-sidebar--compact,
+.vital-member-panel,
+.vital-detail-workspace {
+    background: #090909;
+    border-color: rgba(250, 166, 26, 0.14);
+}
+.vital-nav-item,
+.vital-dtab,
+.vital-qchip,
+.vital-icon-only {
+    background: rgba(255, 255, 255, 0.03);
+    color: #e4e4e7;
+    border-color: rgba(250, 166, 26, 0.18);
+}
+.vital-nav-item.active,
+.vital-dtab.active,
+.vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.16);
+    color: #fff7ed;
+    box-shadow: inset 2px 0 0 var(--primary);
+}
+.vital-info-toolbar,
+.vital-info-block,
+.vital-table-shell,
+.vital-detail-tabs,
+.vital-detail-footer,
+.vital-wipe-control,
+.vital-segment {
+    background: rgba(0, 0, 0, 0.45);
+    border-color: rgba(250, 166, 26, 0.18);
+}
+.vital-field .admin-input,
+.vital-field select.admin-input,
+.vital-field textarea.admin-input,
+.vital-input-compact {
+    background: rgba(0, 0, 0, 0.68);
+    border-color: rgba(250, 166, 26, 0.24);
+    color: #f4f4f5;
+}
+.vital-field .admin-input:focus,
+.vital-field select.admin-input:focus,
+.vital-field textarea.admin-input:focus,
+.vital-input-compact:focus {
+    border-color: rgba(250, 166, 26, 0.62);
+    box-shadow: 0 0 0 3px rgba(250, 166, 26, 0.14);
+}
+.vital-workspace-bm,
+.vital-summary-head p,
+.vital-workspace-steam {
+    color: #fbbf24;
+}
+.vital-log-info {
+    border-left-color: #f59e0b;
+}
+.wipe-late {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
+}
+
+/* —— Admin polish: no emojis + UX ajustes solicitados —— */
+.dashboard-buttons .btn-primary-small,
+.admin-actions .btn-outline {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-primary-small .admin-btn-icon {
+    margin-right: 0;
+    flex-shrink: 0;
+}
+
+.vital-app-shell {
+    --ops-blue: #f59e0b;
+    --ops-blue-dim: rgba(245, 158, 11, 0.16);
+}
+.ops-link {
+    color: #fbbf24;
+}
+.ops-link:hover {
+    color: #fcd34d;
+}
+.ops-member-row.is-active {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.34);
+}
+.ops-risk--good .ops-member-rail {
+    background: #fbbf24;
+}
+.ops-pill--good {
+    background: rgba(245, 158, 11, 0.16);
+    color: #fbbf24;
+}
+
+.vital-sidebar--compact {
+    border-radius: 0;
+}
+
+.vital-input-compact {
+    padding-right: 36px;
+}
+select.vital-input-compact {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.vital-subpanel {
+    height: 100%;
+    min-height: 0;
+}
+.vital-page-simple {
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 18px;
+}
+[data-vital-section="roles"] .vital-page-simple,
+[data-vital-section="extras"] .vital-page-simple {
+    padding-bottom: 20px;
+}
+.vital-roles-list {
+    max-height: min(58vh, 520px);
+    overflow: auto;
+    padding-right: 6px;
+}
+.vital-extra-list {
+    max-height: min(54vh, 500px);
+    overflow: auto;
+    padding-right: 6px;
+}
+.vital-extra-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+}
+.vital-extra-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+.vital-extra-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.vital-extra-name {
+    font-size: 0.9rem;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vital-extra-steam-link {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.77rem;
+    color: #fbbf24;
+    text-decoration: none;
+}
+.vital-extra-steam-link:hover { text-decoration: underline; }
+.vital-extra-note {
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.vital-detail-footer {
+    gap: 10px;
+}
+.admin-confirm-dialog .admin-dialog-actions .btn-outline:not(.btn-danger-outline) {
+    min-width: 120px;
+}
+
+/* Reporte pendientes — overlay tipo cartel */
+.vital-compliance-dlg::backdrop {
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+}
+.vital-compliance-dlg .vital-compliance-box {
+    width: min(720px, calc(100vw - 32px));
+    max-height: min(88vh, 920px);
+    margin: auto;
+    padding: 0;
+    border: 2px solid rgba(250, 166, 26, 0.55);
+    border-radius: 16px;
+    background: linear-gradient(165deg, #121820 0%, #0a0e14 55%, #14100c 100%);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+        0 28px 80px -20px rgba(0, 0, 0, 0.75),
+        0 0 48px -8px rgba(250, 166, 26, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.vital-compliance-head {
+    padding: 22px 24px 14px;
+    border-bottom: 1px solid rgba(250, 166, 26, 0.22);
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.12) 0%, transparent 100%);
+}
+.vital-compliance-kicker {
+    margin: 0 0 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+.vital-compliance-title {
+    margin: 0;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.04em;
+    color: #fafafa;
+    line-height: 1;
+}
+.vital-compliance-sub {
+    margin: 10px 0 0;
+    font-size: 0.86rem;
+    color: #a8b4c4;
+    line-height: 1.45;
+}
+.vital-compliance-body {
+    padding: 16px 22px 8px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+.vital-compliance-section {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.vital-compliance-section.is-ok {
+    border-color: rgba(34, 197, 94, 0.25);
+    background: rgba(34, 197, 94, 0.06);
+}
+.vital-compliance-section h4 {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fde68a;
+}
+.vital-compliance-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    padding: 2px 8px;
+    margin-left: 6px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #171717;
+    background: var(--primary);
+}
+.vital-compliance-section.is-ok .vital-compliance-count {
+    background: #22c55e;
+}
+.vital-compliance-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.vital-compliance-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.92rem;
+    color: #e8edf4;
+}
+.vital-compliance-list li:last-child {
+    border-bottom: none;
+}
+.vital-compliance-meta {
+    display: block;
+    margin-top: 2px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.76rem;
+    color: #9ca8b8;
+}
+.vital-compliance-empty {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #86efac;
+}
+.vital-compliance-actions {
+    padding: 14px 22px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: center;
+    gap: 12px;
+}
+.vital-sidebar-tools__body .btn-primary-small.btn-sm {
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+/* ── Admin UI cleanup: banners temporales, filtros derecha, paleta MCV ── */
+.admin-banner[hidden] {
+    display: none !important;
+}
+.admin-banner.is-success {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.22);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: opacity 0.35s ease;
+}
+.admin-banner.is-error {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: opacity 0.35s ease;
+}
+.vital-tier-sync-status[hidden] {
+    display: none !important;
+}
+.vital-tier-sync-status.is-ok {
+    color: #86efac;
+}
+.vital-tier-sync-status.is-error {
+    color: #fca5a5;
+}
+.vital-split--with-filters {
+    grid-template-columns: minmax(260px, 34%) minmax(0, 1fr) 112px !important;
+}
+.vital-filter-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 8px 14px;
+    background: #090909;
+    border-left: 1px solid rgba(250, 166, 26, 0.14);
+    overflow-y: auto;
+    min-height: 0;
+    flex-shrink: 0;
+}
+.vital-filter-rail .vital-qchip {
+    width: 100%;
+    min-height: 40px;
+    height: auto;
+    padding: 7px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    line-height: 1.2;
+}
+.vital-filter-rail .vital-qchip-label {
+    font-size: 11px;
+    font-weight: 600;
+}
+.vital-filter-rail .vital-qchip-count {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
+}
+.vital-member-toolbar--compact {
+    align-items: center;
+}
+.vital-member-toolbar--compact #vital-info-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.vital-member-toolbar__actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.vital-dtab.active::after {
+    background: var(--primary) !important;
+    background-image: none !important;
+}
+.vital-dtab.active {
+    color: #fff7ed;
+    border-bottom: 2px solid var(--primary);
+}
+.vital-dtab:hover {
+    color: #fde68a;
+}
+.vital-controls,
+.vital-rust-controls {
+    align-items: center;
+}
+.vital-controls label,
+.vital-sort-bar label,
+.vital-rust-controls label {
+    margin-bottom: 0;
+}
+.vital-controls select,
+.vital-sort-bar select,
+.vital-rust-controls select,
+.vital-rust-page .admin-input[type="search"],
+select.admin-input {
+    padding-right: 36px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #090909;
+}
+.vital-sidebar-tools {
+    margin-top: auto;
+    padding-bottom: 14px;
+}
+.vital-sidebar-tools__body {
+    padding-bottom: 14px;
+    max-height: min(42vh, 320px);
+    overflow-y: auto;
+}
+.vital-extra-count.is-flash-ok {
+    color: #86efac;
+}
+.vital-extra-missing-hint {
+    color: #fca5a5;
+}
+.vital-rust-banner[hidden],
+.vital-cache-meta[hidden],
+#vital-roster-meta.is-transient-hidden {
+    display: none !important;
+}
+@media (max-width: 1100px) {
+    .vital-split--with-filters {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+    .vital-filter-rail {
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-left: none;
+        border-top: 1px solid rgba(250, 166, 26, 0.14);
+        order: 3;
+    }
+    .vital-filter-rail .vital-qchip {
+        width: auto;
+        min-width: 72px;
+        flex-direction: row;
+        gap: 6px;
+        min-height: 32px;
+    }
+}
+.vital-app-shell .btn-primary-small,
+.vital-pro-panel .btn-primary-small,
+.vital-rust-page .btn-primary-small {
+    background: var(--primary) !important;
+    background-image: none !important;
+    color: #0a0a0a !important;
+    border: none !important;
+    font-weight: 600;
+}
+.vital-app-shell .btn-primary-small:hover,
+.vital-pro-panel .btn-primary-small:hover,
+.vital-rust-page .btn-primary-small:hover {
+    filter: brightness(1.06);
+    transform: none;
+    box-shadow: 0 4px 14px rgba(250, 166, 26, 0.28) !important;
+}
+.vital-app-shell .vital-qchip.is-active,
+.vital-filter-rail .vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.16) !important;
+    border-color: rgba(250, 166, 26, 0.42) !important;
+    color: #fff7ed !important;
+    box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+.ops-member-row.is-active {
+    box-shadow: inset 3px 0 0 var(--primary) !important;
+}
+.vital-nav-item.active {
+    box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+
+/* —— UI cleanup v2 (jun 2026) —— */
+#vital-info-panel {
+    margin-top: 0;
+    scroll-margin-top: 72px;
+}
+#vital-info-panel > .data-area.vital-pro-panel {
+    padding: 0;
+    border: none;
+    background: transparent;
+    min-height: 0;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 168px);
+    min-height: 520px;
+    max-height: calc(100vh - 168px);
+}
+.vital-sidebar--compact {
+    padding-top: 0;
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    padding-top: 6px;
+    padding-bottom: 8px;
+}
+.vital-sidebar-filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 8px 10px;
+    border-top: 1px solid rgba(250, 166, 26, 0.14);
+    flex-shrink: 0;
+}
+.vital-sidebar-filters .vital-qchip {
+    width: 100%;
+    min-height: 36px;
+    height: auto;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    line-height: 1.2;
+}
+.vital-sidebar-filters .vital-qchip-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.vital-sidebar-filters .vital-qchip-count {
+    font-size: 12px;
+    font-weight: 700;
+}
+.vital-sidebar-filters .vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.16) !important;
+    border-color: rgba(250, 166, 26, 0.42) !important;
+    color: #fff7ed !important;
+    box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+.vital-sidebar-stats {
+    margin-top: 0;
+}
+.vital-sidebar-tools {
+    margin-top: auto;
+}
+.vital-split--with-filters {
+    grid-template-columns: minmax(260px, 34%) minmax(0, 1fr) !important;
+}
+.vital-filter-rail {
+    display: none !important;
+}
+.vital-controls,
+.vital-rust-controls {
+    align-items: flex-end !important;
+}
+.vital-controls .btn-primary-small,
+.vital-controls .btn-outline,
+.vital-rust-controls .btn-primary-small,
+.vital-rust-controls .btn-outline {
+    align-self: flex-end;
+    margin-bottom: 0;
+    min-height: 42px;
+}
+.vital-detail-footer .vital-save-btn {
+    min-height: 36px;
+    min-width: 88px;
+    padding: 0 14px;
+    border-color: rgba(250, 166, 26, 0.5) !important;
+    color: #fbbf24 !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+    font-weight: 600;
+    box-shadow: none !important;
+}
+.vital-detail-footer .vital-save-btn:hover {
+    background: rgba(250, 166, 26, 0.12) !important;
+    border-color: rgba(250, 166, 26, 0.72) !important;
+    color: #fde68a !important;
+}
+.vital-detail-footer .btn-primary-small.vital-save-btn {
+    background: rgba(0, 0, 0, 0.55) !important;
+    color: #fbbf24 !important;
+}
+.vital-dtab.active {
+    border-bottom-color: #fbbf24 !important;
+    color: #fafafa !important;
+}
+.vital-dtab.active::after {
+    background: #fbbf24 !important;
+    background-image: none !important;
+}
+.vital-stat-group--scrap .vital-stat-group-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 800px) {
+    #vital-info-panel .vital-app-shell {
+        height: auto;
+        max-height: none;
+        min-height: 0;
+    }
+    .vital-sidebar-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* —— Admin UI v3: botones limpios —— */
+.vital-detail-tabs {
+    gap: 0 !important;
+    padding: 0 10px !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.admin-body .vital-app-shell .vital-dtab {
+    padding: 9px 12px !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    background: transparent !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: #7d8a9a !important;
+    box-shadow: none !important;
+    position: relative !important;
+}
+.admin-body .vital-app-shell .vital-dtab::after {
+    display: none !important;
+}
+.admin-body .vital-app-shell .vital-dtab:hover {
+    color: #e4e8ee !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+.admin-body .vital-app-shell .vital-dtab.active {
+    color: #f4f4f5 !important;
+    background: transparent !important;
+    border-bottom-color: #fbbf24 !important;
+    box-shadow: none !important;
+}
+.vital-nav-item {
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid transparent !important;
+    margin: 1px 0 !important;
+}
+.vital-nav-item.active {
+    background: rgba(250, 166, 26, 0.1) !important;
+    border-color: rgba(250, 166, 26, 0.28) !important;
+    box-shadow: none !important;
+    color: #fde68a !important;
+}
+.vital-sidebar-filters {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    padding: 6px 8px !important;
+}
+.vital-sidebar-filters .vital-qchip {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-height: 28px !important;
+    height: auto !important;
+    padding: 4px 7px !important;
+    border-radius: 5px !important;
+    gap: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+.vital-sidebar-filters .vital-qchip-label {
+    font-size: 10px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 500 !important;
+}
+.vital-sidebar-filters .vital-qchip-count {
+    font-size: 10px !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    min-width: 1.1rem !important;
+}
+.vital-sidebar-filters .vital-qchip.is-active {
+    background: rgba(250, 166, 26, 0.12) !important;
+    border-color: rgba(250, 166, 26, 0.35) !important;
+    color: #fde68a !important;
+    box-shadow: none !important;
+}
+.vital-sidebar-filters .vital-qchip.is-active .vital-qchip-count {
+    background: rgba(250, 166, 26, 0.28) !important;
+}
+.vital-extra-bottom-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+}
+.vital-extra-bottom-row > .vital-extra-toggle {
+    flex: 0 0 auto;
+}
+.vital-extra-bottom-row > .vital-extra-stack-group {
+    flex: 1 1 auto;
+    min-width: min(100%, 280px);
+}
+.vital-extra-toggle {
+    padding: 5px 8px !important;
+    font-size: 0.68rem !important;
+    gap: 5px !important;
+}
+.vital-extra-stack {
+    padding: 5px 8px !important;
+    gap: 6px !important;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.vital-extra-stack__btn {
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 0.85rem !important;
+}
+.vital-extra-stack__meta {
+    gap: 4px !important;
+}
+.vital-extra-stack__label,
+.vital-extra-stack__pts {
+    font-size: 0.68rem !important;
+}
+
+/* —— Admin UI v4: pulido profesional —— */
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 132px) !important;
+    min-height: 480px !important;
+    max-height: calc(100vh - 132px) !important;
+}
+.vital-sidebar--compact {
+    padding: 0 6px 6px !important;
+    gap: 0 !important;
+}
+.vital-sidebar--compact .vital-sidebar-brand {
+    padding: 4px 4px 6px !important;
+}
+.vital-sidebar-status {
+    padding: 4px 6px 6px !important;
+}
+.vital-sidebar-sync {
+    gap: 4px !important;
+}
+.vital-sidebar-nav {
+    padding: 2px 0 !important;
+}
+.vital-sidebar-filters {
+    padding: 5px 6px !important;
+    margin-top: 0 !important;
+}
+.vital-detail-tabs {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    z-index: 4 !important;
+    background: #0b0f14 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin: 0 !important;
+}
+.admin-body .vital-app-shell .vital-dtab {
+    margin-bottom: 0 !important;
+}
+#vital-info-panel .vital-detail-body {
+    padding: 10px 16px 16px !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+}
+.vital-perf-stat-cards {
+    gap: 6px !important;
+}
+.vital-perf-stat-card {
+    padding: 8px 11px !important;
+    gap: 8px !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vital-perf-stat-icon {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 6px !important;
+    font-size: 0.75rem !important;
+}
+.vital-perf-stat-icon.is-warn {
+    background: rgba(251, 191, 36, 0.14) !important;
+    border: 1px solid rgba(251, 191, 36, 0.42) !important;
+    color: transparent !important;
+    position: relative;
+    box-shadow:
+        0 0 10px rgba(251, 191, 36, 0.22),
+        inset 0 0 8px rgba(251, 191, 36, 0.1) !important;
+}
+.vital-perf-stat-icon.is-warn::before {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 10px solid #fbbf24;
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.85));
+}
+.vital-perf-stat-icon.is-strong {
+    background: rgba(46, 139, 87, 0.15) !important;
+    color: #86efac !important;
+    border: 1px solid rgba(34, 197, 94, 0.42) !important;
+    box-shadow:
+        0 0 10px rgba(34, 197, 94, 0.2),
+        inset 0 0 8px rgba(34, 197, 94, 0.08) !important;
+}
+.vital-perf-stat-icon.is-weak {
+    background: rgba(169, 68, 66, 0.18) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(239, 68, 68, 0.42) !important;
+    box-shadow:
+        0 0 10px rgba(239, 68, 68, 0.2),
+        inset 0 0 8px rgba(239, 68, 68, 0.08) !important;
+}
+.vital-perf-stat-card__title {
+    font-size: 0.82rem !important;
+}
+.vital-perf-stat-card__progress {
+    font-size: 0.72rem !important;
+}
+.vital-extra-points-grid {
+    gap: 5px !important;
+}
+.vital-extra-toggle {
+    padding: 5px 8px !important;
+    font-size: 0.67rem !important;
+    border-radius: 6px !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+.vital-extra-toggle:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px);
+}
+.vital-extra-toggle.is-on.is-plus {
+    border-color: rgba(34, 197, 94, 0.45) !important;
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.14), rgba(34, 197, 94, 0.06)) !important;
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2), 0 0 10px rgba(34, 197, 94, 0.06);
+}
+.vital-extra-toggle.is-on.is-minus {
+    border-color: rgba(239, 68, 68, 0.45) !important;
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.14), rgba(239, 68, 68, 0.06)) !important;
+    box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.2);
+}
+.vital-extra-stack {
+    border-radius: 6px !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vital-extra-stack.is-on.is-minus {
+    box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.22), 0 0 8px rgba(239, 68, 68, 0.05);
+}
+.vital-extra-stack__btn {
+    border-radius: 5px !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    transition: background 0.12s, border-color 0.12s;
+}
+.vital-extra-stack__btn:hover:not(:disabled) {
+    background: rgba(250, 166, 26, 0.12) !important;
+    border-color: rgba(250, 166, 26, 0.35) !important;
+}
+.vital-sidebar-filters .vital-qchip {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: border-color 0.12s, background 0.12s;
+}
+.vital-sidebar-filters .vital-qchip:hover {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}
+.vital-nav-item {
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.vital-nav-item:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+.vital-detail-footer .vital-segment__btn {
+    transition: background 0.12s, color 0.12s;
+}
+.vital-detail-footer .vital-save-btn {
+    transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.vital-detail-footer .vital-save-btn:hover {
+    box-shadow: 0 0 14px rgba(250, 166, 26, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+}
+
+/* —— Admin UI v5: una fila por stat, footer con más vida —— */
+#vital-tier-player-breakdown.vital-perf-stat-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+}
+#vital-tier-player-breakdown .vital-perf-stat-card {
+    width: 100%;
+    min-width: 0;
+}
+.vital-detail-footer {
+    background: linear-gradient(180deg, rgba(12, 14, 18, 0.97), rgba(6, 8, 12, 0.98)) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.45) !important;
+}
+.vital-detail-footer__delete.btn-danger-outline {
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03)) !important;
+    border-color: rgba(239, 68, 68, 0.38) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.vital-detail-footer__delete.btn-danger-outline:hover {
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.08)) !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.vital-segment {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.vital-segment__btn.is-active {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.vital-segment__btn[data-wipe-state="active"].is-active {
+    color: #86efac !important;
+}
+.vital-segment__btn[data-wipe-state="paused"].is-active {
+    color: #fcd34d !important;
+}
+.vital-detail-footer .vital-save-btn {
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.14), rgba(250, 166, 26, 0.05)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(250, 166, 26, 0.12) !important;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 108px) !important;
+    max-height: calc(100vh - 108px) !important;
+}
+#vital-info-panel .vital-detail-body {
+    padding-top: 12px !important;
+}
+.equipo-soc {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.16), rgba(153, 27, 27, 0.22)) !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.equipo-soc:hover {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.24), rgba(153, 27, 27, 0.3)) !important;
+    border-color: rgba(248, 113, 113, 0.5) !important;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}

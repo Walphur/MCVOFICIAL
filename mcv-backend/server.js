@@ -5,10 +5,17 @@ require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
+const helmet = require("helmet");
 const axios = require("axios");
 const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { getPool, initDb } = require("./db");
+const { authAdmin, authAdminIpAllowlist } = require("./auth");
 const { registerTournamentApi } = require("./tournamentApi");
+const {
+    scannerRateLimit,
+    publicWriteRateLimitMiddleware,
+    adminWriteRateLimit
+} = require("./rateLimits");
 const {
     registerWipeListApi,
     attachWipeListDiscord,
@@ -21,9 +28,26 @@ const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi } = require("./vitalRustApi");
+const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
+const { attachWipeReportDiscord } = require("./wipeReport");
+const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
+const { attachWipeAttendanceDiscord } = require("./wipeAttendance");
+const { logOAuthSetupHints } = require("./oauthShared");
+const { registerPublicUserAuthRoutes } = require("./userOAuth");
+const { registerUserDashboardRoutes } = require("./userDashboard");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+/** Render / proxies: necesario para rate-limit por IP real. */
+app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS || 1));
+
+app.use(
+    helmet({
+        contentSecurityPolicy: false,
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    })
+);
+
 const ROOT_DIR = path.join(__dirname, "..");
 /** Pósteres y subidas: en Render sin disco persistente usar MCV_UPLOAD_ROOT apuntando a un volume montado. */
 const MCV_UPLOAD_ROOT_ENV = String(process.env.MCV_UPLOAD_ROOT || "").trim();
@@ -110,7 +134,15 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "256kb" }));
+app.use(publicWriteRateLimitMiddleware);
+app.use("/api/admin", authAdminIpAllowlist);
+app.use("/api/admin", (req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+        return next();
+    }
+    return adminWriteRateLimit(req, res, next);
+});
 
 const STEAM_API_KEY = String(process.env.STEAM_API_KEY || "").trim();
 const DISCORD_WEBHOOK = String(process.env.DISCORD_WEBHOOK || process.env.DISCORD_WEBHOOK_URL || "").trim();
@@ -119,6 +151,7 @@ const DISCORD_LOOKUP_CHANNEL_ID = process.env.DISCORD_LOOKUP_CHANNEL_ID || "";
 const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "";
 const HEXAYTRON_BOT_ID = process.env.HEXAYTRON_BOT_ID || "";
 const DISCORD_WIPE_REGISTER_CHANNEL_ID = String(process.env.DISCORD_WIPE_REGISTER_CHANNEL_ID || "").trim();
+const DISCORD_PLAYTIME_CHANNEL_ID = String(process.env.DISCORD_PLAYTIME_CHANNEL_ID || "").trim();
 const BATTLEMETRICS_TOKEN = String(process.env.BATTLEMETRICS_TOKEN || "").trim();
 
 /** BattleMetrics JSON API: el token JWT mejora límites y acceso; sin token algunos endpoints siguen públicos limitados. */
@@ -138,6 +171,13 @@ registerTournamentApi(app, {
     uploadRoot: UPLOAD_ROOT
 });
 
+registerPublicUserAuthRoutes(app, {
+    getPool,
+    steamApiKey: STEAM_API_KEY
+});
+
+registerUserDashboardRoutes(app, { getPool });
+
 registerWipeListApi(app, {
     getPool,
     steamApiKey: STEAM_API_KEY
@@ -150,7 +190,11 @@ registerTeamRosterApi(app, {
 
 registerTicketsApi(app, { getPool });
 
-registerVitalRustApi(app, { getPool });
+registerVitalRustApi(app, {
+    getPool,
+    getDiscordClient: () => discordClient,
+    getPlaytimeChannelId: () => DISCORD_PLAYTIME_CHANNEL_ID
+});
 
 registerYoutubeFeedApi(app);
 registerTiktokFeedApi(app);
@@ -352,9 +396,42 @@ const discordClient = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
     ],
     partials: [Partials.Message, Partials.Channel]
+});
+let discordLoginInFlight = false;
+let discordLastLoginAt = 0;
+
+async function ensureDiscordConnected(reason = "unknown") {
+    if (!DISCORD_BOT_TOKEN || DISCORD_BOT_TOKEN === "TOKEN_DE_TU_BOT") {
+        return;
+    }
+    if (discordClient.isReady() || discordLoginInFlight) {
+        return;
+    }
+    const now = Date.now();
+    if (now - discordLastLoginAt < 5000) {
+        return;
+    }
+    discordLoginInFlight = true;
+    discordLastLoginAt = now;
+    try {
+        console.log(`Discord reconnect attempt (${reason})`);
+        await discordClient.login(DISCORD_BOT_TOKEN);
+    } catch (e) {
+        console.warn(`Discord reconnect failed (${reason}):`, e.message);
+    } finally {
+        discordLoginInFlight = false;
+    }
+}
+
+registerPlaytimeAdminApi(app, {
+    getPool,
+    authAdmin,
+    getDiscordClient: () => discordClient,
+    getPlaytimeChannelId: () => DISCORD_PLAYTIME_CHANNEL_ID
 });
 
 async function syncWipeRegisterChannelHistory() {
@@ -421,7 +498,29 @@ async function syncWipeRegisterChannelHistory() {
 discordClient.on("ready", () => {
     console.log(`Discord bot conectado como ${discordClient.user.tag}`);
     syncWipeRegisterChannelHistory().catch((e) => console.warn("sync wipe canal:", e.message));
+    startWipeReminderScheduler(discordClient, {
+        getPool,
+        getChannelId: () =>
+            String(process.env.DISCORD_WIPE_REMINDER_CHANNEL_ID || DISCORD_PLAYTIME_CHANNEL_ID || "").trim()
+    });
 });
+discordClient.on("shardDisconnect", (event, shardId) => {
+    console.warn(`Discord shard disconnect: shard=${shardId} code=${event?.code ?? "?"}`);
+    ensureDiscordConnected("shardDisconnect").catch(() => {});
+});
+discordClient.on("shardError", (error, shardId) => {
+    console.warn(`Discord shard error: shard=${shardId} msg=${error?.message || error}`);
+});
+discordClient.on("error", (error) => {
+    console.warn(`Discord client error: ${error?.message || error}`);
+});
+discordClient.on("invalidated", () => {
+    console.warn("Discord session invalidated; retrying login");
+    ensureDiscordConnected("invalidated").catch(() => {});
+});
+setInterval(() => {
+    ensureDiscordConnected("watchdog").catch(() => {});
+}, 60 * 1000);
 
 async function handleBotMessage(message) {
     try {
@@ -488,7 +587,19 @@ if (DISCORD_BOT_TOKEN && DISCORD_BOT_TOKEN !== "TOKEN_DE_TU_BOT") {
         steamApiKey: STEAM_API_KEY,
         channelId: DISCORD_WIPE_REGISTER_CHANNEL_ID
     });
-    discordClient.login(DISCORD_BOT_TOKEN).catch((e) => {
+    const wipeGuildIds = String(process.env.DISCORD_WIPE_GUILD_ID || DISCORD_GUILD_ID || "")
+        .split(/[\s,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    attachPlaytimeDiscord(discordClient, {
+        getPool,
+        channelId: DISCORD_PLAYTIME_CHANNEL_ID,
+        onSlashGuildIds: wipeGuildIds.length ? wipeGuildIds : DISCORD_GUILD_ID ? [DISCORD_GUILD_ID] : []
+    });
+    attachWipeReportDiscord(discordClient, { getPool });
+    attachWipeYoTopDiscord(discordClient, { getPool });
+    attachWipeAttendanceDiscord(discordClient, { getPool });
+    ensureDiscordConnected("startup").catch((e) => {
         console.warn("Discord bot login falló:", e.message);
     });
 } else {
@@ -613,7 +724,7 @@ async function getBattleMetricsServers(bmId) {
     }
 }
 
-app.post("/api/battlemetrics/manual", (req, res) => {
+app.post("/api/battlemetrics/manual", authAdmin, (req, res) => {
     const steamRaw = String(req.body?.steamId || "");
     const urlRaw = String(req.body?.battleMetricsUrl || req.body?.battlemetricsUrl || "");
     const steamMatch = steamRaw.match(/\d{17}/);
@@ -632,7 +743,7 @@ app.post("/api/battlemetrics/manual", (req, res) => {
     return res.json({ success: true, bmId });
 });
 
-app.post("/escaner-rapido", async (req, res) => {
+app.post("/escaner-rapido", scannerRateLimit, async (req, res) => {
     try {
         if (!STEAM_API_KEY) {
             return res.status(503).json({
@@ -816,6 +927,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
+        build: "2026-06-11-ui-v4",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),
@@ -867,6 +979,19 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(UPLOAD_ROOT));
+/** HTML/CSS/JS: sin caché agresiva — F5 debe traer assets nuevos tras deploy. */
+app.use((req, res, next) => {
+    const p = String(req.path || "");
+    if (/\.(html?|css|js)$/i.test(p) || p === "/sw.js" || p === "/") {
+        res.setHeader("Cache-Control", "no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+    }
+    if (p === "/admin.html" || p === "/login.html" || p === "/cuenta.html" || p === "/sw.js") {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    }
+    next();
+});
 app.use(express.static(ROOT_DIR));
 
 async function boot() {
@@ -878,6 +1003,7 @@ async function boot() {
     );
     app.listen(PORT, () => {
         console.log(`MCV backend en http://localhost:${PORT} (estáticos desde ${ROOT_DIR})`);
+        logOAuthSetupHints();
     });
 }
 

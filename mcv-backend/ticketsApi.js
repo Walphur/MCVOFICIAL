@@ -1,37 +1,24 @@
 "use strict";
 
-const jwt = require("jsonwebtoken");
-
-function jwtSecret() {
-    const s = String(process.env.JWT_SECRET || "").trim();
-    return s && s.length >= 12 ? s : null;
-}
-
-function authAdmin(req, res, next) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
-    }
-    const h = req.headers.authorization;
-    if (!h || !h.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-    try {
-        const decoded = jwt.verify(h.slice(7), secret);
-        if (!decoded || decoded.role !== "admin") {
-            return res.status(403).json({ error: "Prohibido" });
-        }
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token inválido o expirado" });
-    }
-}
+const { authAdmin } = require("./auth");
 
 const TICKET_TYPES = new Set(["recruit", "tournament", "report", "other"]);
 const TICKET_STATUSES = new Set(["pending", "accepted", "declined"]);
 
+const { authUser } = require("./auth");
+const { isPublicUserAuthEnabled } = require("./userOAuth");
+
+function ticketsRequireUserAuth() {
+    return String(process.env.REQUIRE_USER_AUTH_TICKETS || "1").trim() !== "0" && isPublicUserAuthEnabled();
+}
+
 function registerTicketsApi(app, { getPool }) {
-    app.post("/api/tickets", async (req, res) => {
+    app.post("/api/tickets", (req, res, next) => {
+        if (ticketsRequireUserAuth()) {
+            return authUser(req, res, next);
+        }
+        return next();
+    }, async (req, res) => {
         const pool = getPool();
         if (!pool) {
             return res.status(503).json({ error: "Base de datos no disponible" });
@@ -52,11 +39,12 @@ function registerTicketsApi(app, { getPool }) {
         }
 
         try {
+            const userId = req.userAuth && req.userAuth.userId ? Number(req.userAuth.userId) : null;
             const r = await pool.query(
-                `INSERT INTO support_tickets (ticket_type, discord_user, description, status)
-                 VALUES ($1, $2, $3, 'pending')
+                `INSERT INTO support_tickets (ticket_type, discord_user, description, status, site_user_id)
+                 VALUES ($1, $2, $3, 'pending', $4)
                  RETURNING id, ticket_type, discord_user, status, created_at`,
-                [ticketType, discordUser, description]
+                [ticketType, discordUser, description, userId]
             );
             return res.status(201).json({ success: true, ticket: r.rows[0] });
         } catch (e) {

@@ -1,36 +1,21 @@
 "use strict";
 
 const axios = require("axios");
-const jwt = require("jsonwebtoken");
-const { REST, Routes, SlashCommandBuilder } = require("discord.js");
-
-function jwtSecret() {
-    const s = String(process.env.JWT_SECRET || "").trim();
-    if (!s || s.length < 12) {
-        return null;
-    }
-    return s;
-}
-
-function authAdmin(req, res, next) {
-    const secret = jwtSecret();
-    if (!secret) {
-        return res.status(503).json({ error: "JWT_SECRET no configurado (mín. 12 caracteres)" });
-    }
-    const h = req.headers.authorization;
-    if (!h || !h.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No autorizado" });
-    }
-    try {
-        const decoded = jwt.verify(h.slice(7), secret);
-        if (!decoded || decoded.role !== "admin") {
-            return res.status(403).json({ error: "Prohibido" });
-        }
-        next();
-    } catch {
-        return res.status(401).json({ error: "Token inválido o expirado" });
-    }
-}
+const { authAdmin } = require("./auth");
+const {
+    REST,
+    Routes,
+    SlashCommandBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    ActionRowBuilder
+} = require("discord.js");
+const { ensurePlayerInfoTable, normalizeSteamId64 } = require("./vitalRustApi");
+const { buildMcHorasSlashCommand } = require("./playtimeSync");
+const { buildMcReporteSlashCommand } = require("./wipeReport");
+const { buildMcYoSlashCommand, buildMcTopSlashCommand, assignWipeLinkedRole } = require("./wipeDiscordExtras");
+const { buildMcAsistenciaSlashCommand } = require("./wipeAttendance");
 
 async function fetchSteamProfile(steamApiKey, steamId64) {
     if (!steamApiKey) {
@@ -63,6 +48,127 @@ async function fetchSteamProfile(steamApiKey, steamId64) {
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
 /** Importación manual: panel admin o variable MCV_WIPE_IMPORT_STEAMS. */
 const PASTE_WIPE_DISCORD_PREFIX = "paste:";
+const PLAYER_INFO_MODAL_ID = "mcv-create-player-info-modal";
+const PLAYER_INFO_INPUTS = {
+    steamId64: "mcv_player_steam_id64",
+    displayName: "mcv_player_display_name",
+    bmUrl: "mcv_player_bm_url",
+    entryDate: "mcv_player_entry_date",
+    vouchBy: "mcv_player_vouch_by"
+};
+
+function normalizeOptionalUrl(raw) {
+    const s = String(raw == null ? "" : raw).trim();
+    if (!s) {
+        return null;
+    }
+    if (s.length > 512) {
+        return null;
+    }
+    const lower = s.toLowerCase();
+    if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+        return null;
+    }
+    if (lower.startsWith("javascript:") || lower.startsWith("data:")) {
+        return null;
+    }
+    return s;
+}
+
+function normalizeEntryDateInput(raw) {
+    const s = String(raw || "").trim();
+    if (!s) {
+        return null;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        return "__INVALID__";
+    }
+    return s;
+}
+
+function buildCreatePlayerInfoModal() {
+    return new ModalBuilder()
+        .setCustomId(PLAYER_INFO_MODAL_ID)
+        .setTitle("Alta en Info jugadores")
+        .addComponents(
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(PLAYER_INFO_INPUTS.steamId64)
+                    .setLabel("SteamID64 (17 dígitos)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true)
+                    .setMaxLength(22)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(PLAYER_INFO_INPUTS.displayName)
+                    .setLabel("Nombre")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(true)
+                    .setMaxLength(120)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(PLAYER_INFO_INPUTS.bmUrl)
+                    .setLabel("Link BattleMetrics (opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(200)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(PLAYER_INFO_INPUTS.entryDate)
+                    .setLabel("Fecha de entrada (YYYY-MM-DD, opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(10)
+            ),
+            new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                    .setCustomId(PLAYER_INFO_INPUTS.vouchBy)
+                    .setLabel("Voucheado por (opcional)")
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setMaxLength(120)
+            )
+        );
+}
+
+async function upsertPlayerInfoFromDiscord(pool, steamApiKey, fields) {
+    const displayName = String(fields.displayName || "").trim();
+    if (!displayName || displayName.length > 120) {
+        return { error: "Nombre obligatorio (máx. 120)." };
+    }
+    const steamId64 = normalizeSteamId64(fields.steamId64);
+    if (!steamId64) {
+        return { error: "SteamID64 inválido: usá 17 dígitos." };
+    }
+    const entryDate = normalizeEntryDateInput(fields.entryDate);
+    if (entryDate === "__INVALID__") {
+        return { error: "Fecha inválida. Usá formato YYYY-MM-DD o dejalo vacío." };
+    }
+    const bmUrl = normalizeOptionalUrl(fields.bmUrl);
+    const vouchBy = String(fields.vouchBy || "").trim().slice(0, 120);
+
+    const ready = await ensurePlayerInfoTable(pool);
+    if (!ready) {
+        return { error: "No se pudo preparar Info jugadores." };
+    }
+
+    await pool.query(
+        `INSERT INTO player_info_profiles (
+            steam_id64, display_name, bm_url, status_tag, entry_date, vouch_by, wipe_phase, updated_at
+         ) VALUES ($1,$2,$3,'wipe_guest',$4,$5,'inicio', NOW())
+         ON CONFLICT (steam_id64) DO UPDATE SET
+            display_name = EXCLUDED.display_name,
+            bm_url = EXCLUDED.bm_url,
+            entry_date = EXCLUDED.entry_date,
+            vouch_by = EXCLUDED.vouch_by,
+            updated_at = NOW()`,
+        [steamId64, displayName, bmUrl, entryDate, vouchBy || null]
+    );
+    return { ok: true, steamId64 };
+}
 
 function isAutoImportDiscordId(discordUserId) {
     const id = String(discordUserId || "");
@@ -272,9 +378,9 @@ async function registerSlashCommands(client, guildId) {
     if (!appId) {
         return;
     }
-    const cmd = new SlashCommandBuilder()
+    const cmdWipe = new SlashCommandBuilder()
         .setName("mcv-wipe")
-        .setDescription("Vinculá tu SteamID64 para el wipe MCV (roster interno; la ficha pública se solicita en mcvoficial.com/equipo/solicitud/)")
+        .setDescription("Vinculá tu SteamID64 (17 dígitos) al roster interno del wipe MCV.")
         .addStringOption((o) =>
             o
                 .setName("steam64")
@@ -284,10 +390,21 @@ async function registerSlashCommands(client, guildId) {
                 .setMaxLength(22)
         )
         .toJSON();
+    const cmdCreateUser = new SlashCommandBuilder()
+        .setName("mcv-crear-usuario")
+        .setDescription("Abrí un formulario para darte de alta en Info jugadores y Vital.")
+        .toJSON();
+    const cmdHoras = buildMcHorasSlashCommand();
+    const cmdReporte = buildMcReporteSlashCommand();
+    const cmdYo = buildMcYoSlashCommand();
+    const cmdTop = buildMcTopSlashCommand();
+    const cmdAsistencia = buildMcAsistenciaSlashCommand();
 
     const rest = new REST({ version: "10" }).setToken(token);
-    await rest.put(Routes.applicationGuildCommands(appId, guildId), { body: [cmd] });
-    console.log(`Discord: /mcv-wipe registrado en guild ${guildId}.`);
+    await rest.put(Routes.applicationGuildCommands(appId, guildId), {
+        body: [cmdWipe, cmdCreateUser, cmdHoras, cmdReporte, cmdYo, cmdTop, cmdAsistencia]
+    });
+    console.log(`Discord: comandos wipe/perfil/asistencia registrados en guild ${guildId}.`);
 }
 
 /** Si DISCORD_WIPE_GUILD_ID está definido, el slash solo (o también) va a ese servidor — ej. clan privado. Si no, usa el guild principal. */
@@ -319,42 +436,102 @@ function attachWipeListDiscord(client, { getPool, steamApiKey, guildId }) {
     }
 
     client.on("interactionCreate", async (interaction) => {
-        if (!interaction.isChatInputCommand()) {
-            return;
-        }
-        if (interaction.commandName !== "mcv-wipe") {
-            return;
-        }
-        const pool = getPool();
-        if (!pool) {
-            await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
-            return;
-        }
-        const raw = String(interaction.options.getString("steam64", true) || "").replace(/\D/g, "");
-        if (raw.length !== 17) {
-            await interaction.reply({
-                content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID).",
-                ephemeral: true
-            });
-            return;
-        }
-        const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
-        await interaction.deferReply({ ephemeral: true });
         try {
-            const { persona } = await upsertMember(pool, {
-                discordUserId: interaction.user.id,
-                steamId64: raw,
-                discordLabel,
-                steamApiKey
-            });
-            await interaction.editReply({
-                content: `Listo: **${persona}** quedó vinculado a tu Discord. Para cargar o actualizar tu ficha con redes usá el enlace privado que te pase el staff: **mcvoficial.com/equipo/solicitud/**`
-            });
-        } catch (e) {
-            console.error(e);
-            await interaction.editReply({
-                content: "No se pudo guardar. Probá de nuevo o avisá a staff si sigue fallando."
-            });
+            if (interaction.isModalSubmit() && interaction.customId === PLAYER_INFO_MODAL_ID) {
+                const pool = getPool();
+                if (!pool) {
+                    await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
+                    return;
+                }
+                await interaction.deferReply({ ephemeral: true });
+                try {
+                    const result = await upsertPlayerInfoFromDiscord(pool, steamApiKey, {
+                        steamId64: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.steamId64),
+                        displayName: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.displayName),
+                        bmUrl: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.bmUrl),
+                        entryDate: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.entryDate),
+                        vouchBy: interaction.fields.getTextInputValue(PLAYER_INFO_INPUTS.vouchBy)
+                    });
+                    if (!result.ok) {
+                        await interaction.editReply({ content: result.error || "No se pudo crear la solicitud." });
+                        return;
+                    }
+                    const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
+                    await upsertMember(pool, {
+                        discordUserId: interaction.user.id,
+                        steamId64: result.steamId64,
+                        discordLabel,
+                        steamApiKey
+                    });
+                    await interaction.editReply({
+                        content:
+                            `Listo: te agregamos a **Info jugadores** y al roster del wipe.\n` +
+                            `Steam guardado: \`${result.steamId64}\`\n` +
+                            `Los campos internos (estado/strikes/notas) los completa staff desde admin.`
+                    });
+                } catch (e) {
+                    console.error("mcv-crear-usuario modal:", e.message);
+                    await interaction.editReply({ content: "No se pudo guardar en Info jugadores. Probá de nuevo." });
+                }
+                return;
+            }
+            if (!interaction.isChatInputCommand()) {
+                return;
+            }
+            if (interaction.commandName === "mcv-crear-usuario") {
+                await interaction.showModal(buildCreatePlayerInfoModal());
+                return;
+            }
+            if (interaction.commandName !== "mcv-wipe") {
+                return;
+            }
+            const startedAt = Date.now();
+            await interaction.deferReply({ ephemeral: true });
+            const pool = getPool();
+            if (!pool) {
+                await interaction.editReply({ content: "El servidor no tiene base de datos configurada." });
+                return;
+            }
+            const steamInput = interaction.options.getString("steam64");
+            const raw = String(steamInput || "").replace(/\D/g, "");
+            if (!steamInput || raw.length !== 17) {
+                await interaction.editReply({
+                    content: "SteamID64 inválido: tenés que pegar **17 números** (perfil Steam → copiar ID)."
+                });
+                return;
+            }
+            try {
+                const discordLabel = [interaction.user.globalName, interaction.user.username].filter(Boolean).join(" · ");
+                const { persona } = await upsertMember(pool, {
+                    discordUserId: interaction.user.id,
+                    steamId64: raw,
+                    discordLabel,
+                    steamApiKey
+                });
+                const roleOk = await assignWipeLinkedRole(interaction);
+                const roleNote = roleOk ? "\n\n✅ Rol de wipe asignado." : "";
+                await interaction.editReply({
+                    content:
+                        `Listo: **${persona}** quedó vinculado a tu Discord.${roleNote}\n\n` +
+                        `Cargá horas con **\`/mcv-horas\`** o en #playtime. Mirá tu resumen con **\`/mcv-yo\`**. ` +
+                        `Para alta en Info jugadores usá **\`/mcv-crear-usuario\`**.`
+                });
+                console.log(`mcv-wipe OK user=${interaction.user?.id || "?"} ms=${Date.now() - startedAt}`);
+            } catch (e) {
+                console.error("mcv-wipe error:", e.message);
+                await interaction.editReply({
+                    content: "No se pudo guardar. Probá de nuevo o avisá a staff si sigue fallando."
+                });
+            }
+            return;
+        } catch (err) {
+            console.error("interactionCreate wipe:", err?.message || err);
+            if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
+                await interaction.reply({
+                    content: "Hubo un error procesando el comando. Probá de nuevo en unos segundos.",
+                    ephemeral: true
+                }).catch(() => {});
+            }
         }
     });
 }

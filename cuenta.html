@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Mi cuenta</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v4">
+    <script src="mcv-purge-legacy-api.js?v=2"></script>
+    <script src="mcv-api-base.js?v=2"></script>
+    <script src="mcv-user-auth.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=3"></script>
+    <script src="mcv-i18n.js?v=27"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="mcv-layout.js?v=2026-06-11-v4" defer></script>
+</head>
+<body class="grain cuenta-page" data-mcv-page="cuenta">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+<section class="page-section cuenta-section">
+    <div class="section-label">
+        <div class="yellow-line"></div>
+        <span>// Cuenta MCV</span>
+    </div>
+    <h2>Tu <span>cuenta</span></h2>
+    <p class="cuenta-intro">Tickets, torneos y stats de Rust vinculados a tu perfil.</p>
+
+    <div id="cuenta-guest" class="form-container cuenta-card">
+        <p id="cuenta-error" class="tickets-form-msg err" hidden></p>
+        <div class="cuenta-oauth">
+            <a id="cuenta-steam" class="oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
+            <a id="cuenta-google" class="oauth-btn oauth-btn--google cuenta-oauth__btn" href="#">Continuar con Google</a>
+        </div>
+        <p class="cuenta-hint">Al entrar se crea tu cuenta automáticamente (primera vez). No pedimos contraseña.</p>
+    </div>
+
+    <div id="cuenta-profile" class="cuenta-dashboard" hidden>
+        <div class="form-container cuenta-card cuenta-dashboard__head">
+            <div class="cuenta-dashboard__head-inner">
+                <div class="cuenta-profile-head">
+                    <img id="cuenta-avatar" class="cuenta-avatar" width="64" height="64" alt="" hidden />
+                    <div>
+                        <strong id="cuenta-name">—</strong>
+                        <p id="cuenta-meta" class="cuenta-meta"></p>
+                    </div>
+                </div>
+                <div class="cuenta-dashboard__actions">
+                    <a href="tickets.html" class="btn-secondary cuenta-dash-link">Nuevo ticket</a>
+                    <button type="button" class="btn-outline cuenta-dash-logout" id="cuenta-logout">Cerrar sesión</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="cuenta-steam-link" class="form-container cuenta-card cuenta-steam-link" hidden>
+            <h3 class="cuenta-panel__title">Vincular Steam</h3>
+            <p class="cuenta-panel__hint">Entraste con Google. Para ver stats de Vital Rust en tu cuenta, iniciá sesión con Steam (misma cuenta si ya la usaste antes).</p>
+            <a id="cuenta-steam-link-btn" class="oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
+        </div>
+
+        <div class="cuenta-dashboard__grid">
+            <section class="form-container cuenta-card cuenta-panel">
+                <h3 class="cuenta-panel__title"><i data-lucide="ticket"></i> Mis tickets</h3>
+                <p id="cuenta-tickets-empty" class="cuenta-panel__empty" hidden>Sin tickets todavía. <a href="tickets.html">Enviar uno</a></p>
+                <ul id="cuenta-tickets-list" class="cuenta-list"></ul>
+            </section>
+
+            <section class="form-container cuenta-card cuenta-panel">
+                <h3 class="cuenta-panel__title"><i data-lucide="trophy"></i> Torneos inscriptos</h3>
+                <p id="cuenta-regs-empty" class="cuenta-panel__empty" hidden>No aparecés en ninguna inscripción. <a href="events.html">Ver torneos</a></p>
+                <ul id="cuenta-regs-list" class="cuenta-list"></ul>
+            </section>
+
+            <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vital-panel">
+                <h3 class="cuenta-panel__title"><i data-lucide="bar-chart-3"></i> Stats Vital Rust</h3>
+                <p class="cuenta-panel__hint" id="cuenta-vital-hint">Consultamos tu Steam ID en la API de Vital (servidores MCV). Si jugaste en wipe activo, aparecen tus stats.</p>
+                <p id="cuenta-vital-loading" class="cuenta-panel__empty">Cargando stats…</p>
+                <p id="cuenta-vital-empty" class="cuenta-panel__empty" hidden></p>
+                <div id="cuenta-vital-stats" class="cuenta-vital-stats" hidden>
+                    <p class="cuenta-vital-meta" id="cuenta-vital-meta"></p>
+                    <div class="cuenta-vital-grid" id="cuenta-vital-grid"></div>
+                    <a href="vital-rust.html" class="cuenta-vital-link" id="cuenta-vital-link" hidden>Ver stats del clan →</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <p id="cuenta-loading" class="empty-hint" hidden>Cargando…</p>
+</section>
+
+<script>
+(function () {
+    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+    var guest = document.getElementById("cuenta-guest");
+    var profile = document.getElementById("cuenta-profile");
+    var loading = document.getElementById("cuenta-loading");
+    var errBox = document.getElementById("cuenta-error");
+    var qs = new URLSearchParams(window.location.search || "");
+    var nextPath = String(qs.get("next") || "cuenta.html").replace(/^\/+/, "");
+
+    if (typeof mcvCaptureUserTokenFromUrl === "function") {
+        mcvCaptureUserTokenFromUrl();
+    }
+
+    var oauthErr = qs.get("oauth_error");
+    if (oauthErr && errBox) {
+        var msgs = {
+            google_failed: "No se pudo completar el login con Google.",
+            steam_failed: "No se pudo completar el login con Steam.",
+            steam_verify: "Steam no verificó la sesión. Intentá de nuevo.",
+            steam_taken: "Ese Steam ya está vinculado a otra cuenta MCV.",
+            invalid_state: "La sesión expiró. Volvé a intentar."
+        };
+        errBox.textContent = msgs[oauthErr] || "Error al iniciar sesión.";
+        errBox.hidden = false;
+    }
+
+    function esc(s) {
+        return String(s == null ? "" : s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return "—";
+        try {
+            return new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
+        } catch (e) {
+            return "—";
+        }
+    }
+
+    function statusClass(st) {
+        if (st === "accepted") return "cuenta-status--ok";
+        if (st === "declined") return "cuenta-status--bad";
+        return "cuenta-status--pending";
+    }
+
+    function showGuest() {
+        if (loading) loading.hidden = true;
+        if (profile) profile.hidden = true;
+        if (guest) guest.hidden = false;
+    }
+
+    function showProfile(user) {
+        if (loading) loading.hidden = true;
+        if (guest) guest.hidden = true;
+        if (profile) profile.hidden = false;
+        var nameEl = document.getElementById("cuenta-name");
+        var metaEl = document.getElementById("cuenta-meta");
+        var av = document.getElementById("cuenta-avatar");
+        var steamLink = document.getElementById("cuenta-steam-link");
+        if (nameEl) nameEl.textContent = user.displayName || "Usuario";
+        var parts = [];
+        if (user.steamId64) parts.push("Steam " + user.steamId64);
+        if (user.email) parts.push(user.email);
+        if (metaEl) metaEl.textContent = parts.join(" · ") || user.authProvider || "";
+        if (av && user.avatarUrl) {
+            av.src = user.avatarUrl;
+            av.hidden = false;
+        } else if (av) {
+            av.hidden = true;
+        }
+        if (steamLink) {
+            steamLink.hidden = !!user.steamId64;
+        }
+        if (!user.steamId64 && typeof mcvBindPublicOAuthButtons === "function") {
+            mcvBindPublicOAuthButtons({
+                api: API,
+                next: "cuenta.html",
+                steamEl: "cuenta-steam-link-btn",
+                googleEl: null,
+                opts: { steamEnabled: true, googleEnabled: false },
+                linkJwt: typeof mcvUserToken === "function" ? mcvUserToken() : ""
+            });
+        }
+        loadDashboard();
+        loadVitalStats();
+        if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+    }
+
+    function renderTickets(tickets) {
+        var list = document.getElementById("cuenta-tickets-list");
+        var empty = document.getElementById("cuenta-tickets-empty");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!tickets || !tickets.length) {
+            if (empty) empty.hidden = false;
+            return;
+        }
+        if (empty) empty.hidden = true;
+        for (var i = 0; i < tickets.length; i++) {
+            var t = tickets[i];
+            var li = document.createElement("li");
+            li.className = "cuenta-list__item";
+            li.innerHTML =
+                '<div class="cuenta-list__main">' +
+                '<strong>#' + esc(t.id) + " · " + esc(t.ticketTypeLabel || t.ticketType) + "</strong>" +
+                '<span class="cuenta-list__sub">' + esc(t.discordUser) + " · " + fmtDate(t.createdAt) + "</span>" +
+                "</div>" +
+                '<span class="cuenta-status ' + statusClass(t.status) + '">' + esc(t.statusLabel || t.status) + "</span>";
+            list.appendChild(li);
+        }
+    }
+
+    function renderRegistrations(regs) {
+        var list = document.getElementById("cuenta-regs-list");
+        var empty = document.getElementById("cuenta-regs-empty");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!regs || !regs.length) {
+            if (empty) empty.hidden = false;
+            return;
+        }
+        if (empty) empty.hidden = true;
+        for (var i = 0; i < regs.length; i++) {
+            var r = regs[i];
+            var slug = r.tournamentSlug ? "events.html#" + encodeURIComponent(r.tournamentSlug) : "events.html";
+            var li = document.createElement("li");
+            li.className = "cuenta-list__item";
+            li.innerHTML =
+                '<div class="cuenta-list__main">' +
+                '<strong><a href="' + esc(slug) + '">' + esc(r.teamName) + "</a></strong>" +
+                '<span class="cuenta-list__sub">' + esc(r.tournamentTitle || "Torneo") + " · " + fmtDate(r.createdAt) + "</span>" +
+                "</div>" +
+                '<span class="cuenta-status ' + statusClass(r.status) + '">' + esc(r.statusLabel || r.status) + "</span>";
+            list.appendChild(li);
+        }
+    }
+
+    function fmtNum(n) {
+        var x = Number(n);
+        if (!Number.isFinite(x)) return "0";
+        return x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    }
+
+    function renderVital(data) {
+        var loadingEl = document.getElementById("cuenta-vital-loading");
+        var emptyEl = document.getElementById("cuenta-vital-empty");
+        var statsEl = document.getElementById("cuenta-vital-stats");
+        var grid = document.getElementById("cuenta-vital-grid");
+        var meta = document.getElementById("cuenta-vital-meta");
+        var link = document.getElementById("cuenta-vital-link");
+        if (loadingEl) loadingEl.hidden = true;
+
+        if (!data || data.configured === false) {
+            if (emptyEl) {
+                emptyEl.textContent = (data && data.message) || "Stats de Vital no disponibles.";
+                emptyEl.hidden = false;
+            }
+            if (statsEl) statsEl.hidden = true;
+            return;
+        }
+        if (!data.steamLinked) {
+            if (emptyEl) {
+                emptyEl.textContent = data.message || "Vinculá Steam para ver tus stats.";
+                emptyEl.hidden = false;
+            }
+            if (statsEl) statsEl.hidden = true;
+            return;
+        }
+        if (!data.player) {
+            if (emptyEl) {
+                emptyEl.textContent = data.message || "Sin datos para el wipe actual.";
+                emptyEl.hidden = false;
+            }
+            if (statsEl) statsEl.hidden = true;
+            return;
+        }
+
+        if (emptyEl) emptyEl.hidden = true;
+        if (statsEl) statsEl.hidden = false;
+        var p = data.player;
+        var srv = data.server ? data.server.label : "Vital";
+        if (meta) {
+            var steamLine = data.steamId64 ? "Steam " + data.steamId64 + " · " : "";
+            meta.textContent =
+                steamLine +
+                (p.name ? p.name + " · " : "") +
+                srv +
+                (data.inClanRoster ? " · En roster MCV" : " · Fuera del roster del clan");
+        }
+        if (grid) {
+            var groups = [
+                {
+                    title: "Combate",
+                    cells: [
+                        { label: "K/D", val: p.kdr != null ? String(p.kdr) : "—" },
+                        { label: "Kills wipe", val: fmtNum(p.kills) },
+                        { label: "Deaths", val: fmtNum(p.deaths) },
+                        { label: "Kill T3", val: fmtNum(p.killsT30) },
+                        { label: "Death T3", val: fmtNum(p.deathsT3) },
+                        { label: "Rockets", val: fmtNum(p.rocketsFired) },
+                        { label: "Raid dmg", val: fmtNum(p.raidingDamage) }
+                    ]
+                },
+                {
+                    title: "Farming",
+                    cells: [
+                        { label: "Azufre", val: fmtNum(p.farmSulfur) },
+                        { label: "Metal", val: fmtNum(p.farmMetal) },
+                        { label: "HQ", val: fmtNum(p.farmHqMetal) },
+                        { label: "Madera", val: fmtNum(p.farmWood) }
+                    ]
+                },
+                {
+                    title: "Scrap",
+                    cells: [
+                        { label: "Loteado", val: fmtNum(p.scrapLooted) },
+                        { label: "Reciclado", val: fmtNum(p.scrapRecycled) }
+                    ]
+                }
+            ];
+            if (p.building != null && Number(p.building) > 0) {
+                groups.push({
+                    title: "Building",
+                    cells: [{ label: "Bloques", val: fmtNum(p.building) }]
+                });
+            }
+            var baseCells = [];
+            if (Number(p.deployableAutoturrets) > 0) {
+                baseCells.push({ label: "Torretas", val: fmtNum(p.deployableAutoturrets) });
+            }
+            if (Number(p.deployablePlantation) > 0) {
+                baseCells.push({ label: "Huerto", val: fmtNum(p.deployablePlantation) });
+            }
+            if (Number(p.deployableCraftPlace) > 0) {
+                baseCells.push({ label: "Colocación", val: fmtNum(p.deployableCraftPlace) });
+            }
+            if (baseCells.length) {
+                groups.push({ title: "Base", cells: baseCells });
+            }
+            grid.innerHTML = groups
+                .map(function (g) {
+                    var cards = g.cells
+                        .map(function (c) {
+                            return (
+                                '<div class="cuenta-vital-cell"><span class="cuenta-vital-cell__label">' +
+                                esc(c.label) +
+                                '</span><strong class="cuenta-vital-cell__val">' +
+                                esc(c.val) +
+                                "</strong></div>"
+                            );
+                        })
+                        .join("");
+                    return (
+                        '<section class="cuenta-vital-group"><h4 class="cuenta-vital-group__title">' +
+                        esc(g.title) +
+                        '</h4><div class="cuenta-vital-group__grid">' +
+                        cards +
+                        "</div></section>"
+                    );
+                })
+                .join("");
+        }
+        if (link) link.hidden = !data.inClanRoster;
+    }
+
+    function loadDashboard() {
+        if (!API || typeof mcvUserAuthHeaders !== "function") return;
+        fetch(API + "/api/auth/user/dashboard", {
+            headers: mcvUserAuthHeaders(),
+            cache: "no-store"
+        })
+            .then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+            .then(function (x) {
+                if (!x.ok) return;
+                renderTickets(x.d.tickets);
+                renderRegistrations(x.d.registrations);
+            })
+            .catch(function () {});
+    }
+
+    function loadVitalStats() {
+        if (!API || typeof mcvUserAuthHeaders !== "function") return;
+        fetch(API + "/api/auth/user/vital-stats", {
+            headers: mcvUserAuthHeaders(),
+            cache: "no-store"
+        })
+            .then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+            .then(function (x) {
+                if (!x.ok) {
+                    renderVital({
+                        configured: true,
+                        steamLinked: true,
+                        player: null,
+                        message: (x.d && x.d.error) ? x.d.error : "No se pudieron cargar las stats."
+                    });
+                    return;
+                }
+                renderVital(x.d);
+            })
+            .catch(function () {
+                renderVital(null);
+            });
+    }
+
+    function bindOAuthLinks(opts) {
+        if (typeof mcvBindPublicOAuthButtons === "function") {
+            mcvBindPublicOAuthButtons({
+                api: API,
+                next: nextPath,
+                steamEl: "cuenta-steam",
+                googleEl: "cuenta-google",
+                opts: opts
+            });
+        }
+    }
+
+    bindOAuthLinks(typeof mcvDefaultOAuthOpts === "function" ? mcvDefaultOAuthOpts() : null);
+
+    var optsPromise =
+        typeof mcvFetchPublicOAuthOptions === "function"
+            ? mcvFetchPublicOAuthOptions(API)
+            : Promise.resolve(null);
+    optsPromise.then(function (opts) {
+        bindOAuthLinks(opts);
+    });
+
+    if (typeof mcvFetchUserMe === "function" && mcvUserToken()) {
+        if (loading) loading.hidden = false;
+        if (guest) guest.hidden = true;
+        mcvFetchUserMe().then(function (user) {
+            if (user) {
+                showProfile(user);
+                if (nextPath && nextPath !== "cuenta.html" && qs.get("token")) {
+                    window.location.href = nextPath;
+                }
+            } else {
+                showGuest();
+            }
+        });
+    } else {
+        showGuest();
+    }
+
+    var logoutBtn = document.getElementById("cuenta-logout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", function () {
+            if (typeof mcvUserLogout === "function") mcvUserLogout();
+            showGuest();
+        });
+    }
+})();
+</script>
+</body>
+</html>
