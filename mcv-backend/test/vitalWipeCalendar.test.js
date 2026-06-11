@@ -19,7 +19,17 @@ test("resolveMonthlyPeriod usa tabla Monthly entre 1.er y 2.º jueves", () => {
     assert.equal(duringMain.period, "monthly-main");
 });
 
-test("resolveMonthlyPeriod usa tabla Medium del 2.º al 4.º jueves", () => {
+test("resolveMonthlyPeriod mantiene Monthly todo el 2.º jueves hasta 23:59", () => {
+    const lastDay = resolveMonthlyPeriod(new Date(2026, 4, 14, 20, 30, 0));
+    assert.equal(lastDay.configKey, "eu-monthly");
+    assert.equal(lastDay.period, "monthly-main");
+
+    const fridayStart = resolveMonthlyPeriod(new Date(2026, 4, 15, 0, 0, 1));
+    assert.equal(fridayStart.configKey, "eu-medium");
+    assert.equal(fridayStart.period, "monthly-medium-window");
+});
+
+test("resolveMonthlyPeriod usa tabla Medium del viernes post 2.º jueves al rewipe", () => {
     const midMonth = resolveMonthlyPeriod(new Date(2026, 4, 20, 12, 0, 0));
     assert.equal(midMonth.configKey, "eu-medium");
     assert.equal(midMonth.period, "monthly-medium-window");

@@ -192,7 +192,22 @@ function getTierScoreConfig(configKey) {
     return CONFIG_BY_KEY[key] || null;
 }
 
-function resolveTierScoreConfig({ serverKey, at = new Date() }) {
+function resolveTierScoreConfig({ serverKey, at = new Date(), configKeyOverride = null }) {
+    const override = String(configKeyOverride || "").trim();
+    if (override === "eu-medium" || override === "eu-monthly") {
+        const config = getTierScoreConfig(override);
+        if (!config) {
+            throw new Error("Config de tiers inválida");
+        }
+        return {
+            serverKey: String(serverKey || "eu-medium").trim(),
+            configKey: override,
+            period: "manual",
+            label: override === "eu-monthly" ? "Manual: tabla Monthly" : "Manual: tabla Medium",
+            at: at.toISOString(),
+            config
+        };
+    }
     const resolved = resolveTierConfigKey({ serverKey, at });
     const config = getTierScoreConfig(resolved.configKey);
     if (!config) {
@@ -403,8 +418,8 @@ function shouldScorePlayerProfile(profile) {
     return false;
 }
 
-function computeTierScoresForRoster({ serverKey, players, at = new Date() }) {
-    const resolved = resolveTierScoreConfig({ serverKey, at });
+function computeTierScoresForRoster({ serverKey, players, at = new Date(), configKeyOverride = null }) {
+    const resolved = resolveTierScoreConfig({ serverKey, at, configKeyOverride });
     const config = resolved.config;
     const entries = (players || [])
         .map((p) => {

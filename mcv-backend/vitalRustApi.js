@@ -2121,7 +2121,7 @@ async function resolveCurrentWipeId(paths, serverId) {
     }
 }
 
-async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, at } = {}) {
+async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, at, configKeyOverride = null } = {}) {
     if (!vitalEnabled()) {
         throw new Error("Vital API deshabilitada");
     }
@@ -2130,7 +2130,7 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
         throw new Error("Servidor Vital inválido o sin serverId");
     }
     const scoredAt = at instanceof Date && !Number.isNaN(at.getTime()) ? at : new Date();
-    const resolved = resolveTierScoreConfig({ serverKey: server.key, at: scoredAt });
+    const resolved = resolveTierScoreConfig({ serverKey: server.key, at: scoredAt, configKeyOverride });
     const paths = apiPaths();
     if (!paths.playersOverviewPost) {
         throw new Error("Sin VITAL_API_PLAYERS_OVERVIEW_POST");
@@ -2148,7 +2148,12 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
             rosterSize: 0,
             vitalMatched: 0,
             notFound: [],
-            tierResult: computeTierScoresForRoster({ serverKey: server.key, players: [], at: scoredAt })
+            tierResult: computeTierScoresForRoster({
+                serverKey: server.key,
+                players: [],
+                at: scoredAt,
+                configKeyOverride
+            })
         };
     }
     const matched = await fetchClanPlayersPost(paths, server.serverId, wipeId, clanIds, { refresh });
@@ -2186,7 +2191,12 @@ async function fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh, 
         };
     });
 
-    const tierResult = computeTierScoresForRoster({ serverKey: server.key, players: playersForScoring, at: scoredAt });
+    const tierResult = computeTierScoresForRoster({
+        serverKey: server.key,
+        players: playersForScoring,
+        at: scoredAt,
+        configKeyOverride
+    });
 
     return {
         server,
@@ -2766,8 +2776,9 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
 
     app.get("/api/admin/vital/tier-score-config", authAdmin, (req, res) => {
         const serverKey = String(req.query.server || "").trim();
+        const configKeyOverride = String(req.query.configKey || "").trim() || null;
         if (serverKey) {
-            const resolved = resolveTierScoreConfig({ serverKey, at: new Date() });
+            const resolved = resolveTierScoreConfig({ serverKey, at: new Date(), configKeyOverride });
             const cfg = listTierScoreConfigs().find((c) => c.key === resolved.configKey);
             if (!cfg) {
                 return res.status(400).json({ error: "Servidor inválido (eu-medium o eu-monthly)" });
@@ -3264,8 +3275,14 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         const serverKey = String(req.query.server || body.server || DEFAULT_SERVER_KEY).trim();
         const wipeIdRaw = String(req.query.wipeId || body.wipeId || "current").trim();
         const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
+        const configKeyOverride = String(req.query.configKey || body.configKey || "").trim() || null;
         try {
-            const payload = await fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh });
+            const payload = await fetchTierScoresPayload(getPool, {
+                serverKey,
+                wipeIdRaw,
+                refresh,
+                configKeyOverride
+            });
             return res.json({ ok: true, preview: true, ...payload });
         } catch (e) {
             console.error("vital tier preview:", e.message);
@@ -3282,8 +3299,14 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         const serverKey = String(req.query.server || body.server || DEFAULT_SERVER_KEY).trim();
         const wipeIdRaw = String(req.query.wipeId || body.wipeId || "current").trim();
         const refresh = String(req.query.refresh || body.refresh || "").trim() === "1";
+        const configKeyOverride = String(req.query.configKey || body.configKey || "").trim() || null;
         try {
-            const payload = await fetchTierScoresPayload(getPool, { serverKey, wipeIdRaw, refresh });
+            const payload = await fetchTierScoresPayload(getPool, {
+                serverKey,
+                wipeIdRaw,
+                refresh,
+                configKeyOverride
+            });
             const applyResult = await applyTierScoreResults(pool, payload.tierResult, {
                 serverLabel: payload.tierResult.serverLabel
             });

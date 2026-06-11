@@ -6,6 +6,7 @@ const {
     computeTierScoresForRoster,
     computeManualExtraPoints,
     getTierScoreConfig,
+    resolveTierScoreConfig,
     scoreFromTiers,
     shouldScorePlayerProfile
 } = require("../vitalScoreTiers");
@@ -228,6 +229,16 @@ test("madera no resta puntos bajo 500k (Medium)", () => {
     });
     const wood = result.players[0].breakdown.find((b) => b.id === "farmWood");
     assert.equal(wood.points, 0);
+});
+
+test("configKeyOverride fuerza tabla Monthly o Medium", () => {
+    const monthly = resolveTierScoreConfig({ serverKey: "eu-medium", configKeyOverride: "eu-monthly" });
+    assert.equal(monthly.configKey, "eu-monthly");
+    assert.equal(monthly.period, "manual");
+
+    const medium = resolveTierScoreConfig({ serverKey: "eu-monthly", configKeyOverride: "eu-medium" });
+    assert.equal(medium.configKey, "eu-medium");
+    assert.equal(medium.period, "manual");
 });
 
 test("Monthly en ventana 2.º-4.º jueves usa tabla Medium", () => {

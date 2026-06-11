@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v6">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v7">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
     <meta name="mcv-admin-build" content="2026-06-11-admin-scrap-building-split-v6">
 </head>
@@ -301,6 +301,11 @@
                                 <option value="eu-monthly">EU Monthly 2x</option>
                                 <option value="eu-medium">EU Medium 2x</option>
                             </select>
+                            <div class="vital-tier-mode" role="group" aria-label="Tabla de puntos">
+                                <button type="button" class="vital-tier-mode-btn is-active" data-tier-config="auto" title="Calendario MCV (Monthly hasta jueves 23:59)">Auto</button>
+                                <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-monthly" title="Forzar umbrales Monthly">Monthly</button>
+                                <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-medium" title="Forzar umbrales Medium">Medium</button>
+                            </div>
                             <select id="vital-tier-wipe" class="vital-input-compact" title="Wipe Vital">
                                 <option value="">Cargando wipes…</option>
                             </select>
@@ -2127,6 +2132,7 @@
     var vitalTierLastPayload = null;
     var VITAL_TIER_SERVER_LS = 'mcv_vital_tier_server_v1';
     var VITAL_TIER_WIPE_LS = 'mcv_vital_tier_wipe_v1';
+    var VITAL_TIER_CONFIG_LS = 'mcv_vital_tier_config_v1';
     var vitalExtraCatalog = [];
     var vitalSelectedExtraKeys = [];
     var vitalSelectedExtraCounts = {};
@@ -3031,6 +3037,34 @@
         return key === 'eu-monthly' ? 'eu-monthly' : 'eu-medium';
     }
 
+    function vitalTierConfigMode() {
+        try {
+            var mode = String(localStorage.getItem(VITAL_TIER_CONFIG_LS) || 'auto').trim();
+            if (mode === 'eu-monthly' || mode === 'eu-medium' || mode === 'auto') return mode;
+        } catch (e) {}
+        return 'auto';
+    }
+
+    function setVitalTierConfigMode(mode) {
+        var m = String(mode || 'auto').trim();
+        if (m !== 'auto' && m !== 'eu-monthly' && m !== 'eu-medium') m = 'auto';
+        try { localStorage.setItem(VITAL_TIER_CONFIG_LS, m); } catch (e) {}
+        syncVitalTierModeButtons();
+        vitalTierConfigCache = {};
+    }
+
+    function vitalTierConfigKeyParam() {
+        var mode = vitalTierConfigMode();
+        return mode === 'auto' ? '' : mode;
+    }
+
+    function syncVitalTierModeButtons() {
+        var mode = vitalTierConfigMode();
+        document.querySelectorAll('.vital-tier-mode-btn').forEach(function (btn) {
+            btn.classList.toggle('is-active', btn.getAttribute('data-tier-config') === mode);
+        });
+    }
+
     function findCurrentVitalWipe(wipes) {
         wipes = wipes || [];
         for (var i = 0; i < wipes.length; i++) {
@@ -3245,12 +3279,19 @@
         return val + ' logrado';
     }
 
+    function vitalTierConfigApiUrl(serverKey) {
+        var url = API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey);
+        var ck = vitalTierConfigKeyParam();
+        if (ck) url += '&configKey=' + encodeURIComponent(ck);
+        return url;
+    }
+
     function ensureVitalTierConfigCache(serverKey) {
         serverKey = serverKey === 'eu-monthly' ? 'eu-monthly' : 'eu-medium';
         if (vitalTierConfigCache[serverKey]) {
             return Promise.resolve(vitalTierConfigCache[serverKey]);
         }
-        return fetch(API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey), {
+        return fetch(vitalTierConfigApiUrl(serverKey), {
             headers: authHeaders(),
             cache: 'no-store'
         })
@@ -3764,13 +3805,18 @@
         if (!box) return Promise.resolve();
         box.innerHTML = '<p class="empty-hint">Cargando umbrales…</p>';
         return Promise.all(vitalTierServerPriority().map(function (serverKey) {
-            return fetch(API + '/api/admin/vital/tier-score-config?server=' + encodeURIComponent(serverKey), {
+            return fetch(vitalTierConfigApiUrl(serverKey), {
                 headers: authHeaders(),
                 cache: 'no-store'
             }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d, serverKey: serverKey }; }); });
         }))
             .then(function (results) {
                 var html = '';
+                var mode = vitalTierConfigMode();
+                if (mode !== 'auto') {
+                    html += '<p class="vital-tier-config-note">Modo manual activo: <strong>' +
+                        esc(mode === 'eu-monthly' ? 'Monthly' : 'Medium') + '</strong></p>';
+                }
                 results.forEach(function (x) {
                     if (!x.ok || !x.d.config) return;
                     vitalTierConfigCache[x.serverKey] = x.d;
@@ -3809,7 +3855,12 @@
         return fetch(API + endpoint, {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
-            body: JSON.stringify({ server: vitalTierServerKey(), wipeId: vitalTierWipeId(), refresh: opts.refresh ? 1 : 0 })
+            body: JSON.stringify({
+                server: vitalTierServerKey(),
+                wipeId: vitalTierWipeId(),
+                refresh: opts.refresh ? 1 : 0,
+                configKey: vitalTierConfigKeyParam() || undefined
+            })
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
@@ -4459,6 +4510,16 @@
         }
         loadVitalExtraPointsCatalog().catch(function () {});
         syncVitalTierServerSelects();
+        syncVitalTierModeButtons();
+        document.querySelectorAll('.vital-tier-mode-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var mode = btn.getAttribute('data-tier-config') || 'auto';
+                if (mode === vitalTierConfigMode()) return;
+                setVitalTierConfigMode(mode);
+                loadVitalTierConfigView().catch(function () {});
+                syncVitalTierFromVital({ apply: true, refresh: true, quiet: false }).catch(function () {});
+            });
+        });
         var tierServerEl = document.getElementById('vital-tier-server');
         var tierWipeEl = document.getElementById('vital-tier-wipe');
         if (tierServerEl) {

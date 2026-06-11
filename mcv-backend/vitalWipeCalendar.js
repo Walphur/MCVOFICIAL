@@ -42,12 +42,12 @@ function resolveMonthlyPeriod(at = new Date()) {
 
     if (firstThu && secondThu) {
         const monthlyStart = startOfDay(firstThu).getTime();
-        const monthlyEnd = startOfDay(secondThu).getTime() - 1;
+        const monthlyEnd = endOfDay(secondThu).getTime();
         if (t >= monthlyStart && t <= monthlyEnd) {
             return {
                 configKey: "eu-monthly",
                 period: "monthly-main",
-                label: "Wipe monthly (1.er al 2.º jueves)",
+                label: "Wipe monthly (1.er jueves al 2.º jueves 23:59)",
                 monthlyStart: new Date(monthlyStart).toISOString(),
                 monthlyEnd: new Date(monthlyEnd).toISOString()
             };
@@ -55,13 +55,14 @@ function resolveMonthlyPeriod(at = new Date()) {
     }
 
     if (secondThu && fourthThu) {
-        const mediumStart = startOfDay(secondThu).getTime();
+        const dayAfterSecondThu = new Date(secondThu.getFullYear(), secondThu.getMonth(), secondThu.getDate() + 1);
+        const mediumStart = startOfDay(dayAfterSecondThu).getTime();
         const mediumEnd = endOfDay(new Date(fourthThu.getFullYear(), fourthThu.getMonth(), fourthThu.getDate() + 3)).getTime();
         if (t >= mediumStart && t <= mediumEnd) {
             return {
                 configKey: "eu-medium",
                 period: "monthly-medium-window",
-                label: "Medium en Monthly (2.º al 4.º jueves + rewipe)",
+                label: "Medium en Monthly (desde viernes post 2.º jueves + rewipe)",
                 mediumStart: new Date(mediumStart).toISOString(),
                 mediumEnd: new Date(mediumEnd).toISOString()
             };
