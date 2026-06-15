@@ -2,7 +2,8 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { parsePlaytimeHours, collectLatestPlaytimeByAuthor } = require("../playtimeSync");
+const { parsePlaytimeHours, collectLatestPlaytimeByAuthor, resolveSyncWindowFromOptions } = require("../playtimeSync");
+const { resolvePlaytimeSyncWindow } = require("../vitalWipeCalendar");
 
 test("parsePlaytimeHours acepta formatos del canal playtime", () => {
     assert.equal(parsePlaytimeHours("14h"), 14);
@@ -18,6 +19,33 @@ test("parsePlaytimeHours ignora texto sin horas", () => {
     assert.equal(parsePlaytimeHours(""), null);
     assert.equal(parsePlaytimeHours("hola"), null);
     assert.equal(parsePlaytimeHours("captura abajo"), null);
+});
+
+test("collectLatestPlaytimeByAuthor ignora mensajes fuera de la ventana de wipe", () => {
+    const window = resolvePlaytimeSyncWindow({ wipeStartAt: new Date(2026, 5, 4, 18, 44, 0) });
+    const messages = [
+        {
+            author: { id: "111", bot: false, username: "old", globalName: null },
+            content: "99h",
+            id: "old",
+            createdTimestamp: new Date(2026, 5, 5, 12, 0, 0).getTime()
+        },
+        {
+            author: { id: "111", bot: false, username: "new", globalName: null },
+            content: "14h",
+            id: "new",
+            createdTimestamp: new Date(2026, 5, 10, 15, 0, 0).getTime()
+        },
+        {
+            author: { id: "222", bot: false, username: "late", globalName: null },
+            content: "57 horitas",
+            id: "late",
+            createdTimestamp: new Date(2026, 5, 18, 12, 0, 0).getTime()
+        }
+    ];
+    const map = collectLatestPlaytimeByAuthor(messages, window);
+    assert.equal(map.size, 1);
+    assert.equal(map.get("111").hours, 14);
 });
 
 test("collectLatestPlaytimeByAuthor conserva el mensaje más reciente por autor", () => {

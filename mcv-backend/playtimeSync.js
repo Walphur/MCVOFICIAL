@@ -1,6 +1,7 @@
 "use strict";
 
 const { SlashCommandBuilder } = require("discord.js");
+const { resolvePlaytimeSyncWindow, isTimestampInPlaytimeWindow } = require("./vitalWipeCalendar");
 
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
 const PASTE_WIPE_DISCORD_PREFIX = "paste:";
@@ -123,13 +124,16 @@ async function applyPlaytimeFromMessage(pool, message) {
 }
 
 /**
- * Agrupa mensajes por autor y conserva el más reciente con horas parseables.
+ * Agrupa mensajes por autor y conserva el más reciente con horas parseables (opcional: ventana de fechas).
  */
-function collectLatestPlaytimeByAuthor(messages) {
+function collectLatestPlaytimeByAuthor(messages, window = null) {
     const byAuthor = new Map();
     const sorted = [...messages].sort((a, b) => b.createdTimestamp - a.createdTimestamp);
     for (const m of sorted) {
         if (!m?.author || m.author.bot) {
+            continue;
+        }
+        if (!isTimestampInPlaytimeWindow(m.createdTimestamp, window)) {
             continue;
         }
         if (byAuthor.has(m.author.id)) {
@@ -145,14 +149,38 @@ function collectLatestPlaytimeByAuthor(messages) {
             discordUserId: m.author.id,
             discordUsername: discordLabelFromUser(m.author),
             messageId: m.id,
-            createdAt: m.createdAt?.toISOString?.() || null
+            createdAt: m.createdAt?.toISOString?.() || null,
+            createdTimestamp: m.createdTimestamp
         });
     }
     return byAuthor;
 }
 
-async function fetchChannelMessages(client, channelId, maxMessages) {
-    const lim = Math.min(Math.max(Number(maxMessages) || 400, 50), 1000);
+function resolveSyncWindowFromOptions(options = {}) {
+    const sinceMs = options.sinceMs ?? (options.since ? new Date(options.since).getTime() : null);
+    const untilMs = options.untilMs ?? (options.until ? new Date(options.until).getTime() : null);
+    if (Number.isFinite(sinceMs) && Number.isFinite(untilMs)) {
+        return {
+            windowStartMs: sinceMs,
+            windowEndMs: untilMs,
+            windowStart: new Date(sinceMs).toISOString(),
+            windowEnd: new Date(untilMs).toISOString(),
+            label: "Ventana manual"
+        };
+    }
+    if (options.useCalendarWindow === false) {
+        return null;
+    }
+    return resolvePlaytimeSyncWindow({
+        wipeStartAt: options.wipeStartAt,
+        wipeStartMs: options.wipeStartMs,
+        referenceDate: options.referenceDate
+    });
+}
+
+async function fetchChannelMessages(client, channelId, options = {}) {
+    const lim = Math.min(Math.max(Number(options.maxMessages) || 400, 50), 2000);
+    const windowStartMs = options.window?.windowStartMs;
     const ch = await client.channels.fetch(String(channelId)).catch(() => null);
     if (!ch || !ch.isTextBased()) {
         throw new Error("Canal de Discord inválido o inaccesible");
@@ -166,6 +194,12 @@ async function fetchChannelMessages(client, channelId, maxMessages) {
             break;
         }
         out.push(...batch.values());
+        if (windowStartMs) {
+            const oldest = batch.last();
+            if (oldest && oldest.createdTimestamp < windowStartMs) {
+                break;
+            }
+        }
         before = batch.last()?.id;
         if (batch.size < batchSize) {
             break;
@@ -181,9 +215,13 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
     if (!pool) {
         throw new Error("Base de datos no disponible");
     }
-    const maxMessages = options.maxMessages || 400;
-    const messages = await fetchChannelMessages(client, channelId, maxMessages);
-    const latest = collectLatestPlaytimeByAuthor(messages);
+    const window = resolveSyncWindowFromOptions(options);
+    const maxMessages = options.maxMessages || (window ? 2000 : 400);
+    const messages = await fetchChannelMessages(client, channelId, { maxMessages, window });
+    const inWindowMessages = window
+        ? messages.filter((m) => isTimestampInPlaytimeWindow(m.createdTimestamp, window))
+        : messages;
+    const latest = collectLatestPlaytimeByAuthor(inWindowMessages, window);
 
     const updated = [];
     const unmatched = [];
@@ -196,7 +234,8 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
                 discordUserId: entry.discordUserId,
                 discordUsername: entry.discordUsername,
                 hours: entry.hours,
-                messageId: entry.messageId
+                messageId: entry.messageId,
+                postedAt: entry.createdAt
             });
             continue;
         }
@@ -210,7 +249,8 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
                 steamId64: saved.steam_id64,
                 displayName: saved.display_name || link.persona_name,
                 hoursPlayed: saved.hours_played,
-                discordUsername: entry.discordUsername
+                discordUsername: entry.discordUsername,
+                postedAt: entry.createdAt
             });
         } catch {
             skipped += 1;
@@ -220,6 +260,15 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
     return {
         ok: true,
         scanned: messages.length,
+        inWindow: inWindowMessages.length,
+        ignoredOutsideWindow: window ? Math.max(0, messages.length - inWindowMessages.length) : 0,
+        window: window
+            ? {
+                  start: window.windowStart,
+                  end: window.windowEnd,
+                  label: window.label
+              }
+            : null,
         parsedAuthors: latest.size,
         updated: updated.length,
         unmatched: unmatched.length,
@@ -292,6 +341,10 @@ function attachPlaytimeDiscord(client, { getPool, channelId, onSlashGuildIds }) 
             if (!pool) {
                 return;
             }
+            const window = resolveSyncWindowFromOptions({ useCalendarWindow: true });
+            if (window && !isTimestampInPlaytimeWindow(message.createdTimestamp, window)) {
+                return;
+            }
             const result = await applyPlaytimeFromMessage(pool, message);
             if (result.applied) {
                 console.log(
@@ -331,8 +384,21 @@ function registerPlaytimeAdminApi(app, { getPool, authAdmin, getDiscordClient, g
             });
         }
         try {
-            const maxMessages = Number(req.body?.maxMessages) || 400;
-            const result = await syncPlaytimeFromChannel(client, pool, channelId, { maxMessages });
+            const body = req.body && typeof req.body === "object" ? req.body : {};
+            const maxMessages = Number(body.maxMessages) || 2000;
+            const serverKey = String(body.serverKey || req.query.serverKey || "").trim();
+            const useCalendarWindow =
+                body.useCalendarWindow !== false &&
+                (body.useCalendarWindow === true || serverKey === "eu-monthly" || !serverKey);
+            const wipeStartMs = Number(body.wipeStartMs || body.wipeStart || 0) || null;
+            const result = await syncPlaytimeFromChannel(client, pool, channelId, {
+                maxMessages,
+                useCalendarWindow,
+                wipeStartMs,
+                wipeStartAt: body.wipeStartAt,
+                since: body.since,
+                until: body.until
+            });
             return res.json(result);
         } catch (e) {
             console.error("sync-discord-playtime:", e.message);
@@ -344,6 +410,7 @@ function registerPlaytimeAdminApi(app, { getPool, authAdmin, getDiscordClient, g
 module.exports = {
     parsePlaytimeHours,
     collectLatestPlaytimeByAuthor,
+    resolveSyncWindowFromOptions,
     syncPlaytimeFromChannel,
     applyPlaytimeFromMessage,
     buildMcHorasSlashCommand,

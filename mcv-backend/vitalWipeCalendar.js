@@ -98,8 +98,65 @@ function resolveTierConfigKey({ serverKey, at = new Date() }) {
     };
 }
 
+/**
+ * Ventana MCV para leer horas posteadas en Discord (wipe Monthly):
+ * - Desde 00:00 del día anterior al 2.º jueves (ej. wipe 04/06–11/06 → desde 10/06)
+ * - Hasta 23:59 del día anterior al 3.º jueves (ej. hasta 17/06 antes del jueves 18/06 Medium)
+ */
+function resolvePlaytimeSyncWindow({ referenceDate, wipeStartAt, wipeStartMs } = {}) {
+    let ref =
+        referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime()) ? referenceDate : new Date();
+    if (wipeStartAt instanceof Date && !Number.isNaN(wipeStartAt.getTime())) {
+        ref = wipeStartAt;
+    } else if (typeof wipeStartMs === "number" && Number.isFinite(wipeStartMs)) {
+        ref = new Date(wipeStartMs);
+    } else if (typeof wipeStartAt === "string" && wipeStartAt.trim()) {
+        const parsed = new Date(wipeStartAt);
+        if (!Number.isNaN(parsed.getTime())) {
+            ref = parsed;
+        }
+    }
+
+    const y = ref.getFullYear();
+    const m = ref.getMonth();
+    const secondThu = getNthThursdayOfMonth(y, m, 2);
+    const thirdThu = getNthThursdayOfMonth(y, m, 3);
+    if (!secondThu || !thirdThu) {
+        return null;
+    }
+
+    const windowStart = startOfDay(
+        new Date(secondThu.getFullYear(), secondThu.getMonth(), secondThu.getDate() - 1)
+    );
+    const windowEnd = endOfDay(new Date(thirdThu.getFullYear(), thirdThu.getMonth(), thirdThu.getDate() - 1));
+
+    return {
+        windowStartMs: windowStart.getTime(),
+        windowEndMs: windowEnd.getTime(),
+        windowStart: windowStart.toISOString(),
+        windowEnd: windowEnd.toISOString(),
+        monthlyWipeEnd: endOfDay(secondThu).toISOString(),
+        label: `Horas Discord ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
+    };
+}
+
+function isTimestampInPlaytimeWindow(ts, window) {
+    if (!window || window.windowStartMs == null || window.windowEndMs == null) {
+        return true;
+    }
+    const t = Number(ts);
+    if (!Number.isFinite(t)) {
+        return false;
+    }
+    return t >= window.windowStartMs && t <= window.windowEndMs;
+}
+
 module.exports = {
     getNthThursdayOfMonth,
     resolveMonthlyPeriod,
-    resolveTierConfigKey
+    resolveTierConfigKey,
+    resolvePlaytimeSyncWindow,
+    isTimestampInPlaytimeWindow,
+    startOfDay,
+    endOfDay
 };

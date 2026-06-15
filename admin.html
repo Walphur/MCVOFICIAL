@@ -2133,6 +2133,7 @@
     var VITAL_TIER_SERVER_LS = 'mcv_vital_tier_server_v1';
     var VITAL_TIER_WIPE_LS = 'mcv_vital_tier_wipe_v1';
     var VITAL_TIER_CONFIG_LS = 'mcv_vital_tier_config_v1';
+    var vitalTierWipesByServer = {};
     var vitalExtraCatalog = [];
     var vitalSelectedExtraKeys = [];
     var vitalSelectedExtraCounts = {};
@@ -2491,23 +2492,43 @@
     }
 
     function syncDiscordPlaytime() {
+        var wipeStartMs = vitalTierSelectedWipeStartMs();
+        var serverKey = vitalTierServerKey();
         banner(vitalLabel('admin.vitalSyncPlaytimeLoading', 'Leyendo canal de playtime en Discord…'), false);
         return fetch(API + '/api/admin/vital/player-info/sync-discord-playtime', {
             method: 'POST',
             headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
-            body: JSON.stringify({})
+            body: JSON.stringify({
+                serverKey: serverKey,
+                wipeStartMs: wipeStartMs,
+                useCalendarWindow: serverKey === 'eu-monthly'
+            })
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'sync-playtime');
                 var msg = vitalLabel('admin.vitalSyncPlaytimeDone', 'Horas actualizadas: {n}').replace('{n}', String(x.d.updated || 0));
+                if (x.d.window && x.d.window.label) {
+                    msg += ' · ' + x.d.window.label;
+                }
+                if (x.d.ignoredOutsideWindow) {
+                    msg += ' · ' + x.d.ignoredOutsideWindow + ' msg fuera de ventana';
+                }
                 if (x.d.unmatched) {
                     msg += ' · ' + vitalLabel('admin.vitalSyncPlaytimeUnmatched', 'sin /mcv-wipe: {n}').replace('{n}', String(x.d.unmatched));
                 }
                 banner(msg, false);
+                if (x.d.players && x.d.players.length) {
+                    var posted = x.d.players.map(function (p) {
+                        var when = p.postedAt ? new Date(p.postedAt).toLocaleDateString('es-AR') : '';
+                        return (p.displayName || p.discordUsername || p.steamId64) + ' ' + String(p.hoursPlayed) + 'h' + (when ? ' (' + when + ')' : '');
+                    }).join(', ');
+                    addVitalInfoLog('Horas en ventana: ' + posted, 'ok');
+                }
                 if (x.d.unmatchedPlayers && x.d.unmatchedPlayers.length) {
                     var names = x.d.unmatchedPlayers.map(function (u) {
-                        return (u.discordUsername || u.discordUserId) + ' (' + String(u.hours) + 'h)';
+                        var when = u.postedAt ? new Date(u.postedAt).toLocaleDateString('es-AR') : '';
+                        return (u.discordUsername || u.discordUserId) + ' (' + String(u.hours) + 'h' + (when ? ' ' + when : '') + ')';
                     }).join(', ');
                     addVitalInfoLog('Sin vincular Discord→Steam: ' + names, 'warn');
                 }
@@ -3065,6 +3086,18 @@
         });
     }
 
+    function vitalTierSelectedWipeStartMs() {
+        var serverKey = vitalTierServerKey();
+        var wipeId = vitalTierWipeId();
+        var wipes = vitalTierWipesByServer[serverKey] || [];
+        for (var i = 0; i < wipes.length; i++) {
+            if (wipes[i].id === wipeId && wipes[i].startMs) {
+                return wipes[i].startMs;
+            }
+        }
+        return null;
+    }
+
     function findCurrentVitalWipe(wipes) {
         wipes = wipes || [];
         for (var i = 0; i < wipes.length; i++) {
@@ -3143,6 +3176,7 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'wipes');
                 var wipes = x.d.wipes || [];
+                vitalTierWipesByServer[serverKey] = wipes;
                 if (!wipes.length) {
                     wipeSel.innerHTML = '<option value="current">Wipe actual</option>';
                     setVitalTierWipeId('current', serverKey);

@@ -2079,7 +2079,10 @@ async function buildComplianceReport(pool, options = {}) {
         } else {
             try {
                 const result = await syncPlaytimeFromChannel(client, pool, channelId, {
-                    maxMessages: options.maxMessages || 400
+                    maxMessages: options.maxMessages || 2000,
+                    useCalendarWindow: options.useCalendarWindow !== false,
+                    wipeStartMs: options.wipeStartMs,
+                    wipeStartAt: options.wipeStartAt
                 });
                 discordScan.ok = true;
                 discordScan.scanned = result.scanned || 0;

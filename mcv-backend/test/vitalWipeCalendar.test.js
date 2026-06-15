@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { getNthThursdayOfMonth, resolveMonthlyPeriod, resolveTierConfigKey } = require("../vitalWipeCalendar");
+const { getNthThursdayOfMonth, resolveMonthlyPeriod, resolveTierConfigKey, resolvePlaytimeSyncWindow } = require("../vitalWipeCalendar");
 
 test("getNthThursdayOfMonth encuentra el 1.er y 4.º jueves", () => {
     const first = getNthThursdayOfMonth(2026, 4, 1);
@@ -37,6 +37,16 @@ test("resolveMonthlyPeriod usa tabla Medium del viernes post 2.º jueves al rewi
     const rewipe = resolveMonthlyPeriod(new Date(2026, 4, 29, 12, 0, 0));
     assert.equal(rewipe.configKey, "eu-medium");
     assert.equal(rewipe.period, "monthly-medium-window");
+});
+
+test("resolvePlaytimeSyncWindow: wipe 04/06–11/06 lee horas del 10/06 al 17/06", () => {
+    const w = resolvePlaytimeSyncWindow({ wipeStartAt: new Date(2026, 5, 4, 18, 44, 0) });
+    assert.ok(w);
+    assert.equal(new Date(w.windowStartMs).getDate(), 10);
+    assert.equal(new Date(w.windowStartMs).getMonth(), 5);
+    assert.equal(new Date(w.windowEndMs).getDate(), 17);
+    assert.equal(new Date(w.windowEndMs).getMonth(), 5);
+    assert.equal(new Date(w.monthlyWipeEnd).getDate(), 11);
 });
 
 test("resolveTierConfigKey siempre Medium en eu-medium", () => {
