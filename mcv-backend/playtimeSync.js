@@ -208,6 +208,78 @@ async function fetchChannelMessages(client, channelId, options = {}) {
     return out;
 }
 
+async function loadDbPlaytimeHours(pool) {
+    if (!pool) {
+        return [];
+    }
+    const r = await pool.query(
+        `SELECT steam_id64, display_name, hours_played, updated_at
+         FROM player_info_profiles
+         WHERE hours_played IS NOT NULL AND hours_played >= 0`
+    );
+    return r.rows;
+}
+
+/**
+ * Une horas del canal #playtime (ventana de fechas) con las ya guardadas en BD (/mcv-horas, admin).
+ * Por jugador usa el valor más alto entre ambas fuentes.
+ */
+function mergePlaytimeBySteam(dbRows, channelBySteam) {
+    const merged = new Map();
+
+    for (const row of dbRows || []) {
+        const steamId64 = String(row.steam_id64 || "").trim();
+        const hours = Number(row.hours_played);
+        if (!/^\d{17}$/.test(steamId64) || !Number.isFinite(hours) || hours < 0) {
+            continue;
+        }
+        merged.set(steamId64, {
+            steamId64,
+            hours: Math.round(hours),
+            sources: new Set(["saved"]),
+            displayName: String(row.display_name || "").trim() || null,
+            savedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null
+        });
+    }
+
+    for (const [steamId64, ch] of (channelBySteam || new Map()).entries()) {
+        const prev = merged.get(steamId64);
+        const chHours = Number(ch.hours);
+        if (!Number.isFinite(chHours) || chHours < 0) {
+            continue;
+        }
+        if (!prev || chHours >= prev.hours) {
+            const sources = new Set(prev?.sources || []);
+            sources.add("channel");
+            merged.set(steamId64, {
+                steamId64,
+                hours: Math.round(chHours),
+                sources,
+                displayName: ch.displayName || prev?.displayName || null,
+                postedAt: ch.postedAt || null,
+                savedAt: prev?.savedAt || null,
+                discordUsername: ch.discordUsername || null
+            });
+        } else if (prev) {
+            prev.sources.add("channel");
+        }
+    }
+
+    return merged;
+}
+
+function formatPlaytimeSource(sources) {
+    const hasChannel = sources.has("channel");
+    const hasSaved = sources.has("saved");
+    if (hasChannel && hasSaved) {
+        return "both";
+    }
+    if (hasChannel) {
+        return "channel";
+    }
+    return "saved";
+}
+
 async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
     if (!client?.isReady?.()) {
         throw new Error("Bot de Discord no conectado");
@@ -223,10 +295,8 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         : messages;
     const latest = collectLatestPlaytimeByAuthor(inWindowMessages, window);
 
-    const updated = [];
+    const channelBySteam = new Map();
     const unmatched = [];
-    let skipped = 0;
-
     for (const entry of latest.values()) {
         const link = await lookupSteamForDiscordUser(pool, entry.discordUserId);
         if (!link) {
@@ -239,18 +309,46 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
             });
             continue;
         }
+        channelBySteam.set(link.steam_id64, {
+            hours: entry.hours,
+            displayName: link.persona_name || link.discord_username || entry.discordUsername,
+            postedAt: entry.createdAt,
+            discordUsername: entry.discordUsername
+        });
+    }
+
+    const dbRows = await loadDbPlaytimeHours(pool);
+    const mergedBySteam = mergePlaytimeBySteam(dbRows, channelBySteam);
+
+    const updated = [];
+    let skipped = 0;
+    let fromChannelOnly = 0;
+    let fromSavedOnly = 0;
+    let fromBoth = 0;
+
+    for (const item of mergedBySteam.values()) {
+        const source = formatPlaytimeSource(item.sources);
+        if (source === "channel") {
+            fromChannelOnly += 1;
+        } else if (source === "saved") {
+            fromSavedOnly += 1;
+        } else {
+            fromBoth += 1;
+        }
         try {
             const saved = await upsertPlayerHours(pool, {
-                steamId64: link.steam_id64,
-                hours: entry.hours,
-                displayName: link.persona_name || link.discord_username || entry.discordUsername
+                steamId64: item.steamId64,
+                hours: item.hours,
+                displayName: item.displayName
             });
             updated.push({
                 steamId64: saved.steam_id64,
-                displayName: saved.display_name || link.persona_name,
+                displayName: saved.display_name || item.displayName,
                 hoursPlayed: saved.hours_played,
-                discordUsername: entry.discordUsername,
-                postedAt: entry.createdAt
+                discordUsername: item.discordUsername || null,
+                postedAt: item.postedAt || null,
+                savedAt: item.savedAt || null,
+                source
             });
         } catch {
             skipped += 1;
@@ -272,6 +370,11 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
               }
             : null,
         parsedAuthors: latest.size,
+        fromChannel: fromChannelOnly + fromBoth,
+        fromSaved: fromSavedOnly + fromBoth,
+        fromChannelOnly,
+        fromSavedOnly,
+        fromBoth,
         updated: updated.length,
         unmatched: unmatched.length,
         skipped,
@@ -416,6 +519,8 @@ function registerPlaytimeAdminApi(app, { getPool, authAdmin, getDiscordClient, g
 module.exports = {
     parsePlaytimeHours,
     collectLatestPlaytimeByAuthor,
+    mergePlaytimeBySteam,
+    formatPlaytimeSource,
     resolveSyncWindowFromOptions,
     syncPlaytimeFromChannel,
     applyPlaytimeFromMessage,

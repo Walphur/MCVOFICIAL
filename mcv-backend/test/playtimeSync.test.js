@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { parsePlaytimeHours, collectLatestPlaytimeByAuthor, resolveSyncWindowFromOptions } = require("../playtimeSync");
+const { parsePlaytimeHours, collectLatestPlaytimeByAuthor, mergePlaytimeBySteam, formatPlaytimeSource, resolveSyncWindowFromOptions } = require("../playtimeSync");
 const { resolvePlaytimeSyncWindow } = require("../vitalWipeCalendar");
 
 test("parsePlaytimeHours acepta formatos del canal playtime", () => {
@@ -46,6 +46,43 @@ test("collectLatestPlaytimeByAuthor ignora mensajes fuera de la ventana de wipe"
     const map = collectLatestPlaytimeByAuthor(messages, window);
     assert.equal(map.size, 1);
     assert.equal(map.get("111").hours, 14);
+});
+
+test("mergePlaytimeBySteam combina canal y /mcv-horas guardado en BD", () => {
+    const dbRows = [
+        {
+            steam_id64: "76561198000000001",
+            display_name: "SlashUser",
+            hours_played: 57,
+            updated_at: new Date("2026-06-10T12:00:00Z")
+        }
+    ];
+    const channelBySteam = new Map([
+        [
+            "76561198000000002",
+            { hours: 31, displayName: "ChatUser", postedAt: "2026-06-11T10:00:00.000Z", discordUsername: "chat" }
+        ],
+        [
+            "76561198000000003",
+            { hours: 20, displayName: "BothUser", postedAt: "2026-06-11T11:00:00.000Z", discordUsername: "both" }
+        ]
+    ]);
+    const dbBoth = dbRows.concat([
+        {
+            steam_id64: "76561198000000003",
+            display_name: "BothUser",
+            hours_played: 45,
+            updated_at: new Date("2026-06-10T09:00:00Z")
+        }
+    ]);
+    const merged = mergePlaytimeBySteam(dbBoth, channelBySteam);
+    assert.equal(merged.size, 3);
+    assert.equal(merged.get("76561198000000001").hours, 57);
+    assert.equal(formatPlaytimeSource(merged.get("76561198000000001").sources), "saved");
+    assert.equal(merged.get("76561198000000002").hours, 31);
+    assert.equal(formatPlaytimeSource(merged.get("76561198000000002").sources), "channel");
+    assert.equal(merged.get("76561198000000003").hours, 45);
+    assert.equal(formatPlaytimeSource(merged.get("76561198000000003").sources), "both");
 });
 
 test("collectLatestPlaytimeByAuthor conserva el mensaje más reciente por autor", () => {

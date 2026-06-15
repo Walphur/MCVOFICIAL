@@ -2508,6 +2508,10 @@
             .then(function (x) {
                 if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'sync-playtime');
                 var msg = vitalLabel('admin.vitalSyncPlaytimeDone', 'Horas actualizadas: {n}').replace('{n}', String(x.d.updated || 0));
+                if (x.d.fromChannelOnly != null || x.d.fromSavedOnly != null) {
+                    msg += ' · canal: ' + String(x.d.fromChannelOnly || 0) + ' · /mcv-horas o guardadas: ' + String(x.d.fromSavedOnly || 0);
+                    if (x.d.fromBoth) msg += ' · ambas: ' + String(x.d.fromBoth);
+                }
                 if (x.d.window && x.d.window.label) {
                     msg += ' · ' + x.d.window.label;
                 }
@@ -2526,9 +2530,10 @@
                 if (x.d.players && x.d.players.length) {
                     var posted = x.d.players.map(function (p) {
                         var when = p.postedAt ? new Date(p.postedAt).toLocaleDateString('es-AR') : '';
-                        return (p.displayName || p.discordUsername || p.steamId64) + ' ' + String(p.hoursPlayed) + 'h' + (when ? ' (' + when + ')' : '');
+                        var src = p.source === 'both' ? 'canal+/mcv-horas' : (p.source === 'saved' ? '/mcv-horas' : 'canal');
+                        return (p.displayName || p.discordUsername || p.steamId64) + ' ' + String(p.hoursPlayed) + 'h (' + src + (when ? ' ' + when : '') + ')';
                     }).join(', ');
-                    addVitalInfoLog('Horas en ventana: ' + posted, 'ok');
+                    addVitalInfoLog('Horas combinadas: ' + posted, 'ok');
                 }
                 if (x.d.unmatchedPlayers && x.d.unmatchedPlayers.length) {
                     var names = x.d.unmatchedPlayers.map(function (u) {
