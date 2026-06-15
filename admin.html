@@ -2603,16 +2603,19 @@
         if (!body || !report) return;
         var parts = [];
         if (sub) {
-            sub.textContent = 'Jugadores en wipe (no pausados): ' + String(report.scopeCount || 0) +
-                ' · Sin horas: ' + String(report.noHoursCount != null ? report.noHoursCount : (report.noHours || []).length) +
-                ' · Total fichas: ' + String(report.totalProfiles || 0);
+            var subParts = [
+                'Jugadores en wipe: ' + String(report.scopeCount || 0),
+                'Sin horas: ' + String(report.noHoursCount != null ? report.noHoursCount : (report.noHours || []).length),
+                'Fichas: ' + String(report.totalProfiles || 0)
+            ];
             if (report.discordScan && report.discordScan.attempted) {
                 if (report.discordScan.ok) {
-                    sub.textContent += ' · Canal Discord escaneado (' + String(report.discordScan.scanned || 0) + ' msgs)';
+                    subParts.push('Canal: ' + String(report.discordScan.scanned || 0) + ' msgs');
                 } else if (report.discordScan.error) {
-                    sub.textContent += ' · Discord: ' + report.discordScan.error;
+                    subParts.push('Discord: ' + report.discordScan.error);
                 }
             }
+            sub.textContent = subParts.join(' · ');
         }
         parts.push(complianceListHtml(
             'Sin horas cargadas (Steam OK)',

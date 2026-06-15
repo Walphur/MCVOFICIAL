@@ -6318,25 +6318,28 @@ select.vital-input-compact {
 }
 
 /* Reporte pendientes — overlay tipo cartel */
-.vital-compliance-dlg {
+.admin-dialog.vital-compliance-dlg {
     border: none;
     padding: 0;
     margin: auto;
-    max-width: min(720px, calc(100vw - 24px));
-    width: min(720px, calc(100vw - 24px));
-    overflow: hidden;
+    inset: 0;
+    max-width: min(560px, calc(100vw - 20px));
+    width: min(560px, calc(100vw - 20px));
+    overflow-x: hidden;
+    overflow-y: auto;
     box-sizing: border-box;
 }
 .vital-compliance-dlg::backdrop {
     background: rgba(0, 0, 0, 0.82);
     backdrop-filter: blur(6px);
 }
-.vital-compliance-dlg .vital-compliance-box {
+.vital-compliance-dlg .vital-compliance-box,
+.vital-compliance-dlg.admin-dialog .admin-dialog-box {
     width: 100%;
     max-width: 100%;
-    max-height: min(88vh, 920px);
+    max-height: min(88vh, 900px);
     margin: 0;
-    padding: 0;
+    padding: 0 !important;
     border: 2px solid rgba(250, 166, 26, 0.55);
     border-radius: 16px;
     background: linear-gradient(165deg, #121820 0%, #0a0e14 55%, #14100c 100%);
@@ -6350,10 +6353,12 @@ select.vital-input-compact {
     box-sizing: border-box;
 }
 .vital-compliance-head {
-    padding: 20px 18px 12px;
+    padding: 18px 16px 12px;
     border-bottom: 1px solid rgba(250, 166, 26, 0.22);
     background: linear-gradient(180deg, rgba(250, 166, 26, 0.12) 0%, transparent 100%);
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .vital-compliance-kicker {
     margin: 0 0 6px;
@@ -6366,26 +6371,37 @@ select.vital-input-compact {
 .vital-compliance-title {
     margin: 0;
     font-family: "Bebas Neue", sans-serif;
-    font-size: 2.2rem;
-    letter-spacing: 0.04em;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    letter-spacing: 0.03em;
     color: #fafafa;
-    line-height: 1;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .vital-compliance-sub {
     margin: 10px 0 0;
-    font-size: 0.86rem;
+    font-size: 0.8rem;
     color: #a8b4b8;
-    line-height: 1.45;
-    word-break: break-word;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.vital-compliance-sub-line {
+    display: block;
     overflow-wrap: anywhere;
+    word-break: break-word;
 }
 .vital-compliance-body {
-    padding: 14px 16px 8px;
+    padding: 12px 14px 6px;
     overflow-x: hidden;
     overflow-y: auto;
     flex: 1;
     min-height: 0;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
 }
 .vital-compliance-section {
     margin-bottom: 14px;
@@ -6430,26 +6446,40 @@ select.vital-input-compact {
     list-style: none;
 }
 .vital-compliance-list li {
-    padding: 8px 0;
+    padding: 10px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     color: #e8edf4;
     min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .vital-compliance-list li:last-child {
     border-bottom: none;
 }
+.vital-compliance-list li strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+    overflow-wrap: anywhere;
+}
 .vital-compliance-meta {
     display: block;
-    margin-top: 4px;
+    margin-top: 2px;
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: #9ca8b8;
-    line-height: 1.4;
+    line-height: 1.45;
     overflow-wrap: anywhere;
     word-break: break-all;
+    max-width: 100%;
+}
+.vital-compliance-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: #7a8696;
+    font-style: italic;
 }
 .vital-compliance-empty {
     margin: 0;
@@ -6457,18 +6487,21 @@ select.vital-input-compact {
     color: #86efac;
 }
 .vital-compliance-actions {
-    padding: 12px 16px 18px;
+    padding: 12px 14px 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    justify-content: center;
+    justify-content: stretch;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 0;
+    gap: 8px;
+    margin-top: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .vital-compliance-actions .btn-outline,
 .vital-compliance-actions .btn-primary-small {
-    flex: 1 1 140px;
-    max-width: 100%;
+    flex: 1 1 calc(50% - 4px);
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .vital-sidebar-tools__body .btn-primary-small.btn-sm {
     width: 100%;
