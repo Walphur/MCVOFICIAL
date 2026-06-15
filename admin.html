@@ -2511,6 +2511,11 @@
                 if (x.d.window && x.d.window.label) {
                     msg += ' · ' + x.d.window.label;
                 }
+                if (x.d.message) {
+                    msg += ' · ' + x.d.message;
+                } else if (x.d.window && x.d.window.hint) {
+                    msg += ' · ' + x.d.window.hint;
+                }
                 if (x.d.ignoredOutsideWindow) {
                     msg += ' · ' + x.d.ignoredOutsideWindow + ' msg fuera de ventana';
                 }

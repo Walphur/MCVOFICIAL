@@ -98,50 +98,158 @@ function resolveTierConfigKey({ serverKey, at = new Date() }) {
     };
 }
 
-/**
- * Ventana MCV para leer horas posteadas en Discord (wipe Monthly):
- * - Desde 00:00 del día anterior al 2.º jueves (ej. wipe 04/06–11/06 → desde 10/06)
- * - Hasta 23:59 del día anterior al 3.º jueves (ej. hasta 17/06 antes del jueves 18/06 Medium)
- */
-function resolvePlaytimeSyncWindow({ referenceDate, wipeStartAt, wipeStartMs } = {}) {
-    let ref =
-        referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime()) ? referenceDate : new Date();
-    if (wipeStartAt instanceof Date && !Number.isNaN(wipeStartAt.getTime())) {
-        ref = wipeStartAt;
-    } else if (typeof wipeStartMs === "number" && Number.isFinite(wipeStartMs)) {
-        ref = new Date(wipeStartMs);
-    } else if (typeof wipeStartAt === "string" && wipeStartAt.trim()) {
-        const parsed = new Date(wipeStartAt);
-        if (!Number.isNaN(parsed.getTime())) {
-            ref = parsed;
+function getNextMonthYearMonth(year, monthIndex) {
+    if (monthIndex >= 11) {
+        return { year: year + 1, monthIndex: 0 };
+    }
+    return { year, monthIndex: monthIndex + 1 };
+}
+
+function dayBeforeStart(d) {
+    return startOfDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1));
+}
+
+function detectPlaytimePhase({ wipeStart, at = new Date() }) {
+    if (wipeStart instanceof Date && !Number.isNaN(wipeStart.getTime())) {
+        const y = wipeStart.getFullYear();
+        const m = wipeStart.getMonth();
+        const firstThu = getNthThursdayOfMonth(y, m, 1);
+        const secondThu = getNthThursdayOfMonth(y, m, 2);
+        if (firstThu && secondThu) {
+            const mediumStart = startOfDay(
+                new Date(secondThu.getFullYear(), secondThu.getMonth(), secondThu.getDate() + 1)
+            );
+            const wipeStartMs = startOfDay(wipeStart).getTime();
+            if (wipeStartMs >= mediumStart.getTime()) {
+                return { phase: "monthly-medium-window", year: y, monthIndex: m };
+            }
+            if (wipeStartMs >= startOfDay(firstThu).getTime() && wipeStartMs < mediumStart.getTime()) {
+                return { phase: "monthly-main", year: y, monthIndex: m };
+            }
         }
     }
+    const period = resolveMonthlyPeriod(at);
+    if (period.period === "monthly-main") {
+        const d = at instanceof Date ? at : new Date();
+        return { phase: "monthly-main", year: d.getFullYear(), monthIndex: d.getMonth() };
+    }
+    if (period.period === "monthly-medium-window") {
+        const d = at instanceof Date ? at : new Date();
+        return { phase: "monthly-medium-window", year: d.getFullYear(), monthIndex: d.getMonth() };
+    }
+    return { phase: "off-season", year: null, monthIndex: null };
+}
 
-    const y = ref.getFullYear();
-    const m = ref.getMonth();
-    const secondThu = getNthThursdayOfMonth(y, m, 2);
-    const thirdThu = getNthThursdayOfMonth(y, m, 3);
+function buildMonthlyMainPlaytimeWindow(year, monthIndex) {
+    const secondThu = getNthThursdayOfMonth(year, monthIndex, 2);
+    const thirdThu = getNthThursdayOfMonth(year, monthIndex, 3);
     if (!secondThu || !thirdThu) {
         return null;
     }
-
-    const windowStart = startOfDay(
-        new Date(secondThu.getFullYear(), secondThu.getMonth(), secondThu.getDate() - 1)
-    );
+    const windowStart = dayBeforeStart(secondThu);
     const windowEnd = endOfDay(new Date(thirdThu.getFullYear(), thirdThu.getMonth(), thirdThu.getDate() - 1));
-
     return {
+        phase: "monthly-main",
         windowStartMs: windowStart.getTime(),
         windowEndMs: windowEnd.getTime(),
         windowStart: windowStart.toISOString(),
         windowEnd: windowEnd.toISOString(),
         monthlyWipeEnd: endOfDay(secondThu).toISOString(),
-        label: `Horas Discord ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
+        label: `Horas Monthly ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
+    };
+}
+
+function buildMediumRewipePlaytimeWindow(year, monthIndex) {
+    const fourthThu = getNthThursdayOfMonth(year, monthIndex, 4);
+    if (!fourthThu) {
+        return null;
+    }
+    const mediumEnd = endOfDay(
+        new Date(fourthThu.getFullYear(), fourthThu.getMonth(), fourthThu.getDate() + 3)
+    );
+    const windowStart = dayBeforeStart(mediumEnd);
+    const next = getNextMonthYearMonth(year, monthIndex);
+    const nextFirstThu = getNthThursdayOfMonth(next.year, next.monthIndex, 1);
+    if (!nextFirstThu) {
+        return null;
+    }
+    const windowEnd = endOfDay(new Date(nextFirstThu.getFullYear(), nextFirstThu.getMonth(), nextFirstThu.getDate() - 1));
+    return {
+        phase: "monthly-medium-window",
+        windowStartMs: windowStart.getTime(),
+        windowEndMs: windowEnd.getTime(),
+        windowStart: windowStart.toISOString(),
+        windowEnd: windowEnd.toISOString(),
+        mediumRewipeEnd: mediumEnd.toISOString(),
+        label: `Horas Medium/rewipe ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
+    };
+}
+
+/**
+ * Ventanas MCV para leer horas posteadas en Discord (servidor EU Monthly):
+ *
+ * 1) Wipe Monthly (1.er → 2.º jueves): desde día anterior al 2.º jueves hasta día anterior al 3.º jueves.
+ *    Ej. wipe 04/06–11/06 → horas del 10/06 al 17/06.
+ *
+ * 2) Medium + rewipe (viernes post 2.º jueves → 4.º jueves +3 días): desde día anterior al fin del rewipe
+ *    hasta día anterior al 1.er jueves del mes siguiente (antes del próximo Monthly).
+ *    Ej. fin rewipe 28/06 → horas del 27/06 al 01/07.
+ *
+ * 3) Entre rewipe y próximo Monthly (off-season): sin ventana activa — no se toman horas viejas.
+ */
+function resolvePlaytimeSyncWindow({ referenceDate, wipeStartAt, wipeStartMs, at } = {}) {
+    let wipeStart = null;
+    if (wipeStartAt instanceof Date && !Number.isNaN(wipeStartAt.getTime())) {
+        wipeStart = wipeStartAt;
+    } else if (typeof wipeStartMs === "number" && Number.isFinite(wipeStartMs)) {
+        wipeStart = new Date(wipeStartMs);
+    } else if (typeof wipeStartAt === "string" && wipeStartAt.trim()) {
+        const parsed = new Date(wipeStartAt);
+        if (!Number.isNaN(parsed.getTime())) {
+            wipeStart = parsed;
+        }
+    }
+
+    const now =
+        at instanceof Date && !Number.isNaN(at.getTime())
+            ? at
+            : referenceDate instanceof Date && !Number.isNaN(referenceDate.getTime())
+              ? referenceDate
+              : new Date();
+
+    const detected = detectPlaytimePhase({ wipeStart, at: now });
+
+    if (detected.phase === "monthly-main") {
+        return buildMonthlyMainPlaytimeWindow(detected.year, detected.monthIndex);
+    }
+    if (detected.phase === "monthly-medium-window") {
+        return buildMediumRewipePlaytimeWindow(detected.year, detected.monthIndex);
+    }
+
+    const next = getNextMonthYearMonth(now.getFullYear(), now.getMonth());
+    const upcomingMonthly = buildMonthlyMainPlaytimeWindow(next.year, next.monthIndex);
+    return {
+        phase: "off-season",
+        windowStartMs: null,
+        windowEndMs: null,
+        windowStart: null,
+        windowEnd: null,
+        label: "Sin ventana activa (entre rewipe y próximo Monthly)",
+        hint:
+            upcomingMonthly && upcomingMonthly.windowStart
+                ? `Próxima ventana Monthly: ${new Date(upcomingMonthly.windowStartMs).toLocaleDateString("es-AR")} → ${new Date(upcomingMonthly.windowEndMs).toLocaleDateString("es-AR")}`
+                : null
     };
 }
 
 function isTimestampInPlaytimeWindow(ts, window) {
-    if (!window || window.windowStartMs == null || window.windowEndMs == null) {
+    if (!window) {
+        return true;
+    }
+    if (window.phase === "off-season") {
+        return false;
+    }
+    if (window.windowStartMs == null || window.windowEndMs == null) {
         return true;
     }
     const t = Number(ts);
@@ -156,6 +264,7 @@ module.exports = {
     resolveMonthlyPeriod,
     resolveTierConfigKey,
     resolvePlaytimeSyncWindow,
+    detectPlaytimePhase,
     isTimestampInPlaytimeWindow,
     startOfDay,
     endOfDay

@@ -261,12 +261,14 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         ok: true,
         scanned: messages.length,
         inWindow: inWindowMessages.length,
-        ignoredOutsideWindow: window ? Math.max(0, messages.length - inWindowMessages.length) : 0,
+        ignoredOutsideWindow: window && window.phase !== "off-season" ? Math.max(0, messages.length - inWindowMessages.length) : messages.length,
         window: window
             ? {
+                  phase: window.phase,
                   start: window.windowStart,
                   end: window.windowEnd,
-                  label: window.label
+                  label: window.label,
+                  hint: window.hint || null
               }
             : null,
         parsedAuthors: latest.size,
@@ -274,7 +276,11 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         unmatched: unmatched.length,
         skipped,
         players: updated,
-        unmatchedPlayers: unmatched
+        unmatchedPlayers: unmatched,
+        message:
+            window?.phase === "off-season"
+                ? window.hint || "Sin ventana activa entre rewipe y próximo Monthly."
+                : null
     };
 }
 
@@ -341,8 +347,8 @@ function attachPlaytimeDiscord(client, { getPool, channelId, onSlashGuildIds }) 
             if (!pool) {
                 return;
             }
-            const window = resolveSyncWindowFromOptions({ useCalendarWindow: true });
-            if (window && !isTimestampInPlaytimeWindow(message.createdTimestamp, window)) {
+            const window = resolveSyncWindowFromOptions({ useCalendarWindow: true, referenceDate: new Date() });
+            if (!window || window.phase === "off-season" || !isTimestampInPlaytimeWindow(message.createdTimestamp, window)) {
                 return;
             }
             const result = await applyPlaytimeFromMessage(pool, message);
