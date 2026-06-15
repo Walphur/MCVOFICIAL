@@ -2604,6 +2604,7 @@
         var parts = [];
         if (sub) {
             sub.textContent = 'Jugadores en wipe (no pausados): ' + String(report.scopeCount || 0) +
+                ' · Sin horas: ' + String(report.noHoursCount != null ? report.noHoursCount : (report.noHours || []).length) +
                 ' · Total fichas: ' + String(report.totalProfiles || 0);
             if (report.discordScan && report.discordScan.attempted) {
                 if (report.discordScan.ok) {
@@ -2613,6 +2614,14 @@
                 }
             }
         }
+        parts.push(complianceListHtml(
+            'Sin horas cargadas (Steam OK)',
+            report.noHours,
+            function (r) {
+                return '<li><strong>' + esc(r.displayName) + '</strong> <span class="vital-compliance-meta">' +
+                    esc(r.steamId64) + ' · /mcv-horas o #playtime</span></li>';
+            }
+        ));
         parts.push(complianceListHtml(
             'Discord sin Steam (/mcv-wipe)',
             report.noDiscordSteam,
@@ -2661,6 +2670,9 @@
             }
             lines.push('');
         }
+        block('Sin horas cargadas (Steam OK)', report.noHours, function (r) {
+            return (r.displayName || r.steamId64) + ' — ' + r.steamId64;
+        });
         block('Discord sin Steam (/mcv-wipe)', report.noDiscordSteam, function (r) {
             return (r.displayName || r.steamId64) + ' — ' + r.steamId64;
         });

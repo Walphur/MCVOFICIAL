@@ -2029,7 +2029,7 @@ async function buildComplianceReport(pool, options = {}) {
         throw new Error("No se pudo preparar player_info_profiles");
     }
     const r = await pool.query(
-        `SELECT steam_id64, display_name, status_tag, wipe_phase, paused_outside_wipe, bm_url
+        `SELECT steam_id64, display_name, status_tag, wipe_phase, paused_outside_wipe, bm_url, hours_played
          FROM player_info_profiles
          ORDER BY LOWER(COALESCE(display_name, steam_id64)), steam_id64`
     );
@@ -2041,16 +2041,27 @@ async function buildComplianceReport(pool, options = {}) {
     );
 
     const noDiscordSteam = [];
+    const noHours = [];
     const noWipePhase = [];
     const noBattleMetrics = [];
 
     for (const p of inScope) {
         const base = complianceRowFromProfile(p);
-        if (!linkMap.has(p.steamId64)) {
+        const linked = linkMap.has(p.steamId64);
+        if (!linked) {
             noDiscordSteam.push({
                 ...base,
                 reason: "Sin vincular Discord con Steam (/mcv-wipe)"
             });
+        } else {
+            const h = p.hoursPlayed;
+            if (h == null || h <= 0) {
+                noHours.push({
+                    ...base,
+                    hoursPlayed: h,
+                    reason: "Sin horas (/mcv-horas o #playtime)"
+                });
+            }
         }
         if (normalizeWipePhase(p.wipePhase) === "unknown") {
             noWipePhase.push({
@@ -2102,6 +2113,8 @@ async function buildComplianceReport(pool, options = {}) {
         generatedAt: new Date().toISOString(),
         scopeCount: inScope.length,
         totalProfiles: profiles.length,
+        noHours,
+        noHoursCount: noHours.length,
         noDiscordSteam,
         noWipePhase,
         noBattleMetrics,
