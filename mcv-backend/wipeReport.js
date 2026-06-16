@@ -335,51 +335,56 @@ function buildMcNoHoursSlashCommand() {
         .toJSON();
 }
 
-const SIN_HORAS_MSG = {
-    es: {
-        allDone: "✅ Todos los que juegan el wipe ya tienen horas cargadas.",
-        header: (n) =>
-            `⏰ **Faltan cargar horas** (${n} jugador${n === 1 ? "" : "es"})\n\n`,
-        cont: (n) => `⏰ **Sin horas** (${n})\n\n`,
-        contMore: (n) => `⏰ **Sin horas** (continuación ${n})\n\n`,
-        footer: "\n\nUsá **`/mcv-horas`** o posteá en #playtime (ej. `31h`). Sin Steam: **`/mcv-wipe`**",
-        noDiscord:
-            "\n\n_Sin Discord vinculado para @ — usá `/mcv-wipe`._",
-        noDiscordExtra: (n) =>
-            `\n\n_${n} en la lista sin Discord real para etiquetar._`,
-        moreNames: (n) => `\n_…y ${n} más_`,
-        noData: "Sin datos.",
-        noPerm: "No tenés permiso para este comando. Pedí a staff si lo necesitás.",
-        noDb: "El servidor no tiene base de datos configurada.",
-        error: "No se pudo generar el listado. Probá de nuevo en unos segundos."
-    },
-    en: {
-        allDone: "✅ Everyone actively on wipe already has hours logged.",
-        header: (n) =>
-            `⏰ **Hours missing** (${n} player${n === 1 ? "" : "s"})\n\n`,
-        cont: (n) => `⏰ **Missing hours** (${n})\n\n`,
-        contMore: (n) => `⏰ **Missing hours** (continued ${n})\n\n`,
-        footer: "\n\nUse **`/mcv-horas`** or post in #playtime (e.g. `31h`). No Steam link: **`/mcv-wipe`**",
-        noDiscord: "\n\n_No Discord link for @ — use `/mcv-wipe`._",
-        noDiscordExtra: (n) =>
-            `\n\n_${n} on the list without a valid Discord account to tag._`,
-        moreNames: (n) => `\n_…and ${n} more_`,
-        noData: "No data.",
-        noPerm: "You don't have permission for this command. Ask staff if you need it.",
-        noDb: "Database is not configured on this server.",
-        error: "Could not build the list. Try again in a few seconds."
-    }
+const SIN_HORAS_UI = {
+    allDone:
+        "✅ Todos los que juegan el wipe ya tienen horas cargadas.\n✅ Everyone actively on wipe already has hours logged.",
+    noData: "Sin datos. / No data.",
+    noPerm:
+        "No tenés permiso para este comando. Pedí a staff si lo necesitás.\nYou don't have permission for this command. Ask staff if you need it.",
+    noDb:
+        "El servidor no tiene base de datos configurada.\nDatabase is not configured on this server.",
+    error:
+        "No se pudo generar el listado. Probá de nuevo en unos segundos.\nCould not build the list. Try again in a few seconds."
 };
 
-function resolveSinHorasLang(interaction, cmd) {
-    if (cmd === "mcv-no-hours") {
-        return "en";
-    }
-    const loc = String(interaction?.locale || "").toLowerCase();
-    if (loc.startsWith("en")) {
-        return "en";
-    }
-    return "es";
+function sinHorasHeader(n) {
+    return (
+        `⏰ **Faltan cargar horas** (${n} jugador${n === 1 ? "" : "es"})\n` +
+        `⏰ **Hours missing** (${n} player${n === 1 ? "" : "s"})\n\n`
+    );
+}
+
+function sinHorasCont(n) {
+    return `⏰ **Sin horas / Missing hours** (${n})\n\n`;
+}
+
+function sinHorasContMore(n) {
+    return `⏰ **Sin horas / Missing hours** (continuación ${n} / continued ${n})\n\n`;
+}
+
+function sinHorasFooter() {
+    return (
+        "\n\nUsá **`/mcv-horas`** o posteá en #playtime (ej. `31h`). Sin Steam: **`/mcv-wipe`**\n" +
+        "Use **`/mcv-horas`** or post in #playtime (e.g. `31h`). No Steam link: **`/mcv-wipe`**"
+    );
+}
+
+function sinHorasNoDiscord() {
+    return (
+        "\n\n_Sin Discord vinculado para @ — usá `/mcv-wipe`._\n" +
+        "_No Discord link for @ — use `/mcv-wipe`._"
+    );
+}
+
+function sinHorasNoDiscordExtra(n) {
+    return (
+        `\n\n_${n} en la lista sin Discord real para etiquetar._\n` +
+        `_${n} on the list without a valid Discord account to tag._`
+    );
+}
+
+function sinHorasMoreNames(n) {
+    return `\n_…y ${n} más / …and ${n} more_`;
 }
 
 function readSinHorasOptions(interaction, cmd) {
@@ -409,27 +414,26 @@ function collectPendingDiscordUserIds(report) {
  * Genera uno o más mensajes con @mentions para quien falta cargar horas.
  * @returns {{ chunks: Array<{ content: string, userIds: string[] }>, totalPending: number }}
  */
-function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChunk = 40, lang = "es" } = {}) {
+function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChunk = 35 } = {}) {
     const pending = report?.pendingHours || [];
     const totalPending = pending.length;
-    const t = SIN_HORAS_MSG[lang === "en" ? "en" : "es"] || SIN_HORAS_MSG.es;
-    const footer = t.footer;
+    const footer = sinHorasFooter();
 
     if (!totalPending) {
         return {
-            chunks: [{ content: t.allDone, userIds: [] }],
+            chunks: [{ content: SIN_HORAS_UI.allDone, userIds: [] }],
             totalPending: 0
         };
     }
 
-    const header = t.header(totalPending);
+    const header = sinHorasHeader(totalPending);
 
     if (noMentions) {
         const lines = pending.map((row) => `• **${displayName(row)}**`);
-        const lineChunks = chunkLines(lines, 1700);
+        const lineChunks = chunkLines(lines, 1550);
         const chunks = lineChunks.map((chunk, idx) => ({
             content:
-                (idx === 0 ? header : t.cont(idx + 1)) +
+                (idx === 0 ? header : sinHorasCont(idx + 1)) +
                 chunk +
                 (idx === lineChunks.length - 1 ? footer : ""),
             userIds: []
@@ -443,11 +447,11 @@ function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChu
             .slice(0, 40)
             .map((row) => `• **${displayName(row)}**`)
             .join("\n");
-        const extra = pending.length > 40 ? t.moreNames(pending.length - 40) : "";
+        const extra = pending.length > 40 ? sinHorasMoreNames(pending.length - 40) : "";
         return {
             chunks: [
                 {
-                    content: `${header}${names}${extra}${footer}${t.noDiscord}`,
+                    content: `${header}${names}${extra}${footer}${sinHorasNoDiscord()}`,
                     userIds: []
                 }
             ],
@@ -461,12 +465,12 @@ function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChu
         const isFirst = chunks.length === 0;
         const isLast = i + maxMentionsPerChunk >= userIds.length;
         let content =
-            (isFirst ? header : t.contMore(chunks.length + 1)) +
+            (isFirst ? header : sinHorasContMore(chunks.length + 1)) +
             batch.map((id) => `<@${id}>`).join(" ");
         if (isLast) {
             content += footer;
             if (pending.length > userIds.length) {
-                content += t.noDiscordExtra(pending.length - userIds.length);
+                content += sinHorasNoDiscordExtra(pending.length - userIds.length);
             }
         }
         chunks.push({ content, userIds: batch });
@@ -518,11 +522,12 @@ function attachWipeReportDiscord(client, { getPool }) {
         if (cmd !== "mcv-reporte" && cmd !== "mcv-sin-horas" && cmd !== "mcv-no-hours") {
             return;
         }
-        const sinHorasLang = resolveSinHorasLang(interaction, cmd);
-        const sinHorasT = SIN_HORAS_MSG[sinHorasLang];
         if (!canRunWipeReport(interaction)) {
             await interaction.reply({
-                content: cmd === "mcv-reporte" ? "No tenés permiso para este comando. Pedí a staff si lo necesitás." : sinHorasT.noPerm,
+                content:
+                    cmd === "mcv-reporte"
+                        ? "No tenés permiso para este comando. Pedí a staff si lo necesitás."
+                        : SIN_HORAS_UI.noPerm,
                 ephemeral: true
             });
             return;
@@ -530,7 +535,10 @@ function attachWipeReportDiscord(client, { getPool }) {
         const pool = getPool();
         if (!pool) {
             await interaction.reply({
-                content: cmd === "mcv-reporte" ? "El servidor no tiene base de datos configurada." : sinHorasT.noDb,
+                content:
+                    cmd === "mcv-reporte"
+                        ? "El servidor no tiene base de datos configurada."
+                        : SIN_HORAS_UI.noDb,
                 ephemeral: true
             });
             return;
@@ -543,10 +551,9 @@ function attachWipeReportDiscord(client, { getPool }) {
                 const raw = await loadWipeHoursReport(pool);
                 const report = filterReportToPlayingWipe(raw);
                 const { chunks, totalPending } = buildSinHorasPingChunks(report, {
-                    noMentions: opts.sinEtiquetar,
-                    lang: sinHorasLang
+                    noMentions: opts.sinEtiquetar
                 });
-                const first = chunks[0] || { content: sinHorasT.noData, userIds: [] };
+                const first = chunks[0] || { content: SIN_HORAS_UI.noData, userIds: [] };
                 await interaction.editReply({
                     content: first.content,
                     allowedMentions: first.userIds.length ? { users: first.userIds } : { parse: [] }
@@ -565,7 +572,7 @@ function attachWipeReportDiscord(client, { getPool }) {
             } catch (e) {
                 console.error("mcv-sin-horas:", e.message);
                 await interaction.editReply({
-                    content: sinHorasT.error
+                    content: SIN_HORAS_UI.error
                 });
             }
             return;
@@ -597,7 +604,6 @@ module.exports = {
     buildMcSinHorasSlashCommand,
     buildMcNoHoursSlashCommand,
     buildSinHorasPingChunks,
-    resolveSinHorasLang,
     collectPendingDiscordUserIds,
     isPlayingWipePlayer,
     filterReportToPlayingWipe,
