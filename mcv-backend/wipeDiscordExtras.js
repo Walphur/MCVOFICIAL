@@ -1,7 +1,7 @@
 "use strict";
 
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
-const { loadWipeHoursReport, loadPlayerStatsForDiscord, displayName } = require("./wipeReport");
+const { loadWipeHoursReport, loadPlayerStatsForDiscord, displayName, filterReportToPlayingWipe } = require("./wipeReport");
 const { fetchTierScoresPayload } = require("./vitalRustApi");
 const { buildYoDetailEmbeds, loadPlayerYoDetail } = require("./discordPlayerYo");
 
@@ -124,7 +124,7 @@ function startWipeReminderScheduler(client, { getPool, getChannelId }) {
             return;
         }
         try {
-            const report = await loadWipeHoursReport(pool);
+            const report = filterReportToPlayingWipe(await loadWipeHoursReport(pool));
             const embed = buildReminderEmbed(report);
             if (!embed) {
                 return;

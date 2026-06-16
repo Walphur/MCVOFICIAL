@@ -7,7 +7,8 @@ const {
     formatPlayerLine,
     filterReport,
     buildSinHorasPingChunks,
-    collectPendingDiscordUserIds
+    collectPendingDiscordUserIds,
+    filterReportToPlayingWipe
 } = require("../wipeReport");
 
 test("formatPlayerLine muestra horas, puntos y sin @discord", () => {
@@ -94,7 +95,7 @@ test("buildSinHorasPingChunks etiqueta Discord IDs reales", () => {
 test("buildSinHorasPingChunks sin pendientes", () => {
     const { chunks, totalPending } = buildSinHorasPingChunks({ pendingHours: [] });
     assert.equal(totalPending, 0);
-    assert.match(chunks[0].content, /Todos los vinculados/);
+    assert.match(chunks[0].content, /Todos los que juegan el wipe/);
 });
 
 test("buildSinHorasPingChunks sin_etiquetar lista nombres", () => {
@@ -106,4 +107,58 @@ test("buildSinHorasPingChunks sin_etiquetar lista nombres", () => {
     );
     assert.match(chunks[0].content, /Tato/);
     assert.doesNotMatch(chunks[0].content, /@/);
+});
+
+test("filterReportToPlayingWipe excluye pausados y no_juega", () => {
+    const raw = {
+        totalLinked: 4,
+        rows: [
+            {
+                personaName: "Activo",
+                discordUserId: "111111111111111111",
+                hoursPlayed: null,
+                wipePhase: "inicio",
+                statusTag: "mcv_active",
+                pausedOutsideWipe: false
+            },
+            {
+                personaName: "Pausado",
+                discordUserId: "222222222222222222",
+                hoursPlayed: null,
+                wipePhase: "inicio",
+                statusTag: "mcv_active",
+                pausedOutsideWipe: true
+            },
+            {
+                personaName: "NoJuega",
+                discordUserId: "333333333333333333",
+                hoursPlayed: null,
+                wipePhase: "no_juega",
+                statusTag: "wipe_guest",
+                pausedOutsideWipe: false
+            },
+            {
+                personaName: "ConHoras",
+                discordUserId: "444444444444444444",
+                hoursPlayed: 40,
+                wipePhase: "late",
+                statusTag: "admin",
+                pausedOutsideWipe: false
+            }
+        ],
+        withHours: [],
+        pendingHours: []
+    };
+    raw.pendingHours = raw.rows.filter((r) => !r.hoursPlayed);
+    raw.withHours = raw.rows.filter((r) => r.hoursPlayed > 0);
+    const filtered = filterReportToPlayingWipe(raw);
+    assert.equal(filtered.totalLinked, 2);
+    assert.equal(filtered.pendingHours.length, 1);
+    assert.equal(filtered.pendingHours[0].personaName, "Activo");
+    assert.equal(filtered.withHours.length, 1);
+    assert.equal(filtered.withHours[0].personaName, "ConHoras");
+    const { chunks } = buildSinHorasPingChunks(filtered);
+    assert.match(chunks[0].content, /<@111111111111111111>/);
+    assert.doesNotMatch(chunks[0].content, /<@222222222222222222>/);
+    assert.doesNotMatch(chunks[0].content, /<@333333333333333333>/);
 });

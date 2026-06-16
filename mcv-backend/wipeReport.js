@@ -1,6 +1,7 @@
 "use strict";
 
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+const { shouldScorePlayerProfile } = require("./vitalScoreTiers");
 
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
 const PASTE_WIPE_DISCORD_PREFIX = "paste:";
@@ -14,7 +15,10 @@ SELECT
     w.updated_at AS linked_at,
     p.hours_played,
     p.performance_score,
-    p.display_name AS info_name
+    p.display_name AS info_name,
+    p.paused_outside_wipe,
+    p.wipe_phase,
+    p.status_tag
 FROM wipe_list_members w
 LEFT JOIN player_info_profiles p ON p.steam_id64 = w.steam_id64
 WHERE w.discord_user_id NOT LIKE $1
@@ -34,7 +38,10 @@ SELECT
     w.updated_at AS linked_at,
     p.hours_played,
     p.performance_score,
-    p.display_name AS info_name
+    p.display_name AS info_name,
+    p.paused_outside_wipe,
+    p.wipe_phase,
+    p.status_tag
 FROM wipe_list_members w
 LEFT JOIN player_info_profiles p ON p.steam_id64 = w.steam_id64
 WHERE w.discord_user_id = $1
@@ -77,6 +84,9 @@ function formatPointsSuffix(row) {
 }
 
 function mapWipePlayerRow(row) {
+    const wipePhase = String(row.wipe_phase || "unknown").trim() || "unknown";
+    const pausedOutsideWipe =
+        Boolean(row.paused_outside_wipe) || wipePhase === "no_juega";
     return {
         discordUserId: String(row.discord_user_id || ""),
         discordUsername: String(row.discord_username || ""),
@@ -85,7 +95,41 @@ function mapWipePlayerRow(row) {
         linkedAt: row.linked_at || null,
         hoursPlayed: normalizeHours(row.hours_played),
         performanceScore: normalizeScore(row.performance_score),
-        infoName: String(row.info_name || "")
+        infoName: String(row.info_name || ""),
+        wipePhase,
+        statusTag: String(row.status_tag || "").trim(),
+        pausedOutsideWipe
+    };
+}
+
+function isPlayingWipePlayer(row) {
+    if (!row) {
+        return false;
+    }
+    return shouldScorePlayerProfile({
+        pausedOutsideWipe: row.pausedOutsideWipe,
+        wipePhase: row.wipePhase,
+        statusTag: row.statusTag
+    });
+}
+
+/** Solo jugadores que juegan el wipe (no pausados / no_juega / inactivos). */
+function filterReportToPlayingWipe(report) {
+    const rows = (report?.rows || []).filter(isPlayingWipePlayer);
+    const withHours = rows.filter((row) => row.hoursPlayed != null && row.hoursPlayed > 0);
+    const pendingHours = rows.filter((row) => row.hoursPlayed == null || row.hoursPlayed <= 0);
+    const withPoints = rows.filter((row) => row.performanceScore !== 0);
+    const totalPoints = rows.reduce((sum, row) => sum + row.performanceScore, 0);
+    return {
+        ...report,
+        totalLinked: rows.length,
+        withHoursCount: withHours.length,
+        pendingHoursCount: pendingHours.length,
+        withPointsCount: withPoints.length,
+        totalPoints,
+        withHours,
+        pendingHours,
+        rows
     };
 }
 
@@ -232,7 +276,7 @@ function buildMcReporteSlashCommand() {
 function buildMcSinHorasSlashCommand() {
     return new SlashCommandBuilder()
         .setName("mcv-sin-horas")
-        .setDescription("Etiqueta a quien tiene Steam vinculado pero no cargó horas del wipe")
+        .setDescription("Etiqueta a quien juega el wipe y no cargó horas (excluye pausados)")
         .addBooleanOption((o) =>
             o.setName("privado").setDescription("Si true, solo vos ves el mensaje (sin ping en el canal)").setRequired(false)
         )
@@ -267,7 +311,7 @@ function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChu
 
     if (!totalPending) {
         return {
-            chunks: [{ content: "✅ Todos los vinculados con Steam ya tienen horas cargadas.", userIds: [] }],
+            chunks: [{ content: "✅ Todos los que juegan el wipe ya tienen horas cargadas.", userIds: [] }],
             totalPending: 0
         };
     }
@@ -386,7 +430,8 @@ function attachWipeReportDiscord(client, { getPool }) {
             const sinEtiquetar = interaction.options.getBoolean("sin_etiquetar") === true;
             await interaction.deferReply({ ephemeral: privado });
             try {
-                const report = await loadWipeHoursReport(pool);
+                const raw = await loadWipeHoursReport(pool);
+                const report = filterReportToPlayingWipe(raw);
                 const { chunks, totalPending } = buildSinHorasPingChunks(report, { noMentions: sinEtiquetar });
                 const first = chunks[0] || { content: "Sin datos.", userIds: [] };
                 await interaction.editReply({
@@ -439,6 +484,8 @@ module.exports = {
     buildMcSinHorasSlashCommand,
     buildSinHorasPingChunks,
     collectPendingDiscordUserIds,
+    isPlayingWipePlayer,
+    filterReportToPlayingWipe,
     attachWipeReportDiscord,
     canRunWipeReport,
     filterReport
