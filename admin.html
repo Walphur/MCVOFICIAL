@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-ux-v6">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-saas-v7">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-ux-v6">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-saas-v7">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -297,49 +297,51 @@
                 </div>
                 <div id="vital-health-bar" class="vital-health-bar vital-health-bar--header" hidden aria-live="polite"></div>
             </header>
-            <div class="vital-welcome-strip" id="vital-welcome-strip">
-                <div class="vital-welcome-strip__top">
-                    <div>
-                        <p class="vital-welcome-kicker">Guía rápida</p>
-                        <h2 class="vital-welcome-title">Gestioná el roster del wipe en un solo lugar</h2>
+            <div class="vital-kpi-grid" id="vital-kpi-grid" aria-label="Resumen del roster">
+                <article class="vital-kpi-card">
+                    <span class="vital-kpi-card__icon" aria-hidden="true">👥</span>
+                    <div class="vital-kpi-card__body">
+                        <span class="vital-kpi-card__value" data-kpi="all">0</span>
+                        <span class="vital-kpi-card__label">Jugadores</span>
                     </div>
-                    <button type="button" class="btn-outline btn-sm vital-welcome-dismiss" id="btn-vital-welcome-dismiss" aria-label="Ocultar guía">Ocultar guía</button>
-                </div>
+                </article>
+                <article class="vital-kpi-card vital-kpi-card--green">
+                    <span class="vital-kpi-card__icon" aria-hidden="true">🟢</span>
+                    <div class="vital-kpi-card__body">
+                        <span class="vital-kpi-card__value" data-kpi="active">0</span>
+                        <span class="vital-kpi-card__label">En wipe</span>
+                    </div>
+                </article>
+                <article class="vital-kpi-card vital-kpi-card--muted">
+                    <span class="vital-kpi-card__icon" aria-hidden="true">⏸</span>
+                    <div class="vital-kpi-card__body">
+                        <span class="vital-kpi-card__value" data-kpi="paused">0</span>
+                        <span class="vital-kpi-card__label">Pausados</span>
+                    </div>
+                </article>
+                <article class="vital-kpi-card vital-kpi-card--warn">
+                    <span class="vital-kpi-card__icon" aria-hidden="true">⚠</span>
+                    <div class="vital-kpi-card__body">
+                        <span class="vital-kpi-card__value" data-kpi="strikes">0</span>
+                        <span class="vital-kpi-card__label">Strikes</span>
+                    </div>
+                </article>
+            </div>
+            <details class="vital-guide-fold" id="vital-welcome-strip">
+                <summary>Guía rápida del panel</summary>
                 <div class="vital-welcome-cards">
-                    <article class="vital-welcome-card">
-                        <span class="vital-welcome-card__num">1</span>
-                        <strong>Lista</strong>
-                        <p>Elegí un jugador. El número a la derecha son los puntos guardados.</p>
-                    </article>
-                    <article class="vital-welcome-card">
-                        <span class="vital-welcome-card__num">2</span>
-                        <strong>Perfil</strong>
-                        <p>Datos, roles y si juega el wipe. Guardá abajo a la derecha.</p>
-                    </article>
-                    <article class="vital-welcome-card">
-                        <span class="vital-welcome-card__num">3</span>
-                        <strong>Puntos</strong>
-                        <p>Stats Vital + extras + ajustes. Usá <em>Recalcular puntos</em> en la barra izquierda.</p>
-                    </article>
-                    <article class="vital-welcome-card">
-                        <span class="vital-welcome-card__num">4</span>
-                        <strong>Reporte</strong>
-                        <p>En Herramientas → pendientes sin horas, BM o fase wipe.</p>
-                    </article>
+                    <article class="vital-welcome-card"><strong>1 · Lista</strong><p>Elegí un jugador. El número son los puntos guardados.</p></article>
+                    <article class="vital-welcome-card"><strong>2 · Perfil</strong><p>Datos, roles y si juega el wipe.</p></article>
+                    <article class="vital-welcome-card"><strong>3 · Puntos</strong><p>Stats Vital + extras. Recalculá desde la barra izquierda.</p></article>
+                    <article class="vital-welcome-card"><strong>4 · Reporte</strong><p>Herramientas → pendientes sin horas o BM.</p></article>
                 </div>
-            </div>
-            <div class="vital-risk-legend vital-risk-legend--bar vital-panel-legend" aria-label="Significado del color en la lista">
-                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--excellent"></i>15+ Excelente</span>
-                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--good"></i>0–14 Bien</span>
-                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--risk"></i>&lt;0 Riesgo</span>
-                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--critical"></i>Crítico</span>
-            </div>
+            </details>
             <div class="data-area vital-pro-panel">
-                <div class="vital-app-shell">
-                <aside class="vital-sidebar vital-sidebar--compact">
-                    <div class="vital-sidebar-status" aria-label="Estado del sistema">
-                        <p class="vital-sidebar-section-title">Puntos Vital</p>
-                        <p class="vital-sidebar-section-hint">Servidor, wipe y recálculo automático desde Vital.</p>
+                <div class="vital-app-shell" id="vital-app-shell">
+                <aside class="vital-sidebar vital-sidebar--compact" id="vital-sidebar">
+                    <button type="button" class="vital-sidebar-toggle" id="btn-vital-sidebar-toggle" aria-label="Colapsar barra lateral" title="Colapsar">◀</button>
+                    <details class="vital-sidebar-group" open>
+                        <summary class="vital-sidebar-group__title"><span class="vital-nav-icon" aria-hidden="true">⚡</span> Puntos Vital</summary>
                         <div class="vital-sidebar-sync vital-sidebar-sync-card">
                             <label class="vital-sidebar-field">
                                 <span>Servidor</span>
@@ -362,13 +364,13 @@
                             <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos en la BD">↻ Recalcular puntos</button>
                         </div>
                         <span id="vital-tier-sync-status" class="vital-tier-sync-status vital-tier-sync-status--compact" aria-live="polite"></span>
-                    </div>
+                    </details>
                     <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
-                        <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores">Jugadores</button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="extras">Extras roster</button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="roles">Roles</button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="importacion">Importación</button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="logs">Logs</button>
+                        <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true">👤</span><span class="vital-nav-label">Jugadores</span></button>
+                        <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true">➕</span><span class="vital-nav-label">Extras</span></button>
+                        <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true">🏷</span><span class="vital-nav-label">Roles</span></button>
+                        <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true">📥</span><span class="vital-nav-label">Importar</span></button>
+                        <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true">📋</span><span class="vital-nav-label">Logs</span></button>
                     </nav>
                     <div id="vital-quick-filters" class="vital-sidebar-filters" aria-label="Filtros de lista" title="Filtrá la lista de jugadores">
                         <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
@@ -393,20 +395,12 @@
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
-                            <div class="vital-member-panel-head">
-                                <p class="vital-member-panel-title">Jugadores</p>
-                                <p class="vital-member-panel-hint">Click en la fila para abrir el perfil</p>
-                            </div>
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
                                 <div class="vital-member-toolbar__actions">
                                     <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
                                     <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
                                 </div>
-                            </div>
-                            <div class="vital-member-list-head" aria-hidden="true">
-                                <span>Jugador</span>
-                                <span>Pts</span>
                             </div>
                             <div id="vital-info-list" class="vital-member-list"><p class="empty-hint">Cargando…</p></div>
                         </div>
@@ -417,15 +411,14 @@
                             </div>
                             <div id="vital-detail-content" class="vital-detail-content" hidden>
                                 <header id="vital-player-summary" class="vital-detail-header"></header>
-                                <div class="vital-detail-tabs" id="vital-detail-tabs">
-                                    <button type="button" class="vital-dtab active" data-detail-tab="general">Perfil</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="puntos">Puntos</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="strikes">Strikes</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="wipe">Wipe</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="notes">Notas</button>
-                                    <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
+                                <div class="vital-detail-tabs vital-detail-tabs--pills" id="vital-detail-tabs" role="tablist">
+                                    <button type="button" class="vital-dtab active" data-detail-tab="general" role="tab">Perfil</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="puntos" role="tab">Puntos</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="strikes" role="tab">Strikes</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="wipe" role="tab">Wipe</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="notes" role="tab">Notas</button>
+                                    <button type="button" class="vital-dtab" data-detail-tab="logs" role="tab">Logs</button>
                                 </div>
-                                <p class="vital-tab-hint" id="vital-tab-hint">Datos básicos, roles y estado en el clan.</p>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
                                         <section class="vital-form-section">
@@ -2259,14 +2252,15 @@
         return ({ critical: 'Crítico', risk: 'Riesgo', good: 'Bien', excellent: 'Excelente', info: 'Pausado' })[level] || '—';
     }
 
-    function renderSteamAvatar(row, risk, className) {
+    function renderSteamAvatar(row, risk, className, size) {
+        var px = Number(size) || 40;
         var url = row && row.avatarUrl ? String(row.avatarUrl).trim() : '';
         var label = row && (row.displayName || row.steamId64) ? String(row.displayName || row.steamId64) : '?';
         var initial = label.trim().charAt(0).toUpperCase() || '?';
         var cls = String(className || 'ops-member-avatar');
         if (risk) cls += ' ops-risk-ring--' + escAttr(risk);
         if (url) {
-            return '<img class="' + cls + ' ops-steam-avatar" src="' + escAttr(url) + '" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer" />';
+            return '<img class="' + cls + ' ops-steam-avatar" src="' + escAttr(url) + '" alt="" width="' + px + '" height="' + px + '" loading="lazy" referrerpolicy="no-referrer" />';
         }
         return '<span class="' + cls + '">' + esc(initial) + '</span>';
     }
@@ -2367,16 +2361,22 @@
             ? '<a class="ops-link" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BattleMetrics ↗</a>'
             : '';
         var pts = selected ? getPlayerPoints(selected) : 0;
+        var statusTag = selected ? (selected.statusTag || 'wipe_guest') : 'wipe_guest';
+        var statusText = statusLabelFull(statusTag);
+        if (selected && isPlayerPaused(selected)) statusText = 'Pausado / No juega';
         box.innerHTML =
-            '<div class="ops-player-header">' +
-            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar') +
-            '<div class="ops-player-main">' +
-            '<div class="ops-player-title-row"><h2>' + esc(name) + '</h2>' + bmLink + '</div>' +
+            '<div class="vital-player-hero ops-risk--' + escAttr(risk) + '">' +
+            '<div class="vital-player-hero__top">' +
+            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 64) +
+            '<div class="vital-player-hero__meta">' +
+            '<h2 class="vital-player-hero__name">' + esc(name) + '</h2>' +
             '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
-            '</div>' +
-            '<div class="ops-player-score-block">' +
-            '<span class="ops-player-score">' + esc(String(pts)) + '</span>' +
-            '<span class="ops-player-score-label">puntos guardados</span>' +
+            '<span class="ops-pill ops-pill--status">' + esc(statusText) + '</span>' +
+            (bmLink ? '<div class="vital-player-hero__links">' + bmLink + '</div>' : '') +
+            '</div></div>' +
+            '<div class="vital-player-kpi">' +
+            '<span class="vital-player-kpi__label">Puntos actuales</span>' +
+            '<span class="vital-player-kpi__value">' + esc(String(pts)) + '</span>' +
             '<span class="ops-pill ops-pill--' + escAttr(risk) + '">' + esc(riskLabel) + '</span>' +
             '</div></div>';
         syncWipeSegmentUI();
@@ -2627,6 +2627,17 @@
         return m[tag] || 'Wipe';
     }
 
+    function statusLabelFull(tag) {
+        var m = {
+            admin: 'Admin',
+            mcv_active: 'Activo en MCV',
+            mcv_inactive: 'Inactivo MCV',
+            mcv_strikes: 'MCV (strikes)',
+            wipe_guest: 'Invitado al wipe'
+        };
+        return m[tag] || 'Invitado al wipe';
+    }
+
     function wipePhaseLabel(phase) {
         var p = String(phase || '').trim();
         if (!p || p === 'unknown') return '—';
@@ -2807,6 +2818,10 @@
                 el.textContent = String(counts[key]);
             }
         });
+        document.querySelectorAll('[data-kpi]').forEach(function (el) {
+            var key = el.getAttribute('data-kpi');
+            if (key && counts[key] != null) el.textContent = String(counts[key]);
+        });
     }
 
     function updateVitalGlobalPeriodLabel() {
@@ -2818,35 +2833,41 @@
         sel.title = parts.length ? parts.join(' · ') : 'Servidor wipe';
     }
 
-    var VITAL_WELCOME_LS = 'mcv_vital_welcome_hidden_v1';
-    var VITAL_TAB_HINTS = {
-        general: 'Datos básicos, roles y estado en el clan.',
-        puntos: 'Desglose Vital por stat + extras de rol + ajustes manuales.',
-        strikes: 'Strikes del jugador y motivo registrado.',
-        wipe: 'Fase del wipe y participación (En wipe / Pausado abajo).',
-        notes: 'Aportación y avisos internos del staff.',
-        logs: 'Historial de movimientos de puntos y actividad admin.'
-    };
+    var VITAL_GUIDE_LS = 'mcv_vital_welcome_hidden_v1';
 
     function initVitalWelcomeStrip() {
-        var strip = document.getElementById('vital-welcome-strip');
-        var btn = document.getElementById('btn-vital-welcome-dismiss');
-        if (!strip) return;
+        var guide = document.getElementById('vital-welcome-strip');
+        if (!guide) return;
         try {
-            if (localStorage.getItem(VITAL_WELCOME_LS) === '1') strip.hidden = true;
+            if (localStorage.getItem(VITAL_GUIDE_LS) === '1') guide.open = false;
         } catch (e) {}
-        if (btn) {
-            btn.addEventListener('click', function () {
-                strip.hidden = true;
-                try { localStorage.setItem(VITAL_WELCOME_LS, '1'); } catch (e) {}
-            });
-        }
+        guide.addEventListener('toggle', function () {
+            try {
+                localStorage.setItem(VITAL_GUIDE_LS, guide.open ? '0' : '1');
+            } catch (e) {}
+        });
+    }
+
+    function initVitalSidebarToggle() {
+        var btn = document.getElementById('btn-vital-sidebar-toggle');
+        var shell = document.getElementById('vital-app-shell');
+        if (!btn || !shell) return;
+        var LS = 'mcv_vital_sidebar_collapsed_v1';
+        try {
+            if (localStorage.getItem(LS) === '1') shell.classList.add('is-sidebar-collapsed');
+        } catch (e) {}
+        btn.addEventListener('click', function () {
+            shell.classList.toggle('is-sidebar-collapsed');
+            btn.textContent = shell.classList.contains('is-sidebar-collapsed') ? '▶' : '◀';
+            try {
+                localStorage.setItem(LS, shell.classList.contains('is-sidebar-collapsed') ? '1' : '0');
+            } catch (e) {}
+        });
+        if (shell.classList.contains('is-sidebar-collapsed')) btn.textContent = '▶';
     }
 
     function updateVitalTabHint() {
-        var el = document.getElementById('vital-tab-hint');
-        if (!el) return;
-        el.textContent = VITAL_TAB_HINTS[vitalDetailTab] || VITAL_TAB_HINTS.general;
+        /* hint removido en SaaS v7 */
     }
 
     function setDetailTab(tab) {
@@ -4333,21 +4354,28 @@
             var strikes = Number(r.strikes || 0);
             var pts = getPlayerPoints(r);
             var risk = getPlayerRiskLevel(r);
-            var subParts = [esc(statusLabelShort(r.statusTag))];
+            var subParts = [];
             if (paused) subParts.push('Pausado');
             else subParts.push(esc(wipePhaseLabel(r.wipePhase)));
             if (strikes > 0) subParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
-            if (playerMissingPlaytimeHours(r) && !paused) subParts.push('Sin horas Steam');
+            if (playerMissingPlaytimeHours(r) && !paused) subParts.push('Sin horas');
             var sub = subParts.join(' · ');
+            var roleLabel = (r.roleLabels && r.roleLabels.length) ? r.roleLabels[0] : (r.roleLabel || '');
+            var roleBadge = roleLabel
+                ? '<span class="ops-role-badge" title="' + escAttr(roleLabel) + '">' + esc(roleLabel) + '</span>'
+                : '';
             var ptsCls = pts > 0 ? ' is-positive' : (pts < 0 ? ' is-negative' : '');
-            return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '">' +
+            return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '" title="' + escAttr(r.displayName || r.steamId64) + '">' +
                 '<span class="ops-member-rail" aria-hidden="true"></span>' +
-                renderSteamAvatar(r, risk, 'ops-member-avatar') +
+                renderSteamAvatar(r, risk, 'ops-member-avatar', 48) +
                 '<span class="ops-member-body">' +
+                '<span class="ops-member-name-row">' +
                 '<span class="ops-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
+                roleBadge +
+                '</span>' +
                 '<span class="ops-member-sub">' + sub + '</span>' +
                 '</span>' +
-                '<span class="ops-member-score' + ptsCls + (paused ? ' is-muted' : '') + '" title="Puntos guardados en BD">' + esc(String(pts)) + '</span>' +
+                '<span class="ops-member-score' + ptsCls + (paused ? ' is-muted' : '') + '" title="Puntos">' + esc(String(pts)) + '</span>' +
                 '</button>';
         }).join('');
     }
@@ -4580,6 +4608,7 @@
 
     function initVitalPanel() {
         initVitalWelcomeStrip();
+        initVitalSidebarToggle();
         updateVitalTabHint();
         document.querySelectorAll('[data-vital-ui-mode]').forEach(function (btn) {
             btn.remove();
