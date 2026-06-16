@@ -7345,3 +7345,319 @@ select.admin-input {
     .vital-onboarding-guide { margin-bottom: 6px; }
     .vital-risk-legend { grid-template-columns: 1fr; }
 }
+
+/* —— Admin UX v5: rediseño visible (jun 2026) —— */
+#vital-info-panel .vital-app-main {
+    gap: 10px !important;
+    padding: 0 2px 2px !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+}
+#vital-info-panel .vital-subpanel--jugadores {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    border: 1px solid rgba(250, 166, 26, 0.18) !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    background: linear-gradient(180deg, rgba(14, 18, 26, 0.98), rgba(8, 10, 14, 0.99)) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 120px) !important;
+    max-height: calc(100vh - 120px) !important;
+    min-height: 560px !important;
+    gap: 12px !important;
+}
+#vital-info-panel .vital-sidebar--compact {
+    border: 1px solid rgba(250, 166, 26, 0.2) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(180deg, rgba(16, 20, 28, 0.98), rgba(10, 12, 18, 0.99)) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(250, 166, 26, 0.08) !important;
+    max-height: calc(100vh - 140px) !important;
+}
+
+/* Banner bienvenida — siempre visible arriba */
+#vital-info-panel .vital-welcome-strip {
+    display: block !important;
+    flex-shrink: 0 !important;
+    margin: 0 0 4px !important;
+    padding: 14px 16px 16px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(250, 166, 26, 0.35) !important;
+    background: linear-gradient(135deg, rgba(250, 166, 26, 0.14) 0%, rgba(250, 166, 26, 0.04) 40%, rgba(8, 10, 16, 0.95) 100%) !important;
+    box-shadow: 0 8px 28px rgba(250, 166, 26, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+#vital-info-panel .vital-welcome-strip[hidden] {
+    display: none !important;
+}
+#vital-info-panel .vital-welcome-strip__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+#vital-info-panel .vital-welcome-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fbbf24;
+}
+#vital-info-panel .vital-welcome-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #f8fafc;
+    line-height: 1.25;
+}
+#vital-info-panel .vital-welcome-dismiss {
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(0, 0, 0, 0.35);
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+#vital-info-panel .vital-welcome-dismiss:hover {
+    border-color: rgba(250, 166, 26, 0.45);
+    color: #fde68a;
+}
+#vital-info-panel .vital-welcome-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+#vital-info-panel .vital-welcome-card {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.35);
+}
+#vital-info-panel .vital-welcome-card__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background: rgba(250, 166, 26, 0.2);
+    border: 1px solid rgba(250, 166, 26, 0.45);
+    color: #fde68a;
+    font-size: 11px;
+    font-weight: 800;
+}
+#vital-info-panel .vital-welcome-card strong {
+    display: block;
+    font-size: 13px;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+}
+#vital-info-panel .vital-welcome-card p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #94a3b8;
+}
+#vital-info-panel .vital-welcome-card em {
+    font-style: normal;
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+/* Sidebar card sync + recalcular destacado */
+#vital-info-panel .vital-sidebar-sync-card {
+    padding: 10px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(250, 166, 26, 0.22) !important;
+    background: rgba(0, 0, 0, 0.28) !important;
+    gap: 8px !important;
+}
+#vital-info-panel .vital-recalc-btn {
+    width: 100% !important;
+    min-height: 36px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    box-shadow: 0 4px 16px rgba(250, 166, 26, 0.25) !important;
+}
+#vital-info-panel .vital-sidebar-tagline {
+    font-size: 11px !important;
+    color: #fbbf24 !important;
+    opacity: 1 !important;
+}
+#vital-info-panel .vital-sidebar-section-title {
+    font-size: 11px !important;
+    color: #cbd5e1 !important;
+    margin-top: 4px !important;
+}
+#vital-info-panel .vital-sidebar-section-hint {
+    font-size: 12px !important;
+    color: #64748b !important;
+    margin-bottom: 10px !important;
+}
+
+/* Lista jugadores */
+#vital-info-panel .vital-member-panel-head {
+    padding: 12px 14px 6px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+}
+#vital-info-panel .vital-member-panel-title {
+    font-size: 13px !important;
+    color: #f8fafc !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+#vital-info-panel .vital-member-panel-hint {
+    display: block !important;
+    margin: 4px 0 0 !important;
+    font-size: 12px !important;
+    color: #64748b !important;
+}
+#vital-info-panel .vital-risk-legend--bar {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px 10px !important;
+    padding: 8px 12px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    grid-template-columns: unset !important;
+}
+#vital-info-panel .vital-risk-legend__item {
+    font-size: 11px !important;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+#vital-info-panel .vital-member-list-head {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 6px 14px 6px 52px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.15);
+}
+#vital-info-panel .ops-member-row {
+    margin: 2px 6px !important;
+    padding: 10px 10px 10px 8px !important;
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+}
+#vital-info-panel .ops-member-row:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+#vital-info-panel .ops-member-row.is-active {
+    background: rgba(250, 166, 26, 0.1) !important;
+    border-color: rgba(250, 166, 26, 0.35) !important;
+    box-shadow: inset 3px 0 0 #fbbf24 !important;
+}
+#vital-info-panel .ops-member-score {
+    font-size: 15px !important;
+    min-width: 2.75rem !important;
+    padding: 2px 6px !important;
+    border-radius: 6px !important;
+    background: rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Detalle jugador */
+#vital-info-panel .vital-detail-panel {
+    background: transparent !important;
+}
+#vital-info-panel .vital-detail-header,
+#vital-info-panel .ops-player-header {
+    background: linear-gradient(180deg, rgba(250, 166, 26, 0.08), rgba(0, 0, 0, 0)) !important;
+    border-bottom: 1px solid rgba(250, 166, 26, 0.15) !important;
+}
+#vital-info-panel .ops-player-score {
+    font-size: 2rem !important;
+}
+#vital-info-panel .ops-player-score-label {
+    font-size: 11px !important;
+    color: #94a3b8 !important;
+}
+#vital-info-panel .vital-tab-hint {
+    margin: 0 !important;
+    padding: 8px 16px 10px !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    color: #94a3b8 !important;
+    background: rgba(0, 0, 0, 0.25) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+#vital-info-panel .vital-pane-intro {
+    margin: 0 0 12px !important;
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(91, 156, 245, 0.25) !important;
+    background: linear-gradient(135deg, rgba(91, 156, 245, 0.1), rgba(0, 0, 0, 0.2)) !important;
+}
+#vital-info-panel .vital-pane-intro h4 {
+    margin: 0 0 6px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #e2e8f0 !important;
+}
+#vital-info-panel .vital-pane-intro p {
+    margin: 0 !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    color: #94a3b8 !important;
+}
+#vital-info-panel .vital-pane-intro strong {
+    color: #fbbf24;
+    font-weight: 600;
+}
+#vital-info-panel .vital-perf-stat-card {
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+#vital-info-panel .vital-perf-stat-card__title {
+    font-size: 13px !important;
+}
+#vital-info-panel .vital-perf-stat-card__pts {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+}
+#vital-info-panel .vital-form-section__title {
+    font-size: 14px !important;
+    color: #f1f5f9 !important;
+}
+#vital-info-panel .vital-form-section__hint {
+    font-size: 12px !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+}
+
+@media (max-width: 1100px) {
+    #vital-info-panel .vital-welcome-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 700px) {
+    #vital-info-panel .vital-welcome-cards {
+        grid-template-columns: 1fr;
+    }
+    #vital-info-panel .vital-welcome-title {
+        font-size: 1rem;
+    }
+}

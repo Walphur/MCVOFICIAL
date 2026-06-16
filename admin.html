@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v10">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-ux-v5">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-11-admin-scrap-building-split-v6">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-ux-v5">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -301,7 +301,7 @@
                         <div id="vital-health-bar" class="vital-health-bar vital-health-bar--compact" hidden aria-live="polite"></div>
                         <p class="vital-sidebar-section-title">Puntos Vital</p>
                         <p class="vital-sidebar-section-hint">Servidor, wipe y recálculo automático desde Vital.</p>
-                        <div class="vital-sidebar-sync">
+                        <div class="vital-sidebar-sync vital-sidebar-sync-card">
                             <label class="vital-sidebar-field">
                                 <span>Servidor</span>
                                 <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
@@ -320,7 +320,7 @@
                                     <option value="">Cargando wipes…</option>
                                 </select>
                             </label>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos en la BD">Recalcular</button>
+                            <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos en la BD">↻ Recalcular puntos</button>
                         </div>
                         <span id="vital-tier-sync-status" class="vital-tier-sync-status vital-tier-sync-status--compact" aria-live="polite"></span>
                     </div>
@@ -339,12 +339,6 @@
                         <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
                         <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos guardados"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
                     </div>
-                    <div class="vital-risk-legend" aria-label="Significado del color en la lista">
-                        <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--excellent"></i>15+ Excelente</span>
-                        <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--good"></i>0–14 Bien</span>
-                        <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--risk"></i>&lt;0 Riesgo</span>
-                        <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--critical"></i>Crítico</span>
-                    </div>
                     <details class="vital-sidebar-tools">
                         <summary>Herramientas</summary>
                         <div class="vital-sidebar-tools__body">
@@ -357,21 +351,49 @@
                     </details>
                 </aside>
                 <div class="vital-app-main">
-                <details class="vital-onboarding-guide">
-                    <summary>Guía rápida del panel</summary>
-                    <ol class="vital-onboarding-steps">
-                        <li><strong>Lista izquierda:</strong> elegí un jugador. El número verde/rojo son los puntos guardados en la BD.</li>
-                        <li><strong>Perfil:</strong> datos, roles y estado en el clan. Guardá con el botón inferior.</li>
-                        <li><strong>Puntos:</strong> desglose Vital + extras manuales. Recalcular en la barra lateral sincroniza con Vital.</li>
-                        <li><strong>En wipe / Pausado:</strong> controla si suma puntos automáticos este wipe.</li>
-                        <li><strong>Herramientas:</strong> horas Discord, export Excel y reporte de pendientes.</li>
-                    </ol>
-                </details>
+                <div class="vital-welcome-strip" id="vital-welcome-strip">
+                    <div class="vital-welcome-strip__top">
+                        <div>
+                            <p class="vital-welcome-kicker">Panel MCV · Info jugadores</p>
+                            <h2 class="vital-welcome-title">Gestioná el roster del wipe en un solo lugar</h2>
+                        </div>
+                        <button type="button" class="vital-welcome-dismiss" id="btn-vital-welcome-dismiss" aria-label="Ocultar guía">Ocultar guía</button>
+                    </div>
+                    <div class="vital-welcome-cards">
+                        <article class="vital-welcome-card">
+                            <span class="vital-welcome-card__num">1</span>
+                            <strong>Lista</strong>
+                            <p>Elegí un jugador. El número a la derecha son los puntos guardados.</p>
+                        </article>
+                        <article class="vital-welcome-card">
+                            <span class="vital-welcome-card__num">2</span>
+                            <strong>Perfil</strong>
+                            <p>Datos, roles y si juega el wipe. Guardá abajo a la derecha.</p>
+                        </article>
+                        <article class="vital-welcome-card">
+                            <span class="vital-welcome-card__num">3</span>
+                            <strong>Puntos</strong>
+                            <p>Stats Vital + extras + ajustes. Usá <em>Recalcular puntos</em> en la barra izquierda.</p>
+                        </article>
+                        <article class="vital-welcome-card">
+                            <span class="vital-welcome-card__num">4</span>
+                            <strong>Reporte</strong>
+                            <p>En Herramientas → pendientes sin horas, BM o fase wipe.</p>
+                        </article>
+                    </div>
+                </div>
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
                             <div class="vital-member-panel-head">
-                                <p class="vital-member-panel-title">Jugadores <span class="vital-member-panel-hint">click para editar</span></p>
+                                <p class="vital-member-panel-title">Jugadores</p>
+                                <p class="vital-member-panel-hint">Click en la fila para abrir el perfil</p>
+                            </div>
+                            <div class="vital-risk-legend vital-risk-legend--bar" aria-label="Significado del color en la lista">
+                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--excellent"></i>15+ Excelente</span>
+                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--good"></i>0–14 Bien</span>
+                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--risk"></i>&lt;0 Riesgo</span>
+                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--critical"></i>Crítico</span>
                             </div>
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
@@ -379,6 +401,10 @@
                                     <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
                                     <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
                                 </div>
+                            </div>
+                            <div class="vital-member-list-head" aria-hidden="true">
+                                <span>Jugador</span>
+                                <span>Pts</span>
                             </div>
                             <div id="vital-info-list" class="vital-member-list"><p class="empty-hint">Cargando…</p></div>
                         </div>
@@ -397,6 +423,7 @@
                                     <button type="button" class="vital-dtab" data-detail-tab="notes">Notas</button>
                                     <button type="button" class="vital-dtab" data-detail-tab="logs">Logs</button>
                                 </div>
+                                <p class="vital-tab-hint" id="vital-tab-hint">Datos básicos, roles y estado en el clan.</p>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
                                         <section class="vital-form-section">
@@ -462,6 +489,10 @@
                                         </section>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="puntos">
+                                        <div class="vital-pane-intro vital-pane-intro--puntos">
+                                            <h4>Cómo se calculan los puntos</h4>
+                                            <p>Las tarjetas de abajo muestran cada stat de Vital. Los <strong>extras de rol</strong> y los <strong>ajustes manuales</strong> se suman al total que ves arriba a la derecha. Si cambiaste servidor o wipe, tocá <strong>Recalcular puntos</strong>.</p>
+                                        </div>
                                         <section class="vital-form-section" id="vital-tier-auto-section">
                                             <div class="vital-form-section__body">
                                                 <div id="vital-tier-player-breakdown" class="vital-perf-stat-cards">
@@ -2785,6 +2816,37 @@
         sel.title = parts.length ? parts.join(' · ') : 'Servidor wipe';
     }
 
+    var VITAL_WELCOME_LS = 'mcv_vital_welcome_hidden_v1';
+    var VITAL_TAB_HINTS = {
+        general: 'Datos básicos, roles y estado en el clan.',
+        puntos: 'Desglose Vital por stat + extras de rol + ajustes manuales.',
+        strikes: 'Strikes del jugador y motivo registrado.',
+        wipe: 'Fase del wipe y participación (En wipe / Pausado abajo).',
+        notes: 'Aportación y avisos internos del staff.',
+        logs: 'Historial de movimientos de puntos y actividad admin.'
+    };
+
+    function initVitalWelcomeStrip() {
+        var strip = document.getElementById('vital-welcome-strip');
+        var btn = document.getElementById('btn-vital-welcome-dismiss');
+        if (!strip) return;
+        try {
+            if (localStorage.getItem(VITAL_WELCOME_LS) === '1') strip.hidden = true;
+        } catch (e) {}
+        if (btn) {
+            btn.addEventListener('click', function () {
+                strip.hidden = true;
+                try { localStorage.setItem(VITAL_WELCOME_LS, '1'); } catch (e) {}
+            });
+        }
+    }
+
+    function updateVitalTabHint() {
+        var el = document.getElementById('vital-tab-hint');
+        if (!el) return;
+        el.textContent = VITAL_TAB_HINTS[vitalDetailTab] || VITAL_TAB_HINTS.general;
+    }
+
     function setDetailTab(tab) {
         if (tab === 'combats' || tab === 'minis') tab = 'puntos';
         vitalDetailTab = tab || 'general';
@@ -2794,6 +2856,7 @@
         document.querySelectorAll('.vital-detail-pane').forEach(function (pane) {
             pane.classList.toggle('active', pane.getAttribute('data-detail-pane') === vitalDetailTab);
         });
+        updateVitalTabHint();
         if (vitalDetailTab === 'puntos') {
             ensureVitalTierConfigCache(vitalTierServerKey()).catch(function () {});
             loadVitalTierConfigView().catch(function () {});
@@ -4514,6 +4577,8 @@
     }
 
     function initVitalPanel() {
+        initVitalWelcomeStrip();
+        updateVitalTabHint();
         document.querySelectorAll('[data-vital-ui-mode]').forEach(function (btn) {
             btn.remove();
         });
