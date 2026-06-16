@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-layout-v8">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-layout-v8b">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-layout-v8">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-layout-v8b">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -2361,16 +2361,17 @@
         if (selected && isPlayerPaused(selected)) statusText = 'Pausado / No juega';
         box.innerHTML =
             '<div class="vital-player-hero ops-risk--' + escAttr(risk) + '">' +
-            '<div class="vital-player-hero__top">' +
-            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 64) +
+            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 48) +
             '<div class="vital-player-hero__meta">' +
+            '<div class="vital-player-hero__name-row">' +
             '<h2 class="vital-player-hero__name">' + esc(name) + '</h2>' +
-            '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
             '<span class="ops-pill ops-pill--status">' + esc(statusText) + '</span>' +
-            (bmLink ? '<div class="vital-player-hero__links">' + bmLink + '</div>' : '') +
+            '</div>' +
+            '<div class="vital-player-hero__sub">' +
+            '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
+            (bmLink ? bmLink : '') +
             '</div></div>' +
             '<div class="vital-player-kpi">' +
-            '<span class="vital-player-kpi__label">Puntos actuales</span>' +
             '<span class="vital-player-kpi__value">' + esc(String(pts)) + '</span>' +
             '<span class="ops-pill ops-pill--' + escAttr(risk) + '">' + esc(riskLabel) + '</span>' +
             '</div></div>';

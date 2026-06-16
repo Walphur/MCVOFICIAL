@@ -8760,3 +8760,153 @@ body.admin-body .admin-main {
         max-height: 320px !important;
     }
 }
+
+/* —— v8b: hero compacto + split equilibrado —— */
+#vital-info-panel.vital-workspace .vital-split {
+    grid-template-columns: minmax(280px, 44%) minmax(0, 56%) !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-content {
+    align-items: stretch !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-header,
+#vital-info-panel.vital-workspace .vital-detail-tabs--pills,
+#vital-info-panel.vital-workspace .vital-detail-body,
+#vital-info-panel.vital-workspace .vital-detail-footer {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+#vital-info-panel.vital-workspace .vital-player-hero {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    grid-template-columns: unset !important;
+    margin: 8px 12px 0 !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__top {
+    display: contents;
+}
+#vital-info-panel.vital-workspace .ops-player-avatar,
+#vital-info-panel.vital-workspace .ops-player-avatar.ops-steam-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+    font-size: 17px !important;
+    flex-shrink: 0;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__meta {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__name {
+    margin: 0 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__sub {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 3px;
+    min-width: 0;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__meta .ops-player-steam {
+    margin: 0 !important;
+    font-size: 10px !important;
+}
+#vital-info-panel.vital-workspace .ops-pill--status {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+}
+#vital-info-panel.vital-workspace .vital-player-kpi {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0;
+    min-width: auto !important;
+    padding: 0 0 0 12px !important;
+    margin-left: auto;
+    border-left: 1px solid var(--vital-border, rgba(255,255,255,0.08)) !important;
+    border-top: none !important;
+}
+#vital-info-panel.vital-workspace .vital-player-kpi__label {
+    display: none !important;
+}
+#vital-info-panel.vital-workspace .vital-player-kpi__value {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+#vital-info-panel.vital-workspace .vital-player-kpi .ops-pill {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-tabs--pills {
+    padding: 6px 12px !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-body {
+    padding: 8px 12px 12px !important;
+}
+#vital-info-panel.vital-workspace .vital-form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+    max-width: 100%;
+}
+#vital-info-panel.vital-workspace .vital-form-section {
+    margin-bottom: 12px;
+}
+#vital-info-panel.vital-workspace .vital-form-section__title {
+    font-size: 12px !important;
+}
+#vital-info-panel.vital-workspace .vital-form-section__hint {
+    display: none;
+}
+#vital-info-panel.vital-workspace .vital-field .admin-input,
+#vital-info-panel.vital-workspace .vital-field select.admin-input {
+    min-height: 36px;
+    font-size: 13px;
+}
+#vital-info-panel.vital-workspace .vital-detail-footer {
+    padding: 10px 12px !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-footer .btn-primary-small,
+#vital-info-panel.vital-workspace .vital-detail-footer .btn-outline {
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+}
+@media (min-width: 1400px) {
+    #vital-info-panel.vital-workspace .vital-split {
+        grid-template-columns: minmax(320px, 480px) minmax(0, 1fr) !important;
+    }
+    #vital-info-panel.vital-workspace .vital-detail-body .vital-form-grid {
+        max-width: 640px;
+    }
+}
+@media (max-width: 1100px) {
+    #vital-info-panel.vital-workspace .vital-player-hero {
+        flex-wrap: wrap;
+    }
+    #vital-info-panel.vital-workspace .vital-player-kpi {
+        width: 100%;
+        margin-left: 0;
+        padding: 8px 0 0 !important;
+        border-left: none !important;
+        border-top: 1px solid var(--vital-border, rgba(255,255,255,0.08)) !important;
+        justify-content: flex-start;
+    }
+}
