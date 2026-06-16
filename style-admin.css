@@ -7661,3 +7661,299 @@ select.admin-input {
         font-size: 1rem;
     }
 }
+
+/* —— Admin UX v6: limpieza visual (jun 2026) —— */
+#vital-info-panel {
+    --vital-font: "IBM Plex Sans", system-ui, sans-serif;
+    --vital-btn-radius: 8px;
+    --vital-btn-border: rgba(255, 255, 255, 0.12);
+    --vital-btn-bg: rgba(255, 255, 255, 0.04);
+    --vital-btn-active-bg: rgba(250, 166, 26, 0.14);
+    --vital-btn-active-border: rgba(250, 166, 26, 0.45);
+    --vital-surface: rgba(12, 14, 20, 0.96);
+    --vital-panel-border: rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: var(--vital-font) !important;
+}
+#vital-info-panel :is(button, input, select, textarea, h2, h3, h4, p, span, strong, label) {
+    font-family: var(--vital-font) !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* Header MCV SYSTEM arriba del todo */
+#vital-info-panel .vital-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 0 2px 2px;
+    margin: 0;
+    border: none;
+    background: transparent;
+}
+#vital-info-panel .vital-panel-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+#vital-info-panel .vital-panel-header__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+#vital-info-panel .vital-panel-header__text strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f1f5f9;
+    line-height: 1.2;
+}
+#vital-info-panel .vital-panel-header__text span {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    line-height: 1.3;
+}
+#vital-info-panel .vital-health-bar--header {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+}
+#vital-info-panel .vital-health-bar--header .vital-health-items {
+    justify-content: flex-end;
+}
+
+/* Guía y leyenda fuera de la card principal */
+#vital-info-panel > .vital-welcome-strip {
+    display: block;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--vital-panel-border);
+    background: var(--vital-surface);
+    box-shadow: none;
+}
+#vital-info-panel > .vital-welcome-strip[hidden] {
+    display: none !important;
+}
+#vital-info-panel > .vital-welcome-strip .vital-welcome-kicker {
+    margin: 0 0 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.04em;
+}
+#vital-info-panel > .vital-welcome-strip .vital-welcome-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f8fafc;
+    line-height: 1.3;
+}
+#vital-info-panel > .vital-welcome-strip .vital-welcome-cards {
+    gap: 8px;
+}
+#vital-info-panel > .vital-welcome-strip .vital-welcome-card {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.02);
+}
+#vital-info-panel > .vital-welcome-strip .vital-welcome-card__num {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 5px;
+    background: rgba(250, 166, 26, 0.12);
+    border: 1px solid rgba(250, 166, 26, 0.3);
+    color: #fbbf24;
+}
+#vital-info-panel > .vital-panel-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--vital-panel-border);
+    background: var(--vital-surface);
+    grid-template-columns: unset;
+}
+#vital-info-panel > .vital-panel-legend .vital-risk-legend__item {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+}
+
+/* Una sola card con borde (sin doble dorado) */
+#vital-info-panel > .data-area.vital-pro-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0 !important;
+    border: 1px solid var(--vital-panel-border) !important;
+    border-radius: 12px !important;
+    background: var(--vital-surface) !important;
+    box-shadow: none !important;
+    overflow: hidden;
+}
+#vital-info-panel .vital-app-shell {
+    height: calc(100vh - 260px) !important;
+    min-height: 460px !important;
+    max-height: calc(100vh - 260px) !important;
+    gap: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+#vital-info-panel .vital-sidebar--compact {
+    border: none !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    max-height: none !important;
+}
+#vital-info-panel .vital-subpanel--jugadores {
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+#vital-info-panel .vital-sidebar-sync-card {
+    padding: 8px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    box-shadow: none !important;
+}
+
+/* Títulos sin fondo oscuro */
+#vital-info-panel .vital-member-panel-head {
+    padding: 10px 14px 6px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    background: transparent !important;
+}
+#vital-info-panel .vital-member-panel-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #e2e8f0 !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+}
+#vital-info-panel .vital-member-list-head {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+#vital-info-panel .vital-detail-header,
+#vital-info-panel .ops-player-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+#vital-info-panel .vital-tab-hint {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 6px 16px 8px !important;
+}
+#vital-info-panel .vital-detail-tabs {
+    background: transparent !important;
+}
+
+/* Botones unificados en el panel Vital */
+#vital-info-panel :is(
+    .vital-nav-item,
+    .vital-qchip,
+    .vital-tier-mode-btn,
+    .vital-dtab,
+    .vital-icon-only,
+    .vital-welcome-dismiss,
+    .vital-sidebar-tools > summary
+) {
+    font-family: var(--vital-font) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    border-radius: var(--vital-btn-radius) !important;
+    border: 1px solid var(--vital-btn-border) !important;
+    background: var(--vital-btn-bg) !important;
+    color: #cbd5e1 !important;
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+#vital-info-panel :is(
+    .vital-nav-item:hover,
+    .vital-qchip:hover,
+    .vital-tier-mode-btn:hover,
+    .vital-dtab:hover,
+    .vital-icon-only:hover
+) {
+    border-color: rgba(250, 166, 26, 0.35) !important;
+    color: #f1f5f9 !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+#vital-info-panel :is(
+    .vital-nav-item.active,
+    .vital-qchip.is-active,
+    .vital-tier-mode-btn.is-active,
+    .vital-dtab.active
+) {
+    border-color: var(--vital-btn-active-border) !important;
+    background: var(--vital-btn-active-bg) !important;
+    color: #fff7ed !important;
+    box-shadow: none !important;
+}
+#vital-info-panel .vital-nav-item.active {
+    box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+#vital-info-panel .vital-recalc-btn {
+    box-shadow: none !important;
+    font-weight: 600 !important;
+}
+#vital-info-panel .vital-sidebar-tools__body :is(.btn-outline, .btn-primary-small) {
+    width: 100%;
+    min-height: 34px;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: var(--vital-btn-radius) !important;
+}
+
+/* Ocultar brand duplicado en sidebar si quedara */
+#vital-info-panel .vital-sidebar-brand {
+    display: none !important;
+}
+
+@media (max-width: 900px) {
+    #vital-info-panel .vital-app-shell {
+        height: auto !important;
+        max-height: none !important;
+        min-height: 0 !important;
+    }
+    #vital-info-panel .vital-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #vital-info-panel .vital-health-bar--header .vital-health-items {
+        justify-content: flex-start;
+    }
+}

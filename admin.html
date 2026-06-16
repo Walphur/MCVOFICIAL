@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-ux-v5">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-ux-v6">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-ux-v5">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-ux-v6">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -287,18 +287,57 @@
         </div>
 
         <div id="vital-info-panel" class="admin-panel-anchor">
+            <header class="vital-panel-header">
+                <div class="vital-panel-header__brand">
+                    <img src="logo.png" alt="MCV" width="24" height="24" />
+                    <div class="vital-panel-header__text">
+                        <strong>MCV SYSTEM</strong>
+                        <span>Roster · puntos · wipe</span>
+                    </div>
+                </div>
+                <div id="vital-health-bar" class="vital-health-bar vital-health-bar--header" hidden aria-live="polite"></div>
+            </header>
+            <div class="vital-welcome-strip" id="vital-welcome-strip">
+                <div class="vital-welcome-strip__top">
+                    <div>
+                        <p class="vital-welcome-kicker">Guía rápida</p>
+                        <h2 class="vital-welcome-title">Gestioná el roster del wipe en un solo lugar</h2>
+                    </div>
+                    <button type="button" class="btn-outline btn-sm vital-welcome-dismiss" id="btn-vital-welcome-dismiss" aria-label="Ocultar guía">Ocultar guía</button>
+                </div>
+                <div class="vital-welcome-cards">
+                    <article class="vital-welcome-card">
+                        <span class="vital-welcome-card__num">1</span>
+                        <strong>Lista</strong>
+                        <p>Elegí un jugador. El número a la derecha son los puntos guardados.</p>
+                    </article>
+                    <article class="vital-welcome-card">
+                        <span class="vital-welcome-card__num">2</span>
+                        <strong>Perfil</strong>
+                        <p>Datos, roles y si juega el wipe. Guardá abajo a la derecha.</p>
+                    </article>
+                    <article class="vital-welcome-card">
+                        <span class="vital-welcome-card__num">3</span>
+                        <strong>Puntos</strong>
+                        <p>Stats Vital + extras + ajustes. Usá <em>Recalcular puntos</em> en la barra izquierda.</p>
+                    </article>
+                    <article class="vital-welcome-card">
+                        <span class="vital-welcome-card__num">4</span>
+                        <strong>Reporte</strong>
+                        <p>En Herramientas → pendientes sin horas, BM o fase wipe.</p>
+                    </article>
+                </div>
+            </div>
+            <div class="vital-risk-legend vital-risk-legend--bar vital-panel-legend" aria-label="Significado del color en la lista">
+                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--excellent"></i>15+ Excelente</span>
+                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--good"></i>0–14 Bien</span>
+                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--risk"></i>&lt;0 Riesgo</span>
+                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--critical"></i>Crítico</span>
+            </div>
             <div class="data-area vital-pro-panel">
                 <div class="vital-app-shell">
                 <aside class="vital-sidebar vital-sidebar--compact">
-                    <div class="vital-sidebar-brand">
-                        <img src="logo.png" alt="MCV" width="22" height="22" />
-                        <div class="vital-sidebar-brand__text">
-                            <strong>MCV SYSTEM</strong>
-                            <span class="vital-sidebar-tagline">Roster · puntos · wipe</span>
-                        </div>
-                    </div>
                     <div class="vital-sidebar-status" aria-label="Estado del sistema">
-                        <div id="vital-health-bar" class="vital-health-bar vital-health-bar--compact" hidden aria-live="polite"></div>
                         <p class="vital-sidebar-section-title">Puntos Vital</p>
                         <p class="vital-sidebar-section-hint">Servidor, wipe y recálculo automático desde Vital.</p>
                         <div class="vital-sidebar-sync vital-sidebar-sync-card">
@@ -351,49 +390,12 @@
                     </details>
                 </aside>
                 <div class="vital-app-main">
-                <div class="vital-welcome-strip" id="vital-welcome-strip">
-                    <div class="vital-welcome-strip__top">
-                        <div>
-                            <p class="vital-welcome-kicker">Panel MCV · Info jugadores</p>
-                            <h2 class="vital-welcome-title">Gestioná el roster del wipe en un solo lugar</h2>
-                        </div>
-                        <button type="button" class="vital-welcome-dismiss" id="btn-vital-welcome-dismiss" aria-label="Ocultar guía">Ocultar guía</button>
-                    </div>
-                    <div class="vital-welcome-cards">
-                        <article class="vital-welcome-card">
-                            <span class="vital-welcome-card__num">1</span>
-                            <strong>Lista</strong>
-                            <p>Elegí un jugador. El número a la derecha son los puntos guardados.</p>
-                        </article>
-                        <article class="vital-welcome-card">
-                            <span class="vital-welcome-card__num">2</span>
-                            <strong>Perfil</strong>
-                            <p>Datos, roles y si juega el wipe. Guardá abajo a la derecha.</p>
-                        </article>
-                        <article class="vital-welcome-card">
-                            <span class="vital-welcome-card__num">3</span>
-                            <strong>Puntos</strong>
-                            <p>Stats Vital + extras + ajustes. Usá <em>Recalcular puntos</em> en la barra izquierda.</p>
-                        </article>
-                        <article class="vital-welcome-card">
-                            <span class="vital-welcome-card__num">4</span>
-                            <strong>Reporte</strong>
-                            <p>En Herramientas → pendientes sin horas, BM o fase wipe.</p>
-                        </article>
-                    </div>
-                </div>
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
                             <div class="vital-member-panel-head">
                                 <p class="vital-member-panel-title">Jugadores</p>
                                 <p class="vital-member-panel-hint">Click en la fila para abrir el perfil</p>
-                            </div>
-                            <div class="vital-risk-legend vital-risk-legend--bar" aria-label="Significado del color en la lista">
-                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--excellent"></i>15+ Excelente</span>
-                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--good"></i>0–14 Bien</span>
-                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--risk"></i>&lt;0 Riesgo</span>
-                                <span class="vital-risk-legend__item"><i class="vital-risk-swatch vital-risk-swatch--critical"></i>Crítico</span>
                             </div>
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
