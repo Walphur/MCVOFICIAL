@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-saas-v7">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-layout-v8">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-saas-v7">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-layout-v8">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -286,13 +286,12 @@
             </div>
         </div>
 
-        <div id="vital-info-panel" class="admin-panel-anchor">
-            <header class="vital-panel-header">
+        <div id="vital-info-panel" class="admin-panel-anchor vital-workspace">
+            <header class="vital-panel-header vital-panel-header--compact">
                 <div class="vital-panel-header__brand">
-                    <img src="logo.png" alt="MCV" width="24" height="24" />
+                    <img src="logo.png" alt="MCV" width="22" height="22" />
                     <div class="vital-panel-header__text">
                         <strong>MCV SYSTEM</strong>
-                        <span>Roster · puntos · wipe</span>
                     </div>
                 </div>
                 <div id="vital-health-bar" class="vital-health-bar vital-health-bar--header" hidden aria-live="polite"></div>
@@ -327,74 +326,71 @@
                     </div>
                 </article>
             </div>
-            <details class="vital-guide-fold" id="vital-welcome-strip">
-                <summary>Guía rápida del panel</summary>
-                <div class="vital-welcome-cards">
-                    <article class="vital-welcome-card"><strong>1 · Lista</strong><p>Elegí un jugador. El número son los puntos guardados.</p></article>
-                    <article class="vital-welcome-card"><strong>2 · Perfil</strong><p>Datos, roles y si juega el wipe.</p></article>
-                    <article class="vital-welcome-card"><strong>3 · Puntos</strong><p>Stats Vital + extras. Recalculá desde la barra izquierda.</p></article>
-                    <article class="vital-welcome-card"><strong>4 · Reporte</strong><p>Herramientas → pendientes sin horas o BM.</p></article>
-                </div>
-            </details>
-            <div class="data-area vital-pro-panel">
-                <div class="vital-app-shell" id="vital-app-shell">
-                <aside class="vital-sidebar vital-sidebar--compact" id="vital-sidebar">
-                    <button type="button" class="vital-sidebar-toggle" id="btn-vital-sidebar-toggle" aria-label="Colapsar barra lateral" title="Colapsar">◀</button>
-                    <details class="vital-sidebar-group" open>
-                        <summary class="vital-sidebar-group__title"><span class="vital-nav-icon" aria-hidden="true">⚡</span> Puntos Vital</summary>
-                        <div class="vital-sidebar-sync vital-sidebar-sync-card">
-                            <label class="vital-sidebar-field">
-                                <span>Servidor</span>
-                                <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
-                                    <option value="eu-monthly">EU Monthly 2x</option>
-                                    <option value="eu-medium">EU Medium 2x</option>
-                                </select>
-                            </label>
-                            <div class="vital-tier-mode" role="group" aria-label="Tabla de puntos">
-                                <button type="button" class="vital-tier-mode-btn is-active" data-tier-config="auto" title="Calendario MCV (Monthly hasta jueves 23:59)">Auto</button>
-                                <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-monthly" title="Forzar umbrales Monthly">Monthly</button>
-                                <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-medium" title="Forzar umbrales Medium">Medium</button>
+            <div class="vital-workspace-body" id="vital-app-shell">
+                <aside class="vital-rail" id="vital-rail">
+                    <div class="vital-rail__scroll">
+                        <section class="vital-puntos-panel" id="vital-puntos-panel">
+                            <button type="button" class="vital-puntos-toggle" id="btn-vital-puntos-toggle" aria-expanded="true" title="Puntos Vital">
+                                <span class="vital-puntos-toggle__icon" aria-hidden="true">⚡</span>
+                                <span class="vital-puntos-toggle__label">Puntos Vital</span>
+                            </button>
+                            <div class="vital-puntos-body" id="vital-puntos-body">
+                                <div class="vital-sidebar-sync vital-sidebar-sync-card">
+                                    <label class="vital-sidebar-field">
+                                        <span>Servidor</span>
+                                        <select id="vital-tier-server" class="vital-input-compact" title="Servidor wipe">
+                                            <option value="eu-monthly">EU Monthly 2x</option>
+                                            <option value="eu-medium">EU Medium 2x</option>
+                                        </select>
+                                    </label>
+                                    <div class="vital-tier-mode" role="group" aria-label="Tabla de puntos">
+                                        <button type="button" class="vital-tier-mode-btn is-active" data-tier-config="auto" title="Calendario MCV">Auto</button>
+                                        <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-monthly" title="Monthly">Monthly</button>
+                                        <button type="button" class="vital-tier-mode-btn" data-tier-config="eu-medium" title="Medium">Medium</button>
+                                    </div>
+                                    <label class="vital-sidebar-field">
+                                        <span>Wipe</span>
+                                        <select id="vital-tier-wipe" class="vital-input-compact" title="Wipe Vital">
+                                            <option value="">Cargando wipes…</option>
+                                        </select>
+                                    </label>
+                                    <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos">↻ Recalcular</button>
+                                </div>
+                                <span id="vital-tier-sync-status" class="vital-tier-sync-status vital-tier-sync-status--compact" aria-live="polite"></span>
                             </div>
-                            <label class="vital-sidebar-field">
-                                <span>Wipe</span>
-                                <select id="vital-tier-wipe" class="vital-input-compact" title="Wipe Vital">
-                                    <option value="">Cargando wipes…</option>
-                                </select>
-                            </label>
-                            <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos en la BD">↻ Recalcular puntos</button>
-                        </div>
-                        <span id="vital-tier-sync-status" class="vital-tier-sync-status vital-tier-sync-status--compact" aria-live="polite"></span>
-                    </details>
-                    <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
-                        <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true">👤</span><span class="vital-nav-label">Jugadores</span></button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true">➕</span><span class="vital-nav-label">Extras</span></button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true">🏷</span><span class="vital-nav-label">Roles</span></button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true">📥</span><span class="vital-nav-label">Importar</span></button>
-                        <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true">📋</span><span class="vital-nav-label">Logs</span></button>
-                    </nav>
-                    <div id="vital-quick-filters" class="vital-sidebar-filters" aria-label="Filtros de lista" title="Filtrá la lista de jugadores">
-                        <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
-                        <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
-                        <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
-                        <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
-                        <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas Steam"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
-                        <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos guardados"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
+                        </section>
+                        <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
+                            <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true">👤</span><span class="vital-nav-label">Jugadores</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true">➕</span><span class="vital-nav-label">Extras</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true">🏷</span><span class="vital-nav-label">Roles</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true">📥</span><span class="vital-nav-label">Importar</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true">📋</span><span class="vital-nav-label">Logs</span></button>
+                        </nav>
+                        <details class="vital-sidebar-tools">
+                            <summary>Herramientas</summary>
+                            <div class="vital-sidebar-tools__body">
+                                <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar Excel</button>
+                                <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
+                                <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" data-i18n="admin.vitalResetScoresAll">Reiniciar puntos</button>
+                                <button type="button" class="btn-outline btn-sm" id="btn-vital-reset-hours-all" data-i18n="admin.vitalResetHoursAll">Borrar horas</button>
+                                <button type="button" class="btn-primary-small btn-sm" id="btn-vital-compliance-report" data-i18n="admin.vitalComplianceReport">Reporte pendientes</button>
+                            </div>
+                        </details>
                     </div>
-                    <details class="vital-sidebar-tools">
-                        <summary>Herramientas</summary>
-                        <div class="vital-sidebar-tools__body">
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-dashboard-export" data-i18n="admin.vitalDashboardExport">Exportar Excel</button>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-playtime" data-i18n="admin.vitalSyncPlaytime">Horas Discord</button>
-                            <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-scores-all" data-i18n="admin.vitalResetScoresAll">Reiniciar todos los puntos</button>
-                            <button type="button" class="btn-outline btn-sm" id="btn-vital-reset-hours-all" data-i18n="admin.vitalResetHoursAll">Borrar todas las horas</button>
-                            <button type="button" class="btn-primary-small btn-sm" id="btn-vital-compliance-report" data-i18n="admin.vitalComplianceReport">Reporte pendientes</button>
-                        </div>
-                    </details>
+                    <button type="button" class="vital-rail-collapse" id="btn-vital-rail-collapse" aria-label="Colapsar barra lateral" title="Colapsar">◀</button>
                 </aside>
-                <div class="vital-app-main">
+                <div class="vital-workspace-main vital-app-main">
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
+                            <div id="vital-quick-filters" class="vital-filter-bar" aria-label="Filtros">
+                                <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
+                                <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
+                                <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
+                                <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                                <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
+                                <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
+                            </div>
                             <div class="vital-member-toolbar vital-member-toolbar--compact">
                                 <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
                                 <div class="vital-member-toolbar__actions">
@@ -635,7 +631,6 @@
                 <section class="vital-subpanel" data-vital-section="logs" style="display:none;">
                     <ul id="vital-info-activity-log" class="vital-activity-log"></ul>
                 </section>
-                </div>
                 </div>
             </div>
         </div>
@@ -2833,37 +2828,39 @@
         sel.title = parts.length ? parts.join(' · ') : 'Servidor wipe';
     }
 
-    var VITAL_GUIDE_LS = 'mcv_vital_welcome_hidden_v1';
-
-    function initVitalWelcomeStrip() {
-        var guide = document.getElementById('vital-welcome-strip');
-        if (!guide) return;
-        try {
-            if (localStorage.getItem(VITAL_GUIDE_LS) === '1') guide.open = false;
-        } catch (e) {}
-        guide.addEventListener('toggle', function () {
-            try {
-                localStorage.setItem(VITAL_GUIDE_LS, guide.open ? '0' : '1');
-            } catch (e) {}
-        });
-    }
-
-    function initVitalSidebarToggle() {
-        var btn = document.getElementById('btn-vital-sidebar-toggle');
+    function initVitalLayoutControls() {
+        var puntosPanel = document.getElementById('vital-puntos-panel');
+        var puntosBtn = document.getElementById('btn-vital-puntos-toggle');
+        var rail = document.getElementById('vital-rail');
+        var railBtn = document.getElementById('btn-vital-rail-collapse');
         var shell = document.getElementById('vital-app-shell');
-        if (!btn || !shell) return;
-        var LS = 'mcv_vital_sidebar_collapsed_v1';
-        try {
-            if (localStorage.getItem(LS) === '1') shell.classList.add('is-sidebar-collapsed');
-        } catch (e) {}
-        btn.addEventListener('click', function () {
-            shell.classList.toggle('is-sidebar-collapsed');
-            btn.textContent = shell.classList.contains('is-sidebar-collapsed') ? '▶' : '◀';
+        var LS_PUNTOS = 'mcv_vital_puntos_collapsed_v1';
+        var LS_RAIL = 'mcv_vital_rail_collapsed_v1';
+
+        if (puntosPanel && puntosBtn) {
             try {
-                localStorage.setItem(LS, shell.classList.contains('is-sidebar-collapsed') ? '1' : '0');
+                if (localStorage.getItem(LS_PUNTOS) === '1') puntosPanel.classList.add('is-collapsed');
             } catch (e) {}
-        });
-        if (shell.classList.contains('is-sidebar-collapsed')) btn.textContent = '▶';
+            puntosBtn.addEventListener('click', function () {
+                puntosPanel.classList.toggle('is-collapsed');
+                var collapsed = puntosPanel.classList.contains('is-collapsed');
+                puntosBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                try { localStorage.setItem(LS_PUNTOS, collapsed ? '1' : '0'); } catch (e) {}
+            });
+            puntosBtn.setAttribute('aria-expanded', puntosPanel.classList.contains('is-collapsed') ? 'false' : 'true');
+        }
+
+        if (rail && railBtn && shell) {
+            try {
+                if (localStorage.getItem(LS_RAIL) === '1') shell.classList.add('is-rail-collapsed');
+            } catch (e) {}
+            railBtn.addEventListener('click', function () {
+                shell.classList.toggle('is-rail-collapsed');
+                railBtn.textContent = shell.classList.contains('is-rail-collapsed') ? '▶' : '◀';
+                try { localStorage.setItem(LS_RAIL, shell.classList.contains('is-rail-collapsed') ? '1' : '0'); } catch (e) {}
+            });
+            if (shell.classList.contains('is-rail-collapsed')) railBtn.textContent = '▶';
+        }
     }
 
     function updateVitalTabHint() {
@@ -2954,7 +2951,7 @@
     function setVitalSubtab(tab) {
         vitalInfoSubtab = tab || 'jugadores';
         document.querySelectorAll('[data-vital-section]').forEach(function (el) {
-            el.style.display = el.getAttribute('data-vital-section') === vitalInfoSubtab ? 'block' : 'none';
+            el.style.display = el.getAttribute('data-vital-section') === vitalInfoSubtab ? 'flex' : 'none';
         });
         document.querySelectorAll('.vital-subtab').forEach(function (btn) {
             btn.classList.toggle('active', btn.getAttribute('data-vital-subtab') === vitalInfoSubtab);
@@ -4607,8 +4604,7 @@
     }
 
     function initVitalPanel() {
-        initVitalWelcomeStrip();
-        initVitalSidebarToggle();
+        initVitalLayoutControls();
         updateVitalTabHint();
         document.querySelectorAll('[data-vital-ui-mode]').forEach(function (btn) {
             btn.remove();
