@@ -9682,14 +9682,12 @@ body.admin-body .admin-main {
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
-    padding: 6px 10px !important;
+    padding: 6px 12px !important;
     min-width: 88px !important;
     align-self: stretch !important;
     border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
     background: rgba(0, 0, 0, 0.18);
-    border-radius: 0 var(--admin-radius-sm) var(--admin-radius-sm) 0;
-    margin: -8px -10px -8px 0 !important;
-    padding-right: 10px !important;
+    border-radius: var(--admin-radius-sm);
 }
 #vital-info-panel.vital-workspace .vital-player-hero__score-label {
     margin-bottom: 2px !important;
@@ -9765,5 +9763,90 @@ body.admin-body .admin-main {
     .admin-tabs .tab {
         padding: 8px 10px !important;
         font-size: 12px !important;
+    }
+}
+
+/* —— Premium v12: fix pestañas + perfil ordenado —— */
+#vital-info-panel.vital-workspace {
+    display: none !important;
+}
+#vital-info-panel.vital-workspace.is-tab-active {
+    display: flex !important;
+}
+
+#vital-info-panel.vital-workspace .vital-profile-cards {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto;
+    gap: 6px !important;
+    align-items: stretch;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="estado"] {
+    grid-column: 1;
+    grid-row: 1;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="bm"] {
+    grid-column: 2;
+    grid-row: 1;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="datos"] {
+    grid-column: 1;
+    grid-row: 2;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="extras"] {
+    grid-column: 1;
+    grid-row: 3;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="roles"] {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: stretch;
+    min-height: 0;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--roles .vital-ui-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 120px;
+}
+#vital-info-panel.vital-workspace .vital-roles-field {
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+#vital-info-panel.vital-workspace .vital-roles-selected {
+    max-height: none !important;
+    overflow: visible !important;
+    flex: 0 1 auto;
+    min-height: 0;
+    margin-bottom: 6px !important;
+}
+#vital-info-panel.vital-workspace .vital-role-presets {
+    max-height: none !important;
+    overflow: visible !important;
+    flex-wrap: wrap;
+}
+#vital-info-panel.vital-workspace .vital-field--bare > span {
+    display: none !important;
+}
+#vital-info-panel.vital-workspace .vital-profile-cards .vital-form-grid--extras-col {
+    grid-template-columns: 1fr !important;
+    gap: 5px !important;
+}
+
+@media (max-width: 900px) {
+    #vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="estado"],
+    #vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="bm"],
+    #vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="datos"],
+    #vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="extras"],
+    #vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="roles"] {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+    }
+    #vital-info-panel.vital-workspace .vital-ui-card--roles .vital-ui-card__body {
+        min-height: 0;
     }
 }
