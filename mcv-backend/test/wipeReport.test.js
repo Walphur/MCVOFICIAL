@@ -8,7 +8,8 @@ const {
     filterReport,
     buildSinHorasPingChunks,
     collectPendingDiscordUserIds,
-    filterReportToPlayingWipe
+    filterReportToPlayingWipe,
+    resolveSinHorasLang
 } = require("../wipeReport");
 
 test("formatPlayerLine muestra horas, puntos y sin @discord", () => {
@@ -161,4 +162,22 @@ test("filterReportToPlayingWipe excluye pausados y no_juega", () => {
     assert.match(chunks[0].content, /<@111111111111111111>/);
     assert.doesNotMatch(chunks[0].content, /<@222222222222222222>/);
     assert.doesNotMatch(chunks[0].content, /<@333333333333333333>/);
+});
+
+test("buildSinHorasPingChunks en inglés", () => {
+    const { chunks } = buildSinHorasPingChunks(
+        {
+            pendingHours: [{ personaName: "Kami", discordUserId: "111111111111111111" }]
+        },
+        { lang: "en" }
+    );
+    assert.match(chunks[0].content, /Hours missing/);
+    assert.match(chunks[0].content, /Use.*\/mcv-horas/);
+    assert.match(chunks[0].content, /<@111111111111111111>/);
+});
+
+test("resolveSinHorasLang usa inglés para mcv-no-hours", () => {
+    assert.equal(resolveSinHorasLang({ locale: "es-ES" }, "mcv-no-hours"), "en");
+    assert.equal(resolveSinHorasLang({ locale: "en-US" }, "mcv-sin-horas"), "en");
+    assert.equal(resolveSinHorasLang({ locale: "es-419" }, "mcv-sin-horas"), "es");
 });
