@@ -32,6 +32,89 @@ function buildYoEmbed(stats) {
     return buildYoDetailEmbeds(stats, null)[0];
 }
 
+function isRealDiscordUserId(id) {
+    return /^\d{16,20}$/.test(String(id || "").trim());
+}
+
+/** Prefer fila con más puntos; desempate horas, Discord real y vínculo más reciente. */
+function isBetterTopRow(candidate, current) {
+    if (!current) {
+        return true;
+    }
+    const cScore = Number(candidate.performanceScore ?? 0);
+    const curScore = Number(current.performanceScore ?? 0);
+    if (cScore !== curScore) {
+        return cScore > curScore;
+    }
+    const cHours = Number(candidate.hoursPlayed ?? -1);
+    const curHours = Number(current.hoursPlayed ?? -1);
+    if (cHours !== curHours) {
+        return cHours > curHours;
+    }
+    const cReal = isRealDiscordUserId(candidate.discordUserId) ? 1 : 0;
+    const curReal = isRealDiscordUserId(current.discordUserId) ? 1 : 0;
+    if (cReal !== curReal) {
+        return cReal > curReal;
+    }
+    const cLinked = candidate.linkedAt ? new Date(candidate.linkedAt).getTime() : 0;
+    const curLinked = current.linkedAt ? new Date(current.linkedAt).getTime() : 0;
+    return cLinked > curLinked;
+}
+
+/** Un jugador por Steam y por nombre visible (evita duplicados por cuenta baneada u otro Discord). */
+function dedupeTopLeaderboardRows(rows) {
+    const list = Array.isArray(rows) ? rows : [];
+    const bySteam = new Map();
+    const withoutSteam = [];
+
+    for (const row of list) {
+        const steam = String(row.steamId64 || row.steam_id64 || "").trim();
+        if (!steam) {
+            withoutSteam.push(row);
+            continue;
+        }
+        const prev = bySteam.get(steam);
+        if (isBetterTopRow(row, prev)) {
+            bySteam.set(steam, row);
+        }
+    }
+
+    const byName = new Map();
+    for (const row of [...bySteam.values(), ...withoutSteam]) {
+        const name = displayName(row).toLowerCase().replace(/\s+/g, " ").trim();
+        if (!name) {
+            continue;
+        }
+        const prev = byName.get(name);
+        if (isBetterTopRow(row, prev)) {
+            byName.set(name, row);
+        }
+    }
+    return [...byName.values()];
+}
+
+async function loadGuildBannedUserIds(guild) {
+    if (!guild?.bans?.fetch) {
+        return new Set();
+    }
+    try {
+        const bans = await guild.bans.fetch();
+        return new Set(bans.map((ban) => ban.user?.id).filter(Boolean));
+    } catch (e) {
+        console.warn("mcv-top: no se pudieron cargar bans del servidor:", e.message);
+        return new Set();
+    }
+}
+
+function prepareTopLeaderboardRows(rows, { bannedDiscordIds } = {}) {
+    const banned = bannedDiscordIds instanceof Set ? bannedDiscordIds : new Set(bannedDiscordIds || []);
+    const filtered = (Array.isArray(rows) ? rows : []).filter((row) => {
+        const discordId = String(row.discordUserId || row.discord_user_id || "").trim();
+        return !discordId || !banned.has(discordId);
+    });
+    return dedupeTopLeaderboardRows(filtered);
+}
+
 function buildTopEmbed(rows, limit) {
     const lim = Math.min(Math.max(limit || 10, 5), 25);
     const top = [...rows]
@@ -174,8 +257,10 @@ function attachWipeYoTopDiscord(client, { getPool }) {
         await interaction.deferReply();
         try {
             const limit = interaction.options.getInteger("cantidad") || 10;
-            const report = await loadWipeHoursReport(pool);
-            await interaction.editReply({ embeds: [buildTopEmbed(report.rows, limit)] });
+            const report = filterReportToPlayingWipe(await loadWipeHoursReport(pool));
+            const bannedIds = await loadGuildBannedUserIds(interaction.guild);
+            const rows = prepareTopLeaderboardRows(report.rows, { bannedDiscordIds: bannedIds });
+            await interaction.editReply({ embeds: [buildTopEmbed(rows, limit)] });
         } catch (e) {
             console.error("mcv-top:", e.message);
             await interaction.editReply({ content: "No se pudo cargar el ranking. Probá de nuevo." });
@@ -188,6 +273,9 @@ module.exports = {
     buildMcTopSlashCommand,
     buildYoEmbed,
     buildTopEmbed,
+    dedupeTopLeaderboardRows,
+    prepareTopLeaderboardRows,
+    loadGuildBannedUserIds,
     assignWipeLinkedRole,
     startWipeReminderScheduler,
     attachWipeYoTopDiscord
