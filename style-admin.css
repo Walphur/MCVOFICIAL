@@ -7172,3 +7172,176 @@ select.admin-input {
     box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transform: translateY(-1px);
 }
+
+/* —— Admin UX v4: guía, leyenda, puntos estables —— */
+.vital-sidebar-brand__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.vital-sidebar-tagline {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(251, 191, 36, 0.72);
+}
+.vital-sidebar-section-title {
+    margin: 8px 10px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+.vital-sidebar-section-hint {
+    margin: 0 10px 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #64748b;
+}
+.vital-sidebar-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+}
+.vital-sidebar-field > span {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+.vital-risk-legend {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 6px;
+    padding: 8px 10px 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+.vital-risk-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: #94a3b8;
+    line-height: 1.2;
+}
+.vital-risk-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+.vital-risk-swatch--excellent { background: var(--ops-green, #3ecf8e); }
+.vital-risk-swatch--good { background: var(--ops-blue, #5b9cf5); }
+.vital-risk-swatch--risk { background: var(--ops-yellow, #f5c542); }
+.vital-risk-swatch--critical { background: var(--ops-red, #f87171); }
+
+.vital-onboarding-guide {
+    margin: 0 0 8px;
+    border: 1px solid rgba(250, 166, 26, 0.22);
+    border-radius: 10px;
+    background: linear-gradient(165deg, rgba(250, 166, 26, 0.07), rgba(0, 0, 0, 0.2));
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.vital-onboarding-guide > summary {
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fde68a;
+    cursor: pointer;
+    list-style: none;
+}
+.vital-onboarding-guide > summary::-webkit-details-marker { display: none; }
+.vital-onboarding-guide > summary::after {
+    content: "▾";
+    float: right;
+    color: #94a3b8;
+    font-size: 11px;
+}
+.vital-onboarding-guide[open] > summary::after { content: "▴"; }
+.vital-onboarding-steps {
+    margin: 0;
+    padding: 0 14px 12px 28px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #cbd5e1;
+}
+.vital-onboarding-steps li + li { margin-top: 6px; }
+.vital-onboarding-steps strong { color: #f4f4f5; font-weight: 600; }
+
+.vital-member-panel-head {
+    padding: 10px 12px 0;
+    flex-shrink: 0;
+}
+.vital-member-panel-title {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #e2e8f0;
+}
+.vital-member-panel-hint {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.ops-player-score-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-top: -2px;
+}
+
+.vital-member-list.is-syncing-points {
+    opacity: 0.82;
+    pointer-events: none;
+    transition: opacity 150ms ease;
+}
+.vital-member-list.is-syncing-points .ops-member-score {
+    filter: blur(0.4px);
+}
+
+.vital-tier-sync-status--compact {
+    display: block;
+    margin: 4px 10px 0;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #64748b;
+    min-height: 14px;
+}
+.vital-tier-sync-status--compact.is-error {
+    color: #fca5a5;
+}
+
+.vital-detail-empty-title {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #f4f4f5 !important;
+}
+.vital-detail-empty-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+    max-width: 28ch;
+    line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+    .vital-onboarding-guide { margin-bottom: 6px; }
+    .vital-risk-legend { grid-template-columns: 1fr; }
+}
