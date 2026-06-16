@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v10">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v11">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v10">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v11">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -2364,24 +2364,36 @@
         var steam = selected ? selected.steamId64 : String((document.getElementById('vital-info-steam') || {}).value || '');
         var risk = getPlayerRiskLevel(selected);
         var riskLabel = getPlayerRiskLabel(risk);
-        var bmLink = selected && selected.bmUrl
-            ? '<a class="ops-link" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BattleMetrics ↗</a>'
-            : '';
         var pts = selected ? getPlayerPoints(selected) : 0;
         var statusTag = selected ? (selected.statusTag || 'wipe_guest') : 'wipe_guest';
         var statusText = statusLabelFull(statusTag);
         if (selected && isPlayerPaused(selected)) statusText = 'Pausado / No juega';
+        var roleLabels = selected && selected.roleLabels && selected.roleLabels.length
+            ? selected.roleLabels
+            : (selected && selected.roleLabel ? [selected.roleLabel] : []);
+        var roleText = roleLabels.length
+            ? roleLabels.slice(0, 3).join(' · ') + (roleLabels.length > 3 ? ' +' + (roleLabels.length - 3) : '')
+            : '';
+        var wipeText = selected
+            ? (isPlayerPaused(selected) ? 'Pausado' : wipePhaseLabel(selected.wipePhase))
+            : '';
+        var bmChip = selected && selected.bmUrl
+            ? '<a class="vital-hero-chip vital-hero-chip--link ops-link" href="' + escAttr(selected.bmUrl) + '" target="_blank" rel="noopener">BattleMetrics ↗</a>'
+            : (selected ? '<span class="vital-hero-chip vital-hero-chip--muted">Sin BM</span>' : '');
         box.innerHTML =
             '<div class="vital-player-hero ops-risk--' + escAttr(risk) + '">' +
             '<div class="vital-player-hero__identity">' +
-            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 64) +
+            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 56) +
             '<div class="vital-player-hero__meta">' +
             '<h2 class="vital-player-hero__name">' + esc(name) + '</h2>' +
-            '<div class="vital-player-hero__sub">' +
-            '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
-            '<span class="ops-pill ops-pill--status">' + esc(statusText) + '</span>' +
-            (bmLink ? bmLink : '') +
-            '</div></div></div>' +
+            '<div class="vital-player-hero__details">' +
+            '<code class="ops-player-steam vital-player-hero__steam">' + esc(steam || 'Steam pendiente') + '</code>' +
+            '<div class="vital-player-hero__chips">' +
+            '<span class="vital-hero-chip">' + esc(statusText) + '</span>' +
+            (wipeText && wipeText !== '—' ? '<span class="vital-hero-chip vital-hero-chip--wipe">' + esc(wipeText) + '</span>' : '') +
+            (roleText ? '<span class="vital-hero-chip vital-hero-chip--role">' + esc(roleText) + '</span>' : '') +
+            bmChip +
+            '</div></div></div></div>' +
             '<div class="vital-player-hero__score">' +
             '<span class="vital-player-hero__score-label">Puntos actuales</span>' +
             '<span class="vital-player-hero__score-value">' + esc(String(pts)) + '</span>' +
