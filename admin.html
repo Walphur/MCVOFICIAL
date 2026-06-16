@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-layout-v8b">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v9">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-layout-v8b">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v9">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -383,19 +383,21 @@
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
                     <div class="vital-split">
                         <div class="vital-member-panel">
-                            <div id="vital-quick-filters" class="vital-filter-bar" aria-label="Filtros">
-                                <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
-                                <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
-                                <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
-                                <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
-                                <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
-                                <button type="button" class="vital-qchip is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
-                            </div>
-                            <div class="vital-member-toolbar vital-member-toolbar--compact">
-                                <input id="vital-info-search" class="vital-input-compact" type="search" placeholder="Buscar jugador..." />
-                                <div class="vital-member-toolbar__actions">
-                                    <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
-                                    <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
+                            <div class="vital-list-toolbar">
+                                <div class="vital-list-toolbar__row">
+                                    <input id="vital-info-search" class="vital-input-compact vital-list-search" type="search" placeholder="Buscar jugador..." />
+                                    <div class="vital-list-toolbar__actions">
+                                        <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
+                                        <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
+                                    </div>
+                                </div>
+                                <div id="vital-quick-filters" class="vital-list-toolbar__filters" aria-label="Filtros">
+                                    <button type="button" class="vital-qchip" data-vital-cohort="all"><span class="vital-qchip-label">Todos</span> <span class="vital-qchip-count" data-qcount="all">0</span></button>
+                                    <button type="button" class="vital-qchip is-active" data-vital-cohort="active"><span class="vital-qchip-label">Juegan</span> <span class="vital-qchip-count" data-qcount="active">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="paused"><span class="vital-qchip-label">Pausados</span> <span class="vital-qchip-count" data-qcount="paused">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="strikes"><span class="vital-qchip-label">Strikes</span> <span class="vital-qchip-count" data-qcount="strikes">0</span></button>
+                                    <button type="button" class="vital-qchip" data-vital-cohort="no-hours" title="Sin horas"><span class="vital-qchip-label">Sin horas</span> <span class="vital-qchip-count" data-qcount="no-hours">0</span></button>
+                                    <button type="button" class="vital-qchip vital-qchip--sort is-active" data-vital-sort="points" title="Ordenar por puntos"><span class="vital-qchip-label">Pts</span> <span class="vital-qchip-count" data-qcount="points">↓</span></button>
                                 </div>
                             </div>
                             <div id="vital-info-list" class="vital-member-list"><p class="empty-hint">Cargando…</p></div>
@@ -417,24 +419,33 @@
                                 </div>
                                 <div class="vital-detail-body">
                                     <div class="vital-detail-pane active" data-detail-pane="general">
-                                        <section class="vital-form-section">
-                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Datos personales</h3></header>
-                                            <div class="vital-form-section__body vital-form-grid">
+                                        <div class="vital-profile-cards">
+                                        <section class="vital-ui-card">
+                                            <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Datos personales</h3></header>
+                                            <div class="vital-ui-card__body vital-form-grid">
                                                 <label class="vital-field"><span>Nombre</span><input id="vital-info-name" class="admin-input" /></label>
-                                                <label class="vital-field vital-field--new-only" id="vital-field-steam"><span>ID de Steam (17 números)</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
-                                                <label class="vital-field vital-field--wide"><span>Link BattleMetrics</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
+                                                <label class="vital-field vital-field--new-only" id="vital-field-steam"><span>Steam ID (17 dígitos)</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
                                             </div>
                                         </section>
-                                        <section class="vital-form-section">
-                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Estado en el clan</h3><p class="vital-form-section__hint">Invitado = trial del wipe · Activo MCV = miembro · Admin = staff con acceso.</p></header>
-                                            <div class="vital-form-section__body vital-form-grid">
+                                        <section class="vital-ui-card">
+                                            <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">BattleMetrics</h3></header>
+                                            <div class="vital-ui-card__body vital-form-grid">
+                                                <label class="vital-field vital-field--wide"><span>Link del jugador</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
+                                                <div class="vital-field vital-field--action">
+                                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-info-bm-hours">Traer horas BM</button>
+                                                </div>
+                                            </div>
+                                        </section>
+                                        <section class="vital-ui-card">
+                                            <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Estado en el clan</h3></header>
+                                            <div class="vital-ui-card__body vital-form-grid">
                                                 <label class="vital-field"><span>Estado</span><select id="vital-info-status" class="admin-input">
                                                     <option value="wipe_guest">Invitado al wipe</option>
                                                     <option value="admin">Admin</option>
                                                     <option value="mcv_active">Activo en MCV</option>
                                                 </select></label>
                                                 <div class="vital-field vital-field--wide vital-roles-field">
-                                                    <span>Roles (varios)</span>
+                                                    <span>Roles</span>
                                                     <div id="vital-info-roles-selected" class="vital-roles-selected" aria-live="polite"></div>
                                                     <select id="vital-info-role-select" class="admin-input"><option value="">+ Agregar rol…</option></select>
                                                     <div class="vital-role-presets" id="vital-role-presets" aria-label="Roles rápidos"></div>
@@ -442,20 +453,17 @@
                                                 <input type="hidden" id="vital-info-role" />
                                             </div>
                                         </section>
-                                        <section class="vital-form-section">
-                                            <header class="vital-form-section__head"><h3 class="vital-form-section__title">Tracking</h3><p class="vital-form-section__hint">Horas Steam desde Discord (#playtime + /mcv-horas) o manual con BM.</p></header>
-                                            <div class="vital-form-section__body vital-form-grid">
+                                        <section class="vital-ui-card">
+                                            <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Información adicional</h3></header>
+                                            <div class="vital-ui-card__body vital-form-grid">
                                                 <label class="vital-field"><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
                                                 <label class="vital-field"><span>Vouch</span><input id="vital-info-vouch" class="admin-input" /></label>
                                                 <label class="vital-field"><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" step="1" /></label>
                                                 <input type="hidden" id="vital-info-combats-lost" value="0" />
                                                 <input type="hidden" id="vital-info-minis-lost" value="0" />
-                                                <div class="vital-field vital-field--action">
-                                                    <span class="vital-field__action-label">BattleMetrics</span>
-                                                    <button type="button" class="btn-outline btn-sm" id="btn-vital-info-bm-hours">Traer horas BM</button>
-                                                </div>
                                             </div>
                                         </section>
+                                        </div>
                                     </div>
                                     <div class="vital-detail-pane" data-detail-pane="wipe">
                                         <section class="vital-form-section vital-form-section--solo">
@@ -2361,19 +2369,19 @@
         if (selected && isPlayerPaused(selected)) statusText = 'Pausado / No juega';
         box.innerHTML =
             '<div class="vital-player-hero ops-risk--' + escAttr(risk) + '">' +
-            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 48) +
+            '<div class="vital-player-hero__identity">' +
+            renderSteamAvatar(selected || { displayName: name }, risk, 'ops-player-avatar', 52) +
             '<div class="vital-player-hero__meta">' +
-            '<div class="vital-player-hero__name-row">' +
             '<h2 class="vital-player-hero__name">' + esc(name) + '</h2>' +
-            '<span class="ops-pill ops-pill--status">' + esc(statusText) + '</span>' +
-            '</div>' +
             '<div class="vital-player-hero__sub">' +
             '<code class="ops-player-steam">' + esc(steam || 'Steam pendiente') + '</code>' +
+            '<span class="ops-pill ops-pill--status">' + esc(statusText) + '</span>' +
             (bmLink ? bmLink : '') +
-            '</div></div>' +
-            '<div class="vital-player-kpi">' +
-            '<span class="vital-player-kpi__value">' + esc(String(pts)) + '</span>' +
-            '<span class="ops-pill ops-pill--' + escAttr(risk) + '">' + esc(riskLabel) + '</span>' +
+            '</div></div></div>' +
+            '<div class="vital-player-hero__score">' +
+            '<span class="vital-player-hero__score-label">Puntos actuales</span>' +
+            '<span class="vital-player-hero__score-value">' + esc(String(pts)) + '</span>' +
+            '<span class="ops-pill ops-pill--' + escAttr(risk) + ' vital-player-hero__score-pill">' + esc(riskLabel.toUpperCase()) + '</span>' +
             '</div></div>';
         syncWipeSegmentUI();
         renderVitalDetailLogs();
@@ -4352,28 +4360,26 @@
             var strikes = Number(r.strikes || 0);
             var pts = getPlayerPoints(r);
             var risk = getPlayerRiskLevel(r);
-            var subParts = [];
-            if (paused) subParts.push('Pausado');
-            else subParts.push(esc(wipePhaseLabel(r.wipePhase)));
-            if (strikes > 0) subParts.push(strikes + ' strike' + (strikes === 1 ? '' : 's'));
-            if (playerMissingPlaytimeHours(r) && !paused) subParts.push('Sin horas');
-            var sub = subParts.join(' · ');
+            var statusText = paused ? 'Pausado' : wipePhaseLabel(r.wipePhase);
+            var statusCls = paused ? ' ops-status-badge--paused' : '';
             var roleLabel = (r.roleLabels && r.roleLabels.length) ? r.roleLabels[0] : (r.roleLabel || '');
             var roleBadge = roleLabel
                 ? '<span class="ops-role-badge" title="' + escAttr(roleLabel) + '">' + esc(roleLabel) + '</span>'
-                : '';
+                : '<span class="ops-role-badge ops-role-badge--empty">Sin rol</span>';
             var ptsCls = pts > 0 ? ' is-positive' : (pts < 0 ? ' is-negative' : '');
-            return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '" title="' + escAttr(r.displayName || r.steamId64) + '">' +
-                '<span class="ops-member-rail" aria-hidden="true"></span>' +
-                renderSteamAvatar(r, risk, 'ops-member-avatar', 48) +
+            return '<button type="button" class="ops-member-row' + active + (paused ? ' is-paused-row' : '') + ' ops-risk--' + escAttr(risk) + '" data-steam="' + escAttr(r.steamId64) + '">' +
+                renderSteamAvatar(r, risk, 'ops-member-avatar', 44) +
                 '<span class="ops-member-body">' +
                 '<span class="ops-member-name-row">' +
                 '<span class="ops-member-name">' + esc(r.displayName || r.steamId64) + '</span>' +
                 roleBadge +
                 '</span>' +
-                '<span class="ops-member-sub">' + sub + '</span>' +
-                '</span>' +
-                '<span class="ops-member-score' + ptsCls + (paused ? ' is-muted' : '') + '" title="Puntos">' + esc(String(pts)) + '</span>' +
+                '<span class="ops-member-meta">' +
+                '<span class="ops-status-badge' + statusCls + '">' + esc(statusText) + '</span>' +
+                (strikes > 0 ? '<span class="ops-meta-tag">' + strikes + ' strike' + (strikes === 1 ? '' : 's') + '</span>' : '') +
+                (playerMissingPlaytimeHours(r) && !paused ? '<span class="ops-meta-tag ops-meta-tag--warn">Sin horas</span>' : '') +
+                '</span></span>' +
+                '<span class="ops-member-score' + ptsCls + (paused ? ' is-muted' : '') + '">' + esc(String(pts)) + '</span>' +
                 '</button>';
         }).join('');
     }
