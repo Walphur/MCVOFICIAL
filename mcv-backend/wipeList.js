@@ -13,7 +13,7 @@ const {
 } = require("discord.js");
 const { ensurePlayerInfoTable, normalizeSteamId64 } = require("./vitalRustApi");
 const { buildMcHorasSlashCommand } = require("./playtimeSync");
-const { buildMcReporteSlashCommand } = require("./wipeReport");
+const { buildMcReporteSlashCommand, buildMcSinHorasSlashCommand } = require("./wipeReport");
 const { buildMcYoSlashCommand, buildMcTopSlashCommand, assignWipeLinkedRole } = require("./wipeDiscordExtras");
 const { buildMcAsistenciaSlashCommand } = require("./wipeAttendance");
 
@@ -396,13 +396,14 @@ async function registerSlashCommands(client, guildId) {
         .toJSON();
     const cmdHoras = buildMcHorasSlashCommand();
     const cmdReporte = buildMcReporteSlashCommand();
+    const cmdSinHoras = buildMcSinHorasSlashCommand();
     const cmdYo = buildMcYoSlashCommand();
     const cmdTop = buildMcTopSlashCommand();
     const cmdAsistencia = buildMcAsistenciaSlashCommand();
 
     const rest = new REST({ version: "10" }).setToken(token);
     await rest.put(Routes.applicationGuildCommands(appId, guildId), {
-        body: [cmdWipe, cmdCreateUser, cmdHoras, cmdReporte, cmdYo, cmdTop, cmdAsistencia]
+        body: [cmdWipe, cmdCreateUser, cmdHoras, cmdReporte, cmdSinHoras, cmdYo, cmdTop, cmdAsistencia]
     });
     console.log(`Discord: comandos wipe/perfil/asistencia registrados en guild ${guildId}.`);
 }

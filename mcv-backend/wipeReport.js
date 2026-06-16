@@ -229,6 +229,102 @@ function buildMcReporteSlashCommand() {
         .toJSON();
 }
 
+function buildMcSinHorasSlashCommand() {
+    return new SlashCommandBuilder()
+        .setName("mcv-sin-horas")
+        .setDescription("Etiqueta a quien tiene Steam vinculado pero no cargó horas del wipe")
+        .addBooleanOption((o) =>
+            o.setName("privado").setDescription("Si true, solo vos ves el mensaje (sin ping en el canal)").setRequired(false)
+        )
+        .addBooleanOption((o) =>
+            o
+                .setName("sin_etiquetar")
+                .setDescription("Solo listar nombres, sin @mentions")
+                .setRequired(false)
+        )
+        .toJSON();
+}
+
+const DISCORD_MENTION_ID_RE = /^[0-9]{16,20}$/;
+
+function collectPendingDiscordUserIds(report) {
+    const pending = report?.pendingHours || [];
+    const ids = pending
+        .map((row) => String(row.discordUserId || row.discord_user_id || "").trim())
+        .filter((id) => DISCORD_MENTION_ID_RE.test(id));
+    return [...new Set(ids)];
+}
+
+/**
+ * Genera uno o más mensajes con @mentions para quien falta cargar horas.
+ * @returns {{ chunks: Array<{ content: string, userIds: string[] }>, totalPending: number }}
+ */
+function buildSinHorasPingChunks(report, { noMentions = false, maxMentionsPerChunk = 40 } = {}) {
+    const pending = report?.pendingHours || [];
+    const totalPending = pending.length;
+    const footer =
+        "\n\nUsá **`/mcv-horas`** o posteá en #playtime (ej. `31h`). Sin Steam: **`/mcv-wipe`**";
+
+    if (!totalPending) {
+        return {
+            chunks: [{ content: "✅ Todos los vinculados con Steam ya tienen horas cargadas.", userIds: [] }],
+            totalPending: 0
+        };
+    }
+
+    const header = `⏰ **Faltan cargar horas** (${totalPending} jugador${totalPending === 1 ? "" : "es"})\n\n`;
+
+    if (noMentions) {
+        const lines = pending.map((row) => `• **${displayName(row)}**`);
+        const lineChunks = chunkLines(lines, 1700);
+        const chunks = lineChunks.map((chunk, idx) => ({
+            content:
+                (idx === 0 ? header : `⏰ **Sin horas** (${idx + 1})\n\n`) +
+                chunk +
+                (idx === lineChunks.length - 1 ? footer : ""),
+            userIds: []
+        }));
+        return { chunks, totalPending };
+    }
+
+    const userIds = collectPendingDiscordUserIds(report);
+    if (!userIds.length) {
+        const names = pending
+            .slice(0, 40)
+            .map((row) => `• **${displayName(row)}**`)
+            .join("\n");
+        const extra = pending.length > 40 ? `\n_…y ${pending.length - 40} más_` : "";
+        return {
+            chunks: [
+                {
+                    content: `${header}${names}${extra}${footer}\n\n_Sin Discord vinculado para @ — usá \`/mcv-wipe\`._`,
+                    userIds: []
+                }
+            ],
+            totalPending
+        };
+    }
+
+    const chunks = [];
+    for (let i = 0; i < userIds.length; i += maxMentionsPerChunk) {
+        const batch = userIds.slice(i, i + maxMentionsPerChunk);
+        const isFirst = chunks.length === 0;
+        const isLast = i + maxMentionsPerChunk >= userIds.length;
+        let content =
+            (isFirst ? header : `⏰ **Sin horas** (continuación ${chunks.length + 1})\n\n`) +
+            batch.map((id) => `<@${id}>`).join(" ");
+        if (isLast) {
+            content += footer;
+            if (pending.length > userIds.length) {
+                content += `\n\n_${pending.length - userIds.length} en la lista sin Discord real para etiquetar._`;
+            }
+        }
+        chunks.push({ content, userIds: batch });
+    }
+
+    return { chunks, totalPending };
+}
+
 function canRunWipeReport(interaction) {
     if (String(process.env.MCV_WIPE_REPORT_STAFF_ONLY || "").trim() !== "1") {
         return true;
@@ -265,12 +361,16 @@ function filterReport(report, filtro) {
 
 function attachWipeReportDiscord(client, { getPool }) {
     client.on("interactionCreate", async (interaction) => {
-        if (!interaction.isChatInputCommand() || interaction.commandName !== "mcv-reporte") {
+        if (!interaction.isChatInputCommand()) {
+            return;
+        }
+        const cmd = interaction.commandName;
+        if (cmd !== "mcv-reporte" && cmd !== "mcv-sin-horas") {
             return;
         }
         if (!canRunWipeReport(interaction)) {
             await interaction.reply({
-                content: "No tenés permiso para ver el reporte. Pedí a staff si lo necesitás.",
+                content: "No tenés permiso para este comando. Pedí a staff si lo necesitás.",
                 ephemeral: true
             });
             return;
@@ -280,6 +380,39 @@ function attachWipeReportDiscord(client, { getPool }) {
             await interaction.reply({ content: "El servidor no tiene base de datos configurada.", ephemeral: true });
             return;
         }
+
+        if (cmd === "mcv-sin-horas") {
+            const privado = interaction.options.getBoolean("privado") === true;
+            const sinEtiquetar = interaction.options.getBoolean("sin_etiquetar") === true;
+            await interaction.deferReply({ ephemeral: privado });
+            try {
+                const report = await loadWipeHoursReport(pool);
+                const { chunks, totalPending } = buildSinHorasPingChunks(report, { noMentions: sinEtiquetar });
+                const first = chunks[0] || { content: "Sin datos.", userIds: [] };
+                await interaction.editReply({
+                    content: first.content,
+                    allowedMentions: first.userIds.length ? { users: first.userIds } : { parse: [] }
+                });
+                for (let i = 1; i < chunks.length; i += 1) {
+                    const part = chunks[i];
+                    await interaction.followUp({
+                        content: part.content,
+                        allowedMentions: part.userIds.length ? { users: part.userIds } : { parse: [] },
+                        ephemeral: privado
+                    });
+                }
+                if (totalPending > 0 && !privado && !sinEtiquetar && first.userIds.length) {
+                    console.log(`mcv-sin-horas: ${totalPending} pendientes, ${collectPendingDiscordUserIds(report).length} mentions`);
+                }
+            } catch (e) {
+                console.error("mcv-sin-horas:", e.message);
+                await interaction.editReply({
+                    content: "No se pudo generar el listado. Probá de nuevo en unos segundos."
+                });
+            }
+            return;
+        }
+
         const filtro = interaction.options.getString("filtro") || "todos";
         const privado = interaction.options.getBoolean("privado") === true;
         const ephemeral = privado;
@@ -303,6 +436,9 @@ module.exports = {
     buildWipeReportEmbeds,
     formatPlayerLine,
     buildMcReporteSlashCommand,
+    buildMcSinHorasSlashCommand,
+    buildSinHorasPingChunks,
+    collectPendingDiscordUserIds,
     attachWipeReportDiscord,
     canRunWipeReport,
     filterReport

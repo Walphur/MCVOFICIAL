@@ -5,7 +5,9 @@ const assert = require("node:assert/strict");
 const {
     buildWipeReportEmbeds,
     formatPlayerLine,
-    filterReport
+    filterReport,
+    buildSinHorasPingChunks,
+    collectPendingDiscordUserIds
 } = require("../wipeReport");
 
 test("formatPlayerLine muestra horas, puntos y sin @discord", () => {
@@ -67,4 +69,41 @@ test("buildWipeReportEmbeds incluye resumen y listas", () => {
     assert.match(allText, /Vinculados Discord/);
     assert.match(allText, /Kami/);
     assert.match(allText, /80 pts/);
+});
+
+test("buildSinHorasPingChunks etiqueta Discord IDs reales", () => {
+    const report = {
+        pendingHours: [
+            { persona_name: "Kami", discordUserId: "111111111111111111", hoursPlayed: null },
+            { persona_name: "Checha", discordUserId: "222222222222222222", hoursPlayed: 0 },
+            { persona_name: "Hex", discordUserId: "wipehx:abc", hoursPlayed: null }
+        ]
+    };
+    assert.deepEqual(collectPendingDiscordUserIds(report), [
+        "111111111111111111",
+        "222222222222222222"
+    ]);
+    const { chunks, totalPending } = buildSinHorasPingChunks(report);
+    assert.equal(totalPending, 3);
+    assert.match(chunks[0].content, /<@111111111111111111>/);
+    assert.match(chunks[0].content, /<@222222222222222222>/);
+    assert.equal(chunks[0].userIds.length, 2);
+    assert.match(chunks[0].content, /mcv-horas/);
+});
+
+test("buildSinHorasPingChunks sin pendientes", () => {
+    const { chunks, totalPending } = buildSinHorasPingChunks({ pendingHours: [] });
+    assert.equal(totalPending, 0);
+    assert.match(chunks[0].content, /Todos los vinculados/);
+});
+
+test("buildSinHorasPingChunks sin_etiquetar lista nombres", () => {
+    const { chunks } = buildSinHorasPingChunks(
+        {
+            pendingHours: [{ personaName: "Tato", discordUserId: "333333333333333333" }]
+        },
+        { noMentions: true }
+    );
+    assert.match(chunks[0].content, /Tato/);
+    assert.doesNotMatch(chunks[0].content, /@/);
 });
