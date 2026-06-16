@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v9b">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v10">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v9b">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v10">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -422,14 +422,14 @@
                                         <div class="vital-profile-cards">
                                         <section class="vital-ui-card">
                                             <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Datos personales</h3></header>
-                                            <div class="vital-ui-card__body vital-form-grid">
+                                            <div class="vital-ui-card__body vital-form-grid vital-form-grid--card">
                                                 <label class="vital-field"><span>Nombre</span><input id="vital-info-name" class="admin-input" /></label>
                                                 <label class="vital-field vital-field--new-only" id="vital-field-steam"><span>Steam ID (17 dígitos)</span><input id="vital-info-steam" class="admin-input" placeholder="7656119..." /></label>
                                             </div>
                                         </section>
                                         <section class="vital-ui-card">
                                             <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">BattleMetrics</h3></header>
-                                            <div class="vital-ui-card__body vital-form-grid">
+                                            <div class="vital-ui-card__body vital-form-grid vital-form-grid--card">
                                                 <label class="vital-field vital-field--wide"><span>Link del jugador</span><input id="vital-info-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." /></label>
                                                 <div class="vital-field vital-field--action">
                                                     <button type="button" class="btn-outline btn-sm" id="btn-vital-info-bm-hours">Traer horas BM</button>
@@ -438,14 +438,18 @@
                                         </section>
                                         <section class="vital-ui-card">
                                             <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Estado en el clan</h3></header>
-                                            <div class="vital-ui-card__body vital-form-grid">
+                                            <div class="vital-ui-card__body vital-form-grid vital-form-grid--card">
                                                 <label class="vital-field"><span>Estado</span><select id="vital-info-status" class="admin-input">
                                                     <option value="wipe_guest">Invitado al wipe</option>
                                                     <option value="admin">Admin</option>
                                                     <option value="mcv_active">Activo en MCV</option>
                                                 </select></label>
+                                            </div>
+                                        </section>
+                                        <section class="vital-ui-card">
+                                            <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Roles</h3></header>
+                                            <div class="vital-ui-card__body vital-form-grid vital-form-grid--card">
                                                 <div class="vital-field vital-field--wide vital-roles-field">
-                                                    <span>Roles</span>
                                                     <div id="vital-info-roles-selected" class="vital-roles-selected" aria-live="polite"></div>
                                                     <select id="vital-info-role-select" class="admin-input"><option value="">+ Agregar rol…</option></select>
                                                     <div class="vital-role-presets" id="vital-role-presets" aria-label="Roles rápidos"></div>
@@ -453,9 +457,9 @@
                                                 <input type="hidden" id="vital-info-role" />
                                             </div>
                                         </section>
-                                        <section class="vital-ui-card">
+                                        <section class="vital-ui-card vital-ui-card--full">
                                             <header class="vital-ui-card__head"><h3 class="vital-ui-card__title">Información adicional</h3></header>
-                                            <div class="vital-ui-card__body vital-form-grid">
+                                            <div class="vital-ui-card__body vital-form-grid vital-form-grid--extras">
                                                 <label class="vital-field"><span>Entrada</span><input id="vital-info-entry" class="admin-input" type="date" /></label>
                                                 <label class="vital-field"><span>Vouch</span><input id="vital-info-vouch" class="admin-input" /></label>
                                                 <label class="vital-field"><span>Horas jugadas</span><input id="vital-info-hours" class="admin-input" type="number" min="0" step="1" /></label>
