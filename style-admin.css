@@ -10137,3 +10137,42 @@ body.admin-body .admin-main {
     height: 14px;
     color: #86efac;
 }
+
+/* —— Premium v15: tarjeta Estado compacta —— */
+#vital-info-panel.vital-workspace .vital-profile-cards {
+    align-items: start !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card[data-vital-card="roles"] {
+    align-self: stretch !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact[data-vital-card="estado"] {
+    align-self: start !important;
+    height: auto !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-ui-card__head {
+    padding: 3px 8px 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-ui-card__title {
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-ui-card__body--compact {
+    padding: 2px 8px 5px !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-form-grid--card {
+    gap: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-field--compact {
+    margin: 0 !important;
+    gap: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-field--compact > span {
+    display: none !important;
+}
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-field--compact .admin-input,
+#vital-info-panel.vital-workspace .vital-ui-card--compact .vital-field--compact select.admin-input {
+    min-height: 28px !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+    font-size: 11px !important;
+}
