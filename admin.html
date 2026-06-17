@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v13">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-02-premium-v14">
     <script src="mcv-assets.js?v=2026-06-11-v6"></script>
-    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v13">
+    <meta name="mcv-admin-build" content="2026-06-02-vital-premium-v14">
 </head>
 <body class="admin-body" data-mcv-page="admin">
 
@@ -298,28 +298,28 @@
             </header>
             <div class="vital-kpi-grid" id="vital-kpi-grid" aria-label="Resumen del roster">
                 <article class="vital-kpi-card">
-                    <span class="vital-kpi-card__icon" aria-hidden="true">👥</span>
+                    <span class="vital-kpi-card__icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                     <div class="vital-kpi-card__body">
                         <span class="vital-kpi-card__value" data-kpi="all">0</span>
                         <span class="vital-kpi-card__label">Jugadores</span>
                     </div>
                 </article>
                 <article class="vital-kpi-card vital-kpi-card--green">
-                    <span class="vital-kpi-card__icon" aria-hidden="true">🟢</span>
+                    <span class="vital-kpi-card__icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
                     <div class="vital-kpi-card__body">
                         <span class="vital-kpi-card__value" data-kpi="active">0</span>
                         <span class="vital-kpi-card__label">En wipe</span>
                     </div>
                 </article>
                 <article class="vital-kpi-card vital-kpi-card--muted">
-                    <span class="vital-kpi-card__icon" aria-hidden="true">⏸</span>
+                    <span class="vital-kpi-card__icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M10 5v14"/><path d="M14 5v14"/></svg></span>
                     <div class="vital-kpi-card__body">
                         <span class="vital-kpi-card__value" data-kpi="paused">0</span>
                         <span class="vital-kpi-card__label">Pausados</span>
                     </div>
                 </article>
                 <article class="vital-kpi-card vital-kpi-card--warn">
-                    <span class="vital-kpi-card__icon" aria-hidden="true">⚠</span>
+                    <span class="vital-kpi-card__icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
                     <div class="vital-kpi-card__body">
                         <span class="vital-kpi-card__value" data-kpi="strikes">0</span>
                         <span class="vital-kpi-card__label">Strikes</span>
@@ -331,7 +331,7 @@
                     <div class="vital-rail__scroll">
                         <section class="vital-puntos-panel" id="vital-puntos-panel">
                             <button type="button" class="vital-puntos-toggle" id="btn-vital-puntos-toggle" aria-expanded="true" title="Puntos Vital">
-                                <span class="vital-puntos-toggle__icon" aria-hidden="true">⚡</span>
+                                <span class="vital-puntos-toggle__icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 9 10-12h-9l1-9z"/></svg></span>
                                 <span class="vital-puntos-toggle__label">Puntos Vital</span>
                             </button>
                             <div class="vital-puntos-body" id="vital-puntos-body">
@@ -354,17 +354,17 @@
                                             <option value="">Cargando wipes…</option>
                                         </select>
                                     </label>
-                                    <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos">↻ Recalcular</button>
+                                    <button type="button" class="btn-primary-small btn-sm vital-recalc-btn" id="btn-vital-tier-recalc" title="Recalcula stats Vital y guarda puntos"><svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Recalcular</button>
                                 </div>
                                 <span id="vital-tier-sync-status" class="vital-tier-sync-status vital-tier-sync-status--compact" aria-live="polite"></span>
                             </div>
                         </section>
                         <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
-                            <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true">👤</span><span class="vital-nav-label">Jugadores</span></button>
-                            <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true">➕</span><span class="vital-nav-label">Extras</span></button>
-                            <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true">🏷</span><span class="vital-nav-label">Roles</span></button>
-                            <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true">📥</span><span class="vital-nav-label">Importar</span></button>
-                            <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true">📋</span><span class="vital-nav-label">Logs</span></button>
+                            <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="vital-nav-label">Jugadores</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="vital-nav-label">Extras</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l7.59-7.59a1 1 0 0 0 0-1.41L12 2z"/><circle cx="7" cy="7" r="1.5"/></svg></span><span class="vital-nav-label">Roles</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0l4-4m-4 4l-4-4"/><path d="M5 21h14"/></svg></span><span class="vital-nav-label">Importar</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span><span class="vital-nav-label">Logs</span></button>
                         </nav>
                         <details class="vital-sidebar-tools">
                             <summary>Herramientas</summary>
@@ -377,7 +377,7 @@
                             </div>
                         </details>
                     </div>
-                    <button type="button" class="vital-rail-collapse" id="btn-vital-rail-collapse" aria-label="Colapsar barra lateral" title="Colapsar">◀</button>
+                    <button type="button" class="vital-rail-collapse" id="btn-vital-rail-collapse" aria-label="Colapsar barra lateral" title="Colapsar"><svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
                 </aside>
                 <div class="vital-workspace-main vital-app-main">
                 <section class="vital-subpanel vital-subpanel--jugadores" data-vital-section="jugadores">
@@ -387,8 +387,8 @@
                                 <div class="vital-list-toolbar__row">
                                     <input id="vital-info-search" class="vital-input-compact vital-list-search" type="search" placeholder="Buscar jugador..." />
                                     <div class="vital-list-toolbar__actions">
-                                        <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><span class="vital-icon-glyph" aria-hidden="true">+</span></button>
-                                        <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><span class="vital-icon-glyph" aria-hidden="true">↻</span></button>
+                                        <button type="button" class="vital-icon-only" id="btn-vital-new-player" title="Nuevo jugador" aria-label="Nuevo jugador"><svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+                                        <button type="button" class="vital-icon-only" id="btn-vital-info-refresh" title="Actualizar" aria-label="Actualizar"><svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
                                     </div>
                                 </div>
                                 <div id="vital-quick-filters" class="vital-list-toolbar__filters" aria-label="Filtros">
@@ -2280,10 +2280,14 @@
         btn.classList.add(success ? 'is-saved' : 'is-error');
         var prev = btn.getAttribute('data-label') || btn.textContent;
         if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', prev);
-        btn.textContent = success ? '✓ Guardado' : 'Error al guardar';
+        if (success) {
+            btn.innerHTML = '<svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg> Guardado';
+        } else {
+            btn.textContent = 'Error al guardar';
+        }
         setTimeout(function () {
             btn.classList.remove('is-saved', 'is-error');
-            btn.textContent = btn.getAttribute('data-label') || 'Guardar cambios';
+            btn.textContent = btn.getAttribute('data-label') || 'Guardar';
         }, 1800);
     }
 
@@ -2687,7 +2691,7 @@
         if (!items || !items.length) {
             return '<section class="vital-compliance-section is-ok">' +
                 '<h4>' + esc(title) + '</h4>' +
-                '<p class="vital-compliance-empty">Nadie pendiente ✓</p></section>';
+                '<p class="vital-compliance-empty"><svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg> Nadie pendiente</p></section>';
         }
         return '<section class="vital-compliance-section">' +
             '<h4>' + esc(title) + ' <span class="vital-compliance-count">' + items.length + '</span></h4>' +
@@ -2882,10 +2886,10 @@
             } catch (e) {}
             railBtn.addEventListener('click', function () {
                 shell.classList.toggle('is-rail-collapsed');
-                railBtn.textContent = shell.classList.contains('is-rail-collapsed') ? '▶' : '◀';
+                railBtn.innerHTML = vitalRailCollapseIcon(shell.classList.contains('is-rail-collapsed'));
                 try { localStorage.setItem(LS_RAIL, shell.classList.contains('is-rail-collapsed') ? '1' : '0'); } catch (e) {}
             });
-            if (shell.classList.contains('is-rail-collapsed')) railBtn.textContent = '▶';
+            if (shell.classList.contains('is-rail-collapsed')) railBtn.innerHTML = vitalRailCollapseIcon(true);
         }
     }
 
@@ -3207,7 +3211,7 @@
                 '<span class="vital-timeline-card__delta">' + esc(parsed.penalty) + '</span>' +
                 '</header>' +
                 '<div class="vital-timeline-card__body">' +
-                '<span class="vital-perf-stat-icon ' + escAttr(parsed.iconCls) + '" aria-hidden="true">' + vitalStatIconChar(parsed.iconCls) + '</span>' +
+                '<span class="vital-perf-stat-icon ' + escAttr(parsed.iconCls) + '" aria-hidden="true">' + vitalStatIconSvg(parsed.iconCls) + '</span>' +
                 '<div>' +
                 '<strong>' + esc(parsed.title) + '</strong>' +
                 (parsed.detail ? '<p>' + esc(parsed.detail) + '</p>' : '') +
@@ -3582,10 +3586,18 @@
         return 'is-warn';
     }
 
-    function vitalStatIconChar(cls) {
-        if (cls === 'is-strong') return '✓';
-        if (cls === 'is-weak') return '✕';
-        return '';
+    function vitalRailCollapseIcon(collapsed) {
+        return collapsed
+            ? '<svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>'
+            : '<svg class="vital-ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+    }
+
+    function vitalStatIconSvg(cls) {
+        var path;
+        if (cls === 'is-strong') path = '<path d="M20 6L9 17l-5-5"/>';
+        else if (cls === 'is-weak') path = '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>';
+        else path = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
+        return '<svg class="vital-ui-icon vital-stat-icon-svg" viewBox="0 0 24 24" aria-hidden="true">' + path + '</svg>';
     }
 
     function vitalScoreToPercent(total) {
@@ -3882,7 +3894,7 @@
         var iconCls = vitalStatIconClass(pts, false);
         var ptsCls = pts > 0 ? ' is-plus' : ' is-minus';
         return '<article class="vital-perf-stat-card ' + escAttr(cardClass || 'vital-perf-stat-card--extra') + '">' +
-            '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+            '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconSvg(iconCls) + '</span>' +
             '<div class="vital-perf-stat-card__main">' +
             '<h5 class="vital-perf-stat-card__title">' + esc(label) + '</h5>' +
             '<span class="vital-perf-stat-card__progress">' + esc(subtitle || 'Ajuste manual') + '</span>' +
@@ -3987,7 +3999,7 @@
                 var ptsCls = pts > 0 ? ' is-plus' : (pts < 0 ? ' is-minus' : '');
                 var leader = b.isLeader ? ' <span class="vital-tier-leader">líder</span>' : '';
                 return '<article class="vital-perf-stat-card" data-vital-stat="' + escAttr(statId) + '">' +
-                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconChar(iconCls) + '</span>' +
+                    '<span class="vital-perf-stat-icon ' + escAttr(iconCls) + '" aria-hidden="true">' + vitalStatIconSvg(iconCls) + '</span>' +
                     '<div class="vital-perf-stat-card__main">' +
                     '<h5 class="vital-perf-stat-card__title">' + esc(statLabel) + leader + '</h5>' +
                     progressHtml +

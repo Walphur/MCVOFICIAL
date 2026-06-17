@@ -9920,3 +9920,220 @@ body.admin-body .admin-main {
     max-width: none !important;
     padding: 10px 16px 16px !important;
 }
+
+/* —— Premium v14: iconografía SVG, overflow cero, footer compacto —— */
+.vital-ui-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: block;
+    overflow: visible;
+    pointer-events: none;
+}
+.vital-ui-icon path,
+.vital-ui-icon circle,
+.vital-ui-icon rect,
+.vital-ui-icon line,
+.vital-ui-icon polyline {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+.vital-kpi-card__icon .vital-ui-icon,
+.vital-puntos-toggle__icon .vital-ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.vital-nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+.vital-nav-icon .vital-ui-icon {
+    width: 16px;
+    height: 16px;
+}
+.vital-icon-only .vital-ui-icon {
+    width: 15px;
+    height: 15px;
+}
+.vital-rail-collapse .vital-ui-icon {
+    width: 14px;
+    height: 14px;
+}
+#vital-info-panel.vital-workspace .vital-rail-collapse {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.vital-recalc-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+.vital-recalc-btn .vital-ui-icon {
+    width: 14px;
+    height: 14px;
+}
+
+#vital-info-panel.vital-workspace .vital-detail-panel,
+#vital-info-panel.vital-workspace .vital-detail-content,
+#vital-info-panel.vital-workspace .vital-detail-body,
+#vital-info-panel.vital-workspace .vital-detail-pane,
+#vital-info-panel.vital-workspace .vital-profile-cards,
+#vital-info-panel.vital-workspace .vital-ui-card,
+#vital-info-panel.vital-workspace .vital-ui-card__body,
+#vital-info-panel.vital-workspace .vital-player-hero,
+#vital-info-panel.vital-workspace .vital-player-hero__identity,
+#vital-info-panel.vital-workspace .vital-player-hero__chips {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+#vital-info-panel.vital-workspace .vital-roles-selected,
+#vital-info-panel.vital-workspace .vital-role-presets {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-role-tag,
+#vital-info-panel.vital-workspace .vital-role-chip {
+    flex: 0 1 auto !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+}
+#vital-info-panel.vital-workspace .vital-hero-chip {
+    white-space: normal !important;
+    max-width: 100% !important;
+}
+
+#vital-info-panel.vital-workspace .vital-perf-stat-card {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon.is-warn::before {
+    content: none !important;
+    display: none !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon.is-warn {
+    color: #fbbf24 !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon.is-strong {
+    color: #86efac !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon.is-weak {
+    color: #fca5a5 !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-icon .vital-stat-icon-svg {
+    width: 14px;
+    height: 14px;
+}
+
+#vital-info-panel.vital-workspace .vital-player-hero__score {
+    min-width: 72px !important;
+    padding: 4px 8px !important;
+}
+#vital-info-panel.vital-workspace .vital-player-hero__score-value {
+    font-size: clamp(32px, 2.4vw, 38px) !important;
+}
+
+#vital-info-panel.vital-workspace .vital-detail-body {
+    padding: 5px 10px 4px 8px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-footer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 6px 10px !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    flex-shrink: 0 !important;
+    margin-top: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-footer__actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-footer__delete,
+#vital-info-panel.vital-workspace .vital-detail-footer .vital-save-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+#vital-info-panel.vital-workspace .vital-wipe-control {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 2px 4px !important;
+    border-radius: 8px !important;
+    min-height: 0 !important;
+}
+#vital-info-panel.vital-workspace .vital-wipe-control__label {
+    font-size: 10px !important;
+    padding-left: 4px !important;
+    letter-spacing: 0.04em !important;
+}
+#vital-info-panel.vital-workspace .vital-segment {
+    padding: 2px !important;
+    border-radius: 7px !important;
+    gap: 1px !important;
+}
+#vital-info-panel.vital-workspace .vital-segment__btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
+    border-radius: 5px !important;
+    min-height: 26px !important;
+    line-height: 1.2 !important;
+}
+#vital-info-panel.vital-workspace .vital-segment__dot {
+    width: 6px !important;
+    height: 6px !important;
+}
+#vital-info-panel.vital-workspace .vital-detail-tabs--pills {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-width: 100% !important;
+    flex-shrink: 0 !important;
+}
+
+.vital-compliance-empty {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.vital-compliance-empty .vital-ui-icon {
+    width: 14px;
+    height: 14px;
+    color: #86efac;
+}
