@@ -245,6 +245,82 @@ a:not(.btn-primary):not(.btn-secondary) {
     margin-top: 0;
 }
 
+.footer-waltech {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 20px 0 0;
+    padding: 16px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+.footer-waltech-brand {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 10px;
+    margin: 0;
+}
+.footer-waltech-label {
+    color: #71717a;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.footer-waltech-logo {
+    display: block;
+    height: 26px;
+    width: auto;
+    max-width: 130px;
+    object-fit: contain;
+}
+.footer-waltech-contact {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 12px;
+    margin: 0;
+    font-size: 0.82rem;
+}
+.footer-waltech-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #a1a1aa;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.18s ease;
+}
+.footer-waltech-link:hover {
+    color: var(--primary, #faa61a);
+}
+.footer-waltech-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+.footer-waltech-icon path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.footer-waltech-link:last-child .footer-waltech-icon path {
+    fill: currentColor;
+    stroke: none;
+}
+.footer-waltech-sep {
+    color: #52525b;
+    user-select: none;
+}
+
 @media (max-width: 900px) {
     .footer { padding: 40px 24px 20px; }
     .footer-content { flex-direction: column; gap: 28px; }

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" role="img" aria-label="Waltech">
+  <defs>
+    <linearGradient id="waltech-blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5eb3ff"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <text x="0" y="40" font-family="Inter, Arial, Helvetica, sans-serif" font-size="40" font-weight="800" letter-spacing="-1">
+    <tspan fill="#ffffff">Wal</tspan><tspan fill="url(#waltech-blue)">tech</tspan>
+  </text>
+</svg>

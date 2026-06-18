@@ -161,6 +161,38 @@
         initMobileNav(nav);
     }
 
+    var WALTECH_WA_URL = "https://wa.me/5492665031950";
+    var WALTECH_WA_LABEL = "+54 9 2665031950";
+    var WALTECH_DISCORD_URL = "https://discord.com/users/289856301503348736";
+
+    function footerWaltechHtml() {
+        return (
+            '<div class="footer-waltech">' +
+            '<p class="footer-waltech-brand">' +
+            '<span class="footer-waltech-label" data-i18n="footer.designedBy">Diseñado por</span> ' +
+            '<img src="' +
+            base +
+            'waltech-logo.svg" alt="Waltech" class="footer-waltech-logo" width="118" height="28" loading="lazy" decoding="async">' +
+            "</p>" +
+            '<p class="footer-waltech-contact">' +
+            '<a href="' +
+            WALTECH_WA_URL +
+            '" class="footer-waltech-link" target="_blank" rel="noopener noreferrer">' +
+            '<svg class="footer-waltech-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>' +
+            "<span>" +
+            WALTECH_WA_LABEL +
+            "</span></a>" +
+            '<span class="footer-waltech-sep" aria-hidden="true">·</span>' +
+            '<a href="' +
+            WALTECH_DISCORD_URL +
+            '" class="footer-waltech-link" target="_blank" rel="noopener noreferrer">' +
+            '<svg class="footer-waltech-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.7A17.2 17.2 0 0 0 15.9 3a12.1 12.1 0 0 0-.6 1.2 15.9 15.9 0 0 0-4.6 0A11.6 11.6 0 0 0 10.1 3 17.1 17.1 0 0 0 5.7 4.7 18.2 18.2 0 0 0 2 16.1a17.3 17.3 0 0 0 5.3 2.7 12.7 12.7 0 0 0 1.1-1.8 11.2 11.2 0 0 1-1.7-.8l.4-.3a12.4 12.4 0 0 0 10.6 0l.4.3a10.8 10.8 0 0 1-1.7.8c.3.7.7 1.3 1.1 1.8A17.2 17.2 0 0 0 22 16.1 18.1 18.1 0 0 0 20.3 4.7zM8.7 13.6c-.9 0-1.7-.8-1.7-1.8s.7-1.8 1.7-1.8 1.7.8 1.7 1.8-.8 1.8-1.7 1.8zm6.6 0c-.9 0-1.7-.8-1.7-1.8s.7-1.8 1.7-1.8 1.7.8 1.7 1.8-.8 1.8-1.7 1.8z"/></svg>' +
+            '<span data-i18n="footer.waltechDiscord">Discord</span></a>' +
+            "</p>" +
+            "</div>"
+        );
+    }
+
     function footerPulseHtml() {
         return (
             '<div class="footer-pulse" aria-label="Estado MCV">' +
@@ -222,6 +254,7 @@
             "</div>" +
             "</div>" +
             footerPulseHtml() +
+            footerWaltechHtml() +
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
@@ -254,15 +287,27 @@
         else footer.appendChild(node);
     }
 
+    function injectWaltechCredit(footer) {
+        if (!footer || footer.querySelector(".footer-waltech")) return;
+        var wrap = document.createElement("div");
+        wrap.innerHTML = footerWaltechHtml();
+        var node = wrap.firstElementChild;
+        var bottom = footer.querySelector(".footer-bottom");
+        if (bottom) footer.insertBefore(node, bottom);
+        else footer.appendChild(node);
+    }
+
     function ensureFooter() {
         var existing = document.querySelector("footer.footer");
         if (existing) {
             if (existing.querySelector(".footer-content")) {
                 injectFooterPulse(existing);
+                injectWaltechCredit(existing);
                 return;
             }
-            if (existing.classList.contains("footer-bottom--solo")) {
+            if (existing.classList.contains("footer-bottom--solo") || existing.querySelector(".footer-bottom")) {
                 injectFooterPulse(existing);
+                injectWaltechCredit(existing);
                 return;
             }
             existing.innerHTML = footerFullHtml();
@@ -328,6 +373,7 @@
         var footers = document.querySelectorAll("footer.footer");
         for (var fi = 0; fi < footers.length; fi++) {
             injectFooterPulse(footers[fi]);
+            injectWaltechCredit(footers[fi]);
         }
         registerServiceWorker();
         if (typeof window.mcvI18n !== "undefined" && window.mcvI18n.apply) {
