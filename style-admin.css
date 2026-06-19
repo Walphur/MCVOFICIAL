@@ -7661,3 +7661,44 @@ select.admin-input {
         font-size: 1rem;
     }
 }
+
+/* Fix: columna de pts cortada en tarjetas Puntos */
+#vital-info-panel .vital-detail-body {
+    padding-right: 20px !important;
+    scrollbar-gutter: stable;
+    box-sizing: border-box;
+}
+#vital-info-panel #vital-tier-player-breakdown.vital-perf-stat-cards,
+#vital-info-panel .vital-detail-pane[data-detail-pane="puntos"] .vital-perf-stat-cards {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+#vital-info-panel .vital-perf-stat-card {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    padding: 8px 14px 8px 10px !important;
+    overflow: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+#vital-info-panel .vital-perf-stat-card__main {
+    min-width: 0 !important;
+    overflow: hidden;
+}
+#vital-info-panel .vital-perf-stat-card__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#vital-info-panel .vital-perf-stat-card__pts {
+    flex-shrink: 0 !important;
+    min-width: 3.75rem !important;
+    margin-left: 6px !important;
+    padding-right: 0 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums;
+    overflow: visible !important;
+}
