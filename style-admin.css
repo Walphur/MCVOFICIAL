@@ -10025,7 +10025,7 @@ body.admin-body .admin-main {
 
 #vital-info-panel.vital-workspace .vital-perf-stat-card {
     max-width: 100% !important;
-    overflow: hidden !important;
+    overflow: visible !important;
 }
 #vital-info-panel.vital-workspace .vital-perf-stat-icon {
     display: inline-flex !important;
@@ -10175,4 +10175,32 @@ body.admin-body .admin-main {
     padding-top: 3px !important;
     padding-bottom: 3px !important;
     font-size: 11px !important;
+}
+
+/* Fix: columna de pts cortada en tarjetas Puntos */
+#vital-info-panel.vital-workspace .vital-detail-body {
+    padding-right: 18px !important;
+    scrollbar-gutter: stable;
+    box-sizing: border-box;
+}
+#vital-info-panel.vital-workspace #vital-tier-player-breakdown.vital-perf-stat-cards {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-card {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    padding-right: 14px !important;
+    overflow: visible !important;
+}
+#vital-info-panel.vital-workspace .vital-perf-stat-card__pts {
+    flex-shrink: 0 !important;
+    min-width: 3.75rem !important;
+    margin-left: 8px !important;
+    padding-right: 0 !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-variant-numeric: tabular-nums;
+    overflow: visible !important;
 }
