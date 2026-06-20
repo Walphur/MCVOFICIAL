@@ -3,7 +3,22 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { getTierScoreConfig } = require("../vitalScoreTiers");
-const { buildYoDetailEmbeds, getStatTierProgress, formatStatValue } = require("../discordPlayerYo");
+const { buildYoDetailEmbeds, getStatTierProgress, formatStatValue, getMcYoServerKey, getMcYoServerFallback } = require("../discordPlayerYo");
+
+test("getMcYoServerKey usa eu-medium por defecto", () => {
+    const prev = process.env.MCV_YO_SERVER_KEY;
+    delete process.env.MCV_YO_SERVER_KEY;
+    assert.equal(getMcYoServerKey(), "eu-medium");
+    process.env.MCV_YO_SERVER_KEY = "eu-monthly";
+    assert.equal(getMcYoServerKey(), "eu-monthly");
+    if (prev == null) delete process.env.MCV_YO_SERVER_KEY;
+    else process.env.MCV_YO_SERVER_KEY = prev;
+});
+
+test("getMcYoServerFallback alterna entre monthly y medium", () => {
+    assert.equal(getMcYoServerFallback("eu-medium"), "eu-monthly");
+    assert.equal(getMcYoServerFallback("eu-monthly"), "eu-medium");
+});
 
 test("formatStatValue formatea farm en k", () => {
     assert.equal(formatStatValue("farmWood", 42800), "42.8k");

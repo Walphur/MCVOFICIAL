@@ -4,6 +4,19 @@ const { EmbedBuilder } = require("discord.js");
 const { getTierScoreConfig } = require("./vitalScoreTiers");
 const { displayName } = require("./wipeReport");
 
+function getMcYoServerKey() {
+    const configured = String(process.env.MCV_YO_SERVER_KEY || "").trim();
+    if (configured === "eu-medium" || configured === "eu-monthly") {
+        return configured;
+    }
+    return "eu-medium";
+}
+
+function getMcYoServerFallback(serverKey) {
+    const key = String(serverKey || "").trim();
+    return key === "eu-monthly" ? "eu-medium" : "eu-monthly";
+}
+
 function formatStatValue(key, raw) {
     if (raw == null || raw === "") return "—";
     const n = Number(raw);
@@ -175,6 +188,23 @@ function buildYoDetailEmbeds(stats, detail) {
     return embeds.slice(0, 10);
 }
 
+async function fetchPlayerYoPayload(getPool, fetchTierScoresPayloadFn, steamId64, opts = {}) {
+    const serverKey = String(opts.serverKey || getMcYoServerKey()).trim();
+    const payload = await fetchTierScoresPayloadFn(getPool, {
+        serverKey,
+        wipeIdRaw: opts.wipeId || "current",
+        refresh: Boolean(opts.refresh)
+    });
+    const tierPlayer = (payload.tierResult?.players || []).find((p) => p.steamId64 === steamId64) || null;
+    const vitalMissing = Array.isArray(payload.notFound) && payload.notFound.includes(steamId64);
+    return {
+        serverKey,
+        payload,
+        tierPlayer,
+        vitalMissing
+    };
+}
+
 async function loadPlayerYoDetail(getPool, fetchTierScoresPayloadFn, discordUserId, opts = {}) {
     const { loadPlayerStatsForDiscord } = require("./wipeReport");
     const { normalizeSteamId64 } = require("./vitalRustApi");
@@ -187,30 +217,50 @@ async function loadPlayerYoDetail(getPool, fetchTierScoresPayloadFn, discordUser
         return { stats: null, detail: null };
     }
     const steamId64 = normalizeSteamId64(stats.steamId64);
-    const serverKey = String(opts.serverKey || process.env.VITAL_DEFAULT_SERVER_KEY || "eu-monthly").trim();
-    let payload;
-    try {
-        payload = await fetchTierScoresPayloadFn(getPool, {
-            serverKey,
-            wipeIdRaw: opts.wipeId || "current",
-            refresh: Boolean(opts.refresh)
-        });
-    } catch (e) {
+    const primaryServerKey = String(opts.serverKey || getMcYoServerKey()).trim();
+    const serverKeys = opts.serverKey
+        ? [primaryServerKey]
+        : [...new Set([primaryServerKey, getMcYoServerFallback(primaryServerKey)])];
+
+    let lastError = null;
+    let best = null;
+
+    for (const serverKey of serverKeys) {
+        let result;
+        try {
+            result = await fetchPlayerYoPayload(getPool, fetchTierScoresPayloadFn, steamId64, {
+                ...opts,
+                serverKey
+            });
+        } catch (e) {
+            lastError = e;
+            continue;
+        }
+        if (!best) {
+            best = result;
+        }
+        if (!result.vitalMissing) {
+            best = result;
+            break;
+        }
+    }
+
+    if (!best) {
         return {
             stats,
-            detail: { tierPlayer: null, error: e.message || "Error al calcular puntos" }
+            detail: { tierPlayer: null, error: lastError?.message || "Error al calcular puntos" }
         };
     }
-    const tierPlayer = (payload.tierResult?.players || []).find((p) => p.steamId64 === steamId64) || null;
-    const config = getTierScoreConfig(payload.tierResult?.configKey);
-    const vitalMissing = Array.isArray(payload.notFound) && payload.notFound.includes(steamId64);
+
+    const config = getTierScoreConfig(best.payload.tierResult?.configKey);
     return {
         stats,
         detail: {
-            tierPlayer,
+            tierPlayer: best.tierPlayer,
             config,
-            resolved: payload.resolved,
-            vitalMissing,
+            resolved: best.payload.resolved,
+            vitalMissing: best.vitalMissing,
+            serverKey: best.serverKey,
             error: null
         }
     };
@@ -219,6 +269,8 @@ async function loadPlayerYoDetail(getPool, fetchTierScoresPayloadFn, discordUser
 module.exports = {
     formatStatValue,
     getStatTierProgress,
+    getMcYoServerKey,
+    getMcYoServerFallback,
     buildYoDetailEmbeds,
     buildYoNoLinkEmbed,
     loadPlayerYoDetail
