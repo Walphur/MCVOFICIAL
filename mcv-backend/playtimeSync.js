@@ -208,6 +208,56 @@ async function fetchChannelMessages(client, channelId, options = {}) {
     return out;
 }
 
+function filterDbPlaytimeHoursInWindow(dbRows, window) {
+    if (!window || window.windowStartMs == null || window.windowEndMs == null) {
+        return dbRows || [];
+    }
+    return (dbRows || []).filter((row) => {
+        if (!row?.updated_at) {
+            return false;
+        }
+        const ts = new Date(row.updated_at).getTime();
+        return isTimestampInPlaytimeWindow(ts, window);
+    });
+}
+
+async function loadWipeRosterSteamIds(pool) {
+    if (!pool) {
+        return [];
+    }
+    const r = await pool.query(
+        `SELECT DISTINCT steam_id64
+         FROM wipe_list_members
+         WHERE steam_id64 ~ '^[0-9]{17}$'
+           AND discord_user_id NOT LIKE $1
+           AND discord_user_id NOT LIKE $2`,
+        [`${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]
+    );
+    return (r.rows || []).map((row) => String(row.steam_id64 || "").trim()).filter(Boolean);
+}
+
+async function clearStalePlaytimeHours(pool, activeSteamIds) {
+    const active = new Set((activeSteamIds || []).map((id) => String(id || "").trim()).filter(Boolean));
+    const roster = await loadWipeRosterSteamIds(pool);
+    let cleared = 0;
+    for (const steamId64 of roster) {
+        if (active.has(steamId64)) {
+            continue;
+        }
+        const r = await pool.query(
+            `UPDATE player_info_profiles
+             SET hours_played = NULL, updated_at = NOW()
+             WHERE steam_id64 = $1 AND hours_played IS NOT NULL
+             RETURNING steam_id64`,
+            [steamId64]
+        );
+        if (r.rowCount) {
+            cleared += 1;
+        }
+    }
+    return cleared;
+}
+
 async function loadDbPlaytimeHours(pool) {
     if (!pool) {
         return [];
@@ -317,7 +367,11 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         });
     }
 
-    const dbRows = await loadDbPlaytimeHours(pool);
+    const dbRowsRaw = await loadDbPlaytimeHours(pool);
+    const dbRows =
+        window && window.phase !== "off-season"
+            ? filterDbPlaytimeHoursInWindow(dbRowsRaw, window)
+            : dbRowsRaw;
     const mergedBySteam = mergePlaytimeBySteam(dbRows, channelBySteam);
 
     const updated = [];
@@ -355,6 +409,14 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         }
     }
 
+    let clearedStale = 0;
+    if (window && window.phase !== "off-season") {
+        clearedStale = await clearStalePlaytimeHours(
+            pool,
+            updated.map((row) => row.steamId64)
+        );
+    }
+
     return {
         ok: true,
         scanned: messages.length,
@@ -376,6 +438,7 @@ async function syncPlaytimeFromChannel(client, pool, channelId, options = {}) {
         fromSavedOnly,
         fromBoth,
         updated: updated.length,
+        clearedStale,
         unmatched: unmatched.length,
         skipped,
         players: updated,
@@ -495,10 +558,7 @@ function registerPlaytimeAdminApi(app, { getPool, authAdmin, getDiscordClient, g
         try {
             const body = req.body && typeof req.body === "object" ? req.body : {};
             const maxMessages = Number(body.maxMessages) || 2000;
-            const serverKey = String(body.serverKey || req.query.serverKey || "").trim();
-            const useCalendarWindow =
-                body.useCalendarWindow !== false &&
-                (body.useCalendarWindow === true || serverKey === "eu-monthly" || !serverKey);
+            const useCalendarWindow = body.useCalendarWindow !== false;
             const wipeStartMs = Number(body.wipeStartMs || body.wipeStart || 0) || null;
             const result = await syncPlaytimeFromChannel(client, pool, channelId, {
                 maxMessages,
@@ -520,6 +580,7 @@ module.exports = {
     parsePlaytimeHours,
     collectLatestPlaytimeByAuthor,
     mergePlaytimeBySteam,
+    filterDbPlaytimeHoursInWindow,
     formatPlaytimeSource,
     resolveSyncWindowFromOptions,
     syncPlaytimeFromChannel,

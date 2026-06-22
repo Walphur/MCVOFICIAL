@@ -5,8 +5,28 @@ const assert = require("node:assert/strict");
 const {
     buildWipeReportEmbeds,
     formatPlayerLine,
-    filterReport
+    filterReport,
+    effectiveHoursForWindow
 } = require("../wipeReport");
+const { resolvePlaytimeSyncWindow } = require("../vitalWipeCalendar");
+
+test("effectiveHoursForWindow oculta horas del wipe Monthly al leer ventana Medium", () => {
+    const window = resolvePlaytimeSyncWindow({ wipeStartAt: new Date(2026, 5, 12, 18, 0, 0) });
+    assert.equal(
+        effectiveHoursForWindow(
+            { hours_played: 57, hours_updated_at: new Date(2026, 5, 10, 12, 0, 0) },
+            window
+        ),
+        null
+    );
+    assert.equal(
+        effectiveHoursForWindow(
+            { hours_played: 31, hours_updated_at: new Date(2026, 5, 19, 12, 0, 0) },
+            window
+        ),
+        31
+    );
+});
 
 test("formatPlayerLine muestra horas, puntos y sin @discord", () => {
     const line = formatPlayerLine(

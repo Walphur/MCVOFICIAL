@@ -160,14 +160,15 @@ function buildMonthlyMainPlaytimeWindow(year, monthIndex) {
 }
 
 function buildMediumRewipePlaytimeWindow(year, monthIndex) {
+    const thirdThu = getNthThursdayOfMonth(year, monthIndex, 3);
     const fourthThu = getNthThursdayOfMonth(year, monthIndex, 4);
-    if (!fourthThu) {
+    if (!thirdThu || !fourthThu) {
         return null;
     }
     const mediumEnd = endOfDay(
         new Date(fourthThu.getFullYear(), fourthThu.getMonth(), fourthThu.getDate() + 3)
     );
-    const windowStart = dayBeforeStart(mediumEnd);
+    const windowStart = startOfDay(thirdThu);
     const next = getNextMonthYearMonth(year, monthIndex);
     const nextFirstThu = getNthThursdayOfMonth(next.year, next.monthIndex, 1);
     if (!nextFirstThu) {
@@ -181,7 +182,7 @@ function buildMediumRewipePlaytimeWindow(year, monthIndex) {
         windowStart: windowStart.toISOString(),
         windowEnd: windowEnd.toISOString(),
         mediumRewipeEnd: mediumEnd.toISOString(),
-        label: `Horas Medium/rewipe ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
+        label: `Horas Medium ${windowStart.toLocaleDateString("es-AR")} → ${windowEnd.toLocaleDateString("es-AR")} (23:59)`
     };
 }
 
@@ -191,9 +192,8 @@ function buildMediumRewipePlaytimeWindow(year, monthIndex) {
  * 1) Wipe Monthly (1.er → 2.º jueves): desde día anterior al 2.º jueves hasta día anterior al 3.º jueves.
  *    Ej. wipe 04/06–11/06 → horas del 10/06 al 17/06.
  *
- * 2) Medium + rewipe (viernes post 2.º jueves → 4.º jueves +3 días): desde día anterior al fin del rewipe
- *    hasta día anterior al 1.er jueves del mes siguiente (antes del próximo Monthly).
- *    Ej. fin rewipe 28/06 → horas del 27/06 al 01/07.
+ * 2) Medium (desde el 3.er jueves, reset de horas): hasta día anterior al 1.er jueves del mes siguiente.
+ *    Ej. wipe medium junio → horas del 18/06 al 01/07.
  *
  * 3) Entre rewipe y próximo Monthly (off-season): sin ventana activa — no se toman horas viejas.
  */
