@@ -17,7 +17,7 @@ RETURNING steam_id64, hours_played, display_name
 `;
 
 /**
- * Parsea horas desde mensajes del canal playtime: "14h", "59hr", "57 horitas", "31", etc.
+ * Parsea horas desde mensajes del canal playtime: "14h", "59hr", "21 hours", "57 horitas", "31", etc.
  */
 function parsePlaytimeHours(text) {
     const raw = String(text || "").trim();
@@ -25,24 +25,23 @@ function parsePlaytimeHours(text) {
         return null;
     }
     const cleaned = raw.replace(/\((?:editado|edited)\)/gi, "").trim();
-    const firstLine = cleaned.split(/\r?\n/).map((l) => l.trim()).find(Boolean) || "";
-    if (!firstLine) {
-        return null;
-    }
+    const lines = cleaned.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const unitPattern = /\b(\d{1,4})\s*(?:horitas?|hrs?|horas?|hours?)\b/i;
+    const hPattern = /\b(\d{1,4})\s*h\b/i;
 
-    const withUnit =
-        firstLine.match(/\b(\d{1,4})\s*(?:horitas?|hrs?|horas?)\b/i) || firstLine.match(/\b(\d{1,4})\s*h\b/i);
-    if (withUnit) {
-        const n = Number(withUnit[1]);
-        if (Number.isFinite(n) && n >= 0 && n <= 2000) {
-            return Math.round(n);
+    for (const line of lines) {
+        const withUnit = line.match(unitPattern) || line.match(hPattern);
+        if (withUnit) {
+            const n = Number(withUnit[1]);
+            if (Number.isFinite(n) && n >= 0 && n <= 2000) {
+                return Math.round(n);
+            }
         }
-    }
-
-    if (/^\d{1,4}$/.test(firstLine)) {
-        const n = Number(firstLine);
-        if (Number.isFinite(n) && n >= 0 && n <= 2000) {
-            return Math.round(n);
+        if (/^\d{1,4}$/.test(line)) {
+            const n = Number(line);
+            if (Number.isFinite(n) && n >= 0 && n <= 2000) {
+                return Math.round(n);
+            }
         }
     }
 

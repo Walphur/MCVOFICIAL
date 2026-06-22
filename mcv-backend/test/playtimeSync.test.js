@@ -13,6 +13,10 @@ test("parsePlaytimeHours acepta formatos del canal playtime", () => {
     assert.equal(parsePlaytimeHours("57 horitas"), 57);
     assert.equal(parsePlaytimeHours("59hrs"), 59);
     assert.equal(parsePlaytimeHours("  42 horas  "), 42);
+    assert.equal(parsePlaytimeHours("21 hours"), 21);
+    assert.equal(parsePlaytimeHours("21 Hours"), 21);
+    assert.equal(parsePlaytimeHours("played 21 hours"), 21);
+    assert.equal(parsePlaytimeHours("screenshot\n21 hours"), 21);
 });
 
 test("parsePlaytimeHours ignora texto sin horas", () => {
