@@ -2593,7 +2593,7 @@
             body: JSON.stringify({
                 serverKey: serverKey,
                 wipeStartMs: wipeStartMs,
-                useCalendarWindow: serverKey === 'eu-monthly'
+                useCalendarWindow: true
             })
         })
             .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
@@ -2611,6 +2611,9 @@
                     msg += ' · ' + x.d.message;
                 } else if (x.d.window && x.d.window.hint) {
                     msg += ' · ' + x.d.window.hint;
+                }
+                if (x.d.clearedStale) {
+                    msg += ' · horas viejas borradas: ' + String(x.d.clearedStale);
                 }
                 if (x.d.ignoredOutsideWindow) {
                     msg += ' · ' + x.d.ignoredOutsideWindow + ' msg fuera de ventana';

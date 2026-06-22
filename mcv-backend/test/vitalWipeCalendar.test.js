@@ -50,11 +50,11 @@ test("resolvePlaytimeSyncWindow: wipe 04/06–11/06 lee horas del 10/06 al 17/06
     assert.equal(new Date(w.monthlyWipeEnd).getDate(), 11);
 });
 
-test("resolvePlaytimeSyncWindow: Medium/rewipe fin 28/06 lee horas del 27/06 al 01/07", () => {
+test("resolvePlaytimeSyncWindow: Medium desde 3.er jueves hasta antes del próximo Monthly", () => {
     const w = resolvePlaytimeSyncWindow({ wipeStartAt: new Date(2026, 5, 12, 18, 0, 0) });
     assert.ok(w);
     assert.equal(w.phase, "monthly-medium-window");
-    assert.equal(new Date(w.windowStartMs).getDate(), 27);
+    assert.equal(new Date(w.windowStartMs).getDate(), 18);
     assert.equal(new Date(w.windowStartMs).getMonth(), 5);
     assert.equal(new Date(w.windowEndMs).getDate(), 1);
     assert.equal(new Date(w.windowEndMs).getMonth(), 6);

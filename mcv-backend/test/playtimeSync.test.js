@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { parsePlaytimeHours, collectLatestPlaytimeByAuthor, mergePlaytimeBySteam, formatPlaytimeSource, resolveSyncWindowFromOptions } = require("../playtimeSync");
+const { parsePlaytimeHours, collectLatestPlaytimeByAuthor, mergePlaytimeBySteam, filterDbPlaytimeHoursInWindow, formatPlaytimeSource, resolveSyncWindowFromOptions } = require("../playtimeSync");
 const { resolvePlaytimeSyncWindow } = require("../vitalWipeCalendar");
 
 test("parsePlaytimeHours acepta formatos del canal playtime", () => {
@@ -46,6 +46,25 @@ test("collectLatestPlaytimeByAuthor ignora mensajes fuera de la ventana de wipe"
     const map = collectLatestPlaytimeByAuthor(messages, window);
     assert.equal(map.size, 1);
     assert.equal(map.get("111").hours, 14);
+});
+
+test("filterDbPlaytimeHoursInWindow descarta horas guardadas fuera de la ventana Medium", () => {
+    const window = resolvePlaytimeSyncWindow({ wipeStartAt: new Date(2026, 5, 12, 18, 0, 0) });
+    const rows = [
+        {
+            steam_id64: "76561198000000001",
+            hours_played: 57,
+            updated_at: new Date(2026, 5, 10, 12, 0, 0)
+        },
+        {
+            steam_id64: "76561198000000002",
+            hours_played: 31,
+            updated_at: new Date(2026, 5, 19, 12, 0, 0)
+        }
+    ];
+    const filtered = filterDbPlaytimeHoursInWindow(rows, window);
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].steam_id64, "76561198000000002");
 });
 
 test("mergePlaytimeBySteam combina canal y /mcv-horas guardado en BD", () => {

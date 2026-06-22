@@ -2,6 +2,7 @@
 
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
 const { shouldScorePlayerProfile } = require("./vitalScoreTiers");
+const { resolvePlaytimeSyncWindow, isTimestampInPlaytimeWindow } = require("./vitalWipeCalendar");
 
 const HEX_WIPE_DISCORD_PREFIX = "wipehx:";
 const PASTE_WIPE_DISCORD_PREFIX = "paste:";
@@ -14,6 +15,7 @@ SELECT
     w.steam_id64,
     w.updated_at AS linked_at,
     p.hours_played,
+    p.updated_at AS hours_updated_at,
     p.performance_score,
     p.display_name AS info_name,
     p.paused_outside_wipe,
@@ -37,6 +39,7 @@ SELECT
     w.steam_id64,
     w.updated_at AS linked_at,
     p.hours_played,
+    p.updated_at AS hours_updated_at,
     p.performance_score,
     p.display_name AS info_name,
     p.paused_outside_wipe,
@@ -83,7 +86,31 @@ function formatPointsSuffix(row) {
     return ` · **${score} pts**`;
 }
 
-function mapWipePlayerRow(row) {
+function resolveActivePlaytimeWindow() {
+    return resolvePlaytimeSyncWindow({ at: new Date() });
+}
+
+function effectiveHoursForWindow(row, window) {
+    const hours = normalizeHours(row.hours_played);
+    if (hours == null) {
+        return null;
+    }
+    if (!window || window.phase === "off-season" || window.windowStartMs == null) {
+        return hours;
+    }
+    const updatedRaw = row.hours_updated_at || row.hoursUpdatedAt;
+    if (!updatedRaw) {
+        return null;
+    }
+    const ts = new Date(updatedRaw).getTime();
+    if (!isTimestampInPlaytimeWindow(ts, window)) {
+        return null;
+    }
+    return hours;
+}
+
+function mapWipePlayerRow(row, window = null) {
+    const activeWindow = window === undefined ? resolveActivePlaytimeWindow() : window;
     const wipePhase = String(row.wipe_phase || "unknown").trim() || "unknown";
     const pausedOutsideWipe =
         Boolean(row.paused_outside_wipe) || wipePhase === "no_juega";
@@ -93,7 +120,8 @@ function mapWipePlayerRow(row) {
         personaName: String(row.persona_name || ""),
         steamId64: String(row.steam_id64 || ""),
         linkedAt: row.linked_at || null,
-        hoursPlayed: normalizeHours(row.hours_played),
+        hoursPlayed: effectiveHoursForWindow(row, activeWindow),
+        hoursUpdatedAt: row.hours_updated_at || null,
         performanceScore: normalizeScore(row.performance_score),
         infoName: String(row.info_name || ""),
         wipePhase,
@@ -145,7 +173,7 @@ async function loadPlayerStatsForDiscord(pool, discordUserId) {
     if (!r.rows.length) {
         return null;
     }
-    return mapWipePlayerRow(r.rows[0]);
+    return mapWipePlayerRow(r.rows[0], resolveActivePlaytimeWindow());
 }
 
 async function loadWipeHoursReport(pool) {
@@ -153,7 +181,8 @@ async function loadWipeHoursReport(pool) {
         throw new Error("Base de datos no disponible");
     }
     const r = await pool.query(WIPE_REPORT_SQL, [`${HEX_WIPE_DISCORD_PREFIX}%`, `${PASTE_WIPE_DISCORD_PREFIX}%`]);
-    const rows = (r.rows || []).map(mapWipePlayerRow);
+    const window = resolveActivePlaytimeWindow();
+    const rows = (r.rows || []).map((row) => mapWipePlayerRow(row, window));
     const withHours = rows.filter((row) => row.hoursPlayed != null && row.hoursPlayed > 0);
     const pendingHours = rows.filter((row) => row.hoursPlayed == null || row.hoursPlayed <= 0);
     const withPoints = rows.filter((row) => row.performanceScore !== 0);
@@ -609,5 +638,7 @@ module.exports = {
     filterReportToPlayingWipe,
     attachWipeReportDiscord,
     canRunWipeReport,
-    filterReport
+    filterReport,
+    effectiveHoursForWindow,
+    resolveActivePlaytimeWindow
 };
