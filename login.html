@@ -6,66 +6,64 @@
     <title>Admin Login - MCV</title>
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#FAA61A">
-    <!-- Si mcvoficial.com (u otro) es solo estático y da 405 en /api, poné aquí la URL del Web Service en Render, sin barra final. -->
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v4">
-    <link rel="stylesheet" href="style-ux.css?v=2026-06-20-v4">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="mds-tokens.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="mds-components.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="mds-premium.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v5">
 </head>
 <body class="login-body" data-mcv-page="login">
 
-    <div class="login-container">
+    <div class="login-container mcv-card mcv-auth-card">
         <div class="login-brand">
-            <img src="logo.png" width="48" height="48" alt="">
+            <img src="logo.png" width="48" height="48" alt="MCV">
             <div>
-                <span class="tagline" data-i18n="login.tagline">// Acceso restringido</span>
+                <span class="tagline mcv-eyebrow" data-i18n="login.tagline">// Acceso restringido</span>
                 <h2 data-i18n="login.title">MCV CONTROL ROOM</h2>
             </div>
         </div>
 
-        <p class="login-subtitle" data-i18n="login.subtitle">Acceso restringido</p>
-
-        <p id="login-error" class="login-error" role="alert"></p>
+        <p id="login-error" class="login-error mcv-form-msg mcv-form-msg--err" role="alert"></p>
         <p id="login-diag" class="login-diag" role="status" hidden></p>
 
-        <form class="login-form" id="login-form">
-            <div class="input-group">
-                <label for="login-password" data-i18n="login.passwordLabel">Contraseña</label>
-                <input id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="login.passwordPh" placeholder="••••••••••">
+        <form class="login-form mcv-form" id="login-form">
+            <div class="mcv-field input-group">
+                <label class="mcv-field__label" for="login-password" data-i18n="login.passwordLabel">Contraseña</label>
+                <input class="mcv-input" id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="login.passwordPh" placeholder="••••••••••">
             </div>
             <div id="login-turnstile" class="login-turnstile" hidden></div>
-            <button type="submit" class="btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
+            <button type="submit" class="mcv-btn mcv-btn--primary btn-primary login-submit" data-i18n="login.submit">Ingresar</button>
         </form>
 
         <div id="login-oauth" class="login-oauth">
             <span class="login-oauth__sep">o</span>
-            <a id="login-steam-btn" class="btn-outline login-oauth__btn" href="#" hidden>Continuar con Steam</a>
-            <a id="login-google-btn" class="btn-outline login-oauth__btn" href="#">Continuar con Google</a>
+            <a id="login-steam-btn" class="mcv-oauth-btn mcv-oauth-btn--steam btn-outline login-oauth__btn" href="#" hidden>Continuar con Steam</a>
+            <a id="login-google-btn" class="mcv-oauth-btn mcv-oauth-btn--google btn-outline login-oauth__btn" href="#">Continuar con Google</a>
         </div>
 
-        <p id="login-google-setup" class="login-hint login-hint-oauth" hidden>
-            Si Google muestra <strong>redirect_uri_mismatch</strong>, agregá esta URI en
-            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>:
-            <code id="login-google-uri"></code>
-        </p>
+        <details id="login-google-setup" class="login-hint-oauth" hidden>
+            <summary>Configuración Google OAuth</summary>
+            <p>
+                Si Google muestra <strong>redirect_uri_mismatch</strong>, agregá esta URI en
+                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">Google Cloud Console</a>:
+                <code id="login-google-uri"></code>
+            </p>
+        </details>
 
         <div class="login-footer-links">
-            <a href="index.html" class="back-link" data-i18n="login.backSite">← Sitio público</a>
-            <a href="events.html" class="back-link" data-i18n="login.backEvents">Torneos</a>
+            <a href="index.html" class="mcv-link mcv-link--muted back-link" data-i18n="login.backSite">← Sitio público</a>
+            <a href="events.html" class="mcv-link mcv-link--accent back-link" data-i18n="login.backEvents">Torneos</a>
         </div>
     </div>
 
-    <!-- Si tu Web Service en Render tiene otra URL: copiá mcv-local-api.example.js → mcv-local-api.js, editá la URL y descomentá la línea de abajo (antes de mcv-api-base.js). -->
-    <!-- <script src="mcv-local-api.js"></script> -->
+<script src="mcv-assets.js?v=2026-06-20-v5"></script>
 <script src="mcv-purge-legacy-api.js?v=2"></script>
 <script src="mcv-api-base.js?v=2"></script>
 <script src="mcv-oauth-ui.js?v=1"></script>
-<script src="mcv-i18n.js?v=26"></script>
+<script src="mcv-i18n.js?v=28"></script>
 <script>
 (function () {
     var form = document.getElementById('login-form');

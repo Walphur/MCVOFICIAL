@@ -13,20 +13,20 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="../../logo.png">
     <link rel="alternate icon" href="../../favicon.ico" type="image/png">
-    <link rel="stylesheet" href="../../style.css?v=2026-06-20-v4">
+    <link rel="stylesheet" href="../../style.css?v=2026-06-20-v5">
     <script src="../../mcv-purge-legacy-api.js?v=2"></script>
     <script src="../../mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="../../mcv-layout.js?v=2026-06-20-v4" defer></script>
+    <script src="../../mcv-layout.js?v=2026-06-20-v5" defer></script>
 </head>
 <body class="grain equipo-page" data-mcv-page="teamForm">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section class="equipo-hero">
-    <div class="section-label centered-label">
-        <div class="yellow-line"></div>
+<section class="mcv-hero mcv-hero--compact equipo-hero">
+    <div class="mcv-eyebrow mcv-eyebrow--center section-label centered-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
         <span data-i18n="team.privateFormTag">// Acceso staff</span>
-        <div class="yellow-line"></div>
+        <div class="mcv-eyebrow__line yellow-line"></div>
     </div>
     <h1 class="equipo-hero-title"><span data-i18n="team.privateFormTitle">Solicitud de</span> <span class="equipo-hero-accent" data-i18n="team.privateFormTitleSpan">perfil.</span></h1>
     <p class="equipo-hero-lead" data-i18n-html="team.privateFormLead">Este enlace no figura en el menú público. Usalo solo si el staff te lo compartió.</p>
@@ -34,50 +34,50 @@
 
 <main class="equipo-main equipo-main--form-only">
     <section class="equipo-form-section equipo-form-section--standalone">
-        <h2 class="equipo-section-title equipo-form-gate-title" style="margin-top:0" data-i18n="team.sectionForm">Solicitud de perfil</h2>
+        <h2 class="equipo-section-title equipo-form-gate-title" data-i18n="team.sectionForm">Solicitud de perfil</h2>
         <p class="equipo-form-intro" data-i18n-html="team.formIntroWipe"></p>
-        <form id="equipo-form" class="equipo-form">
+        <form id="equipo-form" class="mcv-form equipo-form">
             <div class="equipo-form-grid">
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldDisplayName">Nombre público *</span>
-                    <input name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Nombre como figurará en la web">
+                <label class="mcv-field equipo-field span-2">
+                    <span class="mcv-field__label" data-i18n="team.fieldDisplayName">Nombre público *</span>
+                    <input class="mcv-input" name="display_name" required maxlength="120" autocomplete="nickname" data-i18n-placeholder="team.phDisplayName" placeholder="Nombre como figurará en la web">
                 </label>
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldRole">Función o etiqueta breve (opcional)</span>
-                    <input name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej.: Content creator, Staff">
+                <label class="mcv-field equipo-field span-2">
+                    <span class="mcv-field__label" data-i18n="team.fieldRole">Función o etiqueta breve (opcional)</span>
+                    <input class="mcv-input" name="role_label" maxlength="120" data-i18n-placeholder="team.phRole" placeholder="Ej.: Content creator, Staff">
                 </label>
-                <label class="equipo-field span-2">
-                    <span data-i18n="team.fieldSteam">SteamID64 o URL de perfil (opcional si indica redes)</span>
-                    <input name="steam_id64" inputmode="text" data-i18n-placeholder="team.phSteam" placeholder="76561198… o link de perfil Steam">
+                <label class="mcv-field equipo-field span-2">
+                    <span class="mcv-field__label" data-i18n="team.fieldSteam">SteamID64 o URL de perfil (opcional si indica redes)</span>
+                    <input class="mcv-input" name="steam_id64" inputmode="text" data-i18n-placeholder="team.phSteam" placeholder="76561198… o link de perfil Steam">
                 </label>
-                <label class="equipo-field">
-                    <span>Twitch</span>
-                    <input name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label">Twitch</span>
+                    <input class="mcv-input" name="twitch_url" type="url" inputmode="url" placeholder="https://twitch.tv/…">
                 </label>
-                <label class="equipo-field">
-                    <span>Kick</span>
-                    <input name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label">Kick</span>
+                    <input class="mcv-input" name="kick_url" type="url" inputmode="url" placeholder="https://kick.com/…">
                 </label>
-                <label class="equipo-field">
-                    <span data-i18n="team.fieldX">X / Twitter</span>
-                    <input name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label" data-i18n="team.fieldX">X / Twitter</span>
+                    <input class="mcv-input" name="x_url" type="url" inputmode="url" placeholder="https://x.com/…">
                 </label>
-                <label class="equipo-field">
-                    <span>Instagram</span>
-                    <input name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label">Instagram</span>
+                    <input class="mcv-input" name="instagram_url" type="url" inputmode="url" placeholder="https://instagram.com/…">
                 </label>
-                <label class="equipo-field">
-                    <span>YouTube</span>
-                    <input name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label">YouTube</span>
+                    <input class="mcv-input" name="youtube_url" type="url" inputmode="url" placeholder="https://youtube.com/…">
                 </label>
-                <label class="equipo-field">
-                    <span>TikTok</span>
-                    <input name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
+                <label class="mcv-field equipo-field">
+                    <span class="mcv-field__label">TikTok</span>
+                    <input class="mcv-input" name="tiktok_url" type="url" inputmode="url" placeholder="https://tiktok.com/…">
                 </label>
             </div>
             <p class="equipo-form-hint" data-i18n-html="team.formHintWipe"></p>
-            <p id="equipo-form-msg" class="equipo-form-msg" hidden></p>
-            <button type="submit" class="btn-primary pulse-rust" id="equipo-form-submit">
+            <p id="equipo-form-msg" class="mcv-form-msg equipo-form-msg" hidden></p>
+            <button type="submit" class="mcv-btn mcv-btn--primary mcv-btn--pulse btn-primary pulse-rust" id="equipo-form-submit">
                 <i data-lucide="send"></i> <span data-i18n="team.formSubmit">Enviar solicitud</span>
             </button>
         </form>
@@ -136,12 +136,12 @@
                 submitBtn.disabled = false;
                 if (!x.ok) {
                     formMsg.textContent = (x.d && x.d.error) ? x.d.error : T("team.formError");
-                    formMsg.className = "equipo-form-msg equipo-form-msg-err";
+                    formMsg.className = "mcv-form-msg mcv-form-msg--err equipo-form-msg equipo-form-msg-err";
                     formMsg.hidden = false;
                     return;
                 }
                 formMsg.textContent = T("team.formSuccess");
-                formMsg.className = "equipo-form-msg equipo-form-msg-ok";
+                formMsg.className = "mcv-form-msg mcv-form-msg--ok equipo-form-msg equipo-form-msg-ok";
                 formMsg.hidden = false;
                 form.reset();
             })

@@ -229,13 +229,12 @@ Cargado por `mcv-layout.js` en todas las páginas con shell.
 | index.html | ✅ Migrada | pulse-now, mcv-panel, mcv-stat-bar |
 | events.html | 🟡 Parcial | hero + stat-bar + badges JS |
 | live.html | 🟡 Parcial | hero + stream cards |
-| tournament.html | ⏳ Pendiente | hero + panels |
-| bot.html | ⏳ Pendiente | tracker.css aislado |
-| tickets.html | 🟡 Parcial | section + chips + form |
-| cuenta.html | 🟡 Parcial | section + cards |
-| equipo/* | ⏳ Pendiente | cards persona |
-| vital-rust.html | ⏳ Pendiente | stat groups |
-| login.html | ⏳ Pendiente | sin layout MDS auto |
+| tournament.html | ✅ Premium Fase 2 | Status badge, KPI strip, panels, form MDS |
+| bot.html | ✅ Premium Fase 2 | Product layout, steps, search panel |
+| vital-rust.html | ✅ Premium Fase 2 | Dashboard KPI bar, toolbar, cards |
+| login.html | ✅ Premium Fase 2 | Auth card MDS, OAuth en details |
+| equipo/solicitud | ✅ Premium Fase 2 | Form mcv-field unificado |
+| equipo/index.html | 🟡 Parcial | cards persona (Fase 1.5) |
 
 ---
 
