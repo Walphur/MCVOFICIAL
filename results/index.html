@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Resultados</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../style.css?v=2026-06-20-v7">
+    <script src="../mcv-assets.js?v=2026-06-20-v7"></script>
+    <script src="../mcv-purge-legacy-api.js?v=2"></script>
+    <script src="../mcv-api-base.js?v=2"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="../mcv-layout.js?v=2026-06-20-v7" defer></script>
+</head>
+<body class="grain results-page" data-mcv-page="results">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<section class="mcv-hero mcv-hero--compact results-hero" id="mcv-main">
+    <div class="mcv-eyebrow mcv-eyebrow--center section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
+        <span>// Hub de resultados</span>
+        <div class="mcv-eyebrow__line yellow-line"></div>
+    </div>
+    <h1>Resultados <span>MCV.</span></h1>
+    <p class="mcv-section__lead">Historial de torneos, campeones, brackets y premios.</p>
+</section>
+
+<main class="compete-main results-app">
+    <form id="results-filters" class="mcv-filter-bar mcv-form" aria-label="Filtros">
+        <div class="mcv-field">
+            <label for="filter-season">Temporada</label>
+            <select id="filter-season" class="mcv-input mcv-select"><option value="">Todas</option></select>
+        </div>
+        <div class="mcv-field">
+            <label for="filter-wipe">Wipe</label>
+            <select id="filter-wipe" class="mcv-input mcv-select"><option value="">Todos</option></select>
+        </div>
+        <div class="mcv-field">
+            <label for="filter-team">Equipo</label>
+            <input id="filter-team" class="mcv-input" type="search" placeholder="Nombre del team…">
+        </div>
+        <div class="mcv-field">
+            <label for="filter-player">Jugador</label>
+            <input id="filter-player" class="mcv-input" type="search" placeholder="SteamID o nombre…">
+        </div>
+    </form>
+
+    <div id="results-list" class="results-grid">
+        <div class="mcv-skeleton" aria-hidden="true"></div>
+    </div>
+
+    <section id="results-detail" class="mcv-card results-detail" hidden>
+        <h2 id="results-detail-title" class="mcv-panel__title"></h2>
+        <div id="results-detail-meta" class="mcv-hint"></div>
+        <div id="results-podium" class="mcv-stat-bar player-kpi"></div>
+        <h3 class="mcv-panel__title"><i data-lucide="trophy"></i> Bracket</h3>
+        <div id="results-bracket"></div>
+    </section>
+</main>
+
+<script src="../mcv-components.js?v=2026-06-20-v7"></script>
+<script src="../mcv-compete-core.js?v=2026-06-20-v7"></script>
+<script src="../mcv-bracket-view.js?v=2026-06-20-v7"></script>
+<script src="../mcv-results-view.js?v=2026-06-20-v7"></script>
+</body>
+</html>
