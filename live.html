@@ -8,29 +8,29 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v3">
-    <link rel="stylesheet" href="style-ux.css?v=2026-06-20-v3">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
+    <link rel="stylesheet" href="style-ux.css?v=2026-06-20-v4">
     <meta name="description" content="Streams en vivo de MCV: Kick y Twitch oficiales del clan Rust.">
     <meta property="og:title" content="MCV — Streams en vivo">
     <meta property="og:image" content="banner.png">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v3" defer></script>
-    <script src="mcv-icons.js?v=2026-06-20-v3" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
+    <script src="mcv-icons.js?v=2026-06-20-v4" defer></script>
 </head>
 <body class="grain live-page" data-mcv-page="live">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
 
-<section class="live-hero">
-    <div class="live-hero-bg" aria-hidden="true"></div>
-    <div class="live-hero-shade" aria-hidden="true"></div>
-    <div class="live-hero-inner">
-        <div class="section-label">
-            <div class="yellow-line"></div>
+<section class="mcv-hero live-hero">
+    <div class="mcv-hero__bg live-hero-bg" aria-hidden="true"></div>
+    <div class="mcv-hero__shade live-hero-shade" aria-hidden="true"></div>
+    <div class="mcv-hero__content live-hero-inner">
+        <div class="mcv-eyebrow mcv-eyebrow--center section-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
             <span data-i18n="live.sectionTag">// Cobertura en vivo</span>
-            <div class="yellow-line"></div>
+            <div class="mcv-eyebrow__line yellow-line"></div>
         </div>
         <h1 class="live-heading"><span data-i18n="live.heading">MCV </span><span data-i18n="live.headingSpan">Live.</span></h1>
         <p class="live-lead" data-i18n="live.lead">Kick y Twitch oficiales del clan. Stream principal arriba; cobertura secundaria abajo.</p>
@@ -38,43 +38,43 @@
 </section>
 
 <main class="live-layout" id="mcv-main">
-    <div id="live-offline-banner" class="live-offline-banner" hidden>
+    <div id="live-offline-banner" class="mcv-empty mcv-empty--offline live-offline-banner" hidden>
         <p data-i18n="live.bothOffline">Ningún canal está en vivo ahora. Seguinos en Discord para avisos de directo.</p>
-        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-primary" data-i18n="live.discordCta">Entrar al Discord</a>
+        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="mcv-btn mcv-btn--primary btn-primary" data-i18n="live.discordCta">Entrar al Discord</a>
     </div>
     <div class="live-stack">
-        <article class="live-stream-card--ux is-featured" id="kick-card">
+        <article class="mcv-card mcv-card--stream live-stream-card--ux is-featured" id="kick-card">
             <div class="live-stream-head">
                 <h3><i data-lucide="radio"></i> <span data-i18n="live.kickTitle">Kick — principal</span></h3>
                 <div class="live-stream-meta-row">
-                    <span class="live-platform-pill live-platform-pill--kick">Kick</span>
-                    <span id="kick-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
+                    <span class="mcv-chip mcv-chip--kick live-platform-pill live-platform-pill--kick">Kick</span>
+                    <span id="kick-live-badge" class="mcv-badge live-status-badge" data-i18n="live.checking">Comprobando…</span>
                     <span id="kick-viewers" class="live-viewers"></span>
-                    <a class="live-external-link" href="https://kick.com/mcompanyv" target="_blank" rel="noopener noreferrer" data-i18n="live.openKick">Abrir en Kick</a>
+                    <a class="mcv-link mcv-link--accent live-external-link" href="https://kick.com/mcompanyv" target="_blank" rel="noopener noreferrer" data-i18n="live.openKick">Abrir en Kick</a>
                 </div>
             </div>
             <div class="stream-frame-wrap" id="kick-frame-wrap">
                 <iframe id="kick-iframe" src="https://player.kick.com/mcompanyv" title="Kick MCV" allowfullscreen></iframe>
-                <div id="kick-offline" class="live-offline-placeholder" hidden>
+                <div id="kick-offline" class="mcv-empty mcv-empty--offline live-offline-placeholder" hidden>
                     <strong data-i18n="live.offlineTitle">Stream offline</strong>
                     <span data-i18n="live.offlineKick">Seguinos en Kick cuando volvamos al aire.</span>
                 </div>
             </div>
         </article>
 
-        <article class="live-stream-card--ux" id="twitch-card">
+        <article class="mcv-card mcv-card--stream live-stream-card--ux" id="twitch-card">
             <div class="live-stream-head">
                 <h3><i data-lucide="twitch"></i> <span data-i18n="live.twitchTitle">Twitch — clan oficial</span></h3>
                 <div class="live-stream-meta-row">
-                    <span class="live-platform-pill live-platform-pill--twitch">Twitch</span>
-                    <span id="twitch-live-badge" class="live-status-badge" data-i18n="live.checking">Comprobando…</span>
+                    <span class="mcv-chip mcv-chip--twitch live-platform-pill live-platform-pill--twitch">Twitch</span>
+                    <span id="twitch-live-badge" class="mcv-badge live-status-badge" data-i18n="live.checking">Comprobando…</span>
                     <span id="twitch-viewers" class="live-viewers"></span>
-                    <a class="live-external-link" href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer" data-i18n="live.openTwitch">Abrir en Twitch</a>
+                    <a class="mcv-link mcv-link--accent live-external-link" href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer" data-i18n="live.openTwitch">Abrir en Twitch</a>
                 </div>
             </div>
             <div class="stream-frame-wrap" id="twitch-frame-wrap">
                 <div id="twitch-mount"></div>
-                <div id="twitch-offline" class="live-offline-placeholder" hidden>
+                <div id="twitch-offline" class="mcv-empty mcv-empty--offline live-offline-placeholder" hidden>
                     <strong data-i18n="live.offlineTitle">Stream offline</strong>
                     <span data-i18n="live.offlineTwitch">Canal oficial mcvteam — volvé pronto.</span>
                 </div>

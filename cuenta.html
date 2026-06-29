@@ -8,32 +8,32 @@
     <meta name="theme-color" content="#FAA61A">
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v3">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v3">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v4">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
     <script src="mcv-oauth-ui.js?v=3"></script>
     <script src="mcv-i18n.js?v=27"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v3" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
 </head>
 <body class="grain cuenta-page" data-mcv-page="cuenta">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section class="page-section cuenta-section">
-    <div class="section-label">
-        <div class="yellow-line"></div>
+<section class="mcv-section page-section cuenta-section">
+    <div class="mcv-eyebrow section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
         <span>// Cuenta MCV</span>
     </div>
     <h2>Tu <span>cuenta</span></h2>
     <p class="cuenta-intro">Tickets, torneos y stats de Rust vinculados a tu perfil.</p>
 
-    <div id="cuenta-guest" class="form-container cuenta-card">
-        <p id="cuenta-error" class="tickets-form-msg err" hidden></p>
+    <div id="cuenta-guest" class="mcv-card mcv-card--form form-container cuenta-card mcv-gate">
+        <p id="cuenta-error" class="mcv-form-msg mcv-form-msg--err tickets-form-msg err" hidden></p>
         <div class="cuenta-oauth">
-            <a id="cuenta-steam" class="oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
-            <a id="cuenta-google" class="oauth-btn oauth-btn--google cuenta-oauth__btn" href="#">Continuar con Google</a>
+            <a id="cuenta-steam" class="mcv-oauth-btn mcv-oauth-btn--steam oauth-btn oauth-btn--steam cuenta-oauth__btn" href="#">Continuar con Steam</a>
+            <a id="cuenta-google" class="mcv-oauth-btn mcv-oauth-btn--google oauth-btn oauth-btn--google cuenta-oauth__btn" href="#">Continuar con Google</a>
         </div>
         <p class="cuenta-hint">Al entrar se crea tu cuenta automáticamente (primera vez). No pedimos contraseña.</p>
     </div>

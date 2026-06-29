@@ -9,58 +9,59 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v3">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
     <meta name="description" content="Torneos Rust de MCV: calendario, inscripciones, campeones e historial.">
     <meta property="og:title" content="MCV — Torneos">
     <meta property="og:description" content="Calendario competitivo, inscripciones web y hall of fame del clan.">
     <meta property="og:image" content="banner.png">
+    <script src="mcv-assets.js?v=2026-06-20-v4"></script>
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v3" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
 </head>
 <body class="grain events-page" data-mcv-page="events">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section class="events-hero">
-    <div class="events-hero-bg" aria-hidden="true"></div>
-    <div class="events-hero-overlay" aria-hidden="true"></div>
-    <div class="events-hero-inner">
-        <div class="section-label centered-label">
-            <div class="yellow-line"></div>
+<section class="mcv-hero events-hero">
+    <div class="mcv-hero__bg events-hero-bg" aria-hidden="true"></div>
+    <div class="mcv-hero__shade events-hero-overlay" aria-hidden="true"></div>
+    <div class="mcv-hero__content events-hero-inner">
+        <div class="mcv-eyebrow mcv-eyebrow--center section-label centered-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
             <span data-i18n="events.heroTag">// MCV · Rust · Competencia</span>
-            <div class="yellow-line"></div>
+            <div class="mcv-eyebrow__line yellow-line"></div>
         </div>
         <h1><span data-i18n="events.heroTitle">Torneos</span> <span data-i18n="events.heroTitleSpan">MCV.</span></h1>
         <p class="events-lead" data-i18n="events.heroLead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
-        <div class="events-hero-actions">
-            <a href="#upcoming-list" id="events-hero-featured" class="btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="events.heroFeatured">Torneo destacado</span></a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
+        <div class="mcv-hero__actions events-hero-actions">
+            <a href="#upcoming-list" id="events-hero-featured" class="mcv-btn mcv-btn--primary mcv-btn--pulse btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="events.heroFeatured">Torneo destacado</span></a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="mcv-btn mcv-btn--secondary btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
         </div>
     </div>
 </section>
 
 
-<div id="events-api-banner" class="events-api-banner-wrap" hidden></div>
-<section class="events-stats-strip">
-    <div class="events-stat">
-        <span class="events-stat-num" id="stat-hosted">—</span>
-        <span class="events-stat-label" data-i18n="events.statHosted">Torneos en la web</span>
+<div id="events-api-banner" class="mcv-banner-wrap events-api-banner-wrap" hidden></div>
+<section class="mcv-stat-bar events-stats-strip">
+    <div class="mcv-stat events-stat">
+        <span class="mcv-stat__value events-stat-num mcv-count-up" id="stat-hosted">—</span>
+        <span class="mcv-stat__label events-stat-label" data-i18n="events.statHosted">Torneos en la web</span>
     </div>
-    <div class="events-stat">
-        <span class="events-stat-num" id="stat-teams">—</span>
-        <span class="events-stat-label" data-i18n="events.statRegs">Registros totales</span>
+    <div class="mcv-stat events-stat">
+        <span class="mcv-stat__value events-stat-num mcv-count-up" id="stat-teams">—</span>
+        <span class="mcv-stat__label events-stat-label" data-i18n="events.statRegs">Registros totales</span>
     </div>
-    <div class="events-stat">
-        <span class="events-stat-num" id="stat-live">—</span>
-        <span class="events-stat-label" data-i18n="events.statState">Estado torneo</span>
+    <div class="mcv-stat events-stat">
+        <span class="mcv-stat__value events-stat-num" id="stat-live">—</span>
+        <span class="mcv-stat__label events-stat-label" data-i18n="events.statState">Estado torneo</span>
     </div>
 </section>
 
 <section class="events-hof" id="events-hof" hidden>
     <div class="events-hof-head">
-        <div class="section-label">
-            <div class="yellow-line"></div>
+        <div class="mcv-eyebrow section-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
             <span data-i18n="events.hofTag">// Hall of fame</span>
         </div>
         <h2><span data-i18n="events.hofTitle">Campeones </span><span data-i18n="events.hofTitleSpan">MCV.</span></h2>
@@ -76,19 +77,20 @@
                 <h2><i data-lucide="calendar-clock"></i> <span data-i18n="events.colUp">Próximos</span></h2>
                 <p class="events-col-sub" data-i18n="events.colUpSub">Inscripciones abiertas o en curso.</p>
             </div>
-            <div id="upcoming-list" class="events-card-list events-anchor"><div class="events-skeleton" aria-hidden="true"></div></div>
+            <div id="upcoming-list" class="events-card-list events-anchor"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
         </section>
         <section class="events-column">
             <div class="events-col-head">
                 <h2><i data-lucide="trophy"></i> <span data-i18n="events.colPast">Historial</span></h2>
                 <p class="events-col-sub" data-i18n="events.colPastSub">Torneos finalizados y campeones.</p>
             </div>
-            <div id="past-list" class="events-card-list"><div class="events-skeleton" aria-hidden="true"></div></div>
+            <div id="past-list" class="events-card-list"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
         </section>
     </div>
 </main>
 
-<script src="mcv-i18n.js?v=26"></script>
+<script src="mcv-components.js?v=2026-06-20-v4"></script>
+<script src="mcv-i18n.js?v=28"></script>
 <script>
 (function () {
     var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
@@ -173,12 +175,12 @@
         var poster = cardPosterHtml(t.poster_url);
         var open = isRegOpen(t);
         var badge = isPast
-            ? '<span class="events-badge events-badge-past">' + esc(T('events.badgePast')) + '</span>'
+            ? (typeof mcvBadge === 'function' ? mcvBadge('past', T('events.badgePast')) : '<span class="mcv-badge events-badge events-badge-past mcv-badge--past">' + esc(T('events.badgePast')) + '</span>')
             : open
-              ? '<span class="events-badge events-badge-open">' + esc(T('events.badgeOpen')) + '</span>'
+              ? (typeof mcvBadge === 'function' ? mcvBadge('open', T('events.badgeOpen')) : '<span class="mcv-badge events-badge events-badge-open mcv-badge--open">' + esc(T('events.badgeOpen')) + '</span>')
               : t.status === 'draft'
-                ? '<span class="events-badge events-badge-draft">' + esc(T('events.badgeDraft')) + '</span>'
-                : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
+                ? (typeof mcvBadge === 'function' ? mcvBadge('draft', T('events.badgeDraft')) : '<span class="mcv-badge events-badge events-badge-draft mcv-badge--draft">' + esc(T('events.badgeDraft')) + '</span>')
+                : (typeof mcvBadge === 'function' ? mcvBadge('live', t.status || '') : '<span class="mcv-badge events-badge events-badge-live mcv-badge--live">' + esc(t.status || '') + '</span>');
         var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
         var actions =
             '<div class="events-card-actions' +
@@ -220,7 +222,7 @@
                 '</div>';
         }
         return (
-            '<article class="events-card">' + poster +
+            '<article class="mcv-card mcv-card--event events-card">' + poster +
             '<div class="events-card-body">' + badge +
             '<h3>' + esc(t.title) + '</h3>' +
             '<p class="events-card-meta">' + esc(t.format_label || '') + (t.match_day_display && !isPast ? ' · ' + esc(t.match_day_display) : '') + '</p>' +
@@ -231,17 +233,21 @@
     }
 
     function renderEmpty(el, msg, withDiscord) {
+        if (typeof mcvEmptyHtml === 'function') {
+            el.innerHTML = mcvEmptyHtml(msg, { card: withDiscord, discord: withDiscord, ctaText: T('events.emptyDiscord') });
+            return;
+        }
         if (withDiscord) {
             el.innerHTML =
-                '<div class="events-empty-card">' +
+                '<div class="mcv-empty mcv-empty--card events-empty-card">' +
                 '<p>' +
                 esc(msg) +
-                '</p><a class="btn-primary" href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">' +
+                '</p><a class="mcv-btn mcv-btn--primary btn-primary" href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">' +
                 esc(T('events.emptyDiscord')) +
                 '</a></div>';
             return;
         }
-        el.innerHTML = '<p class="events-empty">' + esc(msg) + '</p>';
+        el.innerHTML = '<p class="mcv-empty events-empty">' + esc(msg) + '</p>';
     }
 
     function teamsCountLabel(t) {
@@ -256,7 +262,7 @@
         var winner = t.winner_display_name || t.winner_team_name || '—';
         var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
         return (
-            '<article class="events-hof-card">' +
+            '<article class="mcv-card mcv-card--hof events-hof-card">' +
             '<span class="events-hof-trophy" aria-hidden="true">🏆</span>' +
             '<h3>' +
             esc(winner) +

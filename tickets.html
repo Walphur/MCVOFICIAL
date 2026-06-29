@@ -8,8 +8,8 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v3">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v3">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-v4">
     <meta name="description" content="Tickets de soporte y reclutamiento MCV.">
     <meta property="og:title" content="MCV — Tickets">
     <meta property="og:image" content="banner.png">
@@ -18,42 +18,42 @@
     <script src="mcv-user-auth.js?v=2"></script>
     <script src="mcv-oauth-ui.js?v=1"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v3" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
 </head>
 <body class="grain tickets-page" data-mcv-page="tickets">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section class="page-section">
-    <div class="section-label">
-        <div class="yellow-line"></div>
+<section class="mcv-section page-section">
+    <div class="mcv-eyebrow section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
         <span data-i18n="tickets.sectionTag">// Soporte y reclutamiento</span>
     </div>
     <h2><span data-i18n="tickets.title">Abrí un </span><span data-i18n="tickets.titleSpan">ticket.</span></h2>
 
-    <div class="form-container">
+    <div class="mcv-card mcv-card--form form-container">
         <div class="ticket-type-badges" id="ticket-type-badges">
-            <span class="ticket-type-badge ticket-type-badge--recruit" data-ticket-type="recruit" data-i18n="tickets.badgeRecruit">Reclutamiento</span>
-            <span class="ticket-type-badge ticket-type-badge--support" data-ticket-type="support" data-i18n="tickets.badgeSupport">Soporte</span>
-            <span class="ticket-type-badge ticket-type-badge--report" data-ticket-type="report" data-i18n="tickets.badgeReport">Reporte</span>
-            <span class="ticket-type-badge ticket-type-badge--tournament" data-ticket-type="tournament" data-i18n="tickets.badgeTournament">Torneos</span>
+            <span class="mcv-chip ticket-type-badge ticket-type-badge--recruit" data-ticket-type="recruit" data-i18n="tickets.badgeRecruit">Reclutamiento</span>
+            <span class="mcv-chip ticket-type-badge ticket-type-badge--support" data-ticket-type="support" data-i18n="tickets.badgeSupport">Soporte</span>
+            <span class="mcv-chip ticket-type-badge ticket-type-badge--report" data-ticket-type="report" data-i18n="tickets.badgeReport">Reporte</span>
+            <span class="mcv-chip ticket-type-badge ticket-type-badge--tournament" data-ticket-type="tournament" data-i18n="tickets.badgeTournament">Torneos</span>
         </div>
         <div class="tickets-intro">
             <h3 data-i18n="tickets.introH">Cómo funciona</h3>
             <p data-i18n="tickets.introP">Completá el formulario: tu solicitud queda registrada en el panel del staff. También podés abrir un ticket en Discord para seguimiento en vivo.</p>
         </div>
 
-        <div id="tickets-auth-gate" class="tickets-auth-gate">
+        <div id="tickets-auth-gate" class="mcv-gate tickets-auth-gate">
             <p class="tickets-auth-gate__title">Para enviar un ticket iniciá sesión</p>
             <p class="tickets-auth-gate__hint">Usá Steam o Google — no pedimos contraseña.</p>
             <div class="tickets-auth-oauth">
-                <a id="tickets-steam" class="oauth-btn oauth-btn--steam tickets-auth-oauth__btn" href="#">Continuar con Steam</a>
-                <a id="tickets-google" class="oauth-btn oauth-btn--google tickets-auth-oauth__btn" href="#">Continuar con Google</a>
+                <a id="tickets-steam" class="mcv-oauth-btn mcv-oauth-btn--steam oauth-btn oauth-btn--steam tickets-auth-oauth__btn" href="#">Continuar con Steam</a>
+                <a id="tickets-google" class="mcv-oauth-btn mcv-oauth-btn--google oauth-btn oauth-btn--google tickets-auth-oauth__btn" href="#">Continuar con Google</a>
             </div>
             <p class="tickets-auth-gate__alt">También podés ir a <a href="cuenta.html?next=tickets.html">Mi cuenta</a>.</p>
         </div>
 
-        <form id="tickets-form" hidden>
-            <div class="input-group">
+        <form id="tickets-form" class="mcv-form" hidden>
+            <div class="mcv-field input-group">
                 <label><i data-lucide="tag"></i> <span data-i18n="tickets.typeLabel">Tipo de ticket</span></label>
                 <select name="ticketType" required>
                     <option value="" data-i18n="tickets.selectPlaceholder">Elegí una opción…</option>
@@ -64,12 +64,12 @@
                 </select>
             </div>
 
-            <div class="input-group">
+            <div class="mcv-field input-group">
                 <label><i data-lucide="user"></i> <span data-i18n="tickets.discordLabel">Usuario de Discord</span></label>
                 <input name="discordUser" type="text" data-i18n-placeholder="tickets.discordPh" placeholder="ej. usuario o usuario#0" required autocomplete="username">
             </div>
 
-            <div class="input-group">
+            <div class="mcv-field input-group">
                 <label><i data-lucide="message-square"></i> <span data-i18n="tickets.descLabel">Descripción breve</span></label>
                 <textarea name="description" data-i18n-placeholder="tickets.descPh" placeholder="Motivo del ticket. Si es reclutamiento, contá horas en Rust y rol preferido." required></textarea>
             </div>
