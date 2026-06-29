@@ -148,6 +148,83 @@
         return x.toLocaleString(undefined, { maximumFractionDigits: 1 });
     }
 
+    function fmtDateTime(iso) {
+        if (!iso) return "—";
+        try {
+            return new Date(iso).toLocaleString("es-AR", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        } catch (e) {
+            return fmtDate(iso);
+        }
+    }
+
+    function hoursUntil(iso) {
+        if (!iso) return null;
+        try {
+            var ms = new Date(iso).getTime() - Date.now();
+            if (ms <= 0) return null;
+            return Math.max(1, Math.ceil(ms / 3600000));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function fetchForSite() {
+        return fetchJson(apiBase() + "/api/tournaments/for-site", { cache: "no-store" }).then(function (x) {
+            if (!x.ok) return { mode: "empty", tournament: null };
+            return x.data || { mode: "empty", tournament: null };
+        });
+    }
+
+    function fetchTournamentStats() {
+        return fetchJson(apiBase() + "/api/tournaments/stats", { cache: "no-store" }).then(function (x) {
+            if (!x.ok) return null;
+            return x.data;
+        });
+    }
+
+    function fetchDiscordCounts(inviteCode) {
+        inviteCode = inviteCode || "mBRrUA8wH6";
+        return fetch("https://discord.com/api/v9/invites/" + inviteCode + "?with_counts=true")
+            .then(function (r) {
+                return r.json();
+            })
+            .catch(function () {
+                return null;
+            });
+    }
+
+    function checkStreamLive() {
+        var kickCh = "mcompanyv";
+        var twitchCh = "mcvteam";
+        return Promise.all([
+            fetch("https://decapi.me/kick/status/" + encodeURIComponent(kickCh))
+                .then(function (r) {
+                    return r.text();
+                })
+                .catch(function () {
+                    return "";
+                }),
+            fetch("https://decapi.me/twitch/status/" + encodeURIComponent(twitchCh))
+                .then(function (r) {
+                    return r.text();
+                })
+                .catch(function () {
+                    return "";
+                })
+        ]).then(function (pair) {
+            function isLive(txt) {
+                var s = String(txt || "").toLowerCase();
+                return s.indexOf("live") !== -1 || s.indexOf("online") !== -1;
+            }
+            return { kick: isLive(pair[0]), twitch: isLive(pair[1]), any: isLive(pair[0]) || isLive(pair[1]) };
+        });
+    }
+
     global.mcvCompeteCore = {
         apiBase: apiBase,
         esc: esc,
@@ -159,10 +236,16 @@
         fetchTournamentBracket: fetchTournamentBracket,
         fetchPlayerScout: fetchPlayerScout,
         fetchWipeList: fetchWipeList,
+        fetchForSite: fetchForSite,
+        fetchTournamentStats: fetchTournamentStats,
+        fetchDiscordCounts: fetchDiscordCounts,
+        checkStreamLive: checkStreamLive,
         findRosterMember: findRosterMember,
         parseRosterJson: parseRosterJson,
         rosterHasSteam: rosterHasSteam,
         fmtDate: fmtDate,
-        fmtNum: fmtNum
+        fmtDateTime: fmtDateTime,
+        fmtNum: fmtNum,
+        hoursUntil: hoursUntil
     };
 })(window);
