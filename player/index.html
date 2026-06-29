@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Perfil de jugador</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../style.css?v=2026-06-20-v7">
+    <script src="../mcv-assets.js?v=2026-06-20-v7"></script>
+    <script src="../mcv-purge-legacy-api.js?v=2"></script>
+    <script src="../mcv-api-base.js?v=2"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="../mcv-layout.js?v=2026-06-20-v7" defer></script>
+</head>
+<body class="grain player-page" data-mcv-page="player">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<section class="mcv-hero mcv-hero--compact player-hero" id="mcv-main">
+    <div class="mcv-eyebrow mcv-eyebrow--center section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
+        <span>// Perfil competitivo</span>
+        <div class="mcv-eyebrow__line yellow-line"></div>
+    </div>
+    <div id="player-gate" class="mcv-card mcv-gate player-gate">
+        <p class="mcv-section__lead">Ingresá un SteamID64 para ver el perfil público.</p>
+        <form id="player-search-form" class="mcv-form player-search-form">
+            <div class="mcv-field">
+                <label for="player-steam-input">SteamID64</label>
+                <input id="player-steam-input" class="mcv-input" type="text" inputmode="numeric" placeholder="7656119…" required>
+            </div>
+            <button type="submit" class="mcv-btn mcv-btn--primary">Ver perfil</button>
+        </form>
+    </div>
+    <div id="player-hero-card" class="mcv-card mcv-card--profile player-hero-card" hidden>
+        <div class="profile-top player-hero-top">
+            <div id="player-avatar" class="avatar-box">?</div>
+            <div class="profile-info player-hero-info">
+                <h1 id="player-name">—</h1>
+                <p id="player-steam-line" class="steam-id-text">—</p>
+                <div id="player-meta-badges" class="player-meta-badges"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="player-app" class="player-app" hidden>
+    <section class="mcv-stat-bar player-kpi" id="player-kpi" aria-label="Estadísticas principales"></section>
+
+    <div class="player-grid">
+        <section class="mcv-card player-panel">
+            <h2 class="mcv-panel__title"><i data-lucide="award"></i> Logros</h2>
+            <div id="player-achievements" class="mcv-achievements"></div>
+        </section>
+
+        <section class="mcv-card player-panel">
+            <h2 class="mcv-panel__title"><i data-lucide="users"></i> Equipos</h2>
+            <ul id="player-teams" class="mcv-list"></ul>
+        </section>
+
+        <section class="mcv-card player-panel player-panel--wide">
+            <h2 class="mcv-panel__title"><i data-lucide="history"></i> Historial</h2>
+            <div id="player-timeline" class="mcv-timeline"></div>
+        </section>
+
+        <section class="mcv-card player-panel player-panel--wide">
+            <h2 class="mcv-panel__title"><i data-lucide="activity"></i> Actividad reciente</h2>
+            <ul id="player-activity" class="mcv-list"></ul>
+        </section>
+    </div>
+</div>
+
+<p id="player-loading" class="mcv-loading player-loading" hidden>Cargando perfil…</p>
+<p id="player-error" class="mcv-empty mcv-empty--error player-error" hidden></p>
+
+<script src="../mcv-components.js?v=2026-06-20-v7"></script>
+<script src="../mcv-compete-core.js?v=2026-06-20-v7"></script>
+<script src="../mcv-player-view.js?v=2026-06-20-v7"></script>
+</body>
+</html>

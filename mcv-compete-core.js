@@ -1,0 +1,168 @@
+/**
+ * MCV 3.1 — capa de datos competitivos (cliente).
+ * Agrega APIs públicas existentes sin modificar backend.
+ */
+(function (global) {
+    "use strict";
+
+    function apiBase() {
+        return typeof global.mcvResolveApiBase === "function"
+            ? global.mcvResolveApiBase()
+            : String(global.location.origin || "").replace(/\/$/, "");
+    }
+
+    function esc(s) {
+        if (typeof global.mcvEsc === "function") return global.mcvEsc(s);
+        if (s == null) return "";
+        return String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function isSteamId64(s) {
+        return /^7656119\d{10}$/.test(String(s || "").trim());
+    }
+
+    function resolveSteamIdFromLocation() {
+        var qs = new URLSearchParams(global.location.search || "");
+        var fromQs = qs.get("steamId") || qs.get("id") || qs.get("steam");
+        if (isSteamId64(fromQs)) return fromQs.trim();
+        var path = String(global.location.pathname || "").replace(/\\/g, "/").replace(/\/$/, "");
+        var parts = path.split("/").filter(Boolean);
+        for (var i = parts.length - 1; i >= 0; i--) {
+            if (isSteamId64(parts[i])) return parts[i];
+        }
+        return null;
+    }
+
+    function fetchJson(url, opts) {
+        opts = opts || {};
+        return fetch(url, opts).then(function (r) {
+            return r.json().then(function (d) {
+                return { ok: r.ok, status: r.status, data: d };
+            });
+        });
+    }
+
+    function fetchTeamRoster() {
+        return fetchJson(apiBase() + "/api/team-roster", { cache: "no-store" }).then(function (x) {
+            if (!x.ok) return { members: [] };
+            return { members: (x.data && x.data.members) || [] };
+        });
+    }
+
+    function fetchTournaments() {
+        return fetchJson(apiBase() + "/api/tournaments", { cache: "no-store" }).then(function (x) {
+            if (!x.ok) return [];
+            return (x.data && x.data.tournaments) || [];
+        });
+    }
+
+    function fetchTournamentDetail(slug) {
+        return fetchJson(apiBase() + "/api/tournaments/" + encodeURIComponent(slug), { cache: "no-store" }).then(
+            function (x) {
+                if (!x.ok) return null;
+                return (x.data && x.data.tournament) || null;
+            }
+        );
+    }
+
+    function fetchTournamentBracket(slug) {
+        return fetchJson(apiBase() + "/api/tournaments/" + encodeURIComponent(slug) + "/bracket", {
+            cache: "no-store"
+        }).then(function (x) {
+            if (!x.ok) return null;
+            return x.data || null;
+        });
+    }
+
+    function fetchPlayerScout(steamId) {
+        return fetchJson(apiBase() + "/escaner-rapido", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ link: String(steamId) })
+        }).then(function (x) {
+            if (!x.ok || !x.data || !x.data.success) return null;
+            return x.data.jugador || null;
+        });
+    }
+
+    function fetchWipeList() {
+        return fetchJson(apiBase() + "/api/wipe-list", { cache: "no-store" }).then(function (x) {
+            if (!x.ok) return [];
+            return (x.data && x.data.members) || [];
+        });
+    }
+
+    function findRosterMember(steamId, members) {
+        var sid = String(steamId || "");
+        for (var i = 0; i < (members || []).length; i++) {
+            if (String(members[i].steam_id64 || "") === sid) return members[i];
+        }
+        return null;
+    }
+
+    function parseRosterJson(raw) {
+        if (!raw) return [];
+        if (Array.isArray(raw)) return raw;
+        if (typeof raw === "string") {
+            try {
+                var p = JSON.parse(raw);
+                return Array.isArray(p) ? p : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    }
+
+    function rosterHasSteam(roster, steamId) {
+        var sid = String(steamId || "");
+        var list = parseRosterJson(roster);
+        for (var i = 0; i < list.length; i++) {
+            var p = list[i] || {};
+            var s = String(p.steamId64 || p.steam_id64 || p.steam || "").replace(/\D/g, "");
+            if (s === sid) return true;
+        }
+        return false;
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return "—";
+        try {
+            return new Date(iso).toLocaleDateString("es-AR", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            });
+        } catch (e) {
+            return "—";
+        }
+    }
+
+    function fmtNum(n) {
+        var x = Number(n);
+        if (!Number.isFinite(x)) return "—";
+        return x.toLocaleString(undefined, { maximumFractionDigits: 1 });
+    }
+
+    global.mcvCompeteCore = {
+        apiBase: apiBase,
+        esc: esc,
+        isSteamId64: isSteamId64,
+        resolveSteamIdFromLocation: resolveSteamIdFromLocation,
+        fetchTeamRoster: fetchTeamRoster,
+        fetchTournaments: fetchTournaments,
+        fetchTournamentDetail: fetchTournamentDetail,
+        fetchTournamentBracket: fetchTournamentBracket,
+        fetchPlayerScout: fetchPlayerScout,
+        fetchWipeList: fetchWipeList,
+        findRosterMember: findRosterMember,
+        parseRosterJson: parseRosterJson,
+        rosterHasSteam: rosterHasSteam,
+        fmtDate: fmtDate,
+        fmtNum: fmtNum
+    };
+})(window);

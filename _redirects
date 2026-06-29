@@ -1,0 +1,4 @@
+/player/:steamId /player/index.html?steamId=:steamId 200
+/results /results/index.html 200
+/standings /standings/index.html 200
+/calendar /calendar/index.html 200
