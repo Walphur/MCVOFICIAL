@@ -23,9 +23,23 @@
     --mcv-accent-ring: rgba(249, 115, 22, 0.35);
 
     --mcv-success: #22c55e;
+    --mcv-success-bg: rgba(34, 197, 94, 0.12);
+    --mcv-success-text: #86efac;
+
     --mcv-warning: #eab308;
+    --mcv-warning-bg: rgba(234, 179, 8, 0.12);
+    --mcv-warning-text: #fde047;
+
     --mcv-danger: #ef4444;
+    --mcv-danger-bg: rgba(239, 68, 68, 0.15);
+    --mcv-danger-text: #fca5a5;
+
     --mcv-live: #ef4444;
+    --mcv-live-bg: rgba(239, 68, 68, 0.15);
+    --mcv-live-text: #fca5a5;
+
+    --mcv-info-bg: rgba(59, 130, 246, 0.12);
+    --mcv-info-text: #93c5fd;
 
     /* Aliases legacy (style.css) — convergen acá */
     --background: var(--mcv-bg-base);
@@ -83,6 +97,8 @@
     --mcv-nav-height: 64px;
     --mcv-content-max: 1120px;
     --mcv-touch-min: 44px;
+    --mcv-page-padding: var(--mcv-space-8);
+    --mcv-section-gap: var(--mcv-space-8);
 }
 
 @media (prefers-reduced-motion: reduce) {
