@@ -20,7 +20,7 @@
     var assetV =
         typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
             ? window.MCV_ASSET_V
-            : "2026-06-20-v5";
+            : "2026-06-20-v6";
 
     var NAV_MAIN = [
         { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament"] },

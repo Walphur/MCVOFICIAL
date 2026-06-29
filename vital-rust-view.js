@@ -15,6 +15,7 @@
     var loadSeq = 0;
 
     function esc(s) {
+        if (typeof global.mcvEsc === "function") return global.mcvEsc(s);
         return String(s == null ? "" : s)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
