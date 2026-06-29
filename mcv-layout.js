@@ -20,7 +20,7 @@
     var assetV =
         typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
             ? window.MCV_ASSET_V
-            : "2026-06-20-v4";
+            : "2026-06-20-v5";
 
     var NAV_MAIN = [
         { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament"] },
@@ -429,6 +429,13 @@
             components.href = base + "mds-components.css?v=" + assetV;
             components.setAttribute("data-mcv-mds-components", "1");
             document.head.appendChild(components);
+        }
+        if (!document.querySelector("link[data-mcv-mds-premium]")) {
+            var premium = document.createElement("link");
+            premium.rel = "stylesheet";
+            premium.href = base + "mds-premium.css?v=" + assetV;
+            premium.setAttribute("data-mcv-mds-premium", "1");
+            document.head.appendChild(premium);
         }
     }
 
