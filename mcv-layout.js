@@ -10,6 +10,7 @@
         var depth = 0;
         if (/\/equipo\/solicitud\/?$/i.test(p) || p.indexOf("/equipo/solicitud/") !== -1) depth = 2;
         else if (/\/equipo\/?$/i.test(p) || p.indexOf("/equipo/") !== -1) depth = 1;
+        else if (/\/(player|results|standings|calendar)(\/|$)/i.test(p)) depth = 1;
         if (depth === 0) return "";
         var out = "";
         for (var i = 0; i < depth; i++) out += "../";
@@ -20,15 +21,18 @@
     var assetV =
         typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
             ? window.MCV_ASSET_V
-            : "2026-06-20-v6";
+            : "2026-06-20-v7";
 
     var NAV_MAIN = [
-        { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament"] },
+        { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament", "results", "standings", "calendar", "player"] },
         { id: "team", href: "equipo/", i18n: "nav.clan", label: "Clan", also: ["teamForm"] },
         { id: "live", href: "live.html", i18n: "nav.live", label: "Live", live: true }
     ];
 
     var NAV_MORE = [
+        { id: "results", href: "results/", i18n: "nav.results", label: "Resultados" },
+        { id: "standings", href: "standings/", i18n: "nav.standings", label: "Ranking" },
+        { id: "calendar", href: "calendar/", i18n: "nav.calendar", label: "Calendario" },
         { id: "bot", href: "bot.html", i18n: "nav.tracker", label: "Tracker" },
         { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
         { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
@@ -134,6 +138,10 @@
             '<li class="nav-more-label" data-i18n="nav.moreLabel">// Más opciones</li>' +
             moreItems +
             "</ul></li>";
+        links +=
+            '<li><button type="button" class="navbar-search-btn" id="mcv-global-search-btn" aria-label="Buscar" title="Buscar (Ctrl+K)">' +
+            '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>' +
+            "</button></li>";
         return (
             '<a href="' +
             base +
@@ -486,12 +494,22 @@
         document.body.appendChild(script);
     }
 
+    function ensureSearchScript() {
+        if (document.querySelector("script[data-mcv-search]")) return;
+        var script = document.createElement("script");
+        script.src = base + "mcv-search.js?v=" + assetV;
+        script.defer = true;
+        script.setAttribute("data-mcv-search", "1");
+        document.body.appendChild(script);
+    }
+
     function boot() {
         ensureSkipLink();
         ensureUxAssets();
         ensureManifest();
         ensureNavbar();
         ensureFooter();
+        ensureSearchScript();
         var footers = document.querySelectorAll("footer.footer");
         for (var fi = 0; fi < footers.length; fi++) {
             injectFooterPulse(footers[fi]);

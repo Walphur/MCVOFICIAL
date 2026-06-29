@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Calendario</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../style.css?v=2026-06-20-v7">
+    <script src="../mcv-assets.js?v=2026-06-20-v7"></script>
+    <script src="../mcv-purge-legacy-api.js?v=2"></script>
+    <script src="../mcv-api-base.js?v=2"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="../mcv-layout.js?v=2026-06-20-v7" defer></script>
+</head>
+<body class="grain calendar-page" data-mcv-page="calendar">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<section class="mcv-hero mcv-hero--compact calendar-hero" id="mcv-main">
+    <div class="mcv-eyebrow mcv-eyebrow--center section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
+        <span>// Calendario competitivo</span>
+        <div class="mcv-eyebrow__line yellow-line"></div>
+    </div>
+    <h1>Calendario <span>MCV.</span></h1>
+    <p class="mcv-section__lead">Torneos, wipes, eventos y streams en orden cronológico.</p>
+</section>
+
+<main class="compete-main calendar-app">
+    <div class="mcv-filter-bar">
+        <button type="button" class="mcv-chip mcv-chip--active" data-filter="all">Todo</button>
+        <button type="button" class="mcv-chip" data-filter="tournament">Torneos</button>
+        <button type="button" class="mcv-chip" data-filter="wipe">Wipes</button>
+        <button type="button" class="mcv-chip" data-filter="stream">Streams</button>
+    </div>
+    <div id="calendar-timeline" class="mcv-timeline calendar-timeline">
+        <div class="mcv-skeleton" aria-hidden="true"></div>
+    </div>
+</main>
+
+<script src="../mcv-components.js?v=2026-06-20-v7"></script>
+<script src="../mcv-compete-core.js?v=2026-06-20-v7"></script>
+<script src="../mcv-calendar-view.js?v=2026-06-20-v7"></script>
+</body>
+</html>

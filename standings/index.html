@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Ranking</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="../logo.png">
+    <link rel="stylesheet" href="../style.css?v=2026-06-20-v7">
+    <script src="../mcv-assets.js?v=2026-06-20-v7"></script>
+    <script src="../mcv-purge-legacy-api.js?v=2"></script>
+    <script src="../mcv-api-base.js?v=2"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="../mcv-layout.js?v=2026-06-20-v7" defer></script>
+</head>
+<body class="grain standings-page" data-mcv-page="standings">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<section class="mcv-hero mcv-hero--compact standings-hero" id="mcv-main">
+    <div class="mcv-eyebrow mcv-eyebrow--center section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
+        <span>// Rankings</span>
+        <div class="mcv-eyebrow__line yellow-line"></div>
+    </div>
+    <h1>Standings <span>MCV.</span></h1>
+    <p class="mcv-section__lead">Ranking de jugadores y equipos por temporada, wipe y rendimiento.</p>
+</section>
+
+<main class="compete-main standings-app">
+    <div class="mcv-tabs" role="tablist">
+        <button type="button" class="mcv-tab active" data-tab="players" aria-selected="true">Jugadores</button>
+        <button type="button" class="mcv-tab" data-tab="teams">Equipos</button>
+    </div>
+
+    <form class="mcv-filter-bar mcv-form" id="standings-filters">
+        <div class="mcv-field">
+            <label for="standings-season">Temporada</label>
+            <select id="standings-season" class="mcv-input mcv-select"><option value="">Actual</option></select>
+        </div>
+        <div class="mcv-field">
+            <label for="standings-wipe">Wipe</label>
+            <select id="standings-wipe" class="mcv-input mcv-select"><option value="">Todos</option></select>
+        </div>
+        <div class="mcv-field">
+            <label for="standings-sort">Ordenar por</label>
+            <select id="standings-sort" class="mcv-input mcv-select">
+                <option value="wins">Wins</option>
+                <option value="kd">K/D</option>
+                <option value="points">Puntos</option>
+            </select>
+        </div>
+    </form>
+
+    <div id="standings-players" class="mcv-table-wrap">
+        <table class="mcv-table" aria-label="Ranking jugadores">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Jugador</th>
+                    <th>Equipo</th>
+                    <th>Wins</th>
+                    <th>K/D</th>
+                    <th>Puntos</th>
+                </tr>
+            </thead>
+            <tbody id="standings-players-body"><tr><td colspan="6"><p class="mcv-loading">Cargando…</p></td></tr></tbody>
+        </table>
+    </div>
+
+    <div id="standings-teams" class="mcv-table-wrap" hidden>
+        <table class="mcv-table" aria-label="Ranking equipos">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Equipo</th>
+                    <th>Torneos</th>
+                    <th>Wins</th>
+                    <th>Puntos</th>
+                </tr>
+            </thead>
+            <tbody id="standings-teams-body"></tbody>
+        </table>
+    </div>
+
+    <p class="mcv-hint standings-note">Puntos y K/D parciales: datos agregados desde roster y campeonatos públicos. API de standings completa pendiente.</p>
+</main>
+
+<script src="../mcv-components.js?v=2026-06-20-v7"></script>
+<script src="../mcv-compete-core.js?v=2026-06-20-v7"></script>
+<script src="../mcv-standings-view.js?v=2026-06-20-v7"></script>
+</body>
+</html>

@@ -93,6 +93,7 @@
         var role = m.role_label ? esc(m.role_label) : "";
         var av = m.avatar_url ? esc(m.avatar_url) : "";
         var sid = m.steam_id64 ? String(m.steam_id64) : "";
+        var profileHref = sid ? "../player/?steamId=" + encodeURIComponent(sid) : "";
         var steamHref = sid ? "https://steamcommunity.com/profiles/" + encodeURIComponent(sid) : "";
         var steamLabel = esc(T("team.cardSteamLink"));
         var avatarInner = av
@@ -137,7 +138,7 @@
             "</div>" +
             '<div class="equipo-card-id">' +
             "<h3>" +
-            name +
+            (profileHref ? '<a class="mcv-link" href="' + esc(profileHref) + '">' + name + "</a>" : name) +
             "</h3>" +
             roleHtml +
             "</div>" +
