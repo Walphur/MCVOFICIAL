@@ -199,29 +199,95 @@
     }
 
     function checkStreamLive() {
-        var kickCh = "mcompanyv";
-        var twitchCh = "mcvteam";
-        return Promise.all([
-            fetch("https://decapi.me/kick/status/" + encodeURIComponent(kickCh))
-                .then(function (r) {
-                    return r.text();
-                })
-                .catch(function () {
-                    return "";
-                }),
-            fetch("https://decapi.me/twitch/status/" + encodeURIComponent(twitchCh))
-                .then(function (r) {
-                    return r.text();
-                })
-                .catch(function () {
-                    return "";
-                })
-        ]).then(function (pair) {
-            function isLive(txt) {
-                var s = String(txt || "").toLowerCase();
-                return s.indexOf("live") !== -1 || s.indexOf("online") !== -1;
+        return fetchPublicPulse().then(function (p) {
+            if (p && p.stream) return p.stream;
+            return { kick: false, twitch: false, any: false };
+        });
+    }
+
+    function fetchPublicEnvelope(path, query) {
+        var url = apiBase() + "/api/public/v1" + path;
+        if (query) {
+            var qs = new URLSearchParams(query);
+            url += "?" + qs.toString();
+        }
+        return fetchJson(url, { cache: "default" }).then(function (x) {
+            if (!x.ok || !x.data || x.data.status !== "ok") {
+                return { ok: false, status: x.status, data: null, pagination: null };
             }
-            return { kick: isLive(pair[0]), twitch: isLive(pair[1]), any: isLive(pair[0]) || isLive(pair[1]) };
+            return {
+                ok: true,
+                status: x.status,
+                data: x.data.data,
+                pagination: x.data.pagination || null,
+                metadata: x.data.metadata || null
+            };
+        });
+    }
+
+    function fetchPublicHome() {
+        return fetchPublicEnvelope("/home").then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicPulse() {
+        return fetchPublicEnvelope("/pulse").then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicPlayer(steamId) {
+        return fetchPublicEnvelope("/player/" + encodeURIComponent(steamId)).then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicStandings(opts) {
+        opts = opts || {};
+        var q = {};
+        if (opts.season) q.season = opts.season;
+        if (opts.limit) q.limit = String(opts.limit);
+        return fetchPublicEnvelope("/standings", q).then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicResults(opts) {
+        opts = opts || {};
+        var q = {};
+        if (opts.season) q.season = opts.season;
+        if (opts.slug) q.t = opts.slug;
+        if (opts.limit) q.limit = String(opts.limit);
+        if (opts.offset) q.offset = String(opts.offset);
+        if (opts.bracket) q.bracket = "1";
+        return fetchPublicEnvelope("/results", q).then(function (x) {
+            return x.ok ? { results: (x.data && x.data.results) || [], pagination: x.pagination } : { results: [], pagination: null };
+        });
+    }
+
+    function fetchPublicCalendar() {
+        return fetchPublicEnvelope("/calendar").then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicSearch(query, limit) {
+        return fetchPublicEnvelope("/search", { q: query, limit: String(limit || 12) }).then(function (x) {
+            return x.ok ? x.data : { query: query, results: [] };
+        });
+    }
+
+    function fetchPublicTeam(id) {
+        return fetchPublicEnvelope("/team/" + encodeURIComponent(id || "mcv")).then(function (x) {
+            return x.ok ? x.data : null;
+        });
+    }
+
+    function fetchPublicTournament(slug, includeBracket) {
+        var q = includeBracket === false ? { bracket: "0" } : { bracket: "1" };
+        return fetchPublicEnvelope("/tournament/" + encodeURIComponent(slug), q).then(function (x) {
+            return x.ok ? x.data : null;
         });
     }
 
@@ -240,6 +306,16 @@
         fetchTournamentStats: fetchTournamentStats,
         fetchDiscordCounts: fetchDiscordCounts,
         checkStreamLive: checkStreamLive,
+        fetchPublicEnvelope: fetchPublicEnvelope,
+        fetchPublicHome: fetchPublicHome,
+        fetchPublicPulse: fetchPublicPulse,
+        fetchPublicPlayer: fetchPublicPlayer,
+        fetchPublicStandings: fetchPublicStandings,
+        fetchPublicResults: fetchPublicResults,
+        fetchPublicCalendar: fetchPublicCalendar,
+        fetchPublicSearch: fetchPublicSearch,
+        fetchPublicTeam: fetchPublicTeam,
+        fetchPublicTournament: fetchPublicTournament,
         findRosterMember: findRosterMember,
         parseRosterJson: parseRosterJson,
         rosterHasSteam: rosterHasSteam,

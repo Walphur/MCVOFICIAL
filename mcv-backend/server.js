@@ -199,6 +199,9 @@ registerVitalRustApi(app, {
 registerYoutubeFeedApi(app);
 registerTiktokFeedApi(app);
 
+const { registerPublicApi } = require("./publicApi");
+registerPublicApi(app, { getPool });
+
 const cache = new Map();
 const CACHE_TIME = 1000 * 60 * 10;
 
