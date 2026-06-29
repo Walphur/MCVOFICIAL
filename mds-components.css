@@ -26,7 +26,8 @@
 }
 
 .btn-primary:hover,
-.mcv-btn-primary:hover {
+.mcv-btn-primary:hover,
+.tracker-btn:hover {
     background: var(--mcv-accent-hover);
 }
 
