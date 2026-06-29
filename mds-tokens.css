@@ -1,0 +1,94 @@
+/**
+ * MCV Design System — tokens (Fase 3.0)
+ * Fuente única de verdad visual para la migración incremental.
+ */
+:root {
+    /* Color — semantic */
+    --mcv-bg-base: #09090b;
+    --mcv-bg-raised: #121214;
+    --mcv-bg-overlay: #1a1a1f;
+    --mcv-bg-elevated: #222228;
+
+    --mcv-text-primary: #fafafa;
+    --mcv-text-secondary: #a1a1aa;
+    --mcv-text-muted: #71717a;
+
+    --mcv-border: #27272a;
+    --mcv-border-subtle: #1f1f23;
+    --mcv-border-focus: #52525b;
+
+    --mcv-accent: #f97316;
+    --mcv-accent-hover: #fb923c;
+    --mcv-accent-muted: rgba(249, 115, 22, 0.14);
+    --mcv-accent-ring: rgba(249, 115, 22, 0.35);
+
+    --mcv-success: #22c55e;
+    --mcv-warning: #eab308;
+    --mcv-danger: #ef4444;
+    --mcv-live: #ef4444;
+
+    /* Aliases legacy (style.css) — convergen acá */
+    --background: var(--mcv-bg-base);
+    --foreground: var(--mcv-text-primary);
+    --primary: var(--mcv-accent);
+    --border: var(--mcv-border);
+    --input-bg: var(--mcv-bg-overlay);
+    --muted: var(--mcv-text-secondary);
+    --red: var(--mcv-danger);
+
+    /* Typography */
+    --mcv-font-display: "Bebas Neue", Impact, sans-serif;
+    --mcv-font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --mcv-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    --mcv-text-xs: 0.6875rem;
+    --mcv-text-sm: 0.8125rem;
+    --mcv-text-base: 1rem;
+    --mcv-text-lg: 1.125rem;
+    --mcv-text-xl: 1.25rem;
+    --mcv-text-2xl: 1.5rem;
+    --mcv-text-3xl: 2rem;
+
+    /* Spacing scale (4px base) */
+    --mcv-space-1: 4px;
+    --mcv-space-2: 8px;
+    --mcv-space-3: 12px;
+    --mcv-space-4: 16px;
+    --mcv-space-5: 20px;
+    --mcv-space-6: 24px;
+    --mcv-space-8: 32px;
+    --mcv-space-10: 40px;
+    --mcv-space-12: 48px;
+    --mcv-space-16: 64px;
+
+    /* Radius */
+    --mcv-radius-sm: 6px;
+    --mcv-radius-md: 8px;
+    --mcv-radius-lg: 12px;
+    --mcv-radius-xl: 16px;
+    --mcv-radius-full: 999px;
+
+    /* Shadow */
+    --mcv-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --mcv-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --mcv-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+    /* Motion */
+    --mcv-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --mcv-duration-fast: 120ms;
+    --mcv-duration: 200ms;
+    --mcv-duration-slow: 320ms;
+
+    /* Layout */
+    --mcv-nav-height: 64px;
+    --mcv-content-max: 1120px;
+    --mcv-touch-min: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --mcv-duration-fast: 0ms;
+        --mcv-duration: 0ms;
+        --mcv-duration-slow: 0ms;
+    }
+}
