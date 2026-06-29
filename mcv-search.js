@@ -7,6 +7,7 @@
 
     var index = null;
     var indexPromise = null;
+    var searchTimer = null;
     var overlay = null;
     var input = null;
     var resultsEl = null;
@@ -30,7 +31,7 @@
         var C = global.mcvCompeteCore;
         if (!C) {
             var s = document.createElement("script");
-            s.src = base() + "mcv-compete-core.js?v=" + (global.MCV_ASSET_V || "2026-06-20-v7");
+            s.src = base() + "mcv-compete-core.js?v=" + (global.MCV_ASSET_V || "2026-06-20-v9");
             document.head.appendChild(s);
             indexPromise = new Promise(function (resolve) {
                 s.onload = function () {
@@ -44,44 +45,18 @@
         return indexPromise;
     }
 
+    function defaultNavItems() {
+        return [
+            { type: "página", label: "Ranking", sub: "Standings", href: base() + "standings/" },
+            { type: "página", label: "Calendario", sub: "Eventos", href: base() + "calendar/" },
+            { type: "página", label: "Resultados", sub: "Hub histórico", href: base() + "results/" },
+            { type: "clan", label: "MCV Oficial", sub: "Home", href: base() || "./" }
+        ];
+    }
+
     function buildIndexInner(C) {
-        return Promise.all([C.fetchTournaments(), C.fetchTeamRoster()]).then(function (res) {
-            var items = [];
-            var tournaments = res[0] || [];
-            var roster = (res[1] && res[1].members) || [];
-            tournaments.forEach(function (t) {
-                items.push({
-                    type: "torneo",
-                    label: t.title || t.slug,
-                    sub: t.status || "",
-                    href: base() + "tournament.html?slug=" + encodeURIComponent(t.slug)
-                });
-                if (t.status === "finished") {
-                    items.push({
-                        type: "resultado",
-                        label: "Resultado — " + (t.title || t.slug),
-                        sub: t.winner_display_name || t.winner_team_name || "",
-                        href: base() + "results/?t=" + encodeURIComponent(t.slug)
-                    });
-                }
-            });
-            roster.forEach(function (m) {
-                if (!m.steam_id64) return;
-                items.push({
-                    type: "jugador",
-                    label: m.display_name || "Jugador",
-                    sub: m.role_label || "MCV",
-                    href: base() + "player/?steamId=" + encodeURIComponent(m.steam_id64)
-                });
-            });
-            items.push(
-                { type: "página", label: "Ranking", sub: "Standings", href: base() + "standings/" },
-                { type: "página", label: "Calendario", sub: "Eventos", href: base() + "calendar/" },
-                { type: "página", label: "Resultados", sub: "Hub histórico", href: base() + "results/" }
-            );
-            index = items;
-            return items;
-        });
+        index = defaultNavItems();
+        return Promise.resolve(index);
     }
 
     function ensureOverlay() {
@@ -136,48 +111,80 @@
         });
     }
 
+    function resolveHref(href) {
+        href = String(href || "#");
+        if (/^https?:\/\//i.test(href)) return href;
+        if (href.charAt(0) === "/") return base() + href.replace(/^\//, "");
+        return href;
+    }
+
     function renderResults(q) {
         if (!resultsEl) return;
-        q = String(q || "")
-            .trim()
-            .toLowerCase();
-        var list = (index || []).filter(function (it) {
-            if (!q) return true;
-            return (
-                String(it.label || "")
-                    .toLowerCase()
-                    .indexOf(q) !== -1 ||
-                String(it.sub || "")
-                    .toLowerCase()
-                    .indexOf(q) !== -1 ||
-                String(it.type || "")
-                    .toLowerCase()
-                    .indexOf(q) !== -1
-            );
-        });
-        activeIdx = list.length ? 0 : -1;
-        if (!list.length) {
-            resultsEl.innerHTML = '<p class="mcv-search-hint">Sin resultados.</p>';
+        q = String(q || "").trim();
+        var C = global.mcvCompeteCore;
+
+        if (q.length < 2) {
+            activeIdx = index && index.length ? 0 : -1;
+            var defaults = index || defaultNavItems();
+            if (!defaults.length) {
+                resultsEl.innerHTML = '<p class="mcv-search-hint">Escribí al menos 2 caracteres…</p>';
+                return;
+            }
+            resultsEl.innerHTML = defaults
+                .slice(0, 8)
+                .map(function (it, i) {
+                    return (
+                        '<a class="mcv-search-result' +
+                        (i === 0 ? " is-active" : "") +
+                        '" href="' +
+                        esc(it.href) +
+                        '"><span><strong>' +
+                        esc(it.label) +
+                        '</strong><br><span class="mcv-search-result__type">' +
+                        esc(it.type) +
+                        (it.sub ? " · " + esc(it.sub) : "") +
+                        "</span></span><i data-lucide=\"arrow-right\"></i></a>"
+                    );
+                })
+                .join("");
+            if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
             return;
         }
-        resultsEl.innerHTML = list
-            .slice(0, 12)
-            .map(function (it, i) {
-                return (
-                    '<a class="mcv-search-result' +
-                    (i === 0 ? " is-active" : "") +
-                    '" href="' +
-                    esc(it.href) +
-                    '"><span><strong>' +
-                    esc(it.label) +
-                    '</strong><br><span class="mcv-search-result__type">' +
-                    esc(it.type) +
-                    (it.sub ? " · " + esc(it.sub) : "") +
-                    "</span></span><i data-lucide=\"arrow-right\"></i></a>"
-                );
-            })
-            .join("");
-        if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+
+        if (!C || !C.fetchPublicSearch) {
+            resultsEl.innerHTML = '<p class="mcv-search-hint">Buscador no disponible.</p>';
+            return;
+        }
+
+        clearTimeout(searchTimer);
+        resultsEl.innerHTML = '<p class="mcv-search-hint">Buscando…</p>';
+        searchTimer = setTimeout(function () {
+            C.fetchPublicSearch(q, 12).then(function (data) {
+                var list = (data && data.results) || [];
+                activeIdx = list.length ? 0 : -1;
+                if (!list.length) {
+                    resultsEl.innerHTML = '<p class="mcv-search-hint">Sin resultados.</p>';
+                    return;
+                }
+                resultsEl.innerHTML = list
+                    .map(function (it, i) {
+                        return (
+                            '<a class="mcv-search-result' +
+                            (i === 0 ? " is-active" : "") +
+                            '" href="' +
+                            esc(resolveHref(it.href)) +
+                            '"><span><strong>' +
+                            esc(it.label) +
+                            '</strong><br><span class="mcv-search-result__type">' +
+                            esc(it.type) +
+                            (it.sub ? " · " + esc(it.sub) : "") +
+                            "</span></span><i data-lucide=\"arrow-right\"></i></a>"
+                        );
+                    })
+                    .join("");
+                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+            });
+        }, 200);
     }
 
     function open() {

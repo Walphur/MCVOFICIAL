@@ -1,5 +1,5 @@
 /**
- * MCV 3.1 — Calendario cronológico
+ * MCV 3.2 — Calendario desde /api/public/v1/calendar
  */
 (function () {
     "use strict";
@@ -11,6 +11,12 @@
     var container = document.getElementById("calendar-timeline");
     var events = [];
     var filter = "all";
+
+    var ICONS = {
+        tournament: "swords",
+        wipe: "refresh-cw",
+        stream: "radio"
+    };
 
     function eventHtml(ev) {
         return (
@@ -63,55 +69,31 @@
         events.push(ev);
     }
 
-    Promise.all([C.fetchTournaments()])
-        .then(function (res) {
-            var tournaments = res[0] || [];
-            tournaments.forEach(function (t) {
-                if (t.starts_at) {
-                    pushEvent({
-                        type: "tournament",
-                        icon: "swords",
-                        iso: t.starts_at,
-                        title: t.title || t.slug,
-                        sub: "Match day · " + (t.status || "—"),
-                        href: "../tournament.html?slug=" + encodeURIComponent(t.slug),
-                        linkText: "Ver torneo"
-                    });
-                }
-                if (t.registration_closes_at && t.status === "open") {
-                    pushEvent({
-                        type: "tournament",
-                        icon: "ticket",
-                        iso: t.registration_closes_at,
-                        title: "Cierre inscripciones — " + (t.title || t.slug),
-                        sub: "Último día para registrar team",
-                        href: "../tournament.html?slug=" + encodeURIComponent(t.slug) + "#register",
-                        linkText: "Inscribirse"
-                    });
-                }
-            });
+    function mapApiEvent(e) {
+        var href = e.href || "";
+        if (href.indexOf("/") === 0) href = ".." + href;
+        var sub =
+            e.subtype === "registration"
+                ? "Cierre inscripciones"
+                : e.subtype === "match"
+                  ? "Match day · " + (e.status || "—")
+                  : e.subtype || e.type || "";
+        pushEvent({
+            type: e.type,
+            icon: ICONS[e.type] || "calendar",
+            iso: e.starts_at,
+            title: e.title,
+            sub: sub,
+            href: href,
+            linkText: e.type === "stream" ? "Ir a Live" : "Ver más",
+            placeholder: e.placeholder
+        });
+    }
 
-            /* Wipes — placeholder hasta GET /api/public/calendar */
-            pushEvent({
-                type: "wipe",
-                icon: "refresh-cw",
-                iso: null,
-                title: "Wipe Vital MCV",
-                sub: "Fechas oficiales en Discord / admin",
-                placeholder: true
-            });
-
-            /* Streams — enlace a live */
-            pushEvent({
-                type: "stream",
-                icon: "radio",
-                iso: null,
-                title: "Streams MCV",
-                sub: "Seguí transmisiones en vivo",
-                href: "../live.html",
-                linkText: "Ir a Live"
-            });
-
+    C.fetchPublicCalendar()
+        .then(function (data) {
+            if (!data || !data.events) throw new Error("calendar");
+            data.events.forEach(mapApiEvent);
             render();
         })
         .catch(function () {

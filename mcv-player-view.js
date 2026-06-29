@@ -67,14 +67,17 @@
 
     function buildAchievements(ctx) {
         var unlocked = {};
+        var pub = ctx.public;
+        if (pub && pub.achievements) {
+            pub.achievements.forEach(function (a) {
+                if (a.unlocked) unlocked[a.id] = true;
+            });
+        }
         if (ctx.rosterMember) unlocked.mcv = true;
-        if (ctx.wins.length) unlocked.champion = true;
         if (ctx.scout && Number(ctx.scout.kills) >= 500) unlocked.fragger = true;
         if (ctx.scout && Number(ctx.scout.kdr) >= 1.5 && Number(ctx.scout.kills) < 500) unlocked.support = true;
         if (ctx.scout && Number(ctx.scout.raidingDamage || 0) > 10000) unlocked.raider = true;
         if (ctx.rosterMember && ctx.rosterMember.role_label) unlocked.veteran = true;
-        /* MVP — placeholder hasta API tournament_awards */
-        if (ctx.wins.length && ctx.wins[0].winner_display_name) unlocked.mvp = false;
 
         return ACHIEVEMENT_DEFS.map(function (a) {
             var on = !!unlocked[a.id];
@@ -166,12 +169,13 @@
         var kdr = ctx.scout && ctx.scout.kdr != null ? ctx.scout.kdr : null;
         var raids = ctx.scout && ctx.scout.raidingDamage != null ? ctx.scout.raidingDamage : null;
 
-        var tournamentsPlayed = ctx.wins.length; /* placeholder parcial */
-        var tournamentsWon = ctx.wins.length;
+        var pub = ctx.public;
+        var stats = (pub && pub.stats) || {};
+        var tournamentsPlayed = stats.tournaments_played != null ? stats.tournaments_played : ctx.wins.length;
+        var tournamentsWon = stats.tournament_wins != null ? stats.tournament_wins : ctx.wins.length;
         var wins = tournamentsWon;
         var losses = tournamentsPlayed > wins ? tournamentsPlayed - wins : null;
-        var winRate =
-            tournamentsPlayed > 0 ? Math.round((wins / tournamentsPlayed) * 100) + "%" : null;
+        var winRate = stats.win_rate != null ? stats.win_rate + "%" : tournamentsPlayed > 0 ? Math.round((wins / tournamentsPlayed) * 100) + "%" : null;
 
         if (gate) gate.hidden = true;
         if (heroCard) heroCard.hidden = false;
@@ -282,21 +286,23 @@
 
         var activity = document.getElementById("player-activity");
         if (activity) {
-            var act = [];
-            for (i = 0; i < Math.min(ctx.wins.length, 3); i++) {
+            var act = (pub && pub.activity ? pub.activity : []).slice(0, 5).map(function (a) {
+                var href = a.href ? a.href.replace(/^\//, "../") : "#";
+                return (
+                    '<li class="mcv-list__item"><div class="mcv-list__main"><strong>' +
+                    esc(a.text || "Actividad") +
+                    '</strong><span class="mcv-list__sub">' +
+                    esc(a.at ? C.fmtDate(a.at) : "Reciente") +
+                    '</span></div>' +
+                    (a.href ? '<a class="mcv-link" href="' + esc(href) + '">Ver</a>' : "") +
+                    "</li>"
+                );
+            });
+            if (!act.length) {
                 act.push(
-                    '<li class="mcv-list__item"><div class="mcv-list__main"><strong>Torneo finalizado</strong><span class="mcv-list__sub">' +
-                        esc(ctx.wins[i].title || ctx.wins[i].slug) +
-                        " · " +
-                        C.fmtDate(ctx.wins[i].ended_at) +
-                        '</span></div><a class="mcv-link" href="../results/?t=' +
-                        encodeURIComponent(ctx.wins[i].slug) +
-                        '">Resultado</a></li>'
+                    '<li class="mcv-list__item"><div class="mcv-list__main"><strong>Sin actividad reciente</strong><span class="mcv-list__sub">Participá en torneos MCV</span></div></li>'
                 );
             }
-            act.push(
-                '<li class="mcv-list__item mcv-list__item--placeholder"><div class="mcv-list__main"><strong>Últimos wipes</strong><span class="mcv-list__sub">Próximamente — calendario de wipes</span></div></li>'
-            );
             activity.innerHTML = act.join("");
         }
 
@@ -312,39 +318,41 @@
         showLoading(true);
         if (gate) gate.hidden = true;
 
-        Promise.all([
-            C.fetchTeamRoster(),
-            C.fetchPlayerScout(id),
-            C.fetchTournaments(),
-            C.fetchWipeList()
-        ])
+        Promise.all([C.fetchPublicPlayer(id), C.fetchPlayerScout(id)])
             .then(function (res) {
-                var roster = res[0];
+                var pub = res[0];
                 var scout = res[1];
-                var tournaments = res[2];
-                var rosterMember = C.findRosterMember(id, roster.members);
-                var finished = tournaments.filter(function (t) {
-                    return t.status === "finished";
-                });
-                var detailPromises = finished.slice(0, 12).map(function (t) {
-                    return C.fetchTournamentDetail(t.slug);
-                });
-                return Promise.all(detailPromises).then(function (details) {
-                    var valid = details.filter(Boolean);
-                    var wins = deriveTournamentWins(valid, id);
-                    return {
-                        steamId: id,
-                        rosterMember: rosterMember,
-                        scout: scout,
-                        wins: wins,
-                        wipeList: res[3]
-                    };
-                });
+                if (!pub) {
+                    throw new Error("not_found");
+                }
+                var profile = pub.profile || {};
+                var rosterMember = profile.is_roster
+                    ? {
+                          display_name: profile.display_name,
+                          role_label: profile.role_label,
+                          avatar_url: profile.avatar_url,
+                          steam_id64: profile.steam_id64
+                      }
+                    : null;
+                var wins = (pub.history || [])
+                    .filter(function (h) {
+                        return h.type === "tournament_win";
+                    })
+                    .map(function (h) {
+                        return { slug: h.slug, title: h.title, ended_at: h.at, winner_team_name: h.title };
+                    });
+                return {
+                    steamId: id,
+                    public: pub,
+                    rosterMember: rosterMember,
+                    scout: scout,
+                    wins: wins
+                };
             })
             .then(function (ctx) {
                 showLoading(false);
-                if (!ctx.scout && !ctx.rosterMember && !ctx.wins.length) {
-                    showError("No hay datos públicos para este SteamID. Probá con un miembro del roster MCV.");
+                if (!ctx.scout && !ctx.rosterMember && !ctx.wins.length && !(ctx.public && ctx.public.profile)) {
+                    showError("No hay datos públicos para este SteamID.");
                     if (gate) gate.hidden = false;
                     if (heroCard) heroCard.hidden = true;
                     if (app) app.hidden = true;
