@@ -10,351 +10,261 @@
     <meta property="og:image" content="banner.png">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#FAA61A">
-    <!-- Si el dominio público es solo estático, poné la URL del Web Service Render (sin / final). -->
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <script src="mcv-assets.js?v=2026-06-11-v4"></script>
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v3">
+    <script src="mcv-assets.js?v=2026-06-20-v3"></script>
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
     <script src="mcv-oauth-ui.js?v=2"></script>
-    <script src="mcv-auth-float.js?v=1"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-02-waltech" defer></script>
-    <script src="mcv-icons.js?v=2026-06-11-v4" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v3" defer></script>
+    <script src="mcv-icons.js?v=2026-06-20-v3" defer></script>
 </head>
 <body class="grain home-page" data-mcv-page="index">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section class="home-hero">
+
+<section class="home-hero home-hero--v3">
     <div class="home-hero-media" aria-hidden="true"></div>
     <div class="home-hero-shade" aria-hidden="true"></div>
-    <div class="home-hero-particles" aria-hidden="true">
-        <span style="left:8%;animation-delay:0s"></span>
-        <span style="left:22%;animation-delay:3s"></span>
-        <span style="left:41%;animation-delay:6s"></span>
-        <span style="left:58%;animation-delay:1s"></span>
-        <span style="left:72%;animation-delay:8s"></span>
-        <span style="left:88%;animation-delay:4s"></span>
-    </div>
 
     <div class="home-hero-content">
-        <div class="section-label home-label">
-            <div class="yellow-line"></div>
-            <span data-i18n="home.tagline">// Rust Competitive Clan</span>
+        <div id="home-pulse-now" class="pulse-now" hidden>
+            <div class="pulse-now__head">
+                <span class="section-label home-label">
+                    <div class="yellow-line"></div>
+                    <span data-i18n="home.nowLabel">// Ahora</span>
+                </span>
+                <span class="mcv-badge" id="home-pulse-badge">Torneo</span>
+            </div>
+            <h2 class="pulse-now__title" id="home-pulse-title"></h2>
+            <p class="home-panel__meta" id="home-pulse-meta" hidden></p>
+            <div class="pulse-now__actions">
+                <a id="home-pulse-primary" href="events.html" class="btn-primary">
+                    <i data-lucide="swords"></i>
+                    <span data-i18n="home.pulseParticipate">Participar</span>
+                </a>
+                <a id="home-pulse-secondary" href="events.html" class="btn-secondary">
+                    <span data-i18n="home.pulseViewEvents">Ver torneos</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="home-pulse-idle" class="pulse-now pulse-now--idle" hidden>
+            <div class="pulse-now__head">
+                <span class="section-label home-label">
+                    <div class="yellow-line"></div>
+                    <span data-i18n="home.nowLabel">// Ahora</span>
+                </span>
+            </div>
+            <p class="pulse-now__title" data-i18n="home.pulseIdle">No hay torneos activos ahora. Unite al Discord para enterarte del próximo.</p>
         </div>
 
         <img src="logo.png" alt="MCV" class="home-mark">
         <h1>MCV <span>OFICIAL</span></h1>
-        <p data-i18n="home.lead">Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
+        <p class="home-lead" data-i18n="home.lead">Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
 
-        <div class="home-quick-paths" role="navigation" aria-label="Acciones rápidas">
-            <a href="events.html" class="home-path-card home-path-card--primary">
-                <i data-lucide="swords"></i>
-                <span class="home-path-tag" data-i18n="home.pathCompeteTag">Competir</span>
-                <strong data-i18n="home.pathCompeteTitle">Ver torneos</strong>
-                <p data-i18n="home.pathCompeteP">Calendario, inscripciones y premios del clan.</p>
-            </a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="home-path-card">
+        <div class="home-cta-row">
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer" class="btn-primary pulse-rust">
                 <i data-lucide="message-square"></i>
-                <span class="home-path-tag" data-i18n="home.pathJoinTag">Unirse</span>
-                <strong data-i18n="home.pathJoinTitle">Entrar al Discord</strong>
-                <p data-i18n="home.pathJoinP">Eventos, roster, tickets y comunidad en vivo.</p>
+                <span data-i18n="home.ctaJoinBtn">Entrar al Discord</span>
             </a>
-            <a href="bot.html" class="home-path-card">
-                <i data-lucide="shield-check"></i>
-                <span class="home-path-tag" data-i18n="home.pathTrackTag">Investigar</span>
-                <strong data-i18n="home.pathTrackTitle">Abrir tracker</strong>
-                <p data-i18n="home.pathTrackP">Bans, horas y servidores antes de fichar jugadores.</p>
+            <a href="events.html" class="btn-secondary">
+                <i data-lucide="trophy"></i>
+                <span data-i18n="home.ctaTournaments">Ver torneos</span>
             </a>
         </div>
+    </div>
+</section>
 
-        <div id="home-event-strip" class="home-event-strip" hidden>
-            <div class="home-event-strip-inner">
-                <span class="home-event-badge" id="home-event-mode">Torneo</span>
-                <span class="home-event-title" id="home-event-title"></span>
-                <a id="home-event-cta" href="events.html" class="home-event-cta" data-i18n="home.eventCta">Ver detalle</a>
-            </div>
+<section class="home-snapshot">
+    <p id="home-stats-hint" class="mcv-api-banner home-stats-hint" hidden role="status"></p>
+    <div class="stats-bar home-stats">
+        <div class="stat-box">
+            <span class="stat-title" data-i18n="home.statHosted">// Torneos hosteados</span>
+            <span class="stat-value mcv-count-up" id="stat-hosted-count">—</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title" data-i18n="home.statDiscord">// Miembros Discord</span>
+            <span class="stat-value mcv-count-up" id="discord-total">--</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title" data-i18n="home.statOnline">// Online ahora</span>
+            <span class="stat-value mcv-count-up" id="discord-online">--</span>
         </div>
     </div>
 </section>
 
-<p id="home-stats-hint" class="mcv-api-banner home-stats-hint" hidden role="status"></p>
-<section class="stats-bar home-stats">
-    <div class="stat-box">
-        <span class="stat-title" data-i18n="home.statHosted">// Torneos hosteados</span>
-        <span class="stat-value mcv-count-up" id="stat-hosted-count">—</span>
-    </div>
-    <div class="stat-box">
-        <span class="stat-title" data-i18n="home.statDiscord">// Discord members</span>
-        <span class="stat-value mcv-count-up" id="discord-total">--</span>
-    </div>
-    <div class="stat-box">
-        <span class="stat-title" data-i18n="home.statOnline">// Online now</span>
-        <span class="stat-value mcv-count-up" id="discord-online">--</span>
-    </div>
-    <div class="stat-box">
-        <span class="stat-title" data-i18n="home.statWipes" data-i18n-title="home.statWipesHint">// Wipe roster</span>
-        <span class="stat-value mcv-count-up" id="stat-wipe-count">—</span>
+<section class="home-panel" id="home-results-panel" hidden>
+    <div class="home-panel__inner">
+        <div class="home-panel__head">
+            <h2 class="home-panel__title" data-i18n="home.resultsTitle">Últimos resultados</h2>
+            <a id="home-results-link" href="events.html" class="home-panel__link" data-i18n="home.resultsLink">Ver torneo</a>
+        </div>
+        <p class="home-panel__body" id="home-results-body"></p>
     </div>
 </section>
 
-<section class="home-strip">
-    <span data-i18n="home.strip1">Red MCV</span>
-    <span data-i18n="home.strip2">Torneos Rust</span>
-    <span data-i18n="home.strip3">Anti-cheat</span>
-    <span data-i18n="home.strip4">Streams en vivo</span>
-</section>
-
-<section class="page-section home-section home-feature-section">
-    <div class="section-label">
-        <div class="yellow-line"></div>
-        <span data-i18n="home.opsLabel">// Operaciones MCV</span>
-    </div>
-    <div class="section-heading-row">
-        <h2><span data-i18n="home.opsTitle">Clan</span> <span data-i18n="home.opsTitleSpan">System.</span></h2>
-        <p data-i18n="home.opsDesc">Un ecosistema para competir, organizar torneos, revisar jugadores y mover comunidad sin perder el ritmo del wipe.</p>
-    </div>
-
-    <div class="home-feature-grid">
-        <a href="bot.html" class="home-feature-card highlight-card">
-            <i data-lucide="radar"></i>
-            <span data-i18n="home.featureTracker">MCV Tracker</span>
-            <h3 data-i18n="home.featureTrackerH">Investiga jugadores</h3>
-            <p data-i18n="home.featureTrackerP">Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
-        </a>
-        <a href="events.html" class="home-feature-card">
-            <i data-lucide="trophy"></i>
-            <span data-i18n="home.featureEvents">Torneos</span>
-            <h3 data-i18n="home.featureEventsH">Torneos activos</h3>
-            <p data-i18n="home.featureEventsP">Reglas, inscripciones, premios y calendario competitivo del clan.</p>
-        </a>
-        <a href="live.html" class="home-feature-card">
-            <i data-lucide="radio"></i>
-            <span data-i18n="home.featureLive">Streams</span>
-            <h3 data-i18n="home.featureLiveH">Directos oficiales</h3>
-            <p data-i18n="home.featureLiveP">Kick, Twitch y cobertura en vivo de raids, scrims y eventos.</p>
-        </a>
+<section class="home-panel" id="home-roster-panel">
+    <div class="home-panel__inner">
+        <div class="home-panel__head">
+            <h2 class="home-panel__title" data-i18n="home.rosterTitle">Roster del clan</h2>
+            <a href="equipo/" class="home-panel__link" data-i18n="home.rosterLink">Ver equipo</a>
+        </div>
+        <p class="home-panel__body" id="home-roster-body">—</p>
     </div>
 </section>
 
-<section class="page-section home-section bg-darker">
-    <div class="section-label">
-        <div class="yellow-line"></div>
-        <span data-i18n="home.mediaLabel">// Últimos videos</span>
-    </div>
-    <div class="section-heading-row">
-        <h2><span data-i18n="home.mediaTitle">MCV </span><span data-i18n="home.mediaTitleSpan">Media.</span></h2>
-    </div>
-
-    <div class="video-grid home-video-grid home-media-grid" id="home-media-grid">
-        <div class="events-skeleton home-media-skeleton" aria-hidden="true"></div>
-    </div>
-</section>
-
-<section class="page-section home-section">
-    <div class="section-label">
-        <div class="yellow-line"></div>
-        <span data-i18n="home.valuesLabel">// Core Values</span>
-    </div>
-    <div class="section-heading-row">
-        <h2><span data-i18n="home.valuesTitle">Cómo juega </span><span data-i18n="home.valuesTitleSpan">MCV.</span></h2>
-    </div>
-
-    <div class="bento-grid home-bento">
-        <div class="card">
-            <div class="card-header">
-                <div class="icon-box"><i data-lucide="crosshair"></i></div>
-                <h3 data-i18n="home.valueCompTitle">Competencia</h3>
-            </div>
-            <p data-i18n="home.valueCompP">Torneos, scrims y eventos con reglas claras, brackets organizados y monitoreo constante.</p>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <div class="icon-box"><i data-lucide="hammer"></i></div>
-                <h3 data-i18n="home.valueWipeTitle">Disciplina de wipe</h3>
-            </div>
-            <p data-i18n="home.valueWipeP">Monument control, raids, farm y comunicación con roles definidos para sostener presión.</p>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                <div class="icon-box"><i data-lucide="shield-check"></i></div>
-                <h3 data-i18n="home.valueAdminTitle">Administración</h3>
-            </div>
-            <p data-i18n="home.valueAdminP">Herramientas de revisión, reportes y datos externos para tomar mejores decisiones.</p>
-        </div>
-    </div>
-</section>
-
-<section class="bottom-cta home-cta">
-    <div class="cta-content">
-        <div class="section-label centered-label">
-            <div class="yellow-line"></div>
-            <span data-i18n="home.ctaJoinLabel">// Join the network</span>
-            <div class="yellow-line"></div>
-        </div>
-        <h2><span data-i18n="home.ctaJoinTitle">Entrá al </span><span data-i18n="home.ctaJoinTitleSpan">comando.</span></h2>
-        <p data-i18n="home.ctaJoinDesc">Unite al Discord para participar en eventos, encontrar equipo y seguir la actividad oficial de MCV.</p>
-        <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-primary pulse-rust"><i data-lucide="message-square"></i> <span data-i18n="home.ctaJoinBtn">Entrar al Discord</span></a>
-    </div>
-</section>
-
-<footer class="footer">
-    <div class="footer-content">
-        <div class="footer-brand">
-            <img src="logo.png" alt="MCV" class="footer-logo">
-            <h2>MCV <span>OFICIAL</span></h2>
-            <p data-i18n="footer.taglineP">Clan competitivo de Rust, host de eventos y comunidad conectada a Discord, streams y herramientas propias.</p>
-        </div>
-        <div class="footer-links">
-            <div>
-                <span class="link-title" data-i18n="footer.navTitle">// Navegación</span>
-                <a href="index.html"><span data-i18n="nav.clan">Clan</span></a>
-                <a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a>
-                <a href="equipo/"><span data-i18n="nav.team">Equipo</span></a>
-                <a href="bot.html"><span data-i18n="nav.bot">Bot</span></a>
-                <a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>
-                <a href="live.html"><span data-i18n="nav.streams">Streams</span></a>
-            </div>
-            <div>
-                <span class="link-title" data-i18n="footer.socialTitle">// Redes</span>
-                <a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">Discord</a>
-                <a href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer">Twitch</a>
-                <a href="https://www.youtube.com/@McompanyV" target="_blank" rel="noopener noreferrer">YouTube</a>
-                <a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>
-            </div>
-        </div>
-    </div>
-    <div class="footer-pulse" aria-label="Estado MCV">
-        <div class="footer-pulse-item">
-            <span class="footer-pulse-label" data-i18n="footer.lastTournament">Último torneo</span>
-            <span class="footer-pulse-value" id="footer-last-tournament">—</span>
-        </div>
-        <div class="footer-pulse-item">
-            <span class="footer-pulse-label" data-i18n="footer.discordMembers">Miembros Discord</span>
-            <span class="footer-pulse-value" id="footer-discord-members">—</span>
-        </div>
-        <div class="footer-pulse-item">
-            <span class="footer-pulse-label" data-i18n="footer.serverStatus">Estado servidor</span>
-            <span class="footer-pulse-value" id="footer-server-status">—</span>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>
-        <span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>
-        <a href="login.html" class="footer-admin-link" data-i18n="footer.admin">Admin</a>
-    </div>
-</footer>
-
-<script src="mcv-i18n.js?v=27"></script>
+<script src="mcv-i18n.js?v=28"></script>
 <script>
     lucide.createIcons();
 
     (function () {
-        var strip = document.getElementById('home-event-strip');
-        if (!strip) return;
-        var API = typeof mcvResolveApiBase === 'function' ? mcvResolveApiBase() : String(window.location.origin || '').replace(/\/$/, '');
-        if (!API) return;
-        var T = typeof mcvT === 'function' ? mcvT : function (k) { return k; };
-        fetch(API + '/api/tournaments/for-site')
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-                if (!d.tournament) return;
-                var t = d.tournament;
-                strip.hidden = false;
-                document.getElementById('home-event-mode').textContent =
-                    d.mode === 'live' ? T('home.eventBadgeLive') : d.mode === 'recap' ? T('home.eventBadgeRecap') : T('home.eventBadgeTournament');
-                document.getElementById('home-event-title').textContent = t.title || '';
-                var cta = document.getElementById('home-event-cta');
-                cta.href = 'tournament.html?slug=' + encodeURIComponent(t.slug || '');
-            })
-            .catch(function () {});
-    })();
+        var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+        var T = typeof mcvT === "function" ? mcvT : function (k) { return k; };
 
-    const inviteCode = "mBRrUA8wH6";
-    const apiUrl = `https://discord.com/api/v9/invites/${inviteCode}?with_counts=true`;
-    var API = typeof mcvResolveApiBase === "function" ? mcvResolveApiBase() : String(window.location.origin || "").replace(/\/$/, "");
+        function tournamentHref(slug) {
+            return "tournament.html?slug=" + encodeURIComponent(slug || "");
+        }
 
-    function fmtHostedCount(n) {
-        if (n == null || !Number.isFinite(Number(n))) return "—";
-        var x = Math.floor(Number(n));
-        return x < 100 ? String(x).padStart(2, "0") : String(x);
-    }
+        function fmtTeams(n) {
+            if (n == null || !Number.isFinite(Number(n))) return "";
+            return String(n) + " equipos";
+        }
 
-    var discordFetch = fetch(apiUrl)
-        .then(function (response) {
-            return response.json();
-        })
-        .catch(function () {
-            return null;
-        });
-    var statsFetch =
-        API &&
-        fetch(API + "/api/tournaments/stats")
-            .then(function (r) {
-                return r.json();
-            })
-            .catch(function () {
-                return null;
-            });
-
-    Promise.all([discordFetch, statsFetch || Promise.resolve(null)]).then(function (pair) {
-        var data = pair[0];
-        var stats = pair[1];
-        if (data) {
-            var dt = document.getElementById("discord-total");
-            var don = document.getElementById("discord-online");
-            if (dt) {
-                dt.textContent = data.approximate_member_count || "--";
-                dt.setAttribute("data-count-target", dt.textContent);
-            }
-            if (don) {
-                don.textContent = data.approximate_presence_count || "--";
-                don.setAttribute("data-count-target", don.textContent);
-            }
+        if (API) {
+            fetch(API + "/api/tournaments/for-site")
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    var pulse = document.getElementById("home-pulse-now");
+                    var idle = document.getElementById("home-pulse-idle");
+                    var results = document.getElementById("home-results-panel");
+                    if (!d || !d.tournament) {
+                        if (idle) idle.hidden = false;
+                        return;
+                    }
+                    var t = d.tournament;
+                    var slug = t.slug || "";
+                    if (d.mode === "live") {
+                        if (pulse) pulse.hidden = false;
+                        var badge = document.getElementById("home-pulse-badge");
+                        if (badge) {
+                            badge.textContent = T("home.eventBadgeLive");
+                            badge.className = "mcv-badge mcv-badge--open";
+                        }
+                        var title = document.getElementById("home-pulse-title");
+                        if (title) title.textContent = t.title || "";
+                        var meta = document.getElementById("home-pulse-meta");
+                        if (meta) {
+                            var parts = [];
+                            if (t.accepted_count != null) parts.push(fmtTeams(t.accepted_count));
+                            if (t.registration_closes_at) {
+                                try {
+                                    parts.push(new Date(t.registration_closes_at).toLocaleString());
+                                } catch (_) {}
+                            }
+                            if (parts.length) {
+                                meta.textContent = parts.join(" · ");
+                                meta.hidden = false;
+                            }
+                        }
+                        var primary = document.getElementById("home-pulse-primary");
+                        var secondary = document.getElementById("home-pulse-secondary");
+                        if (primary) {
+                            primary.href = tournamentHref(slug);
+                            primary.querySelector("span").textContent = T("home.pulseParticipate");
+                        }
+                        if (secondary) {
+                            secondary.href = tournamentHref(slug);
+                            secondary.querySelector("span").textContent = T("home.pulseViewDetail");
+                        }
+                    } else if (d.mode === "recap") {
+                        if (results) results.hidden = false;
+                        var winner = t.winner_display_name || t.winner_team_name || "—";
+                        var body = document.getElementById("home-results-body");
+                        if (body) {
+                            body.textContent = (t.title || "") + " · " + T("home.resultsWinner") + ": " + winner;
+                        }
+                        var link = document.getElementById("home-results-link");
+                        if (link) link.href = tournamentHref(slug);
+                    }
+                })
+                .catch(function () {
+                    var idle = document.getElementById("home-pulse-idle");
+                    if (idle) idle.hidden = false;
+                });
         } else {
-            var hint = document.getElementById("home-stats-hint");
-            var failT = typeof mcvT === "function" ? mcvT("ui.statsPartialFail") : "Algunos datos no cargaron. Recargá o unite al Discord.";
-            if (hint) {
-                hint.textContent = failT;
-                hint.hidden = false;
-            }
-            var dt0 = document.getElementById("discord-total");
-            var don0 = document.getElementById("discord-online");
-            if (dt0) dt0.textContent = "—";
-            if (don0) don0.textContent = "—";
+            var idle0 = document.getElementById("home-pulse-idle");
+            if (idle0) idle0.hidden = false;
         }
-        if (!stats && API) {
-            var hint2 = document.getElementById("home-stats-hint");
-            if (hint2 && hint2.hidden) {
-                hint2.textContent = typeof mcvT === "function" ? mcvT("ui.statsApiFail") : hint2.textContent;
-                hint2.hidden = false;
-            }
+
+        var inviteCode = "mBRrUA8wH6";
+        var apiUrl = "https://discord.com/api/v9/invites/" + inviteCode + "?with_counts=true";
+
+        function fmtHostedCount(n) {
+            if (n == null || !Number.isFinite(Number(n))) return "—";
+            var x = Math.floor(Number(n));
+            return x < 100 ? String(x).padStart(2, "0") : String(x);
         }
-        var hc = document.getElementById("stat-hosted-count");
-        var wc = document.getElementById("stat-wipe-count");
-        if (hc) {
-            hc.textContent =
-                stats && stats.tournamentsFinished != null ? fmtHostedCount(stats.tournamentsFinished) : "—";
-            hc.setAttribute("data-count-target", hc.textContent);
-        }
-        if (wc) {
-            if (stats && Object.prototype.hasOwnProperty.call(stats, "teamRosterApproved") && stats.teamRosterApproved != null) {
-                wc.textContent = String(stats.teamRosterApproved);
-            } else if (stats && stats.wipePlayersConfirmed != null) {
-                wc.textContent = String(stats.wipePlayersConfirmed);
+
+        var discordFetch = fetch(apiUrl).then(function (r) { return r.json(); }).catch(function () { return null; });
+        var statsFetch = API
+            ? fetch(API + "/api/tournaments/stats").then(function (r) { return r.json(); }).catch(function () { return null; })
+            : Promise.resolve(null);
+
+        Promise.all([discordFetch, statsFetch]).then(function (pair) {
+            var data = pair[0];
+            var stats = pair[1];
+
+            if (data) {
+                var dt = document.getElementById("discord-total");
+                var don = document.getElementById("discord-online");
+                if (dt) {
+                    dt.textContent = data.approximate_member_count || "--";
+                    dt.setAttribute("data-count-target", dt.textContent);
+                }
+                if (don) {
+                    don.textContent = data.approximate_presence_count || "--";
+                    don.setAttribute("data-count-target", don.textContent);
+                }
             } else {
-                wc.textContent = "—";
+                var hint = document.getElementById("home-stats-hint");
+                if (hint) {
+                    hint.textContent = T("ui.statsPartialFail");
+                    hint.hidden = false;
+                }
             }
-            wc.setAttribute("data-count-target", wc.textContent);
-        }
-        if (typeof mcvAnimateCounters === "function") {
-            mcvAnimateCounters(document.querySelector(".home-stats") || document);
-        }
-    });
+
+            if (!stats && API) {
+                var hint2 = document.getElementById("home-stats-hint");
+                if (hint2 && hint2.hidden) {
+                    hint2.textContent = T("ui.statsApiFail");
+                    hint2.hidden = false;
+                }
+            }
+
+            var hc = document.getElementById("stat-hosted-count");
+            if (hc) {
+                hc.textContent = stats && stats.tournamentsFinished != null ? fmtHostedCount(stats.tournamentsFinished) : "—";
+                hc.setAttribute("data-count-target", hc.textContent);
+            }
+
+            var rosterBody = document.getElementById("home-roster-body");
+            if (rosterBody && stats) {
+                var count = stats.teamRosterApproved != null ? stats.teamRosterApproved : stats.wipePlayersConfirmed;
+                if (count != null) {
+                    rosterBody.textContent = count + " " + T("home.rosterActive");
+                }
+            }
+
+            if (typeof mcvAnimateCounters === "function") {
+                mcvAnimateCounters(document.querySelector(".home-snapshot") || document);
+            }
+        });
+    })();
 </script>
-<script src="mcv-home-media.js?v=2026-06-11-v4"></script>
 </body>
 </html>
