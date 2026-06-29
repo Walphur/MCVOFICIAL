@@ -219,7 +219,7 @@
 
 .tournament-register .player-row {
     display: grid;
-    grid-template-columns: 36px 1fr;
+    grid-template-columns: 36px repeat(3, minmax(0, 1fr));
     gap: var(--mcv-space-3);
     align-items: start;
     padding: var(--mcv-space-4) 0;
@@ -238,11 +238,37 @@
     font-family: var(--mcv-font-mono);
     font-size: var(--mcv-text-sm);
     font-weight: 600;
+    align-self: center;
 }
 
-.tournament-register .player-row .input-group,
-.tournament-register .player-row .mcv-field {
-    grid-column: 2 / -1;
+.tournament-register .form-row.team-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--mcv-space-4);
+}
+
+.tournament-register .player-row .mcv-field,
+.tournament-register .form-row .mcv-field {
+    min-width: 0;
+}
+
+.tournament-live .mcv-eyebrow--live span {
+    color: var(--mcv-danger);
+}
+
+.tournament-live h2 span.mcv-text-live {
+    color: var(--mcv-danger);
+}
+
+@media (max-width: 900px) {
+    .tournament-register .form-row.team-row,
+    .tournament-register .player-row {
+        grid-template-columns: 1fr;
+    }
+
+    .tournament-register .player-row .player-num {
+        display: none;
+    }
 }
 
 @media (max-width: 900px) {
@@ -853,5 +879,143 @@ body.login-body {
 @media (max-width: 600px) {
     .equipo-form-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* —— Cuenta — dashboard —— */
+.cuenta-section {
+    max-width: var(--mcv-content-max);
+    margin: 0 auto;
+    padding: var(--mcv-space-8) var(--mcv-space-4) var(--mcv-space-12);
+}
+
+.cuenta-gate {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.cuenta-oauth {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcv-space-3);
+}
+
+.cuenta-oauth__btn {
+    justify-content: center;
+    text-decoration: none;
+}
+
+.cuenta-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcv-space-4);
+}
+
+.cuenta-dashboard__head {
+    padding: var(--mcv-space-5);
+}
+
+.cuenta-dashboard__head-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mcv-space-4);
+}
+
+.cuenta-profile-head {
+    display: flex;
+    align-items: center;
+    gap: var(--mcv-space-4);
+}
+
+.cuenta-profile-name {
+    font-size: var(--mcv-text-lg);
+}
+
+.cuenta-avatar {
+    border: 1px solid var(--mcv-border);
+    border-radius: var(--mcv-radius-md);
+    object-fit: cover;
+}
+
+.cuenta-meta {
+    margin: var(--mcv-space-1) 0 0;
+    color: var(--mcv-text-muted);
+    font-size: var(--mcv-text-sm);
+}
+
+.cuenta-dashboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mcv-space-2);
+}
+
+.cuenta-steam-link {
+    padding: var(--mcv-space-5);
+    border-color: var(--mcv-accent-ring);
+}
+
+.cuenta-steam-link .mcv-panel__title {
+    margin-bottom: var(--mcv-space-2);
+}
+
+.cuenta-dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--mcv-space-4);
+}
+
+.cuenta-panel {
+    padding: var(--mcv-space-5);
+}
+
+.cuenta-panel--wide {
+    grid-column: 1 / -1;
+}
+
+.cuenta-panel__title {
+    display: flex;
+    align-items: center;
+    gap: var(--mcv-space-2);
+    margin: 0 0 var(--mcv-space-4);
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--mcv-text-primary);
+    font-size: var(--mcv-text-base);
+}
+
+.cuenta-panel__title svg {
+    width: 18px;
+    height: 18px;
+    color: var(--mcv-accent);
+}
+
+.cuenta-vital-meta {
+    margin: 0 0 var(--mcv-space-3);
+    color: var(--mcv-text-muted);
+    font-size: var(--mcv-text-sm);
+}
+
+.cuenta-vital-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcv-space-4);
+}
+
+.cuenta-vital-link {
+    display: inline-block;
+    margin-top: var(--mcv-space-2);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .cuenta-dashboard__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cuenta-dashboard__head-inner {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

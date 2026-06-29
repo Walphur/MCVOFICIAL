@@ -8,7 +8,15 @@
         return String(s)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;");
+    }
+
+    function mcvStatusBadge(status, label) {
+        var text = label != null ? label : status;
+        if (status === "accepted" || status === "ok") return mcvBadge("ok", text);
+        if (status === "declined" || status === "bad") return mcvBadge("bad", text);
+        return mcvBadge("pending", text);
     }
 
     var BADGE_MAP = {
@@ -120,6 +128,7 @@
     }
 
     global.mcvEsc = mcvEsc;
+    global.mcvStatusBadge = mcvStatusBadge;
     global.mcvBadge = mcvBadge;
     global.mcvChip = mcvChip;
     global.mcvEmptyHtml = mcvEmptyHtml;
