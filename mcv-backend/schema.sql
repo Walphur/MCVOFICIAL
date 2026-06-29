@@ -362,3 +362,27 @@ ALTER TABLE support_tickets ADD COLUMN IF NOT EXISTS site_user_id INT REFERENCES
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_support_tickets_user ON support_tickets (site_user_id, created_at DESC);
+
+-- split
+-- MCV 3.2 — campos públicos opcionales para resultados (runner-up / MVP / temporada)
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS season VARCHAR(16);
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS runner_up_registration_id INT;
+
+-- split
+ALTER TABLE tournaments DROP CONSTRAINT IF EXISTS fk_tournaments_runner_up;
+
+-- split
+ALTER TABLE tournaments ADD CONSTRAINT fk_tournaments_runner_up FOREIGN KEY (runner_up_registration_id) REFERENCES tournament_registrations (id) ON DELETE SET NULL;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS mvp_name TEXT;
+
+-- split
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS mvp_steam_id64 VARCHAR(17);
+
+-- split
+UPDATE tournaments
+SET season = COALESCE(season, TO_CHAR(COALESCE(ended_at, starts_at, created_at), 'YYYY'))
+WHERE season IS NULL;
