@@ -9,14 +9,14 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
-    <link rel="stylesheet" href="style-ux.css?v=2026-06-20-v4">
-    <script src="mcv-assets.js?v=2026-06-20-v4"></script>
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="style-ux.css?v=2026-06-20-v5">
+    <script src="mcv-assets.js?v=2026-06-20-v5"></script>
     <script src="mcv-purge-legacy-api.js?v=3"></script>
     <script src="mcv-api-base.js?v=3"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
-    <script src="mcv-icons.js?v=2026-06-20-v4" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v5" defer></script>
+    <script src="mcv-icons.js?v=2026-06-20-v5" defer></script>
     <meta name="description" content="Torneo Rust MCV: reglas, premios e inscripción de equipo.">
     <meta property="og:title" content="MCV — Torneo">
     <meta property="og:description" content="Inscripción web, calendario y reglas del evento.">
@@ -25,28 +25,32 @@
 <body class="grain tournament-page" data-mcv-page="tournament">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
-<section id="top" class="tournament-hero">
-    <div class="tournament-hero-bg" aria-hidden="true"></div>
-    <div class="tournament-hero-shade" aria-hidden="true"></div>
+<section id="top" class="mcv-hero tournament-hero tournament-hero-premium">
+    <div class="mcv-hero__bg tournament-hero-bg" aria-hidden="true"></div>
+    <div class="mcv-hero__shade tournament-hero-shade" aria-hidden="true"></div>
 
-    <div class="tournament-hero-content">
-        <div class="section-label centered-label">
-            <div class="yellow-line"></div>
+    <div class="mcv-hero__content tournament-hero-content">
+        <div class="tournament-status-row">
+            <span id="t-status-badge" class="mcv-badge mcv-badge--muted" hidden>—</span>
+        </div>
+        <div class="mcv-eyebrow mcv-eyebrow--center section-label centered-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
             <span id="t-hero-tag">// MCV · Rust</span>
-            <div class="yellow-line"></div>
+            <div class="mcv-eyebrow__line yellow-line"></div>
         </div>
 
         <h1 id="t-hero-title" data-i18n="tournament.defaultTitle">Torneo</h1>
         <p id="t-hero-desc" data-i18n="tournament.heroLoading">Cargando…</p>
 
-        <div class="tournament-actions" id="t-hero-actions">
-            <a href="#register" class="btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> <span data-i18n="tournament.btnRegister">Registrar team</span></a>
-            <a href="#rules" class="btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> <span data-i18n="tournament.btnRules">Ver reglas</span></a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
-            <button type="button" class="btn-secondary" id="t-btn-copy"><i data-lucide="link"></i> <span data-i18n="tournament.btnCopy">Copiar enlace</span></button>
-        </div>
         <p id="t-countdown" class="t-countdown" hidden></p>
-        <p id="t-hero-status" class="t-hero-status" style="display:none;"></p>
+        <p id="t-hero-status" class="t-hero-status" hidden></p>
+
+        <div class="mcv-hero__actions tournament-actions" id="t-hero-actions">
+            <a href="#register" class="mcv-btn mcv-btn--primary mcv-btn--pulse btn-primary pulse-rust" id="t-btn-register"><i data-lucide="zap"></i> <span data-i18n="tournament.btnRegister">Registrar team</span></a>
+            <a href="#rules" class="mcv-btn mcv-btn--secondary btn-secondary" id="t-btn-rules"><i data-lucide="scroll-text"></i> <span data-i18n="tournament.btnRules">Ver reglas</span></a>
+            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="mcv-btn mcv-btn--secondary btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
+            <button type="button" class="mcv-btn mcv-btn--secondary btn-secondary" id="t-btn-copy"><i data-lucide="link"></i> <span data-i18n="tournament.btnCopy">Copiar enlace</span></button>
+        </div>
     </div>
 </section>
 
@@ -85,26 +89,26 @@
     </div>
 </section>
 
-<section id="event" class="tournament-summary">
-    <div class="tournament-stat">
+<section id="event" class="mcv-stat-bar tournament-summary">
+    <div class="mcv-stat mcv-stat--icon tournament-stat">
         <i data-lucide="coins"></i>
         <span>// Prize Pool</span>
         <strong id="t-stat-prize">—</strong>
         <small id="t-stat-prize-sub">—</small>
     </div>
-    <div class="tournament-stat">
+    <div class="mcv-stat mcv-stat--icon tournament-stat">
         <i data-lucide="users"></i>
         <span>// Team Slots</span>
         <strong id="tournament-slots">—/—</strong>
         <small id="t-stat-slots-sub">—</small>
     </div>
-    <div class="tournament-stat">
+    <div class="mcv-stat mcv-stat--icon tournament-stat">
         <i data-lucide="calendar-days"></i>
         <span>// Match Day</span>
         <strong id="t-stat-day">—</strong>
         <small id="t-stat-day-sub">—</small>
     </div>
-    <div class="tournament-stat">
+    <div class="mcv-stat mcv-stat--icon tournament-stat">
         <i data-lucide="swords"></i>
         <span>// Format</span>
         <strong id="t-stat-format">—</strong>
@@ -118,9 +122,9 @@
     </div>
 </div>
 
-<section id="rules" class="page-section tournament-section">
-    <div class="section-label">
-        <div class="yellow-line"></div>
+<section id="rules" class="mcv-section page-section tournament-section">
+    <div class="mcv-eyebrow section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
         <span>// Rules / Schedule / Format</span>
     </div>
 
@@ -130,7 +134,7 @@
     </div>
 
     <div class="tournament-info-grid">
-        <article class="tournament-panel schedule-panel">
+        <article class="mcv-card tournament-panel schedule-panel">
             <div class="panel-title"><i data-lucide="calendar-clock"></i><h3>Schedule</h3></div>
             <div class="schedule-item"><span>Cierre inscripciones</span><span class="highlight" id="t-sch-close">—</span></div>
             <div class="schedule-item"><span>Match day</span><span class="highlight" id="t-sch-day">—</span></div>
@@ -138,14 +142,14 @@
             <div class="schedule-item border-none"><span>Max delay</span><span class="highlight">10 min = forfeit</span></div>
         </article>
 
-        <article class="tournament-panel prize-panel">
+        <article class="mcv-card tournament-panel prize-panel">
             <div class="panel-title"><i data-lucide="trophy"></i><h3>Prize Pool</h3></div>
             <span class="stat-title highlight-text">1st place</span>
             <div class="prize-amount" id="t-prize-amount">—</div>
             <p class="prize-sub" id="t-prize-sub">—</p>
         </article>
 
-        <article class="tournament-panel format-panel">
+        <article class="mcv-card tournament-panel format-panel">
             <div class="panel-title"><i data-lucide="swords"></i><h3>Format</h3></div>
             <div class="format-grid">
                 <div><span class="stat-title">// Mode</span><p id="t-fmt-mode">5v5 PvP</p></div>
@@ -156,7 +160,7 @@
         </article>
     </div>
 
-    <div class="rules-card tournament-panel" id="t-rules-card">
+    <div class="mcv-card rules-card tournament-panel" id="t-rules-card">
         <div class="panel-title"><i data-lucide="scroll-text"></i><h3>Tournament Rules</h3></div>
         <div class="rules-grid tournament-rules-grid">
             <div class="rule-item"><h4><span class="rule-num">01</span> Team Requirements</h4><ul><li>5 main players per team.</li><li>One captain responsible for communication.</li><li>No roster changes without admin approval.</li></ul></div>
@@ -170,15 +174,15 @@
         </div>
     </div>
 
-    <div class="fair-play-notice tournament-fair">
+    <div class="mcv-notice fair-play-notice tournament-fair">
         <i data-lucide="shield-alert"></i>
         <p><span data-i18n="tournament.fairPlaySpan">Fair Play Notice:</span> <span data-i18n="tournament.fairPlayP">MCV puede descalificar equipos por cheats, boosting, scripts o incumplimiento de reglas. Traé skill, no excusas.</span></p>
     </div>
 </section>
 
-<section id="register" class="register-section tournament-register">
-    <div class="section-label">
-        <div class="yellow-line"></div>
+<section id="register" class="mcv-section register-section tournament-register">
+    <div class="mcv-eyebrow section-label">
+        <div class="mcv-eyebrow__line yellow-line"></div>
         <span data-i18n="tournament.regSectionTag">// Inscripción</span>
     </div>
 
@@ -195,11 +199,11 @@
         <p class="t-reg-success-id"><span data-i18n="tournament.regSuccessIdLabel">Nº de registro:</span> <strong id="t-reg-success-num">—</strong></p>
     </div>
 
-    <form class="squad-form" action="#" method="POST" id="t-squad-form">
+    <form class="mcv-form squad-form" action="#" method="POST" id="t-squad-form">
         <div class="form-row team-row">
-            <div class="input-group"><label><i data-lucide="hash"></i> <span data-i18n="tournament.fieldTeamName">Nombre del team</span></label><input name="teamName" type="text" data-i18n-placeholder="tournament.phTeamName" placeholder="ej. Rust Lords" required autocomplete="organization"></div>
-            <div class="input-group"><label><i data-lucide="hash"></i> <span data-i18n="tournament.fieldTeamTag">Tag del team</span> <span class="label-optional" data-i18n="tournament.labelOptional">(opcional)</span></label><input name="teamTag" type="text" data-i18n-placeholder="tournament.phTeamTag" placeholder="RL" maxlength="12"></div>
-            <div class="input-group"><label class="highlight-label"><i data-lucide="crown"></i> <span data-i18n="tournament.fieldCaptain">Capitán</span></label><input name="captainName" type="text" data-i18n-placeholder="tournament.phCaptain" placeholder="Nombre del capitán" required autocomplete="name"></div>
+            <div class="mcv-field input-group"><label><i data-lucide="hash"></i> <span data-i18n="tournament.fieldTeamName">Nombre del team</span></label><input name="teamName" type="text" data-i18n-placeholder="tournament.phTeamName" placeholder="ej. Rust Lords" required autocomplete="organization"></div>
+            <div class="mcv-field input-group"><label><i data-lucide="hash"></i> <span data-i18n="tournament.fieldTeamTag">Tag del team</span> <span class="label-optional" data-i18n="tournament.labelOptional">(opcional)</span></label><input name="teamTag" type="text" data-i18n-placeholder="tournament.phTeamTag" placeholder="RL" maxlength="12"></div>
+            <div class="mcv-field input-group"><label class="highlight-label"><i data-lucide="crown"></i> <span data-i18n="tournament.fieldCaptain">Capitán</span></label><input name="captainName" type="text" data-i18n-placeholder="tournament.phCaptain" placeholder="Nombre del capitán" required autocomplete="name"></div>
         </div>
 
         <div class="divider"><span data-i18n="tournament.regDividerRoster">// Roster</span><span class="line"></span><span data-i18n="tournament.regDividerRequired">5 jugadores obligatorios</span></div>
@@ -212,7 +216,7 @@
 
         <div class="form-footer tournament-form-footer">
             <p data-i18n="tournament.regFooter">Todas las inscripciones las revisa el staff de MCV. Te avisamos por Discord cuando el team esté aprobado.</p>
-            <button type="submit" class="btn-primary"><i data-lucide="shield-check"></i> <span data-i18n="tournament.submitBtn">Enviar para aprobación</span></button>
+            <button type="submit" class="mcv-btn mcv-btn--primary btn-primary"><i data-lucide="shield-check"></i> <span data-i18n="tournament.submitBtn">Enviar para aprobación</span></button>
         </div>
     </form>
 </section>
@@ -441,6 +445,7 @@
         }
 
         var st = document.getElementById('t-hero-status');
+        var statusBadge = document.getElementById('t-status-badge');
         var regBtn = document.getElementById('t-btn-register');
         var form = document.getElementById('t-squad-form');
         var closedMsg = document.getElementById('t-reg-closed');
@@ -451,6 +456,7 @@
 
         if (isRegistrationOpen(t)) {
             st.style.display = 'none';
+            st.hidden = true;
             regBtn.style.display = '';
             form.style.display = '';
             closedMsg.style.display = 'none';
@@ -471,6 +477,7 @@
                 closedMsg.innerHTML = tpl('tournament.regClosedHtml');
             }
             st.style.display = 'block';
+            st.hidden = false;
             if (t.status === 'finished') {
                 st.textContent = T('tournament.statusFinished');
             } else if (t.status === 'draft') {
@@ -480,6 +487,26 @@
             }
             if (t.status === 'finished' && rulesCard) rulesCard.style.display = 'none';
             else if (rulesCard) rulesCard.style.display = '';
+        }
+
+        if (statusBadge) {
+            if (isRegistrationOpen(t)) {
+                statusBadge.className = 'mcv-badge mcv-badge--open';
+                statusBadge.textContent = T('events.badgeOpen');
+                statusBadge.hidden = false;
+            } else if (t.status === 'finished') {
+                statusBadge.className = 'mcv-badge mcv-badge--past';
+                statusBadge.textContent = T('tournament.statusFinished');
+                statusBadge.hidden = false;
+            } else if (t.status === 'draft') {
+                statusBadge.className = 'mcv-badge mcv-badge--draft';
+                statusBadge.textContent = T('tournament.statusDraft');
+                statusBadge.hidden = false;
+            } else {
+                statusBadge.className = 'mcv-badge mcv-badge--live';
+                statusBadge.textContent = t.status === 'open' ? T('tournament.statusClosed') : (t.status || '—');
+                statusBadge.hidden = false;
+            }
         }
 
         var winSec = document.getElementById('winner-showcase');

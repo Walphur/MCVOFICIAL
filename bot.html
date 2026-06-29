@@ -8,68 +8,85 @@
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v4">
-    <link rel="stylesheet" href="style-tracker.css?v=2">
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v5">
+    <link rel="stylesheet" href="style-tracker.css?v=3">
+    <script src="mcv-assets.js?v=2026-06-20-v5"></script>
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v4" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v5" defer></script>
 
 </head>
 
 <body class="grain tracker-page" data-mcv-page="bot">
 <nav class="navbar" data-mcv-shell-nav></nav>
-<div class="tracker-container">
+<div class="tracker-product">
     <div id="view-search" class="search-view">
-        <div class="section-label tracker-label">
-            <div class="yellow-line"></div>
-            <span data-i18n="bot.heroTag">// MCV Tracker</span>
-            <div class="yellow-line"></div>
-        </div>
-
-        <h1><span data-i18n="bot.heroTitle">Investiga </span><span data-i18n="bot.heroTitleSpan">jugadores.</span></h1>
-        <p data-i18n="bot.heroLead">Bans, horas en Rust, servidores y señales de riesgo en un solo escaneo para staff y capitanes.</p>
-
-        <form id="search-form" class="search-box">
-            <div class="search-input-wrapper">
-                <i data-lucide="search"></i>
-                <input type="text" id="steam-input" class="tracker-input" data-i18n-placeholder="bot.inputPh" placeholder="SteamID64 o link de perfil Steam…" required>
+        <header class="tracker-product-hero">
+            <div class="mcv-eyebrow mcv-eyebrow--center section-label tracker-label">
+                <div class="mcv-eyebrow__line yellow-line"></div>
+                <span data-i18n="bot.heroTag">// MCV Tracker</span>
+                <div class="mcv-eyebrow__line yellow-line"></div>
             </div>
+            <h1><span data-i18n="bot.heroTitle">Investiga </span><span data-i18n="bot.heroTitleSpan">jugadores.</span></h1>
+            <p data-i18n="bot.heroLead">Bans, horas en Rust, servidores y señales de riesgo en un solo escaneo para staff y capitanes.</p>
+        </header>
 
-            <button type="submit" id="search-btn" class="btn-primary tracker-btn"><span data-i18n="bot.searchBtn">Buscar</span></button>
-        </form>
-
-        <div class="tracker-examples">
-            <span data-i18n="bot.examplesLabel">Ejemplos (clic para usar):</span>
-            <button type="button" class="tracker-example-btn" data-example="76561197960287930">76561197960287930</button>
-            <button type="button" class="tracker-example-btn" data-example="https://steamcommunity.com/id/usuario">steamcommunity.com/id/usuario</button>
+        <div class="tracker-steps" aria-label="Cómo usar">
+            <div class="tracker-step">
+                <span class="tracker-step__num">1</span>
+                <h3>Pegá SteamID</h3>
+                <p>SteamID64 o link del perfil Steam.</p>
+            </div>
+            <div class="tracker-step">
+                <span class="tracker-step__num">2</span>
+                <h3>Escaneá</h3>
+                <p>VAC, horas, servidores y señales de riesgo.</p>
+            </div>
+            <div class="tracker-step">
+                <span class="tracker-step__num">3</span>
+                <h3>Decidí</h3>
+                <p>Reporte listo para Discord del staff.</p>
+            </div>
         </div>
 
-        <div id="tracker-error-card" class="tracker-error-card" hidden role="alert">
+        <div class="tracker-search-panel mcv-card">
+            <form id="search-form" class="search-box mcv-form">
+                <div class="search-input-wrapper mcv-field mcv-field--search">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="steam-input" class="tracker-input mcv-input" data-i18n-placeholder="bot.inputPh" placeholder="SteamID64 o link de perfil Steam…" required>
+                </div>
+                <button type="submit" id="search-btn" class="mcv-btn mcv-btn--primary btn-primary tracker-btn"><span data-i18n="bot.searchBtn">Buscar</span></button>
+            </form>
+            <div class="tracker-examples">
+                <span data-i18n="bot.examplesLabel">Ejemplos (clic para usar):</span>
+                <button type="button" class="tracker-example-btn mcv-chip" data-example="76561197960287930">76561197960287930</button>
+                <button type="button" class="tracker-example-btn mcv-chip" data-example="https://steamcommunity.com/id/usuario">steamcommunity.com/id/usuario</button>
+            </div>
+        </div>
+
+        <div id="tracker-error-card" class="mcv-empty mcv-empty--error tracker-error-card" hidden role="alert">
             <h3 data-i18n="bot.errorTitle">Sin resultados</h3>
             <p id="tracker-error-msg"></p>
         </div>
 
-        <div class="features-grid">
-            <div class="feature-card">
+        <div class="tracker-benefits features-grid">
+            <div class="mcv-card mcv-card--feature feature-card">
                 <i data-lucide="shield"></i>
                 <h3 data-i18n="bot.feat1Title">VAC y Game Bans</h3>
                 <p data-i18n="bot.feat1P">Detecta bans de VAC y fechas del último ban registrado en Valve.</p>
             </div>
-
-            <div class="feature-card">
+            <div class="mcv-card mcv-card--feature feature-card">
                 <i data-lucide="clock"></i>
                 <h3 data-i18n="bot.feat2Title">Horas de juego</h3>
                 <p data-i18n="bot.feat2P">Cruza datos con Steam para verificar horas totales en Rust.</p>
             </div>
-
-            <div class="feature-card">
+            <div class="mcv-card mcv-card--feature feature-card">
                 <i data-lucide="server"></i>
                 <h3 data-i18n="bot.feat3Title">Servidores</h3>
                 <p data-i18n="bot.feat3P">Historial con BattleMetrics y bases externas.</p>
             </div>
-
-            <div class="feature-card">
+            <div class="mcv-card mcv-card--feature feature-card">
                 <i data-lucide="users"></i>
                 <h3 data-i18n="bot.feat4Title">Reportes</h3>
                 <p data-i18n="bot.feat4P">Comando listo para pegar en Discord del staff.</p>
@@ -77,19 +94,20 @@
         </div>
     </div>
 
+    <div class="tracker-container">
     <div id="view-results" class="results-view">
-        <a href="#" class="tracker-back" onclick="showSearch(); return false;">
+        <a href="#" class="mcv-link tracker-back" onclick="showSearch(); return false;">
             <i data-lucide="arrow-left"></i> <span data-i18n="bot.backSearch">Volver al escáner</span>
         </a>
 
-        <div class="profile-card">
+        <div class="mcv-card mcv-card--profile profile-card">
             <div class="profile-top">
                 <div class="avatar-box">?</div>
 
                 <div class="profile-info">
                     <h2>
                         <span id="res-name">Jugador Analizado</span>
-                        <span id="risk-badge" class="badge clean">CLEAN</span>
+                        <span id="risk-badge" class="mcv-badge mcv-badge--safe badge clean">CLEAN</span>
                     </h2>
 
                     <div class="steam-id-text" id="res-id">76561198000000000</div>
@@ -298,6 +316,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 

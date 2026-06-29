@@ -267,11 +267,37 @@
     }
 
     function statCard(label, value, highlight) {
-        var cls = "vital-stat-card" + (highlight ? " vital-stat-card--hi" : "");
+        var cls = "mcv-stat vital-stat-card" + (highlight ? " is-highlight vital-stat-card--hi" : "");
         return (
-            '<div class="' + cls + '"><span class="vital-stat-label">' + esc(label) + "</span>" +
-            '<strong class="vital-stat-value">' + esc(String(value)) + "</strong></div>"
+            '<div class="' + cls + '"><span class="mcv-stat__label vital-stat-label">' + esc(label) + "</span>" +
+            '<strong class="mcv-stat__value vital-stat-value">' + esc(String(value)) + "</strong></div>"
         );
+    }
+
+    function updateVitalKpi(players) {
+        var bar = document.getElementById("vital-kpi-bar");
+        if (!bar) return;
+        if (!players || !players.length) {
+            bar.hidden = true;
+            return;
+        }
+        bar.hidden = false;
+        var kills = 0;
+        var raid = 0;
+        var sulfur = 0;
+        players.forEach(function (p) {
+            kills += Number(p.kills) || 0;
+            raid += Number(p.raidingDamage) || 0;
+            sulfur += Number(p.farmSulfur) || 0;
+        });
+        function setKpi(id, val) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = fmtNum(val);
+        }
+        setKpi("vital-kpi-players", players.length);
+        setKpi("vital-kpi-kills", kills);
+        setKpi("vital-kpi-raid", raid);
+        setKpi("vital-kpi-sulfur", sulfur);
     }
 
     function sortValue(p, key) {
@@ -304,7 +330,8 @@
         clanRows = players || [];
         if (!clanRows.length) {
             if (sortBar) sortBar.hidden = true;
-            box.innerHTML = '<p class="empty-hint">Sin datos para este servidor/wipe.</p>';
+            updateVitalKpi([]);
+            box.innerHTML = '<p class="mcv-empty empty-hint">Sin datos para este servidor/wipe.</p>';
             return;
         }
         if (sortBar) sortBar.hidden = false;
@@ -317,7 +344,7 @@
         var html = "";
         sorted.forEach(function (p, idx) {
             var vitalUrl = "https://vitalrust.com/statistics/player-overview?userId=" + encodeURIComponent(p.steamId64);
-            html += '<article class="vital-player-card">';
+            html += '<article class="mcv-card vital-player-card">';
             html += '<header class="vital-player-head">';
             html += '<span class="vital-player-rank">#' + String(idx + 1) + "</span>";
             if (p.avatar) {
@@ -364,6 +391,7 @@
             html += "</div></section></div></article>";
         });
         box.innerHTML = html;
+        updateVitalKpi(sorted);
     }
 
     function loadWipes() {
@@ -457,7 +485,7 @@
             return Promise.resolve();
         }
 
-        box.innerHTML = '<p class="empty-hint">Cargando estadísticas…</p>';
+        box.innerHTML = '<p class="mcv-empty mcv-loading empty-hint">Cargando estadísticas…</p>';
         banner(refresh ? "Consultando Vital Rust (forzado)…" : "Cargando stats…", false);
 
         var q =
