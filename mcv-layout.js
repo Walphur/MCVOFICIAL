@@ -20,21 +20,31 @@
     var assetV =
         typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
             ? window.MCV_ASSET_V
-            : "2026-06-11-v1";
+            : "2026-06-20-v3";
 
-    var NAV_ITEMS = [
-        { id: "index", href: "index.html", i18n: "nav.clan", label: "Clan" },
-        { id: "events", href: "events.html", i18n: "nav.torneos", label: "Torneos" },
-        { id: "team", href: "equipo/", i18n: "nav.team", label: "Equipo", also: ["teamForm"] },
-        { id: "bot", href: "bot.html", i18n: "nav.bot", label: "Bot" },
-        { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
-        { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
-        { id: "live", href: "live.html", i18n: "nav.streams", label: "Streams", live: true }
+    var NAV_MAIN = [
+        { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament"] },
+        { id: "team", href: "equipo/", i18n: "nav.clan", label: "Clan", also: ["teamForm"] },
+        { id: "live", href: "live.html", i18n: "nav.live", label: "Live", live: true }
     ];
 
-    function isActive(item) {
+    var NAV_MORE = [
+        { id: "bot", href: "bot.html", i18n: "nav.tracker", label: "Tracker" },
+        { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
+        { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
+        { id: "vital-rust", href: "vital-rust.html", i18n: "nav.stats", label: "Stats Vital" }
+    ];
+
+    function itemIsActive(item) {
         if (item.id === page) return true;
         if (item.also && item.also.indexOf(page) !== -1) return true;
+        return false;
+    }
+
+    function moreNavIsActive() {
+        for (var i = 0; i < NAV_MORE.length; i++) {
+            if (itemIsActive(NAV_MORE[i])) return true;
+        }
         return false;
     }
 
@@ -65,27 +75,65 @@
         document.head.appendChild(link);
     }
 
+    function navLinkHtml(item) {
+        var cls = itemIsActive(item) ? "active" : "";
+        if (item.live) cls = (cls ? cls + " " : "") + "live-link";
+        var inner = item.live
+            ? '<span class="live-dot pulse-red"></span><span data-i18n="' +
+              item.i18n +
+              '">' +
+              (item.label || "Live") +
+              "</span>"
+            : '<span data-i18n="' + item.i18n + '">' + (item.label || "") + "</span>";
+        return (
+            '<li><a href="' +
+            base +
+            item.href +
+            '" class="' +
+            cls +
+            '">' +
+            inner +
+            "</a></li>"
+        );
+    }
+
     function navbarHtml() {
         var links = "";
-        for (var i = 0; i < NAV_ITEMS.length; i++) {
-            var item = NAV_ITEMS[i];
-            var cls = isActive(item) ? "active" : "";
-            if (item.live) cls = (cls ? cls + " " : "") + "live-link";
-            var inner = item.live
-                ? '<span class="live-dot pulse-red"></span><span data-i18n="' +
-                  item.i18n +
-                  '">' + (item.label || "Streams") + "</span>"
-                : '<span data-i18n="' + item.i18n + '">' + (item.label || "") + "</span>";
-            links +=
+        var i;
+        for (i = 0; i < NAV_MAIN.length; i++) {
+            links += navLinkHtml(NAV_MAIN[i]);
+        }
+        var moreActive = moreNavIsActive() ? " active" : "";
+        var moreItems = "";
+        for (i = 0; i < NAV_MORE.length; i++) {
+            var m = NAV_MORE[i];
+            var mcls = itemIsActive(m) ? "active" : "";
+            moreItems +=
                 '<li><a href="' +
                 base +
-                item.href +
+                m.href +
                 '" class="' +
-                cls +
+                mcls +
+                '"><span data-i18n="' +
+                m.i18n +
                 '">' +
-                inner +
-                "</a></li>";
+                (m.label || "") +
+                "</span></a></li>";
         }
+        links +=
+            '<li class="nav-more' +
+            (moreNavIsActive() ? " is-active-more" : "") +
+            '">' +
+            '<button type="button" class="nav-more-toggle' +
+            moreActive +
+            '" aria-expanded="false" aria-haspopup="true" data-i18n="nav.more">' +
+            '<span data-i18n="nav.more">Más</span>' +
+            '<svg class="nav-more-chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>' +
+            "</button>" +
+            '<ul class="nav-more-menu" role="menu">' +
+            '<li class="nav-more-label" data-i18n="nav.moreLabel">// Más opciones</li>' +
+            moreItems +
+            "</ul></li>";
         return (
             '<a href="' +
             base +
@@ -99,6 +147,44 @@
             links +
             "</ul>"
         );
+    }
+
+    function initMoreNav(nav) {
+        var more = nav && nav.querySelector(".nav-more");
+        if (!more) return;
+        var toggle = more.querySelector(".nav-more-toggle");
+        var menu = more.querySelector(".nav-more-menu");
+        if (!toggle || !menu) return;
+
+        function closeMore() {
+            more.classList.remove("is-open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        function openMore() {
+            more.classList.add("is-open");
+            toggle.setAttribute("aria-expanded", "true");
+        }
+
+        toggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (more.classList.contains("is-open")) closeMore();
+            else openMore();
+        });
+
+        menu.querySelectorAll("a").forEach(function (a) {
+            a.addEventListener("click", function () {
+                closeMore();
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!more.contains(e.target)) closeMore();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeMore();
+        });
     }
 
     function initMobileNav(nav) {
@@ -145,6 +231,12 @@
         links.querySelectorAll("a").forEach(function (a) {
             a.addEventListener("click", closeNav);
         });
+        var moreToggle = nav.querySelector(".nav-more-toggle");
+        if (moreToggle) {
+            moreToggle.addEventListener("click", function (e) {
+                e.stopPropagation();
+            });
+        }
         document.addEventListener("keydown", function (e) {
             if (e.key === "Escape" && nav.classList.contains("is-open")) closeNav();
         });
@@ -159,6 +251,7 @@
         nav.innerHTML = navbarHtml();
         nav.setAttribute("data-mcv-nav-filled", "1");
         initMobileNav(nav);
+        initMoreNav(nav);
     }
 
     var WALTECH_WA_URL = "https://wa.me/5492665031950";
@@ -227,22 +320,19 @@
             '<span class="link-title" data-i18n="footer.navTitle">// Navegación</span>' +
             '<a href="' +
             base +
-            'index.html"><span data-i18n="nav.clan">Clan</span></a>' +
+            'events.html"><span data-i18n="nav.compete">Compete</span></a>' +
             '<a href="' +
             base +
-            'events.html"><span data-i18n="nav.torneos">Torneos</span></a>' +
+            'equipo/"><span data-i18n="nav.clan">Clan</span></a>' +
             '<a href="' +
             base +
-            'equipo/"><span data-i18n="nav.team">Equipo</span></a>' +
+            'live.html"><span data-i18n="nav.live">Live</span></a>' +
             '<a href="' +
             base +
-            'bot.html"><span data-i18n="nav.bot">Bot</span></a>' +
+            'bot.html"><span data-i18n="nav.tracker">Tracker</span></a>' +
             '<a href="' +
             base +
             'tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>' +
-            '<a href="' +
-            base +
-            'live.html"><span data-i18n="nav.streams">Streams</span></a>' +
             "</div>" +
             "<div>" +
             '<span class="link-title" data-i18n="footer.socialTitle">// Redes</span>' +
@@ -258,9 +348,6 @@
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
-            '<a href="' +
-            base +
-            'login.html" class="footer-admin-link" data-i18n="footer.admin">Admin</a>' +
             "</div>"
         );
     }
@@ -328,7 +415,25 @@
         });
     }
 
+    function ensureMdsAssets() {
+        if (!document.querySelector("link[data-mcv-mds-tokens]")) {
+            var tokens = document.createElement("link");
+            tokens.rel = "stylesheet";
+            tokens.href = base + "mds-tokens.css?v=" + assetV;
+            tokens.setAttribute("data-mcv-mds-tokens", "1");
+            document.head.appendChild(tokens);
+        }
+        if (!document.querySelector("link[data-mcv-mds-components]")) {
+            var components = document.createElement("link");
+            components.rel = "stylesheet";
+            components.href = base + "mds-components.css?v=" + assetV;
+            components.setAttribute("data-mcv-mds-components", "1");
+            document.head.appendChild(components);
+        }
+    }
+
     function ensureUxAssets() {
+        ensureMdsAssets();
         if (!document.querySelector("link[data-mcv-ux-css]")) {
             var link = document.createElement("link");
             link.rel = "stylesheet";
