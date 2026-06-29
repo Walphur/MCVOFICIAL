@@ -21,22 +21,22 @@
     var assetV =
         typeof window.MCV_ASSET_V === "string" && window.MCV_ASSET_V
             ? window.MCV_ASSET_V
-            : "2026-06-20-v9";
+            : "2026-06-20-v10";
 
     var NAV_MAIN = [
         { id: "events", href: "events.html", i18n: "nav.compete", label: "Compete", also: ["tournament", "results", "standings", "calendar", "player"] },
         { id: "team", href: "equipo/", i18n: "nav.clan", label: "Clan", also: ["teamForm"] },
+        { id: "bot", href: "bot.html", i18n: "nav.tracker", label: "Tracker" },
         { id: "live", href: "live.html", i18n: "nav.live", label: "Live", live: true }
     ];
 
     var NAV_MORE = [
         { id: "results", href: "results/", i18n: "nav.results", label: "Resultados" },
-        { id: "standings", href: "standings/", i18n: "nav.standings", label: "Ranking" },
-        { id: "calendar", href: "calendar/", i18n: "nav.calendar", label: "Calendario" },
-        { id: "bot", href: "bot.html", i18n: "nav.tracker", label: "Tracker" },
         { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
         { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
-        { id: "vital-rust", href: "vital-rust.html", i18n: "nav.stats", label: "Stats Vital" }
+        { id: "vital-rust", href: "vital-rust.html", i18n: "nav.stats", label: "Stats Vital" },
+        { id: "standings", href: "standings/", i18n: "nav.standings", label: "Ranking" },
+        { id: "calendar", href: "calendar/", i18n: "nav.calendar", label: "Calendario" }
     ];
 
     function itemIsActive(item) {
@@ -315,13 +315,13 @@
 
     function footerFullHtml() {
         return (
-            '<div class="footer-content">' +
+            '<div class="footer-content footer-content--compact">' +
             '<div class="footer-brand">' +
             '<img src="' +
             base +
             'logo.png" alt="MCV" class="footer-logo">' +
             '<h2>MCV <span>OFICIAL</span></h2>' +
-            '<p data-i18n="footer.taglineP">Clan competitivo de Rust, host de eventos y comunidad conectada a Discord, streams y herramientas propias.</p>' +
+            '<p data-i18n="footer.taglineP">Clan competitivo de Rust · Discord · Torneos</p>' +
             "</div>" +
             '<div class="footer-links">' +
             "<div>" +
@@ -334,24 +334,19 @@
             'equipo/"><span data-i18n="nav.clan">Clan</span></a>' +
             '<a href="' +
             base +
-            'live.html"><span data-i18n="nav.live">Live</span></a>' +
-            '<a href="' +
-            base +
             'bot.html"><span data-i18n="nav.tracker">Tracker</span></a>' +
             '<a href="' +
             base +
-            'tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>' +
+            'live.html"><span data-i18n="nav.live">Live</span></a>' +
             "</div>" +
             "<div>" +
             '<span class="link-title" data-i18n="footer.socialTitle">// Redes</span>' +
             '<a href="https://discord.gg/mBRrUA8wH6" target="_blank" rel="noopener noreferrer">Discord</a>' +
             '<a href="https://www.twitch.tv/mcvteam" target="_blank" rel="noopener noreferrer">Twitch</a>' +
             '<a href="https://www.youtube.com/@McompanyV" target="_blank" rel="noopener noreferrer">YouTube</a>' +
-            '<a href="https://www.tiktok.com/@mcv_rust" target="_blank" rel="noopener noreferrer">TikTok</a>' +
             "</div>" +
             "</div>" +
             "</div>" +
-            footerPulseHtml() +
             footerWaltechHtml() +
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +

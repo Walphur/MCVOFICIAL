@@ -5,128 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCV Oficial - Rust Clan & Events</title>
     <meta property="og:title" content="MCV Oficial - Rust Clan & Events">
-    <meta property="og:description" content="Clan competitivo de Rust — torneos, streams y plataforma competitiva.">
+    <meta property="og:description" content="Clan competitivo de Rust — torneos, comunidad y Discord.">
     <meta property="og:image" content="banner.png">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#FAA61A">
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="alternate icon" href="favicon.ico" type="image/png">
-    <link rel="stylesheet" href="style.css?v=2026-06-20-v9">
-    <script src="mcv-assets.js?v=2026-06-20-v9"></script>
+    <link rel="stylesheet" href="style.css?v=2026-06-20-v10">
+    <script src="mcv-assets.js?v=2026-06-20-v10"></script>
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="mcv-layout.js?v=2026-06-20-v9" defer></script>
+    <script src="mcv-layout.js?v=2026-06-20-v10" defer></script>
 </head>
-<body class="grain home-page" data-mcv-page="index">
+<body class="grain home-page home-page--clan" data-mcv-page="index">
 
 <nav class="navbar" data-mcv-shell-nav></nav>
 
-<section class="mcv-hero home-hero home-hero--hub" id="mcv-main">
-    <div class="mcv-hero__bg home-hero-media" aria-hidden="true"></div>
-    <div class="mcv-hero__shade home-hero-shade" aria-hidden="true"></div>
+<section class="home-hero home-hero--clan" id="mcv-main">
+    <div class="home-hero-media" aria-hidden="true"></div>
+    <div class="home-hero-shade home-hero-shade--deep" aria-hidden="true"></div>
 
-    <div class="mcv-hero__content home-hero-content home-hero-content--hub">
-        <div id="home-hero-now" class="home-hero-now" aria-live="polite">
-            <div class="mcv-skeleton home-hero-skeleton" aria-hidden="true"></div>
+    <div class="home-hero-content home-hero-content--clan">
+        <img src="logo.png" alt="" class="home-mark" width="72" height="72">
+        <h1>MCV <span>OFICIAL</span></h1>
+        <p class="home-clan-lead">Clan competitivo de Rust. Torneos, wipes y comunidad que pelea en serio.</p>
+        <div class="home-actions home-actions--clan">
+            <a href="https://discord.gg/mBRrUA8wH6" class="mcv-btn mcv-btn--primary mcv-btn--pulse btn-primary pulse-rust" target="_blank" rel="noopener noreferrer">
+                <i data-lucide="message-square"></i> Entrar al Discord
+            </a>
+            <a href="events.html" class="mcv-btn mcv-btn--secondary btn-secondary">
+                <i data-lucide="swords"></i> Ver torneos
+            </a>
         </div>
+    </div>
 
-        <div class="home-hero-minimal">
-            <img src="logo.png" alt="" class="home-mark" width="56" height="56">
-            <h1>MCV <span>OFICIAL</span></h1>
-            <p class="home-lead-short">¿Qué está pasando en MCV ahora mismo?</p>
+    <div class="home-kpi-bar" aria-label="Estadísticas del clan">
+        <div class="home-kpi">
+            <span class="home-kpi__value mcv-count-up" id="kpi-members">—</span>
+            <span class="home-kpi__label">Miembros</span>
         </div>
-
-        <button type="button" id="home-search-open" class="mcv-btn mcv-btn--secondary home-search-btn" aria-label="Buscar (Ctrl+K)">
-            <i data-lucide="search"></i>
-            <span>Buscar</span>
-            <kbd class="home-search-kbd">Ctrl+K</kbd>
-        </button>
+        <div class="home-kpi">
+            <span class="home-kpi__value mcv-count-up" id="kpi-tournaments">—</span>
+            <span class="home-kpi__label">Torneos</span>
+        </div>
+        <div class="home-kpi">
+            <span class="home-kpi__value mcv-count-up" id="kpi-wins">—</span>
+            <span class="home-kpi__label">Victorias</span>
+        </div>
+        <div class="home-kpi">
+            <span class="home-kpi__value mcv-count-up" id="kpi-online">—</span>
+            <span class="home-kpi__label">Discord online</span>
+        </div>
     </div>
 </section>
 
-<section class="home-snapshot home-snapshot--compact">
-    <div class="mcv-stat-bar stats-bar home-stats">
-        <div class="mcv-stat stat-box">
-            <span class="mcv-stat__label stat-title">Torneos</span>
-            <span class="mcv-stat__value stat-value mcv-count-up" id="stat-hosted-count">—</span>
+<main class="home-clan">
+    <section class="home-clan-section" id="home-next-section" hidden>
+        <div class="mcv-eyebrow section-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
+            <span>// Próximo torneo</span>
         </div>
-        <div class="mcv-stat stat-box">
-            <span class="mcv-stat__label stat-title">Discord</span>
-            <span class="mcv-stat__value stat-value mcv-count-up" id="discord-total">—</span>
-        </div>
-        <div class="mcv-stat stat-box">
-            <span class="mcv-stat__label stat-title">Online</span>
-            <span class="mcv-stat__value stat-value mcv-count-up" id="discord-online">—</span>
-        </div>
-    </div>
-</section>
-
-<main class="home-hub">
-    <section class="mcv-widget-section home-section">
-        <header class="mcv-widget-section__head">
-            <h2 class="mcv-widget-section__title"><i data-lucide="activity"></i> Actividad reciente</h2>
-        </header>
-        <div id="home-activity-feed" class="mcv-widget-activity-list">
+        <div id="home-next-tournament" class="home-next-tournament">
             <div class="mcv-skeleton" aria-hidden="true"></div>
         </div>
     </section>
 
-    <div class="home-hub-grid">
-        <section class="mcv-widget-section home-section">
-            <header class="mcv-widget-section__head">
-                <h2 class="mcv-widget-section__title"><i data-lucide="calendar-clock"></i> Próximos eventos</h2>
-                <a class="mcv-link mcv-widget-section__link" href="calendar/">Calendario</a>
-            </header>
-            <div id="home-upcoming-list" class="home-widget-scroll">
-                <div class="mcv-skeleton" aria-hidden="true"></div>
-            </div>
-        </section>
+    <section class="home-clan-section" id="home-champion-section" hidden>
+        <div class="mcv-eyebrow section-label">
+            <div class="mcv-eyebrow__line yellow-line"></div>
+            <span>// Último campeón</span>
+        </div>
+        <div id="home-last-champion" class="home-champion-banner">
+            <div class="mcv-skeleton" aria-hidden="true"></div>
+        </div>
+    </section>
 
-        <section class="mcv-widget-section home-section">
-            <header class="mcv-widget-section__head">
-                <h2 class="mcv-widget-section__title"><i data-lucide="trophy"></i> Resultados recientes</h2>
-                <a class="mcv-link mcv-widget-section__link" href="results/">Ver todos</a>
-            </header>
-            <div id="home-results-list" class="home-widget-scroll">
-                <div class="mcv-skeleton" aria-hidden="true"></div>
+    <section class="home-clan-section">
+        <div class="home-clan-section__head">
+            <div class="mcv-eyebrow section-label">
+                <div class="mcv-eyebrow__line yellow-line"></div>
+                <span>// Roster</span>
             </div>
-        </section>
-    </div>
+            <a class="mcv-link" href="equipo/">Ver equipo completo</a>
+        </div>
+        <div id="home-roster" class="home-roster-grid">
+            <div class="mcv-skeleton" aria-hidden="true"></div>
+        </div>
+    </section>
 
-    <div class="home-hub-grid home-hub-grid--triple">
-        <section class="mcv-widget-section home-section">
-            <header class="mcv-widget-section__head">
-                <h2 class="mcv-widget-section__title"><i data-lucide="medal"></i> Top jugadores</h2>
-                <a class="mcv-link mcv-widget-section__link" href="standings/">Ranking</a>
-            </header>
-            <div id="home-top-players" class="mcv-widget-player-list">
-                <div class="mcv-skeleton" aria-hidden="true"></div>
-            </div>
-        </section>
-
-        <section class="mcv-widget-section home-section">
-            <header class="mcv-widget-section__head">
-                <h2 class="mcv-widget-section__title"><i data-lucide="users"></i> Clan</h2>
-                <a class="mcv-link mcv-widget-section__link" href="equipo/">Equipo</a>
-            </header>
-            <div id="home-clan-widget">
-                <div class="mcv-skeleton" aria-hidden="true"></div>
-            </div>
-        </section>
-
-        <section class="mcv-widget-section home-section home-section--discord">
-            <div id="home-discord-widget">
-                <div class="mcv-skeleton" aria-hidden="true"></div>
-            </div>
-        </section>
-    </div>
+    <section class="home-clan-section home-discord-block" id="home-discord-section">
+        <div id="home-discord-invite" class="home-discord-invite">
+            <div class="mcv-skeleton" aria-hidden="true"></div>
+        </div>
+    </section>
 </main>
 
-<script src="mcv-components.js?v=2026-06-20-v9"></script>
-<script src="mcv-compete-core.js?v=2026-06-20-v9"></script>
-<script src="mcv-home-widgets.js?v=2026-06-20-v9"></script>
-<script src="mcv-home-view.js?v=2026-06-20-v9"></script>
+<script src="mcv-components.js?v=2026-06-20-v10"></script>
+<script src="mcv-compete-core.js?v=2026-06-20-v10"></script>
+<script src="mcv-home-view.js?v=2026-06-20-v10"></script>
 </body>
 </html>

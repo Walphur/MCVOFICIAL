@@ -33,30 +33,17 @@
             <div class="mcv-eyebrow__line yellow-line"></div>
         </div>
         <h1><span data-i18n="events.heroTitle">Torneos</span> <span data-i18n="events.heroTitleSpan">MCV.</span></h1>
-        <p class="events-lead" data-i18n="events.heroLead">Calendario, historial con campeones y enlace al registro cuando el torneo esté abierto.</p>
+        <p class="events-lead" data-i18n="events.heroLead">Próximo torneo, campeones e historial del clan.</p>
         <div class="mcv-hero__actions events-hero-actions">
             <a href="#upcoming-list" id="events-hero-featured" class="mcv-btn mcv-btn--primary mcv-btn--pulse btn-primary pulse-rust"><i data-lucide="swords"></i> <span data-i18n="events.heroFeatured">Torneo destacado</span></a>
-            <a href="https://discord.gg/mBRrUA8wH6" target="_blank" class="mcv-btn mcv-btn--secondary btn-secondary"><i data-lucide="message-square"></i> <span data-i18n="nav.discord">Discord</span></a>
+            <a href="results/" class="mcv-btn mcv-btn--secondary btn-secondary"><i data-lucide="trophy"></i> <span>Historial</span></a>
+            <a href="calendar/" class="mcv-btn mcv-btn--ghost btn-secondary events-hero-calendar"><i data-lucide="calendar"></i> <span>Calendario</span></a>
         </div>
     </div>
 </section>
 
 
 <div id="events-api-banner" class="mcv-banner-wrap events-api-banner-wrap" hidden></div>
-<section class="mcv-stat-bar events-stats-strip">
-    <div class="mcv-stat events-stat">
-        <span class="mcv-stat__value events-stat-num mcv-count-up" id="stat-hosted">—</span>
-        <span class="mcv-stat__label events-stat-label" data-i18n="events.statHosted">Torneos en la web</span>
-    </div>
-    <div class="mcv-stat events-stat">
-        <span class="mcv-stat__value events-stat-num mcv-count-up" id="stat-teams">—</span>
-        <span class="mcv-stat__label events-stat-label" data-i18n="events.statRegs">Registros totales</span>
-    </div>
-    <div class="mcv-stat events-stat">
-        <span class="mcv-stat__value events-stat-num" id="stat-live">—</span>
-        <span class="mcv-stat__label events-stat-label" data-i18n="events.statState">Estado torneo</span>
-    </div>
-</section>
 
 <section class="events-hof" id="events-hof" hidden>
     <div class="events-hof-head">
@@ -70,23 +57,19 @@
     <div id="events-hof-grid" class="events-hof-grid"></div>
 </section>
 
-<main class="events-main">
-    <div class="events-columns">
-        <section class="events-column">
-            <div class="events-col-head">
-                <h2><i data-lucide="calendar-clock"></i> <span data-i18n="events.colUp">Próximos</span></h2>
-                <p class="events-col-sub" data-i18n="events.colUpSub">Inscripciones abiertas o en curso.</p>
-            </div>
-            <div id="upcoming-list" class="events-card-list events-anchor"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
-        </section>
-        <section class="events-column">
-            <div class="events-col-head">
-                <h2><i data-lucide="trophy"></i> <span data-i18n="events.colPast">Historial</span></h2>
-                <p class="events-col-sub" data-i18n="events.colPastSub">Torneos finalizados y campeones.</p>
-            </div>
-            <div id="past-list" class="events-card-list"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
-        </section>
-    </div>
+<main class="events-main events-main--focus">
+    <section class="events-column events-column--featured">
+        <div class="events-col-head">
+            <h2><i data-lucide="calendar-clock"></i> <span data-i18n="events.colUp">Próximo torneo</span></h2>
+        </div>
+        <div id="upcoming-list" class="events-card-list events-anchor"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
+    </section>
+    <section class="events-column">
+        <div class="events-col-head">
+            <h2><i data-lucide="trophy"></i> <span data-i18n="events.colPast">Historial</span></h2>
+        </div>
+        <div id="past-list" class="events-card-list"><div class="mcv-skeleton events-skeleton" aria-hidden="true"></div></div>
+    </section>
 </main>
 
 <script src="mcv-components.js?v=2026-06-20-v6"></script>
@@ -297,32 +280,13 @@
                 return {};
             })
     ]).then(function (pair) {
-        var st0 = pair[0] || {};
         var d = pair[1] || {};
-        var onSite = st0.tournamentsOnSite != null ? st0.tournamentsOnSite : st0.eventsHosted;
-        document.getElementById('stat-hosted').textContent = onSite != null ? onSite : '—';
-        document.getElementById('stat-teams').textContent = st0.teamsRegistered != null ? st0.teamsRegistered : '—';
-
-        var st = d.mode === 'live' ? T('events.statModeLive') : d.mode === 'recap' ? T('events.statModeRecap') : T('events.statModeIdle');
-        document.getElementById('stat-live').textContent = st;
         if (d.tournament && d.tournament.slug) {
             heroSlugFromFeatured = true;
             if (heroFeatured) {
                 var heroHref = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
                 if (isRegOpen(d.tournament)) heroHref += '#register';
                 heroFeatured.href = heroHref;
-            }
-        }
-        if (
-            d.tournament &&
-            d.mode === 'recap' &&
-            d.tournament.display_slots_num != null &&
-            d.tournament.display_slots_max != null
-        ) {
-            var stTeams = document.getElementById('stat-teams');
-            if (stTeams) {
-                stTeams.textContent =
-                    String(d.tournament.display_slots_num) + '/' + String(d.tournament.display_slots_max);
             }
         }
     });

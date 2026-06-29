@@ -1153,10 +1153,6 @@ body.login-body {
 }
 
 /* —— Home Hub Sprint 2 —— */
-.home-hero--hub {
-    min-height: auto !important;
-    padding: var(--mcv-space-6) var(--mcv-space-4) var(--mcv-space-5) !important;
-}
 
 .home-hero-content--hub {
     display: flex;
@@ -1519,5 +1515,396 @@ body.login-body {
 @media (max-width: 719px) {
     .home-hub-grid--triple .home-section--discord {
         order: -1;
+    }
+}
+
+/* —— MCV 3.3 Home identidad clan —— */
+.home-page--clan {
+    background: #030303;
+}
+
+.home-hero--clan {
+    min-height: calc(100vh - 58px);
+    min-height: calc(100dvh - 58px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 0;
+    border-bottom: 1px solid rgba(250, 166, 26, 0.15);
+}
+
+.home-hero-shade--deep {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.72) 40%, rgba(0, 0, 0, 0.92) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.85));
+}
+
+.home-hero-content--clan {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--mcv-space-8) var(--mcv-space-4) var(--mcv-space-6);
+    max-width: 920px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.home-hero-content--clan .home-mark {
+    width: clamp(64px, 12vw, 88px);
+    height: auto;
+    margin-bottom: var(--mcv-space-4);
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.6));
+}
+
+.home-hero-content--clan h1 {
+    margin: 0 0 var(--mcv-space-3);
+    font-family: var(--mcv-font-display);
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    line-height: 0.95;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: 0 4px 32px rgba(0, 0, 0, 0.8);
+}
+
+.home-hero-content--clan h1 span {
+    color: var(--mcv-accent);
+}
+
+.home-clan-lead {
+    margin: 0 0 var(--mcv-space-6);
+    max-width: 36ch;
+    color: rgba(245, 245, 245, 0.88);
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    line-height: 1.45;
+}
+
+.home-actions--clan {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--mcv-space-3);
+    width: 100%;
+    max-width: 520px;
+}
+
+.home-actions--clan .mcv-btn {
+    flex: 1 1 200px;
+    min-height: 52px;
+    font-size: var(--mcv-text-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.home-kpi-bar {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(250, 166, 26, 0.2);
+    border-top: 1px solid rgba(250, 166, 26, 0.25);
+}
+
+.home-kpi {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--mcv-space-3) var(--mcv-space-2);
+    background: rgba(0, 0, 0, 0.82);
+    text-align: center;
+}
+
+.home-kpi__value {
+    font-family: var(--mcv-font-display);
+    font-size: clamp(1.35rem, 4vw, 1.85rem);
+    color: var(--mcv-accent);
+    line-height: 1;
+}
+
+.home-kpi__label {
+    color: var(--mcv-text-muted);
+    font-family: var(--mcv-font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.home-clan {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--mcv-space-5) var(--mcv-space-4) var(--mcv-space-8);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mcv-space-5);
+}
+
+.home-clan-section__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--mcv-space-3);
+    margin-bottom: var(--mcv-space-3);
+}
+
+.home-next-tournament__inner,
+.home-champion-banner__inner {
+    display: grid;
+    grid-template-columns: minmax(140px, 34%) 1fr;
+    min-height: 220px;
+    border: 1px solid rgba(250, 166, 26, 0.22);
+    background: #0a0a0a;
+    overflow: hidden;
+}
+
+.home-next-tournament__visual,
+.home-champion-banner__visual {
+    background-image: url("banner.png");
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.home-next-tournament__visual::after,
+.home-champion-banner__visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.85));
+}
+
+.home-champion-banner__visual {
+    filter: saturate(1.1) contrast(1.05);
+}
+
+.home-next-tournament__body,
+.home-champion-banner__body {
+    padding: var(--mcv-space-5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--mcv-space-2);
+}
+
+.home-next-tournament__body h2,
+.home-champion-banner__body h2 {
+    margin: 0;
+    font-family: var(--mcv-font-display);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.home-next-tournament__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mcv-space-2);
+}
+
+.home-countdown {
+    font-family: var(--mcv-font-mono);
+    font-size: var(--mcv-text-sm);
+    color: var(--mcv-accent);
+}
+
+.home-next-tournament__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--mcv-space-2);
+    margin: 0 0 var(--mcv-space-3);
+}
+
+.home-next-tournament__facts dt {
+    color: var(--mcv-text-muted);
+    font-size: var(--mcv-text-xs);
+    text-transform: uppercase;
+}
+
+.home-next-tournament__facts dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.home-champion-banner__event {
+    margin: 0;
+    color: var(--mcv-text-secondary);
+}
+
+.home-champion-banner__prize {
+    margin: 0 0 var(--mcv-space-2);
+    color: var(--mcv-text-muted);
+}
+
+.home-champion-banner__prize strong {
+    color: var(--mcv-accent);
+}
+
+.home-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--mcv-space-3);
+}
+
+.home-roster-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--mcv-space-2);
+    padding: var(--mcv-space-4) var(--mcv-space-3);
+    border: 1px solid var(--mcv-border-subtle);
+    background: var(--mcv-bg-raised);
+    text-align: center;
+}
+
+.home-roster-card__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--mcv-radius-md);
+    object-fit: cover;
+    border: 2px solid rgba(250, 166, 26, 0.35);
+}
+
+.home-roster-card__avatar--fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--mcv-bg-overlay);
+}
+
+.home-roster-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    width: 100%;
+}
+
+.home-roster-card__role {
+    color: var(--mcv-accent);
+    font-family: var(--mcv-font-mono);
+    font-size: var(--mcv-text-xs);
+    text-transform: uppercase;
+}
+
+.home-roster-card__id {
+    color: var(--mcv-text-muted);
+    font-family: var(--mcv-font-mono);
+    font-size: 0.65rem;
+    word-break: break-all;
+}
+
+.home-discord-invite__inner {
+    padding: var(--mcv-space-6) var(--mcv-space-5);
+    border: 1px solid rgba(88, 101, 242, 0.45);
+    background:
+        linear-gradient(135deg, rgba(88, 101, 242, 0.12), rgba(0, 0, 0, 0.4)),
+        var(--mcv-bg-raised);
+    text-align: center;
+}
+
+.home-discord-invite__inner h2 {
+    margin: 0 0 var(--mcv-space-2);
+    font-family: var(--mcv-font-display);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    text-transform: uppercase;
+}
+
+.home-discord-invite__inner > p {
+    margin: 0 0 var(--mcv-space-4);
+    color: var(--mcv-text-secondary);
+    max-width: 48ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.home-discord-invite__list {
+    list-style: none;
+    margin: 0 0 var(--mcv-space-4);
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--mcv-space-2) var(--mcv-space-5);
+    color: var(--mcv-text-secondary);
+    font-size: var(--mcv-text-sm);
+}
+
+.home-discord-invite__status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--mcv-space-2);
+    margin-bottom: var(--mcv-space-4);
+}
+
+.home-discord-invite__cta {
+    min-width: min(100%, 320px);
+    min-height: 54px;
+    font-size: var(--mcv-text-base);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+    .home-kpi-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .home-next-tournament__inner,
+    .home-champion-banner__inner {
+        grid-template-columns: 1fr;
+    }
+
+    .home-next-tournament__visual,
+    .home-champion-banner__visual {
+        min-height: 120px;
+    }
+
+    .home-actions--clan .mcv-btn {
+        flex: 1 1 100%;
+    }
+}
+
+/* Footer compacto 3.3 */
+.footer-content--compact {
+    padding: var(--mcv-space-5, 20px) var(--mcv-space-4, 16px) !important;
+    gap: var(--mcv-space-4, 16px) !important;
+}
+
+.footer-content--compact .footer-brand p {
+    max-width: 28ch;
+    font-size: var(--mcv-text-sm, 0.875rem);
+}
+
+.footer-content--compact .footer-links {
+    gap: var(--mcv-space-6, 24px);
+}
+
+/* Compete focus 3.3 */
+.events-main--focus {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--mcv-space-4, 16px) var(--mcv-space-4, 16px) var(--mcv-space-8, 32px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--mcv-space-5, 20px);
+}
+
+.events-column--featured .events-card-list {
+    min-height: 120px;
+}
+
+@media (max-width: 768px) {
+    .events-main--focus {
+        grid-template-columns: 1fr;
     }
 }

@@ -19,6 +19,46 @@ body.tracker-page {
     animation: mcv-tracker-fade-in 0.5s ease;
 }
 
+.tracker-page--focus .tracker-product-hero h1 {
+    font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.tracker-page--focus .tracker-search-panel {
+    max-width: 720px;
+    margin: 0 auto var(--mcv-space-4, 16px);
+    padding: var(--mcv-space-5, 20px);
+    border-color: rgba(250, 166, 26, 0.35);
+}
+
+.tracker-page--focus .tracker-search-panel .mcv-input {
+    font-size: 1.05rem;
+    min-height: 52px;
+}
+
+.tracker-page--focus .tracker-btn {
+    min-height: 52px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.tracker-steps--secondary,
+.tracker-benefits--secondary {
+    display: none;
+}
+
+@media (min-width: 900px) {
+    .tracker-steps--secondary {
+        display: grid;
+        opacity: 0.85;
+    }
+}
+
+@media (max-width: 768px) {
+    .tracker-benefits--secondary {
+        display: none !important;
+    }
+}
+
 .results-view {
     display: none;
     animation: mcv-tracker-fade-in 0.5s ease;

@@ -1,150 +1,207 @@
 /**
- * MCV 3.2 — Home Hub (una sola llamada /api/public/v1/home)
+ * MCV 3.3 — Home identidad clan (reorganización visual, misma API /home)
  */
 (function () {
     "use strict";
 
     var C = window.mcvCompeteCore;
-    var W = window.mcvHomeWidgets;
-    if (!C || !W) return;
+    if (!C) return;
 
-    var heroNow = document.getElementById("home-hero-now");
-    var activityEl = document.getElementById("home-activity-feed");
-    var upcomingEl = document.getElementById("home-upcoming-list");
-    var resultsEl = document.getElementById("home-results-list");
-    var playersEl = document.getElementById("home-top-players");
-    var clanEl = document.getElementById("home-clan-widget");
-    var discordEl = document.getElementById("home-discord-widget");
-
-    function mapHero(h) {
-        if (!h || h.type === "idle") return { type: "idle" };
-        return {
-            type: h.type,
-            badge: h.badge,
-            badgeVariant: h.badge_variant,
-            title: h.title,
-            meta: h.meta ? (String(h.meta).indexOf("T") !== -1 ? C.fmtDateTime(h.meta) : h.meta) : "",
-            actions: h.actions
-        };
+    function esc(s) {
+        return C.esc(s);
     }
 
-    function renderHero(state) {
-        if (heroNow) heroNow.innerHTML = W.now(state);
+    function badge(variant, text) {
+        if (typeof mcvBadge === "function") return mcvBadge(variant, text);
+        return '<span class="mcv-badge">' + esc(text) + "</span>";
     }
 
-    function renderActivity(items) {
-        if (!activityEl) return;
-        if (!items || !items.length) {
-            activityEl.innerHTML = '<p class="mcv-empty">Sin actividad reciente.</p>';
-            return;
+    function fmtCountdown(iso) {
+        if (!iso) return null;
+        var ms = new Date(iso).getTime() - Date.now();
+        if (ms <= 0) return "En curso";
+        var hrs = Math.floor(ms / 3600000);
+        var days = Math.floor(hrs / 24);
+        if (days > 0) return days + "d " + (hrs % 24) + "h";
+        return hrs + " h";
+    }
+
+    function renderKpis(data) {
+        var members = document.getElementById("kpi-members");
+        var tournaments = document.getElementById("kpi-tournaments");
+        var wins = document.getElementById("kpi-wins");
+        var online = document.getElementById("kpi-online");
+        var stats = (data && data.stats) || {};
+        var discord = (data && data.discord) || {};
+        var clan = (data && data.clan) || {};
+
+        if (members) {
+            members.textContent = clan.active_count != null ? clan.active_count : discord.members != null ? discord.members : "—";
+            members.setAttribute("data-count-target", members.textContent);
         }
-        activityEl.innerHTML = items
-            .map(function (a) {
-                return W.activity({
-                    icon: a.icon,
-                    text: a.text,
-                    time: a.at ? C.fmtDateTime(a.at) : a.placeholder ? "Próximamente" : "",
-                    placeholder: a.placeholder
-                });
-            })
-            .join("");
-    }
-
-    function renderUpcoming(events) {
-        if (!upcomingEl) return;
-        var list = (events || []).map(function (t) {
-            return W.event({
-                title: t.title,
-                slug: t.slug,
-                status: t.status,
-                accepted_count: t.accepted_count,
-                max_teams: t.max_teams,
-                dateLabel: C.fmtDate(t.starts_at),
-                timeLabel: t.starts_at ? C.fmtDateTime(t.starts_at).split(", ").pop() : "—",
-                href: t.href || "events.html",
-                cta: t.cta || "Ver torneo"
-            });
-        });
-        upcomingEl.innerHTML = list.length ? list.join("") : '<p class="mcv-empty">No hay torneos próximos.</p>';
-    }
-
-    function renderResults(results) {
-        if (!resultsEl) return;
-        var cards = (results || []).map(function (r) {
-            return W.result({
-                title: r.title,
-                winner: (r.winner && r.winner.name) || "—",
-                runnerUp: (r.runner_up && r.runner_up.name) || "—",
-                prize: (r.prize && r.prize.pool) || "—",
-                mvp: (r.mvp && r.mvp.name) || "—",
-                href: (r.links && r.links.results) || "results/"
-            });
-        });
-        resultsEl.innerHTML = cards.length ? cards.join("") : '<p class="mcv-empty">Sin resultados recientes.</p>';
-    }
-
-    function renderTopPlayers(rows) {
-        if (!playersEl) return;
-        playersEl.innerHTML = (rows || []).length
-            ? rows
-                  .map(function (p) {
-                      return W.player({
-                          rank: p.rank,
-                          name: p.name,
-                          avatar: p.avatar_url,
-                          href: p.href,
-                          points: p.points
-                      });
-                  })
-                  .join("")
-            : '<p class="mcv-empty">Sin datos de ranking.</p>';
-    }
-
-    function renderClan(team) {
-        if (!clanEl || !team) return;
-        var preview = (team.preview || [])
-            .map(function (m) {
-                return '<span class="mcv-chip">' + W.esc(m.display_name || "?") + "</span>";
-            })
-            .join("");
-        clanEl.innerHTML = W.team({
-            activeCount: team.active_count,
-            recruiting: team.recruiting,
-            preview: preview ? '<div class="mcv-widget-team__preview">' + preview + "</div>" : ""
-        });
-    }
-
-    function renderDiscord(data) {
-        if (!discordEl) return;
-        discordEl.innerHTML = W.discord({
-            members: data && data.members,
-            online: data && data.online,
-            statusLabel: (data && data.status_label) || "Servidor activo"
-        });
-    }
-
-    function renderStats(data, stats) {
-        var dt = document.getElementById("discord-total");
-        var don = document.getElementById("discord-online");
-        var hc = document.getElementById("stat-hosted-count");
-        if (data) {
-            if (dt) {
-                dt.textContent = data.members != null ? data.members : "—";
-                dt.setAttribute("data-count-target", dt.textContent);
-            }
-            if (don) {
-                don.textContent = data.online != null ? data.online : "—";
-                don.setAttribute("data-count-target", don.textContent);
-            }
+        if (tournaments) {
+            tournaments.textContent = stats.tournaments_finished != null ? stats.tournaments_finished : "—";
+            tournaments.setAttribute("data-count-target", tournaments.textContent);
         }
-        if (hc && stats) {
-            var n = stats.tournaments_finished;
-            hc.textContent = n != null ? (n < 100 ? String(n).padStart(2, "0") : String(n)) : "—";
-            hc.setAttribute("data-count-target", hc.textContent);
+        if (wins) {
+            var w = stats.tournaments_finished != null ? stats.tournaments_finished : "—";
+            wins.textContent = w;
+            wins.setAttribute("data-count-target", wins.textContent);
+        }
+        if (online) {
+            online.textContent = discord.online != null ? discord.online : "—";
+            online.setAttribute("data-count-target", online.textContent);
         }
         if (typeof mcvAnimateCounters === "function") {
-            mcvAnimateCounters(document.querySelector(".home-snapshot") || document);
+            mcvAnimateCounters(document.querySelector(".home-kpi-bar") || document);
         }
+    }
+
+    function renderNextTournament(events) {
+        var section = document.getElementById("home-next-section");
+        var el = document.getElementById("home-next-tournament");
+        if (!el) return;
+
+        var t = (events || []).find(function (e) {
+            return e.status === "open" || e.status === "closed";
+        });
+        if (!t) {
+            if (section) section.hidden = true;
+            return;
+        }
+
+        if (section) section.hidden = false;
+        var countdown = fmtCountdown(t.starts_at);
+        var slots =
+            t.accepted_count != null && t.max_teams != null
+                ? t.accepted_count + "/" + t.max_teams + " equipos"
+                : t.accepted_count != null
+                  ? t.accepted_count + " equipos"
+                  : "—";
+        var href = t.href || "tournament.html?slug=" + encodeURIComponent(t.slug || "");
+        var prize = t.prize_pool_text || "";
+
+        el.innerHTML =
+            '<article class="home-next-tournament__inner">' +
+            '<div class="home-next-tournament__visual" aria-hidden="true"></div>' +
+            '<div class="home-next-tournament__body">' +
+            '<div class="home-next-tournament__meta">' +
+            badge(t.status === "open" ? "open" : "muted", t.status === "open" ? "Inscripciones abiertas" : "Próximamente") +
+            (countdown ? '<span class="home-countdown">' + esc(countdown) + "</span>" : "") +
+            "</div>" +
+            "<h2>" +
+            esc(t.title || t.slug) +
+            "</h2>" +
+            '<dl class="home-next-tournament__facts">' +
+            "<div><dt>Fecha</dt><dd>" +
+            esc(C.fmtDateTime(t.starts_at)) +
+            "</dd></div>" +
+            "<div><dt>Equipos</dt><dd>" +
+            esc(slots) +
+            "</dd></div>" +
+            (prize ? "<div><dt>Premio</dt><dd>" + esc(prize) + "</dd></div>" : "") +
+            "</dl>" +
+            '<a href="' +
+            esc(href) +
+            '#register" class="mcv-btn mcv-btn--primary mcv-btn--pulse">' +
+            (t.status === "open" ? "Registrarse" : "Ver torneo") +
+            "</a></div></article>";
+    }
+
+    function renderChampion(results) {
+        var section = document.getElementById("home-champion-section");
+        var el = document.getElementById("home-last-champion");
+        if (!el) return;
+
+        var r = (results || [])[0];
+        if (!r) {
+            if (section) section.hidden = true;
+            return;
+        }
+
+        if (section) section.hidden = false;
+        var winner = (r.winner && r.winner.name) || "—";
+        var prize = (r.prize && r.prize.pool) || "—";
+        var href = (r.links && r.links.results) || "results/?t=" + encodeURIComponent(r.slug || "");
+
+        el.innerHTML =
+            '<article class="home-champion-banner__inner">' +
+            '<div class="home-champion-banner__visual" aria-hidden="true"></div>' +
+            '<div class="home-champion-banner__body">' +
+            badge("champion", "Campeón") +
+            "<h2>" +
+            esc(winner) +
+            "</h2>" +
+            '<p class="home-champion-banner__event">' +
+            esc(r.title || r.slug) +
+            " · " +
+            esc(C.fmtDate(r.ended_at || r.starts_at)) +
+            "</p>" +
+            '<p class="home-champion-banner__prize">Prize: <strong>' +
+            esc(prize) +
+            "</strong></p>" +
+            '<a href="' +
+            esc(href) +
+            '" class="mcv-btn mcv-btn--secondary">Ver torneo</a>' +
+            "</div></article>";
+    }
+
+    function renderRoster(clan) {
+        var el = document.getElementById("home-roster");
+        if (!el) return;
+
+        var list = ((clan && clan.preview) || []).slice(0, 6);
+        if (!list.length) {
+            el.innerHTML = '<p class="mcv-empty">Roster en equipo.html</p>';
+            return;
+        }
+
+        el.innerHTML = list
+            .map(function (m) {
+                var av = m.avatar_url
+                    ? '<img class="home-roster-card__avatar" src="' + esc(m.avatar_url) + '" alt="" width="64" height="64" loading="lazy">'
+                    : '<div class="home-roster-card__avatar home-roster-card__avatar--fallback"><i data-lucide="user"></i></div>';
+                var profile = m.steam_id64
+                    ? '<a class="mcv-link home-roster-card__steam" href="player/?steamId=' +
+                      encodeURIComponent(m.steam_id64) +
+                      '">' +
+                      esc(m.display_name || "Jugador") +
+                      "</a>"
+                    : esc(m.display_name || "Jugador");
+                return (
+                    '<article class="home-roster-card">' +
+                    av +
+                    '<div class="home-roster-card__info">' +
+                    profile +
+                    '<span class="home-roster-card__role">MCV</span>' +
+                    (m.steam_id64
+                        ? '<span class="home-roster-card__id">' + esc(m.steam_id64) + "</span>"
+                        : "") +
+                    "</div></article>"
+                );
+            })
+            .join("");
+    }
+
+    function renderDiscord(discord) {
+        var el = document.getElementById("home-discord-invite");
+        if (!el) return;
+
+        var d = discord || {};
+        el.innerHTML =
+            '<div class="home-discord-invite__inner">' +
+            "<h2>Unite a la comunidad</h2>" +
+            "<p>Torneos en vivo, avisos de wipe, roster y staff en un solo lugar.</p>" +
+            '<ul class="home-discord-invite__list">' +
+            "<li>Eventos y torneos en tiempo real</li>" +
+            "<li>Comunidad activa de Rust</li>" +
+            "<li>Acceso directo al staff MCV</li></ul>" +
+            '<div class="home-discord-invite__status">' +
+            badge(d.online != null ? "ok" : "muted", d.status_label || "Servidor activo") +
+            (d.members != null ? '<span class="mcv-hint">' + esc(String(d.members)) + " miembros</span>" : "") +
+            "</div>" +
+            '<a href="https://discord.gg/mBRrUA8wH6" class="mcv-btn mcv-btn--primary mcv-btn--pulse home-discord-invite__cta" target="_blank" rel="noopener">Entrar al Discord</a>' +
+            "</div>";
     }
 
     function icons() {
@@ -152,17 +209,11 @@
     }
 
     function renderHome(data) {
-        if (!data) {
-            renderHero({ type: "idle" });
-            return;
-        }
-        renderHero(mapHero(data.hero));
-        renderStats(data.discord, data.stats);
-        renderActivity(data.activity);
-        renderUpcoming(data.upcoming_events);
-        renderResults(data.recent_results);
-        renderTopPlayers(data.top_players);
-        renderClan(data.clan);
+        if (!data) return;
+        renderKpis(data);
+        renderNextTournament(data.upcoming_events);
+        renderChampion(data.recent_results);
+        renderRoster(data.clan);
         renderDiscord(data.discord);
         icons();
     }
@@ -170,15 +221,7 @@
     C.fetchPublicHome()
         .then(renderHome)
         .catch(function () {
-            renderHero({ type: "idle" });
+            var roster = document.getElementById("home-roster");
+            if (roster) roster.innerHTML = '<p class="mcv-empty mcv-empty--error">No se pudo cargar la Home.</p>';
         });
-
-    var searchBtn = document.getElementById("home-search-open");
-    if (searchBtn) {
-        searchBtn.addEventListener("click", function () {
-            if (typeof window.mcvGlobalSearch !== "undefined" && window.mcvGlobalSearch.open) {
-                window.mcvGlobalSearch.open();
-            }
-        });
-    }
 })();
