@@ -1199,6 +1199,7 @@ CREATE INDEX IF NOT EXISTS idx_player_score_events_steam ON player_score_events 
 const DEFAULT_VITAL_ROLES = [
     "BUILDERS / RAID BASE",
     "ELEC",
+    "EXTERNALS",
     "HUERTO",
     "OUTPOST/VENDING",
     "BASE BITCH",
@@ -1223,14 +1224,11 @@ async function ensureVitalRolesTable(pool) {
     }
     try {
         await pool.query(VITAL_ROLES_TABLE_SQL);
-        const c = await pool.query(`SELECT COUNT(*)::int AS n FROM mcv_vital_roles`);
-        if ((c.rows[0]?.n || 0) === 0) {
-            for (let i = 0; i < DEFAULT_VITAL_ROLES.length; i += 1) {
-                await pool.query(`INSERT INTO mcv_vital_roles (name, sort_order) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING`, [
-                    DEFAULT_VITAL_ROLES[i],
-                    i + 1
-                ]);
-            }
+        for (let i = 0; i < DEFAULT_VITAL_ROLES.length; i += 1) {
+            await pool.query(`INSERT INTO mcv_vital_roles (name, sort_order) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING`, [
+                DEFAULT_VITAL_ROLES[i],
+                i + 1
+            ]);
         }
         return true;
     } catch (e) {
