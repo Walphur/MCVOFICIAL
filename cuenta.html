@@ -96,9 +96,18 @@
                                 <option value="heavy">Juego mucho</option>
                             </select>
                         </label>
-                        <label class="cuenta-field cuenta-field--wide" id="cuenta-wipe-late-wrap" hidden>
+                        <label class="cuenta-field cuenta-field--wide" id="cuenta-wipe-late-type-wrap" hidden>
                             <span>¿Por qué entrás late?</span>
-                            <input id="cuenta-wipe-late-reason" class="admin-input" maxlength="240" placeholder="Ej. laburo hasta el jueves" />
+                            <select id="cuenta-wipe-late-type" class="admin-input">
+                                <option value="">Elegí una opción…</option>
+                                <option value="no_llega">No llego al inicio del wipe</option>
+                                <option value="pocas_horas">Entro al wipe pero juego pocas horas</option>
+                                <option value="otro">Otro motivo</option>
+                            </select>
+                        </label>
+                        <label class="cuenta-field cuenta-field--wide" id="cuenta-wipe-late-detail-wrap" hidden>
+                            <span id="cuenta-wipe-late-detail-label">Detalle</span>
+                            <input id="cuenta-wipe-late-reason" class="admin-input" maxlength="240" placeholder="Ej. entro el jueves por laburo" />
                         </label>
                         <label class="cuenta-field cuenta-field--wide">
                             <span>BattleMetrics (tu link)</span>
@@ -252,20 +261,46 @@
     function wipeParticipationLabel(p) {
         if (!p) return "—";
         if (p.wipePhase === "no_juega") return "No juego";
-        var base = p.wipePhase === "late" ? "Late" : "Inicio";
-        var hours = p.hoursBand === "heavy" ? " · muchas horas" : p.hoursBand === "light" ? " · pocas horas" : "";
-        return base + hours;
+        var hours = p.hoursBand === "heavy" ? " · juego mucho" : p.hoursBand === "light" ? " · pocas horas" : "";
+        if (p.wipePhase === "late") {
+            var late = p.lateReasonLabel || "";
+            if (!late && p.lateReasonType === "pocas_horas") late = "Entro al wipe pero juego pocas horas";
+            if (!late && p.lateReasonType === "no_llega") late = "No llego al inicio del wipe";
+            if (p.lateReason && p.lateReasonType !== "pocas_horas") {
+                late = late ? late : p.lateReason;
+            }
+            return "Late · " + (late || "sin detalle") + (p.lateReasonType === "no_llega" ? hours : "");
+        }
+        return "Inicio" + hours;
     }
 
     function syncWipeFormVisibility() {
         var part = document.getElementById("cuenta-wipe-participation");
         var hoursWrap = document.getElementById("cuenta-wipe-hours-wrap");
-        var lateWrap = document.getElementById("cuenta-wipe-late-wrap");
+        var lateTypeWrap = document.getElementById("cuenta-wipe-late-type-wrap");
+        var lateDetailWrap = document.getElementById("cuenta-wipe-late-detail-wrap");
+        var lateType = document.getElementById("cuenta-wipe-late-type");
+        var lateDetailLabel = document.getElementById("cuenta-wipe-late-detail-label");
         if (!part) return;
         var val = part.value;
         var playing = val === "inicio" || val === "late";
-        if (hoursWrap) hoursWrap.hidden = !playing;
-        if (lateWrap) lateWrap.hidden = val !== "late";
+        var isLate = val === "late";
+        var lateKind = lateType ? lateType.value : "";
+        if (hoursWrap) {
+            hoursWrap.hidden = !playing || (isLate && lateKind === "pocas_horas");
+        }
+        if (lateTypeWrap) lateTypeWrap.hidden = !isLate;
+        if (lateDetailWrap) {
+            lateDetailWrap.hidden = !isLate || lateKind === "pocas_horas" || !lateKind;
+        }
+        if (lateDetailLabel) {
+            lateDetailLabel.textContent =
+                lateKind === "no_llega"
+                    ? "¿Cuándo entrás o por qué no llegás?"
+                    : lateKind === "otro"
+                      ? "Contanos el motivo"
+                      : "Detalle";
+        }
     }
 
     function renderWipeProfile(data) {
@@ -296,12 +331,14 @@
             var p = data.profile;
             var partEl = document.getElementById("cuenta-wipe-participation");
             var hoursEl = document.getElementById("cuenta-wipe-hours");
+            var lateTypeEl = document.getElementById("cuenta-wipe-late-type");
             var lateEl = document.getElementById("cuenta-wipe-late-reason");
             var bmEl = document.getElementById("cuenta-wipe-bm");
             if (partEl) {
                 partEl.value = p.wipePhase === "no_juega" || p.wipePhase === "unknown" ? "no_juega" : p.wipePhase;
             }
             if (hoursEl) hoursEl.value = p.hoursBand === "heavy" ? "heavy" : "light";
+            if (lateTypeEl) lateTypeEl.value = p.lateReasonType || "";
             if (lateEl) lateEl.value = p.lateReason || "";
             if (bmEl) bmEl.value = p.bmUrl || "";
             syncWipeFormVisibility();
@@ -651,6 +688,8 @@
 
     var wipePart = document.getElementById("cuenta-wipe-participation");
     if (wipePart) wipePart.addEventListener("change", syncWipeFormVisibility);
+    var wipeLateType = document.getElementById("cuenta-wipe-late-type");
+    if (wipeLateType) wipeLateType.addEventListener("change", syncWipeFormVisibility);
 
     var wipeForm = document.getElementById("cuenta-wipe-form");
     if (wipeForm) {
@@ -662,6 +701,7 @@
             var body = {
                 participation: (document.getElementById("cuenta-wipe-participation") || {}).value,
                 hoursBand: (document.getElementById("cuenta-wipe-hours") || {}).value,
+                lateReasonType: (document.getElementById("cuenta-wipe-late-type") || {}).value,
                 lateReason: (document.getElementById("cuenta-wipe-late-reason") || {}).value,
                 bmUrl: (document.getElementById("cuenta-wipe-bm") || {}).value
             };

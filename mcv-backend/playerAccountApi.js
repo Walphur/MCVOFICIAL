@@ -31,6 +31,11 @@ CREATE INDEX IF NOT EXISTS idx_player_vouch_candidate ON player_vouch_requests (
 
 const VOUCHER_STATUS_TAGS = new Set(["admin", "mcv_active", "mcv_strikes"]);
 const MAX_OPEN_VOUCHES_PER_USER = 5;
+const LATE_REASON_LABELS = {
+    no_llega: "No llego al inicio del wipe",
+    pocas_horas: "Entro al wipe pero juego pocas horas",
+    otro: "Otro motivo"
+};
 
 function normalizeOptionalUrl(raw) {
     const s = String(raw == null ? "" : raw).trim();
@@ -52,6 +57,21 @@ function normalizeHoursBand(raw) {
     const v = String(raw || "").trim().toLowerCase();
     if (v === "light" || v === "heavy") return v;
     return null;
+}
+
+function normalizeLateReasonType(raw) {
+    const v = String(raw || "").trim().toLowerCase();
+    if (v === "no_llega" || v === "pocas_horas" || v === "otro") return v;
+    return null;
+}
+
+function formatLateIntentLabel(lateReasonType, lateReason) {
+    const type = normalizeLateReasonType(lateReasonType);
+    if (!type) return "";
+    const base = LATE_REASON_LABELS[type] || type;
+    const detail = String(lateReason || "").trim();
+    if (detail && type !== "pocas_horas") return `${base}: ${detail}`;
+    return base;
 }
 
 function normalizeWipeParticipation(raw) {
@@ -81,7 +101,12 @@ function wipeIntentFromProfile(row) {
         discordHandle: String(row.discord_handle || row.discordHandle || "").trim(),
         wipePhase: profile.wipePhase,
         hoursBand: normalizeHoursBand(row.hours_band || row.hoursBand),
+        lateReasonType: normalizeLateReasonType(row.late_reason_type || row.lateReasonType),
         lateReason: String(row.late_reason || row.lateReason || "").trim(),
+        lateReasonLabel: formatLateIntentLabel(
+            row.late_reason_type || row.lateReasonType,
+            row.late_reason || row.lateReason
+        ),
         vouchBy: profile.vouchBy,
         statusTag: profile.statusTag,
         canVouch: canUserVouch(profile),
@@ -94,26 +119,56 @@ function buildWipeUpdateFields(body) {
     if (!participation) {
         return { error: "Elegí si jugás desde inicio, late o no jugás este wipe." };
     }
-    const hoursBand = normalizeHoursBand(body.hoursBand);
-    const lateReason = String(body.lateReason || "").trim().slice(0, 240);
+    let hoursBand = normalizeHoursBand(body.hoursBand);
+    const lateReason = String(body.lateReason || body.lateDetail || "").trim().slice(0, 240);
+    const lateReasonType = normalizeLateReasonType(body.lateReasonType);
     if (participation === "no_juega") {
         return {
             wipePhase: "no_juega",
             hoursBand: null,
+            lateReasonType: null,
             lateReason: null,
             pausedOutsideWipe: true
+        };
+    }
+    if (participation === "late") {
+        if (!lateReasonType) {
+            return { error: "Elegí por qué entrás late: no llegás al inicio o jugás pocas horas." };
+        }
+        if (lateReasonType === "pocas_horas") {
+            return {
+                wipePhase: "late",
+                hoursBand: "light",
+                lateReasonType: "pocas_horas",
+                lateReason: null,
+                pausedOutsideWipe: false
+            };
+        }
+        if (!hoursBand) {
+            return { error: "Indicá si vas a jugar pocas horas o muchas." };
+        }
+        if (lateReasonType === "no_llega" && !lateReason) {
+            return { error: "Contanos cuándo entrás o por qué no llegás al inicio." };
+        }
+        if (lateReasonType === "otro" && !lateReason) {
+            return { error: "Contanos el motivo por el que entrás late." };
+        }
+        return {
+            wipePhase: "late",
+            hoursBand,
+            lateReasonType,
+            lateReason: lateReason || null,
+            pausedOutsideWipe: false
         };
     }
     if (!hoursBand) {
         return { error: "Indicá si vas a jugar pocas horas o muchas." };
     }
-    if (participation === "late" && !lateReason) {
-        return { error: "Si entrás late, contanos brevemente por qué." };
-    }
     return {
         wipePhase: participation,
         hoursBand,
-        lateReason: participation === "late" ? lateReason : null,
+        lateReasonType: null,
+        lateReason: null,
         pausedOutsideWipe: false
     };
 }
@@ -167,6 +222,7 @@ async function ensurePlayerInfoExtendedColumns(pool) {
     try {
         await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS hours_band VARCHAR(12)`);
         await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason TEXT`);
+        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason_type VARCHAR(24)`);
         await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(120)`);
         return true;
     } catch (e) {
@@ -294,13 +350,22 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             const params = [ctx.steamId64];
             let p = 2;
 
-            if (body.participation != null || body.wipePhase != null || body.hoursBand != null || body.lateReason != null) {
+            if (
+                body.participation != null ||
+                body.wipePhase != null ||
+                body.hoursBand != null ||
+                body.lateReason != null ||
+                body.lateReasonType != null ||
+                body.lateDetail != null
+            ) {
                 const wipeFields = buildWipeUpdateFields(body);
                 if (wipeFields.error) return res.status(400).json({ error: wipeFields.error });
                 updates.push(`wipe_phase = $${p++}`);
                 params.push(wipeFields.wipePhase);
                 updates.push(`hours_band = $${p++}`);
                 params.push(wipeFields.hoursBand);
+                updates.push(`late_reason_type = $${p++}`);
+                params.push(wipeFields.lateReasonType);
                 updates.push(`late_reason = $${p++}`);
                 params.push(wipeFields.lateReason);
                 updates.push(`paused_outside_wipe = $${p++}`);
@@ -524,6 +589,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                     wipe_phase = 'no_juega',
                     hours_band = NULL,
                     late_reason = NULL,
+                    late_reason_type = NULL,
                     paused_outside_wipe = TRUE,
                     updated_at = NOW()
                  WHERE steam_id64 IS NOT NULL
@@ -544,6 +610,9 @@ module.exports = {
     canUserVouch,
     buildWipeUpdateFields,
     normalizeBmUrl,
+    normalizeLateReasonType,
+    formatLateIntentLabel,
+    LATE_REASON_LABELS,
     approveVouchRequest,
     serializeVouchRequest
 };

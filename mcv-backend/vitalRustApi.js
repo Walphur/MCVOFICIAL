@@ -1601,6 +1601,7 @@ function normalizePlayerInfoRow(row) {
         vouchBy: String(row.vouch_by || row.vouchBy || "").trim(),
         discordHandle: String(row.discord_handle || row.discordHandle || "").trim(),
         hoursBand: String(row.hours_band || row.hoursBand || "").trim() || null,
+        lateReasonType: String(row.late_reason_type || row.lateReasonType || "").trim() || null,
         lateReason: String(row.late_reason || row.lateReason || "").trim(),
         wipePhase: normalizeWipePhase(row.wipe_phase || row.wipePhase),
         hoursPlayed: Number.isFinite(Number(row.hours_played ?? row.hoursPlayed)) ? Number(row.hours_played ?? row.hoursPlayed) : null,

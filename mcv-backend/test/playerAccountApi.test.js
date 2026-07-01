@@ -6,7 +6,8 @@ const {
     canUserVouch,
     buildWipeUpdateFields,
     normalizeBmUrl,
-    serializeVouchRequest
+    serializeVouchRequest,
+    formatLateIntentLabel
 } = require("../playerAccountApi");
 
 test("canUserVouch permite activos que juegan el wipe", () => {
@@ -22,27 +23,59 @@ test("canUserVouch rechaza no_juega, pausa e invitados", () => {
     assert.equal(canUserVouch(null), false);
 });
 
-test("buildWipeUpdateFields valida late y horas", () => {
+test("buildWipeUpdateFields valida late con tipo y detalle", () => {
     assert.deepEqual(buildWipeUpdateFields({ participation: "no_juega" }), {
         wipePhase: "no_juega",
         hoursBand: null,
+        lateReasonType: null,
         lateReason: null,
         pausedOutsideWipe: true
     });
-    assert.equal(buildWipeUpdateFields({ participation: "inicio" }).error, "Indicá si vas a jugar pocas horas o muchas.");
+    assert.equal(
+        buildWipeUpdateFields({ participation: "late" }).error,
+        "Elegí por qué entrás late: no llegás al inicio o jugás pocas horas."
+    );
+    assert.deepEqual(
+        buildWipeUpdateFields({ participation: "late", lateReasonType: "pocas_horas" }),
+        {
+            wipePhase: "late",
+            hoursBand: "light",
+            lateReasonType: "pocas_horas",
+            lateReason: null,
+            pausedOutsideWipe: false
+        }
+    );
+    assert.equal(
+        buildWipeUpdateFields({ participation: "late", lateReasonType: "no_llega", hoursBand: "heavy" }).error,
+        "Contanos cuándo entrás o por qué no llegás al inicio."
+    );
+    assert.deepEqual(
+        buildWipeUpdateFields({
+            participation: "late",
+            lateReasonType: "no_llega",
+            hoursBand: "heavy",
+            lateReason: "Entro el jueves"
+        }),
+        {
+            wipePhase: "late",
+            hoursBand: "heavy",
+            lateReasonType: "no_llega",
+            lateReason: "Entro el jueves",
+            pausedOutsideWipe: false
+        }
+    );
     assert.deepEqual(buildWipeUpdateFields({ participation: "inicio", hoursBand: "heavy" }), {
         wipePhase: "inicio",
         hoursBand: "heavy",
+        lateReasonType: null,
         lateReason: null,
         pausedOutsideWipe: false
     });
-    assert.equal(buildWipeUpdateFields({ participation: "late", hoursBand: "light" }).error, "Si entrás late, contanos brevemente por qué.");
-    assert.deepEqual(buildWipeUpdateFields({ participation: "late", hoursBand: "light", lateReason: "Trabajo" }), {
-        wipePhase: "late",
-        hoursBand: "light",
-        lateReason: "Trabajo",
-        pausedOutsideWipe: false
-    });
+});
+
+test("formatLateIntentLabel describe motivo late", () => {
+    assert.equal(formatLateIntentLabel("pocas_horas", null), "Entro al wipe pero juego pocas horas");
+    assert.equal(formatLateIntentLabel("no_llega", "Laburo"), "No llego al inicio del wipe: Laburo");
 });
 
 test("normalizeBmUrl exige link BattleMetrics", () => {
