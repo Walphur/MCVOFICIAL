@@ -29,7 +29,7 @@ const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi, applyDiscordRolesSync } = require("./vitalRustApi");
-const { ensurePlayerInfoExtendedColumns, ensurePlayerVouchTable } = require("./playerAccountApi");
+const { ensurePlayerInfoExtendedColumns, ensurePlayerVouchTable, runPlayerAccountMigrations } = require("./playerAccountApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
@@ -935,7 +935,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-06-20-discord-roles-sync",
+        build: "2026-07-01-cuenta-wipe-fix",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),
@@ -1009,10 +1009,9 @@ async function boot() {
     });
     const poolBoot = getPool();
     if (poolBoot) {
-        await ensurePlayerInfoExtendedColumns(poolBoot).catch((e) =>
-            console.warn("ensurePlayerInfoExtendedColumns:", e.message)
+        await runPlayerAccountMigrations(poolBoot).catch((e) =>
+            console.warn("runPlayerAccountMigrations:", e.message)
         );
-        await ensurePlayerVouchTable(poolBoot).catch((e) => console.warn("ensurePlayerVouchTable:", e.message));
     }
     await applyEnvWipeSteamImport({ getPool, steamApiKey: STEAM_API_KEY }).catch((e) =>
         console.warn("applyEnvWipeSteamImport:", e.message)

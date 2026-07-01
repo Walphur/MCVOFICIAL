@@ -454,7 +454,8 @@
                 }
                 renderWipeProfile({
                     steamLinked: true,
-                    error: (x.d && x.d.error) || "No se pudo cargar tu perfil de wipe."
+                    error: ((x.d && x.d.error) || "No se pudo cargar tu perfil de wipe.") +
+                        (x.d && x.d.detail ? " (" + x.d.detail + ")" : "")
                 });
             })
             .catch(function () {
@@ -763,10 +764,12 @@
             var body = {
                 participation: (document.getElementById("cuenta-wipe-participation") || {}).value,
                 hoursBand: (document.getElementById("cuenta-wipe-hours") || {}).value,
-                lateReasonType: (document.getElementById("cuenta-wipe-late-type") || {}).value,
                 lateReason: (document.getElementById("cuenta-wipe-late-reason") || {}).value,
                 bmUrl: (document.getElementById("cuenta-wipe-bm") || {}).value
             };
+            if (body.participation === "late") {
+                body.lateReasonType = (document.getElementById("cuenta-wipe-late-type") || {}).value;
+            }
             fetch(API + "/api/auth/user/wipe-profile", {
                 method: "PATCH",
                 headers: Object.assign({ "Content-Type": "application/json" }, mcvUserAuthHeaders()),
@@ -779,7 +782,9 @@
                 })
                 .then(function (x) {
                     if (!x.ok) {
-                        showFormMsg(msg, (x.d && x.d.error) || "No se pudo guardar.", true);
+                        var errMsg = (x.d && x.d.error) || "No se pudo guardar.";
+                        if (x.d && x.d.detail) errMsg += " (" + x.d.detail + ")";
+                        showFormMsg(msg, errMsg, true);
                         return;
                     }
                     showFormMsg(msg, "Guardado: " + wipeParticipationLabel(x.d.profile), false);

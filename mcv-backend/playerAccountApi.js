@@ -251,15 +251,42 @@ async function ensurePlayerVouchTable(pool) {
 async function ensurePlayerInfoExtendedColumns(pool) {
     const ready = await ensurePlayerInfoTable(pool);
     if (!ready) return false;
+    const alters = [
+        `ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS hours_band VARCHAR(12)`,
+        `ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason TEXT`,
+        `ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason_type VARCHAR(24)`,
+        `ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(120)`
+    ];
+    for (const sql of alters) {
+        try {
+            await pool.query(sql);
+        } catch (e) {
+            console.error("ensure player_info extended columns:", sql, e.message);
+            return false;
+        }
+    }
+    return true;
+}
+
+async function runPlayerAccountMigrations(pool) {
+    const okProfile = await ensurePlayerInfoExtendedColumns(pool);
+    const okVouch = await ensurePlayerVouchTable(pool);
+    return okProfile && okVouch;
+}
+
+function isMissingColumnError(err) {
+    const msg = String(err && err.message ? err.message : err).toLowerCase();
+    return msg.includes("does not exist") && msg.includes("column");
+}
+
+async function queryWithWipeColumnMigration(pool, runQuery) {
     try {
-        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS hours_band VARCHAR(12)`);
-        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason TEXT`);
-        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason_type VARCHAR(24)`);
-        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(120)`);
-        return true;
+        return await runQuery();
     } catch (e) {
-        console.error("ensure player_info extended columns:", e.message);
-        return false;
+        if (!isMissingColumnError(e)) throw e;
+        console.warn("playerAccount: reintentando tras migración de columnas:", e.message);
+        await runPlayerAccountMigrations(pool);
+        return await runQuery();
     }
 }
 
@@ -401,7 +428,10 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             });
         } catch (e) {
             console.error("GET /api/auth/user/wipe-profile:", e.message, e.stack);
-            return res.status(500).json({ error: "No se pudo cargar tu perfil de wipe" });
+            return res.status(500).json({
+                error: "No se pudo cargar tu perfil de wipe",
+                detail: String(e.message || "").slice(0, 240)
+            });
         }
     });
 
@@ -470,14 +500,19 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                 return res.status(400).json({ error: "Nada para actualizar." });
             }
             updates.push("updated_at = NOW()");
-            const r = await pool.query(
-                `UPDATE player_info_profiles SET ${updates.join(", ")} WHERE steam_id64 = $1 RETURNING *`,
-                params
+            const r = await queryWithWipeColumnMigration(pool, () =>
+                pool.query(
+                    `UPDATE player_info_profiles SET ${updates.join(", ")} WHERE steam_id64 = $1 RETURNING *`,
+                    params
+                )
             );
             return res.json({ ok: true, profile: wipeIntentFromProfile(r.rows[0]) });
         } catch (e) {
             console.error("PATCH /api/auth/user/wipe-profile:", e.message, e.stack);
-            return res.status(500).json({ error: "No se pudo guardar tu perfil de wipe" });
+            return res.status(500).json({
+                error: "No se pudo guardar tu perfil de wipe",
+                detail: String(e.message || "").slice(0, 240)
+            });
         }
     });
 
@@ -693,6 +728,7 @@ module.exports = {
     registerPlayerAccountApi,
     ensurePlayerVouchTable,
     ensurePlayerInfoExtendedColumns,
+    runPlayerAccountMigrations,
     vouchBlockedReason,
     canUserVouch,
     buildWipeUpdateFields,
