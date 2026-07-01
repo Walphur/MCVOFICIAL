@@ -28,7 +28,7 @@ const { registerTeamRosterApi } = require("./teamRoster");
 const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
-const { registerVitalRustApi } = require("./vitalRustApi");
+const { registerVitalRustApi, applyDiscordRolesSync } = require("./vitalRustApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
@@ -928,7 +928,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-06-20-vital-role-externals",
+        build: "2026-06-20-discord-roles-sync",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),
@@ -1003,6 +1003,15 @@ async function boot() {
     await applyEnvWipeSteamImport({ getPool, steamApiKey: STEAM_API_KEY }).catch((e) =>
         console.warn("applyEnvWipeSteamImport:", e.message)
     );
+    await applyDiscordRolesSync(getPool)
+        .then((r) => {
+            if (r && r.playersUpdated) {
+                console.log(
+                    `Discord roles sync: ${r.playersUpdated} jugadores actualizados, ${r.assignmentsNotMatched} sin match`
+                );
+            }
+        })
+        .catch((e) => console.warn("applyDiscordRolesSync:", e.message));
     app.listen(PORT, () => {
         console.log(`MCV backend en http://localhost:${PORT} (estáticos desde ${ROOT_DIR})`);
         logOAuthSetupHints();

@@ -660,6 +660,12 @@
                         <p class="admin-form-hint">Pegá tabla con encabezados (NOMBRE, STEAM ID, BM, ROL, STRIKES, COMBATS PERDIDOS, MINIS PERDIDOS, NOTAS, ENTRADA, VOUCH, estado, wipe, horas, aportación).</p>
                         <textarea id="vital-info-import-text" class="admin-input vital-extra-textarea" rows="10"></textarea>
                         <button type="button" class="btn-primary-small" id="btn-vital-info-import">Importar</button>
+                        <hr class="admin-sep">
+                        <h4>Roles desde Discord</h4>
+                        <p class="admin-form-hint admin-readable">Aplica el roster Discord del wipe (BUILDERS, EXTERNALS, ELEC, etc.) matcheando por nombre en Info jugadores. Suma roles sin borrar los que ya tengan.</p>
+                        <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-discord-roles">Sincronizar roles Discord</button>
+                        <p id="vital-discord-roles-status" class="admin-form-hint" hidden></p>
+                        <ul id="vital-discord-roles-missing" class="vital-extra-list"></ul>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="logs" style="display:none;">
@@ -4788,6 +4794,53 @@
             });
     }
 
+    function syncDiscordRolesFromRoster() {
+        var statusEl = document.getElementById('vital-discord-roles-status');
+        var missingEl = document.getElementById('vital-discord-roles-missing');
+        if (statusEl) {
+            statusEl.hidden = false;
+            statusEl.textContent = 'Sincronizando roles Discord…';
+            statusEl.className = 'admin-form-hint';
+        }
+        if (missingEl) missingEl.innerHTML = '';
+        fetch(API + '/api/admin/vital/player-info/sync-discord-roles', {
+            method: 'POST',
+            headers: authHeaders()
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'sync');
+                var d = x.d || {};
+                var msg =
+                    String(d.playersUpdated || 0) + ' jugadores actualizados · ' +
+                    String(d.assignmentsMatched || 0) + ' asignaciones OK';
+                if (d.assignmentsNotMatched) {
+                    msg += ' · ' + String(d.assignmentsNotMatched) + ' sin match (falta Steam en Info jugadores)';
+                }
+                if (statusEl) {
+                    statusEl.textContent = msg;
+                    statusEl.className = 'admin-form-hint is-flash-ok';
+                }
+                banner(msg, false);
+                addVitalInfoLog('Roles Discord sync: ' + msg, d.assignmentsNotMatched ? 'warn' : 'ok');
+                if (missingEl && d.notMatched && d.notMatched.length) {
+                    missingEl.innerHTML = d.notMatched.map(function (row) {
+                        return '<li class="vital-extra-item"><span><strong>' + esc(row.discordNick) +
+                            '</strong> → ' + esc(row.role) + ' <span class="vital-extra-note">(no encontrado por nombre)</span></span></li>';
+                    }).join('');
+                }
+                loadVitalPlayerInfo().catch(function () {});
+                loadVitalRolesManager().catch(function () {});
+            })
+            .catch(function (e) {
+                if (statusEl) {
+                    statusEl.textContent = (e && e.message) ? e.message : 'Error al sincronizar';
+                    statusEl.className = 'admin-form-hint is-error';
+                }
+                banner((e && e.message) ? e.message : 'Error al sincronizar roles', true);
+            });
+    }
+
     function initVitalPanel() {
         initVitalLayoutControls();
         updateVitalTabHint();
@@ -4988,6 +5041,8 @@
         }
         if (btnInfoBmHours) btnInfoBmHours.addEventListener('click', fillHoursFromBm);
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
+        var btnSyncDiscordRoles = document.getElementById('btn-vital-sync-discord-roles');
+        if (btnSyncDiscordRoles) btnSyncDiscordRoles.addEventListener('click', syncDiscordRolesFromRoster);
         var btnScoreApply = document.getElementById('btn-vital-score-apply');
         if (btnScoreApply) {
             btnScoreApply.addEventListener('click', function () {

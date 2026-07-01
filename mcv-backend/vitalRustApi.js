@@ -15,6 +15,7 @@ const {
     shouldScorePlayerProfile
 } = require("./vitalScoreTiers");
 const { syncPlaytimeFromChannel } = require("./playtimeSync");
+const { syncDiscordWipeRoles } = require("./discordRolesSync");
 
 /**
  * serverId según orden en vitalrust.com/statistics (EU 10x = 1 confirmado en DevTools).
@@ -3439,6 +3440,24 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         }
     });
 
+    app.post("/api/admin/vital/player-info/sync-discord-roles", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
+        try {
+            const result = await syncDiscordWipeRoles({
+                getPool,
+                ensurePlayerInfoTable,
+                ensureVitalRolesTable,
+                loadRoleLabelsMap,
+                syncPlayerRoleLinks
+            });
+            return res.json(result);
+        } catch (e) {
+            console.error("sync discord roles:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo sincronizar roles Discord" });
+        }
+    });
+
     app.delete("/api/admin/vital/player-info/:steamId64", authAdmin, async (req, res) => {
         const pool = getPool();
         if (!pool) return res.status(503).json({ error: "Base de datos no configurada" });
@@ -4116,5 +4135,23 @@ module.exports = {
     buildingTotalFromVital,
     deployablesTotalFromVital,
     extractDeployableStats,
-    fetchTierScoresPayload
+    fetchTierScoresPayload,
+    applyDiscordRolesSync
 };
+
+async function applyDiscordRolesSync(getPool) {
+    if (String(process.env.MCV_DISCORD_ROLES_SYNC || "1").trim() === "0") {
+        return null;
+    }
+    const pool = getPool();
+    if (!pool) {
+        return null;
+    }
+    return syncDiscordWipeRoles({
+        getPool,
+        ensurePlayerInfoTable,
+        ensureVitalRolesTable,
+        loadRoleLabelsMap,
+        syncPlayerRoleLinks
+    });
+}
