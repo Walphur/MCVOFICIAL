@@ -927,7 +927,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-06-20-revert-pre-session",
+        build: "2026-06-20-torretas-page",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),

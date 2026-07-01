@@ -11,7 +11,8 @@ const {
     normalizeExtraCounts,
     expandExtraKeysFromCounts,
     resolveTierScoreConfig,
-    roundScore
+    roundScore,
+    shouldScorePlayerProfile
 } = require("./vitalScoreTiers");
 const { syncPlaytimeFromChannel } = require("./playtimeSync");
 
@@ -1760,6 +1761,151 @@ async function ensureVitalExtraTable(pool) {
     }
 }
 
+const ENSURE_TURRET_OPERATOR_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS turret_operator_steam_ids (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    label TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_turret_operator_created ON turret_operator_steam_ids (created_at DESC);
+`;
+
+async function ensureTurretOperatorTable(pool) {
+    if (!pool) {
+        return false;
+    }
+    try {
+        await pool.query(ENSURE_TURRET_OPERATOR_TABLE_SQL);
+        return true;
+    } catch (e) {
+        console.error("ensure turret_operator_steam_ids:", e.message);
+        return false;
+    }
+}
+
+function parseTurretOperatorSteamsFromEnv() {
+    return parseSteamIdsInput(process.env.TURRET_OPERATOR_STEAMS || "");
+}
+
+async function loadTurretOperatorSteamIds(pool) {
+    const set = new Set(parseTurretOperatorSteamsFromEnv());
+    if (pool) {
+        try {
+            await ensureTurretOperatorTable(pool);
+            const r = await pool.query(
+                `SELECT steam_id64, label, created_at FROM turret_operator_steam_ids ORDER BY created_at DESC`
+            );
+            for (const row of r.rows) {
+                const id = normalizeSteamId64(row.steam_id64);
+                if (id) {
+                    set.add(id);
+                }
+            }
+        } catch (e) {
+            console.warn("turret operator steam ids:", e.message);
+        }
+    }
+    return [...set];
+}
+
+function wipePhaseLabel(phase) {
+    const v = normalizeWipePhase(phase);
+    if (v === "inicio") return "Inicio";
+    if (v === "late") return "Late";
+    if (v === "no_juega") return "No juega";
+    return "Sin definir";
+}
+
+async function loadTurretRosterPlayers(pool) {
+    const ready = await ensurePlayerInfoTable(pool);
+    if (!ready) {
+        throw new Error("No se pudo preparar player_info_profiles");
+    }
+    const r = await pool.query(
+        `SELECT steam_id64, display_name, status_tag, wipe_phase, paused_outside_wipe
+         FROM player_info_profiles
+         WHERE steam_id64 IS NOT NULL
+         ORDER BY LOWER(COALESCE(NULLIF(TRIM(display_name), ''), steam_id64)), steam_id64`
+    );
+    const players = r.rows.map(normalizePlayerInfoRow).filter(Boolean);
+    return players.map((p) => {
+        const playsWipe = shouldScorePlayerProfile(p);
+        return {
+            steamId64: p.steamId64,
+            displayName: p.displayName || p.steamId64,
+            playsWipe,
+            wipePhase: p.wipePhase,
+            wipePhaseLabel: wipePhaseLabel(p.wipePhase),
+            pausedOutsideWipe: Boolean(p.pausedOutsideWipe),
+            statusTag: p.statusTag
+        };
+    });
+}
+
+async function resolveTurretOperatorFromRequest(req) {
+    const pool = boundGetPool();
+    if (!pool) {
+        return { ok: false, status: 503, error: "Base de datos no disponible" };
+    }
+    if (!req.userAuth?.userId) {
+        return { ok: false, status: 401, error: "Iniciá sesión con Steam" };
+    }
+    const userRow = await getSiteUserById(pool, req.userAuth.userId);
+    const steamId = normalizeSteamId64(userRow?.steam_id64);
+    if (!steamId) {
+        return {
+            ok: false,
+            status: 403,
+            error: "Steam no vinculado",
+            hint: "Entrá con Steam (no solo Google). Si ya usás Google, vinculá Steam desde Mi cuenta."
+        };
+    }
+    const allowed = await loadTurretOperatorSteamIds(pool);
+    if (!allowed.length) {
+        return {
+            ok: false,
+            status: 503,
+            error: "Lista de torreteros no configurada",
+            hint: "El staff debe cargar SteamID64 de torreteros en el admin (Vital → Torreteros) o TURRET_OPERATOR_STEAMS en el servidor.",
+            steamId64: steamId
+        };
+    }
+    if (!allowed.includes(steamId)) {
+        return {
+            ok: false,
+            status: 403,
+            error: "Tu Steam no está autorizado como torretero",
+            hint: "Pedile al staff que agregue tu SteamID64 en admin → Vital → Torreteros.",
+            steamId64: steamId
+        };
+    }
+    return {
+        ok: true,
+        steamId64: steamId,
+        displayName: String(userRow?.display_name || "").trim()
+    };
+}
+
+function authTurretOperator(req, res, next) {
+    authUser(req, res, async () => {
+        try {
+            const resolved = await resolveTurretOperatorFromRequest(req);
+            if (!resolved.ok) {
+                return res.status(resolved.status).json({
+                    error: resolved.error,
+                    hint: resolved.hint,
+                    steamId64: resolved.steamId64
+                });
+            }
+            req.turretOperator = resolved;
+            next();
+        } catch (e) {
+            console.error("authTurretOperator:", e.message);
+            return res.status(500).json({ error: "Error al verificar acceso de torretero" });
+        }
+    });
+}
+
 async function loadManualSteamIdsFromDb(pool) {
     const rows = [];
     if (!pool) {
@@ -2512,6 +2658,146 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
             return res.json({ ok: true, steamId64 });
         } catch (e) {
             console.error("vital extra delete:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo eliminar" });
+        }
+    });
+
+    app.get("/api/admin/turret/public-access", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        try {
+            const operators = await loadTurretOperatorSteamIds(pool);
+            const roster = await loadTurretRosterPlayers(pool);
+            const playingCount = roster.filter((p) => p.playsWipe).length;
+            const origin = String(req.headers["x-forwarded-host"] || req.get("host") || "").split(",")[0].trim();
+            const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
+            const siteBase = origin ? `${proto}://${origin}`.replace(/\/$/, "") : "";
+            return res.json({
+                publicPath: "/torretas.html",
+                publicUrl: siteBase ? `${siteBase}/torretas.html` : "torretas.html",
+                operatorCount: operators.length,
+                rosterSize: roster.length,
+                playingWipeCount: playingCount,
+                hint: "Agregá SteamID64 de quienes colocan torretas en el server. Entran con Steam en torretas.html."
+            });
+        } catch (e) {
+            console.error("turret public-access:", e.message);
+            return res.status(500).json({ error: e.message || "Error al cargar acceso torretas" });
+        }
+    });
+
+    app.get("/api/admin/turret/operators", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        try {
+            const ready = await ensureTurretOperatorTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar turret_operator_steam_ids" });
+            }
+            const r = await pool.query(
+                `SELECT steam_id64, label, created_at FROM turret_operator_steam_ids ORDER BY created_at DESC`
+            );
+            const envIds = new Set(parseTurretOperatorSteamsFromEnv());
+            const players = r.rows
+                .map((row) => ({
+                    steamId64: normalizeSteamId64(row.steam_id64),
+                    label: String(row.label || "").trim(),
+                    createdAt: row.created_at,
+                    fromEnv: false
+                }))
+                .filter((p) => p.steamId64);
+            envIds.forEach((id) => {
+                if (!players.some((p) => p.steamId64 === id)) {
+                    players.unshift({ steamId64: id, label: "env", createdAt: null, fromEnv: true });
+                }
+            });
+            const steamMap = await fetchSteamSummariesBatch(players.map((p) => p.steamId64));
+            const enriched = players.map((p) => {
+                const s = steamMap[p.steamId64] || {};
+                return {
+                    ...p,
+                    personaName: String(s.personaName || s.personaname || "").trim(),
+                    avatarUrl: String(s.avatarUrl || s.avatarfull || "").trim()
+                };
+            });
+            return res.json({
+                persisted: true,
+                total: enriched.length,
+                steamConfigured: Boolean(STEAM_API_KEY),
+                players: enriched
+            });
+        } catch (e) {
+            console.error("turret operators list:", e.message);
+            return res.status(500).json({ error: e.message || "Error al listar torreteros" });
+        }
+    });
+
+    app.post("/api/admin/turret/operators", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        const body = req.body && typeof req.body === "object" ? req.body : {};
+        const label = String(body.label || body.note || "").trim().slice(0, 120);
+        const ids = [
+            ...parseSteamIdsInput(body.steamId64 || body.steam_id64 || ""),
+            ...parseSteamIdsInput(body.steamIds || body.steams || body.input || "")
+        ];
+        const unique = [...new Set(ids)];
+        if (!unique.length) {
+            return res.status(400).json({ error: "Indicá al menos un SteamID64 válido (17 dígitos)" });
+        }
+        try {
+            const ready = await ensureTurretOperatorTable(pool);
+            if (!ready) {
+                return res.status(503).json({ error: "No se pudo preparar turret_operator_steam_ids" });
+            }
+            const added = [];
+            for (const steamId64 of unique) {
+                await pool.query(
+                    `INSERT INTO turret_operator_steam_ids (steam_id64, label)
+                     VALUES ($1, $2)
+                     ON CONFLICT (steam_id64) DO UPDATE SET label = COALESCE(NULLIF(EXCLUDED.label, ''), turret_operator_steam_ids.label)`,
+                    [steamId64, label || null]
+                );
+                added.push(steamId64);
+            }
+            return res.json({ ok: true, added, count: added.length });
+        } catch (e) {
+            console.error("turret operators add:", e.message);
+            return res.status(500).json({ error: e.message || "No se pudo guardar" });
+        }
+    });
+
+    app.delete("/api/admin/turret/operators/:steamId64", authAdmin, async (req, res) => {
+        const pool = getPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no configurada" });
+        }
+        const steamId64 = normalizeSteamId64(req.params.steamId64);
+        if (!steamId64) {
+            return res.status(400).json({ error: "SteamID64 inválido" });
+        }
+        if (parseTurretOperatorSteamsFromEnv().includes(steamId64)) {
+            return res.status(400).json({
+                error: "Este SteamID está en TURRET_OPERATOR_STEAMS (env) y no se puede quitar desde el admin"
+            });
+        }
+        try {
+            const r = await pool.query(
+                `DELETE FROM turret_operator_steam_ids WHERE steam_id64 = $1 RETURNING steam_id64`,
+                [steamId64]
+            );
+            if (!r.rowCount) {
+                return res.status(404).json({ error: "No estaba en la lista de torreteros" });
+            }
+            return res.json({ ok: true, steamId64 });
+        } catch (e) {
+            console.error("turret operator delete:", e.message);
             return res.status(500).json({ error: e.message || "No se pudo eliminar" });
         }
     });
@@ -3520,6 +3806,69 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         }
     });
 
+    app.get("/api/auth/user/turret/access", authUser, async (req, res) => {
+        try {
+            const resolved = await resolveTurretOperatorFromRequest(req);
+            if (!resolved.ok) {
+                return res.json({
+                    allowed: false,
+                    configured: resolved.status !== 503,
+                    steamLinked: resolved.status !== 403 || Boolean(resolved.steamId64),
+                    steamId64: resolved.steamId64 || null,
+                    error: resolved.error,
+                    hint: resolved.hint
+                });
+            }
+            const pool = boundGetPool();
+            let rosterSize = 0;
+            let playingWipeCount = 0;
+            if (pool) {
+                try {
+                    const roster = await loadTurretRosterPlayers(pool);
+                    rosterSize = roster.length;
+                    playingWipeCount = roster.filter((p) => p.playsWipe).length;
+                } catch (e) {
+                    console.warn("turret roster count:", e.message);
+                }
+            }
+            return res.json({
+                allowed: true,
+                configured: true,
+                steamLinked: true,
+                steamId64: resolved.steamId64,
+                displayName: resolved.displayName || null,
+                rosterSize,
+                playingWipeCount,
+                hint: null
+            });
+        } catch (e) {
+            console.error("turret operator access:", e.message);
+            return res.status(500).json({ error: "Error al verificar acceso" });
+        }
+    });
+
+    app.get("/api/auth/user/turret/roster", authTurretOperator, async (req, res) => {
+        const pool = boundGetPool();
+        if (!pool) {
+            return res.status(503).json({ error: "Base de datos no disponible" });
+        }
+        try {
+            const players = await loadTurretRosterPlayers(pool);
+            const playing = players.filter((p) => p.playsWipe);
+            return res.json({
+                generatedAt: new Date().toISOString(),
+                total: players.length,
+                playingWipeCount: playing.length,
+                notPlayingCount: players.length - playing.length,
+                players,
+                hint: "Agregá en el server solo jugadores marcados como «Juega wipe»."
+            });
+        } catch (e) {
+            console.error("turret roster:", e.message);
+            return res.status(500).json({ error: e.message || "Error al cargar roster" });
+        }
+    });
+
     app.get("/api/auth/user/vital/config", authVitalMember, (req, res) => {
         const paths = apiPaths();
         const servers = parseServers();
@@ -3752,6 +4101,10 @@ module.exports = {
     authVitalPublic,
     authVitalMember,
     resolveVitalMemberFromRequest,
+    resolveTurretOperatorFromRequest,
+    authTurretOperator,
+    loadTurretRosterPlayers,
+    loadTurretOperatorSteamIds,
     vitalPublicAccessKey,
     isVitalPublicConfigured,
     ensurePlayerInfoTable,

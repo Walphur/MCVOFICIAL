@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCV — Lista torretas</title>
+    <meta name="theme-color" content="#FAA61A">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="mcv-api" content="">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-torretas">
+    <script src="mcv-purge-legacy-api.js?v=2"></script>
+    <script src="mcv-api-base.js?v=2"></script>
+    <script src="mcv-user-auth.js?v=2"></script>
+    <script src="mcv-oauth-ui.js?v=3"></script>
+</head>
+<body class="grain torretas-page" data-mcv-page="torretas">
+
+<nav class="navbar" data-mcv-shell-nav></nav>
+
+<main class="torretas-main page-section">
+    <div class="torretas-hero">
+        <div class="section-label">
+            <div class="yellow-line"></div>
+            <span>// Clan MCV</span>
+        </div>
+        <h1 class="torretas-title">Lista <span>torretas</span></h1>
+        <p class="torretas-lead">Nombre y SteamID de cada jugador, y si juega el wipe. Solo para torreteros autorizados.</p>
+    </div>
+
+    <section id="torretas-gate" class="torretas-gate card-surface">
+        <h2>Acceso torreteros</h2>
+        <p id="torretas-gate-hint" class="torretas-gate-hint">Entrá con Steam. Tu SteamID64 tiene que estar cargado por el staff como torretero.</p>
+        <p id="torretas-gate-denied" class="torretas-gate-hint is-error" hidden></p>
+        <div class="torretas-gate-actions">
+            <a id="torretas-steam" class="oauth-btn oauth-btn--steam torretas-gate-steam" href="#">Continuar con Steam</a>
+        </div>
+        <p class="torretas-gate-link">¿Entraste con Google? <a href="cuenta.html?next=torretas.html">Vinculá Steam en Mi cuenta</a> primero.</p>
+    </section>
+
+    <div id="torretas-app" class="torretas-app card-surface" hidden>
+        <p id="torretas-banner" class="torretas-banner" hidden aria-live="polite"></p>
+        <p id="torretas-meta" class="admin-form-hint"></p>
+
+        <div class="torretas-controls">
+            <label class="torretas-search">
+                <span>Buscar</span>
+                <input type="search" id="torretas-search" class="admin-input" placeholder="Nombre o SteamID…" autocomplete="off">
+            </label>
+            <label>
+                <span>Mostrar</span>
+                <select id="torretas-filter" class="admin-input">
+                    <option value="playing">Solo juegan wipe</option>
+                    <option value="all">Todos</option>
+                    <option value="not-playing">No juegan wipe</option>
+                </select>
+            </label>
+            <button type="button" class="btn-primary-small" id="torretas-copy-playing">Copiar SteamIDs (juegan)</button>
+            <button type="button" class="btn-outline" id="torretas-export">Exportar CSV</button>
+            <button type="button" class="btn-outline" id="torretas-logout">Salir</button>
+        </div>
+
+        <div class="torretas-table-wrap">
+            <table class="torretas-table" id="torretas-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">SteamID64</th>
+                        <th scope="col">Wipe</th>
+                        <th scope="col"><span class="sr-only">Copiar</span></th>
+                    </tr>
+                </thead>
+                <tbody id="torretas-tbody">
+                    <tr><td colspan="4" class="empty-hint">Cargando…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script src="mcv-layout.js?v=2026-06-02-waltech" defer></script>
+<script src="torretas-view.js?v=2026-06-20-torretas"></script>
+</body>
+</html>

@@ -223,6 +223,17 @@ CREATE TABLE IF NOT EXISTS vital_extra_steam_ids (
 CREATE INDEX IF NOT EXISTS idx_vital_extra_created ON vital_extra_steam_ids (created_at DESC);
 
 -- split
+-- SteamID64 autorizados a ver la lista de jugadores para torretas (torretas.html)
+CREATE TABLE IF NOT EXISTS turret_operator_steam_ids (
+    steam_id64 VARCHAR(17) PRIMARY KEY,
+    label TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_turret_operator_created ON turret_operator_steam_ids (created_at DESC);
+
+-- split
 -- Info interna de jugadores para staff (BM, strikes, estado wipe, vouch, etc.)
 CREATE TABLE IF NOT EXISTS player_info_profiles (
     steam_id64 VARCHAR(17) PRIMARY KEY,

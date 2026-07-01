@@ -362,6 +362,7 @@
                         <nav class="vital-sidebar-nav" id="vital-sidebar-nav">
                             <button type="button" class="vital-nav-item active" data-vital-subtab="jugadores"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="vital-nav-label">Jugadores</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="vital-nav-label">Extras</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="torreteros"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.93 19.07l1.41-1.41"/><path d="M17.66 6.34l1.41-1.41"/></svg></span><span class="vital-nav-label">Torreteros</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l7.59-7.59a1 1 0 0 0 0-1.41L12 2z"/><circle cx="7" cy="7" r="1.5"/></svg></span><span class="vital-nav-label">Roles</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0l4-4m-4 4l-4-4"/><path d="M5 21h14"/></svg></span><span class="vital-nav-label">Importar</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span><span class="vital-nav-label">Logs</span></button>
@@ -617,6 +618,26 @@
                         <p id="vital-extra-count" class="admin-form-hint vital-extra-count"></p>
                         <ul id="vital-extra-list" class="vital-extra-list"></ul>
                         <p id="vital-extra-deploy-hint" class="admin-form-hint" hidden></p>
+                    </div>
+                </section>
+                <section class="vital-subpanel" data-vital-section="torreteros" style="display:none;">
+                    <div class="vital-page-simple">
+                        <h4>Acceso torreteros</h4>
+                        <p class="admin-form-hint admin-readable">SteamID64 de quienes colocan torretas en el server. Ven nombre + Steam + si juega el wipe en <a id="turret-public-link-hint" href="torretas.html" target="_blank" rel="noopener">torretas.html</a> (login Steam, sin link en el menú).</p>
+                        <p id="turret-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
+                        <div class="vital-extra-form">
+                            <label class="vital-extra-field vital-extra-field-wide">
+                                <span>SteamID64 torretero(s)</span>
+                                <textarea id="turret-operator-steam" class="admin-input vital-extra-textarea" rows="3" placeholder="76561198…&#10;76561199…" autocomplete="off" spellcheck="false"></textarea>
+                            </label>
+                            <label class="vital-extra-field">
+                                <span>Nota (opcional)</span>
+                                <input type="text" id="turret-operator-label" class="admin-input" placeholder="Ej. main builder" maxlength="120">
+                            </label>
+                            <button type="button" class="btn-primary-small" id="btn-turret-operator-add">Agregar torretero</button>
+                        </div>
+                        <p id="turret-operator-count" class="admin-form-hint vital-extra-count"></p>
+                        <ul id="turret-operator-list" class="vital-extra-list"></ul>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="roles" style="display:none;">
@@ -1937,6 +1958,127 @@
             });
     }
 
+    function renderTurretOperatorList(players) {
+        var list = document.getElementById('turret-operator-list');
+        if (!list) return;
+        players = players || [];
+        if (!players.length) {
+            list.innerHTML = '<li class="empty-hint">Sin torreteros autorizados. Agregá SteamID64 arriba.</li>';
+            return;
+        }
+        list.innerHTML = players.map(function (p) {
+            var display = p.personaName || p.label || p.steamId64;
+            var note = p.label && p.label !== 'env' ? ' <span class="vital-extra-note">— ' + esc(p.label) + '</span>' : '';
+            var envTag = p.fromEnv ? ' <span class="vital-extra-mcv">env</span>' : '';
+            var delBtn = p.fromEnv
+                ? ''
+                : '<button type="button" class="btn-outline vital-extra-del" data-turret-steam="' + esc(p.steamId64) + '">Quitar</button>';
+            return '<li class="vital-extra-item">' +
+                '<div class="vital-extra-main">' +
+                '<strong class="vital-extra-name">' + esc(display) + '</strong>' +
+                '<a class="vital-extra-steam-link" href="https://steamcommunity.com/profiles/' + escAttr(p.steamId64) + '" target="_blank" rel="noopener">' + esc(p.steamId64) + '</a>' +
+                note + envTag +
+                '</div>' + delBtn + '</li>';
+        }).join('');
+        list.querySelectorAll('[data-turret-steam]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var sid = btn.getAttribute('data-turret-steam');
+                if (!sid || !confirm('¿Quitar este torretero de la lista?')) return;
+                fetch(API + '/api/admin/turret/operators/' + encodeURIComponent(sid), {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                })
+                    .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (x) {
+                        if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                        loadTurretOperators().catch(function () {});
+                        banner('Torretero eliminado.', false);
+                    })
+                    .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+            });
+        });
+    }
+
+    function loadTurretPublicAccessStatus() {
+        var el = document.getElementById('turret-public-access-status');
+        var link = document.getElementById('turret-public-link-hint');
+        if (!el) return Promise.resolve();
+        return fetch(API + '/api/admin/turret/public-access', { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) {
+                    el.hidden = false;
+                    el.className = 'admin-form-hint vital-public-access-status is-warn';
+                    el.textContent = (x.d && x.d.error) ? x.d.error : 'No se pudo consultar torretas.html';
+                    return;
+                }
+                var d = x.d || {};
+                if (link && d.publicUrl) link.href = d.publicUrl;
+                el.hidden = false;
+                el.className = 'admin-form-hint vital-public-access-status is-ok';
+                el.textContent =
+                    String(d.operatorCount || 0) + ' torretero(s) · ' +
+                    String(d.playingWipeCount || 0) + ' / ' + String(d.rosterSize || 0) +
+                    ' jugadores juegan el wipe. ' + String(d.hint || '');
+            })
+            .catch(function () {
+                el.hidden = false;
+                el.className = 'admin-form-hint vital-public-access-status is-warn';
+                el.textContent = 'No se pudo consultar el estado de torretas.html.';
+            });
+    }
+
+    function loadTurretOperators() {
+        var list = document.getElementById('turret-operator-list');
+        var countEl = document.getElementById('turret-operator-count');
+        if (list) list.innerHTML = '<li class="empty-hint">Cargando…</li>';
+        return fetch(API + '/api/admin/turret/operators', { headers: authHeaders(), cache: 'no-store' })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                var players = x.d.players || [];
+                renderTurretOperatorList(players);
+                if (countEl) {
+                    countEl.textContent = players.length ? players.length + ' torretero(s) autorizados' : '';
+                    countEl.hidden = !players.length;
+                }
+                return players;
+            })
+            .catch(function (e) {
+                renderTurretOperatorList([]);
+                if (countEl) countEl.textContent = '';
+                throw e;
+            });
+    }
+
+    function addTurretOperators() {
+        var ta = document.getElementById('turret-operator-steam');
+        var labelEl = document.getElementById('turret-operator-label');
+        var raw = ta ? String(ta.value || '').trim() : '';
+        if (!raw) {
+            banner('Pegá al menos un SteamID64.', true);
+            return;
+        }
+        fetch(API + '/api/admin/turret/operators', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({
+                steamIds: raw,
+                label: labelEl ? labelEl.value : ''
+            })
+        })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (x) {
+                if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'err');
+                if (ta) ta.value = '';
+                if (labelEl) labelEl.value = '';
+                banner('Torretero(s) agregados (' + String(x.d.count || 0) + ').', false);
+                loadTurretOperators().catch(function () {});
+                loadTurretPublicAccessStatus().catch(function () {});
+            })
+            .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+    }
+
     function loadVitalExtraPlayers(opts) {
         opts = opts || {};
         var deployHint = document.getElementById('vital-extra-deploy-hint');
@@ -2995,6 +3137,10 @@
         if (vitalInfoSubtab === 'extras') {
             loadVitalExtraPlayers().catch(function () {});
             loadVitalPublicAccessStatus().catch(function () {});
+        }
+        if (vitalInfoSubtab === 'torreteros') {
+            loadTurretOperators().catch(function () {});
+            loadTurretPublicAccessStatus().catch(function () {});
         }
         if (vitalInfoSubtab === 'roles') {
             loadVitalRolesManager().catch(function () {});
@@ -4663,6 +4809,7 @@
             });
         }
         var btnExtraAdd = document.getElementById('btn-vital-extra-add');
+        var btnTurretAdd = document.getElementById('btn-turret-operator-add');
         var btnExtraSyncJugadores = document.getElementById('btn-vital-extra-sync-jugadores');
         var btnExtraSyncSteam = document.getElementById('btn-vital-extra-sync-steam');
         var btnInfoRefresh = document.getElementById('btn-vital-info-refresh');
@@ -4678,6 +4825,9 @@
         var infoSearch = document.getElementById('vital-info-search');
         if (btnExtraAdd) {
             btnExtraAdd.addEventListener('click', addVitalExtraPlayers);
+        }
+        if (btnTurretAdd) {
+            btnTurretAdd.addEventListener('click', addTurretOperators);
         }
         if (btnExtraSyncJugadores) {
             btnExtraSyncJugadores.addEventListener('click', function () {

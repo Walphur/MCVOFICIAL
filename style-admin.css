@@ -4562,6 +4562,150 @@ select.vital-input-compact option {
     margin-top: 18px;
 }
 
+/* —— Torretas (lista oculta, mismo patrón que vital-rust) —— */
+.torretas-page {
+    font-family: "Inter", system-ui, sans-serif;
+}
+.torretas-main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+.torretas-hero {
+    margin-bottom: 20px;
+}
+.torretas-title {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 700;
+    margin: 8px 0;
+    color: #fff;
+}
+.torretas-title span {
+    color: var(--primary);
+}
+.torretas-lead {
+    color: #b8c0cc;
+    max-width: 42rem;
+    line-height: 1.5;
+}
+.torretas-gate,
+.torretas-app {
+    padding: 20px;
+    border-radius: 12px;
+}
+.torretas-gate h2 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+}
+.torretas-gate-hint {
+    color: #b0b8c4;
+    margin: 0 0 12px;
+}
+.torretas-gate-hint.is-error {
+    color: #ff8a8a;
+}
+.torretas-gate-actions {
+    margin: 12px 0;
+}
+.torretas-gate-link {
+    font-size: 0.88rem;
+    color: #9aa3b0;
+}
+.torretas-gate-link a {
+    color: var(--primary);
+}
+.torretas-banner {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+.torretas-banner.is-ok {
+    background: rgba(46, 204, 113, 0.12);
+    color: #7dcea0;
+}
+.torretas-banner.is-error {
+    background: rgba(231, 76, 60, 0.12);
+    color: #f1948a;
+}
+.torretas-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin: 16px 0;
+}
+.torretas-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: #b0b8c4;
+}
+.torretas-search {
+    flex: 1 1 200px;
+    min-width: 180px;
+}
+.torretas-table-wrap {
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+.torretas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+.torretas-table th,
+.torretas-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+.torretas-table thead th {
+    background: #0d0d0d;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.torretas-table tbody tr:hover {
+    background: rgba(250, 166, 26, 0.06);
+}
+.torretas-steam {
+    font-size: 0.82rem;
+    color: #c8d0dc;
+    word-break: break-all;
+}
+.torretas-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.torretas-badge--yes {
+    background: rgba(46, 204, 113, 0.15);
+    color: #7dcea0;
+}
+.torretas-badge--no {
+    background: rgba(149, 165, 166, 0.15);
+    color: #bdc3c7;
+}
+.torretas-page .btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
 /* —— Admin UX polish (solo presentación) —— */
 .admin-tabs {
     gap: 6px;
