@@ -4671,10 +4671,34 @@ select.vital-input-compact option {
 .torretas-table tbody tr:hover {
     background: rgba(250, 166, 26, 0.06);
 }
+.torretas-steam-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
 .torretas-steam {
     font-size: 0.82rem;
-    color: #c8d0dc;
     word-break: break-all;
+}
+.torretas-steam-link {
+    color: #66b3ff;
+    text-decoration: none;
+    font-family: ui-monospace, "Cascadia Code", monospace;
+    font-size: 0.82rem;
+}
+.torretas-steam-link:hover {
+    color: #ffc04f;
+    text-decoration: underline;
+}
+.torretas-steam-web {
+    color: #9aa3b0;
+    font-size: 0.78rem;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.torretas-steam-web:hover {
+    color: var(--primary);
 }
 .torretas-badge {
     display: inline-block;

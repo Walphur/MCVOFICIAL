@@ -14,6 +14,18 @@
             .replace(/"/g, "&quot;");
     }
 
+    function escAttr(s) {
+        return esc(s);
+    }
+
+    function steamAddUrl(steamId64) {
+        return "steam://friends/add/" + encodeURIComponent(String(steamId64 || "").trim());
+    }
+
+    function steamProfileUrl(steamId64) {
+        return "https://steamcommunity.com/profiles/" + encodeURIComponent(String(steamId64 || "").trim());
+    }
+
     function apiBase() {
         return typeof global.mcvResolveApiBase === "function"
             ? global.mcvResolveApiBase()
@@ -123,9 +135,16 @@
                     "<td><strong>" +
                     esc(row.displayName) +
                     "</strong></td>" +
-                    '<td><code class="torretas-steam">' +
+                    '<td class="torretas-steam-cell">' +
+                    '<a class="torretas-steam torretas-steam-link" href="' +
+                    escAttr(steamAddUrl(row.steamId64)) +
+                    '" title="Abrir Steam para agregar jugador">' +
                     esc(row.steamId64) +
-                    "</code></td>" +
+                    "</a>" +
+                    '<a class="torretas-steam-web" href="' +
+                    escAttr(steamProfileUrl(row.steamId64)) +
+                    '" target="_blank" rel="noopener noreferrer" title="Perfil en Steam (web)">↗</a>' +
+                    "</td>" +
                     "<td>" +
                     wipeBadge(row) +
                     "</td>" +
