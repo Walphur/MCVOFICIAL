@@ -29,6 +29,7 @@ const { registerTicketsApi } = require("./ticketsApi");
 const { registerYoutubeFeedApi } = require("./youtubeFeed");
 const { registerTiktokFeedApi } = require("./tiktokFeed");
 const { registerVitalRustApi, applyDiscordRolesSync } = require("./vitalRustApi");
+const { ensurePlayerInfoExtendedColumns, ensurePlayerVouchTable } = require("./playerAccountApi");
 const { attachPlaytimeDiscord, registerPlaytimeAdminApi } = require("./playtimeSync");
 const { attachWipeReportDiscord } = require("./wipeReport");
 const { attachWipeYoTopDiscord, startWipeReminderScheduler } = require("./wipeDiscordExtras");
@@ -1006,6 +1007,13 @@ async function boot() {
     await initDb().catch((e) => {
         console.warn("initDb:", e.message);
     });
+    const poolBoot = getPool();
+    if (poolBoot) {
+        await ensurePlayerInfoExtendedColumns(poolBoot).catch((e) =>
+            console.warn("ensurePlayerInfoExtendedColumns:", e.message)
+        );
+        await ensurePlayerVouchTable(poolBoot).catch((e) => console.warn("ensurePlayerVouchTable:", e.message));
+    }
     await applyEnvWipeSteamImport({ getPool, steamApiKey: STEAM_API_KEY }).catch((e) =>
         console.warn("applyEnvWipeSteamImport:", e.message)
     );

@@ -256,12 +256,51 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
     paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE,
+    hours_band VARCHAR(12),
+    late_reason TEXT,
+    late_reason_type VARCHAR(24),
+    discord_handle VARCHAR(120),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- split
 CREATE INDEX IF NOT EXISTS idx_player_info_status ON player_info_profiles (status_tag, updated_at DESC);
+
+-- split
+ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS hours_band VARCHAR(12);
+
+-- split
+ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason TEXT;
+
+-- split
+ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason_type VARCHAR(24);
+
+-- split
+ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(120);
+
+-- split
+CREATE TABLE IF NOT EXISTS player_vouch_requests (
+    id SERIAL PRIMARY KEY,
+    candidate_steam_id64 VARCHAR(17) NOT NULL,
+    candidate_display_name VARCHAR(120),
+    candidate_discord VARCHAR(120) NOT NULL,
+    candidate_bm_url TEXT NOT NULL,
+    voucher_steam_id64 VARCHAR(17) NOT NULL,
+    voucher_display_name VARCHAR(120) NOT NULL,
+    note TEXT,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+    reviewed_by VARCHAR(120),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_vouch_status ON player_vouch_requests (status, created_at DESC);
+
+-- split
+CREATE INDEX IF NOT EXISTS idx_player_vouch_candidate ON player_vouch_requests (candidate_steam_id64);
 
 -- split
 CREATE TABLE IF NOT EXISTS mcv_vital_roles (

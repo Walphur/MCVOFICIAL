@@ -9,25 +9,27 @@ const {
     normalizePlayerInfoRow
 } = require("./vitalRustApi");
 
-const PLAYER_VOUCH_REQUESTS_SQL = `
-CREATE TABLE IF NOT EXISTS player_vouch_requests (
-    id SERIAL PRIMARY KEY,
-    candidate_steam_id64 VARCHAR(17) NOT NULL,
-    candidate_display_name VARCHAR(120),
-    candidate_discord VARCHAR(120) NOT NULL,
-    candidate_bm_url TEXT NOT NULL,
-    voucher_steam_id64 VARCHAR(17) NOT NULL,
-    voucher_display_name VARCHAR(120) NOT NULL,
-    note TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'approved', 'rejected')),
-    reviewed_by VARCHAR(120),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX IF NOT EXISTS idx_player_vouch_status ON player_vouch_requests (status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_player_vouch_candidate ON player_vouch_requests (candidate_steam_id64);
-`;
+async function countOpenVouches(pool, steamId64) {
+    const ready = await ensurePlayerVouchTable(pool);
+    if (!ready) return 0;
+    try {
+        const r = await pool.query(
+            `SELECT COUNT(*)::int AS n FROM player_vouch_requests
+             WHERE voucher_steam_id64 = $1 AND status = 'pending'`,
+            [steamId64]
+        );
+        return r.rows[0]?.n || 0;
+    } catch (e) {
+        console.warn("countOpenVouches:", e.message);
+        return 0;
+    }
+}
+
+function profileFromContext(ctx) {
+    if (ctx.profile) return ctx.profile;
+    if (ctx.rawProfile) return normalizePlayerInfoRow(ctx.rawProfile);
+    return null;
+}
 
 const VOUCHER_STATUS_TAGS = new Set(["admin", "mcv_active", "mcv_strikes"]);
 const MAX_OPEN_VOUCHES_PER_USER = 5;
@@ -216,7 +218,29 @@ async function fetchSteamPersona(steamApiKey, steamId64) {
 async function ensurePlayerVouchTable(pool) {
     if (!pool) return false;
     try {
-        await pool.query(PLAYER_VOUCH_REQUESTS_SQL);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS player_vouch_requests (
+                id SERIAL PRIMARY KEY,
+                candidate_steam_id64 VARCHAR(17) NOT NULL,
+                candidate_display_name VARCHAR(120),
+                candidate_discord VARCHAR(120) NOT NULL,
+                candidate_bm_url TEXT NOT NULL,
+                voucher_steam_id64 VARCHAR(17) NOT NULL,
+                voucher_display_name VARCHAR(120) NOT NULL,
+                note TEXT,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending', 'approved', 'rejected')),
+                reviewed_by VARCHAR(120),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        `);
+        await pool.query(
+            `CREATE INDEX IF NOT EXISTS idx_player_vouch_status ON player_vouch_requests (status, created_at DESC)`
+        );
+        await pool.query(
+            `CREATE INDEX IF NOT EXISTS idx_player_vouch_candidate ON player_vouch_requests (candidate_steam_id64)`
+        );
         return true;
     } catch (e) {
         console.error("ensure player_vouch_requests:", e.message);
@@ -365,22 +389,18 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                     message: "Tu Steam no está en Info jugadores todavía. Pedí que te agreguen o que te voucheen."
                 });
             }
-            const openVouchRes = await pool.query(
-                `SELECT COUNT(*)::int AS n FROM player_vouch_requests
-                 WHERE voucher_steam_id64 = $1 AND status = 'pending'`,
-                [ctx.steamId64]
-            );
+            const profile = profileFromContext(ctx);
             return res.json({
                 steamLinked: true,
                 steamId64: ctx.steamId64,
                 profile: wipeIntentFromProfile(ctx.rawProfile),
-                canVouch: canUserVouch(ctx.profile),
-                vouchBlockedReason: vouchBlockedReason(ctx.profile),
-                openVouches: openVouchRes.rows[0]?.n || 0,
+                canVouch: canUserVouch(profile),
+                vouchBlockedReason: vouchBlockedReason(profile),
+                openVouches: await countOpenVouches(pool, ctx.steamId64),
                 maxOpenVouches: MAX_OPEN_VOUCHES_PER_USER
             });
         } catch (e) {
-            console.error("GET /api/auth/user/wipe-profile:", e.message);
+            console.error("GET /api/auth/user/wipe-profile:", e.message, e.stack);
             return res.status(500).json({ error: "No se pudo cargar tu perfil de wipe" });
         }
     });
@@ -439,7 +459,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                 params.push(wipeFields.pausedOutsideWipe);
             }
 
-            if (body.bmUrl != null) {
+            if (body.bmUrl != null && String(body.bmUrl).trim()) {
                 const bmUrl = normalizeBmUrl(body.bmUrl);
                 if (!bmUrl) return res.status(400).json({ error: "Link BattleMetrics inválido." });
                 updates.push(`bm_url = $${p++}`);
@@ -456,7 +476,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             );
             return res.json({ ok: true, profile: wipeIntentFromProfile(r.rows[0]) });
         } catch (e) {
-            console.error("PATCH /api/auth/user/wipe-profile:", e.message);
+            console.error("PATCH /api/auth/user/wipe-profile:", e.message, e.stack);
             return res.status(500).json({ error: "No se pudo guardar tu perfil de wipe" });
         }
     });
@@ -476,7 +496,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             if (!ctx.steamId64) {
                 return res.status(400).json({ error: "Vinculá Steam para vouchear." });
             }
-            const blocked = vouchBlockedReason(ctx.profile);
+            const blocked = vouchBlockedReason(profileFromContext(ctx));
             if (blocked) {
                 return res.status(403).json({ error: blocked });
             }

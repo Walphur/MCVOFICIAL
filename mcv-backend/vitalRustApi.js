@@ -166,6 +166,10 @@ CREATE TABLE IF NOT EXISTS player_info_profiles (
     warnings TEXT,
     mt_team BOOLEAN NOT NULL DEFAULT FALSE,
     paused_outside_wipe BOOLEAN NOT NULL DEFAULT FALSE,
+    hours_band VARCHAR(12),
+    late_reason TEXT,
+    late_reason_type VARCHAR(24),
+    discord_handle VARCHAR(120),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -1147,6 +1151,10 @@ async function ensurePlayerInfoTable(pool) {
             `ALTER TABLE player_info_profiles
              ADD COLUMN IF NOT EXISTS performance_score INT NOT NULL DEFAULT 0`
         );
+        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS hours_band VARCHAR(12)`);
+        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason TEXT`);
+        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS late_reason_type VARCHAR(24)`);
+        await pool.query(`ALTER TABLE player_info_profiles ADD COLUMN IF NOT EXISTS discord_handle VARCHAR(120)`);
         return true;
     } catch (e) {
         console.error("ensure player_info_profiles:", e.message);
