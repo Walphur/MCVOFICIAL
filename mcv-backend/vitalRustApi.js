@@ -4171,6 +4171,7 @@ module.exports = {
     ensurePlayerInfoTable,
     loadClanSteamIds,
     normalizeSteamId64,
+    normalizePlayerInfoRow,
     normalizePlayerStatCount,
     resolvePlayerInfoHoursInput,
     buildVitalCacheMeta,
