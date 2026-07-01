@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-torretas">
+    <link rel="stylesheet" href="style-admin.css?v=2026-06-20-torretas-ui">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
@@ -59,9 +59,11 @@
                     <option value="not-playing">No juegan wipe</option>
                 </select>
             </label>
-            <button type="button" class="btn-primary-small" id="torretas-copy-playing">Copiar SteamIDs (juegan)</button>
-            <button type="button" class="btn-outline" id="torretas-export">Exportar CSV</button>
-            <button type="button" class="btn-outline" id="torretas-logout">Salir</button>
+            <div class="torretas-controls__actions">
+                <button type="button" class="torretas-btn torretas-btn--primary" id="torretas-copy-playing">Copiar SteamIDs (juegan)</button>
+                <button type="button" class="torretas-btn torretas-btn--ghost" id="torretas-export">Exportar CSV</button>
+                <button type="button" class="torretas-btn torretas-btn--ghost" id="torretas-logout">Salir</button>
+            </div>
         </div>
 
         <div class="torretas-table-wrap">

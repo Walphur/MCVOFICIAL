@@ -148,7 +148,7 @@
                     "<td>" +
                     wipeBadge(row) +
                     "</td>" +
-                    '<td><button type="button" class="btn-outline btn-sm torretas-copy-one" data-steam="' +
+                    '<td><button type="button" class="torretas-btn torretas-btn--ghost torretas-copy-one" data-steam="' +
                     esc(row.steamId64) +
                     '">Copiar</button></td>' +
                     "</tr>"
