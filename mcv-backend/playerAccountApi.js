@@ -82,8 +82,14 @@ function normalizeWipeParticipation(raw) {
     return null;
 }
 
-function normalizeDiscordHandle(raw) {
-    return String(raw || "").trim().slice(0, 120);
+function normalizeDiscordId(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return null;
+    const urlMatch = s.match(/discord(?:app)?\.com\/users\/(\d{15,22})/i);
+    if (urlMatch) return urlMatch[1];
+    const idOnly = s.replace(/\s/g, "");
+    if (/^\d{15,22}$/.test(idOnly)) return idOnly;
+    return null;
 }
 
 function vouchBlockedReason(profile) {
@@ -538,15 +544,19 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
 
             const candidateSteam = normalizeSteamId64(body.candidateSteamId64 || body.steamId64);
             if (!candidateSteam) {
-                return res.status(400).json({ error: "SteamID64 del candidato inválido (17 dígitos)." });
+                return res.status(400).json({
+                    error: "Steam del candidato inválido. Pegá el SteamID64 o https://steamcommunity.com/profiles/..."
+                });
             }
             if (candidateSteam === ctx.steamId64) {
                 return res.status(400).json({ error: "No podés vouchearte a vos mismo." });
             }
 
-            const candidateDiscord = normalizeDiscordHandle(body.candidateDiscord || body.discord);
+            const candidateDiscord = normalizeDiscordId(body.candidateDiscord || body.discord);
             if (!candidateDiscord) {
-                return res.status(400).json({ error: "Discord del candidato es obligatorio." });
+                return res.status(400).json({
+                    error: "Discord ID inválido. Pegá el ID numérico o https://discord.com/users/123456789012345678"
+                });
             }
             const candidateBmUrl = normalizeBmUrl(body.candidateBmUrl || body.bmUrl);
             if (!candidateBmUrl) {
@@ -733,6 +743,7 @@ module.exports = {
     canUserVouch,
     buildWipeUpdateFields,
     normalizeBmUrl,
+    normalizeDiscordId,
     normalizeLateReasonType,
     formatLateIntentLabel,
     LATE_REASON_LABELS,

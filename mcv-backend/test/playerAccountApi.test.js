@@ -7,6 +7,7 @@ const {
     vouchBlockedReason,
     buildWipeUpdateFields,
     normalizeBmUrl,
+    normalizeDiscordId,
     serializeVouchRequest,
     formatLateIntentLabel
 } = require("../playerAccountApi");
@@ -85,6 +86,13 @@ test("normalizeBmUrl exige link BattleMetrics", () => {
     assert.equal(normalizeBmUrl("https://www.battlemetrics.com/players/123"), "https://www.battlemetrics.com/players/123");
     assert.equal(normalizeBmUrl("https://google.com"), null);
     assert.equal(normalizeBmUrl(""), null);
+});
+
+test("normalizeDiscordId acepta ID o URL de perfil", () => {
+    assert.equal(normalizeDiscordId("123456789012345678"), "123456789012345678");
+    assert.equal(normalizeDiscordId("https://discord.com/users/987654321098765432"), "987654321098765432");
+    assert.equal(normalizeDiscordId("usuario#1234"), null);
+    assert.equal(normalizeDiscordId(""), null);
 });
 
 test("serializeVouchRequest expone voucher", () => {

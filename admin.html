@@ -658,7 +658,7 @@
                 <section class="vital-subpanel" data-vital-section="vouch" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Vouch pendientes</h4>
-                        <p class="admin-form-hint admin-readable">Jugadores activos envían vouch desde Mi Cuenta. Al aceptar se crea la ficha con Steam, Discord, BM y el nombre de quien voucheó.</p>
+                        <p class="admin-form-hint admin-readable">Jugadores activos envían vouch desde Mi Cuenta. Al aceptar se crea la ficha con Steam, Discord ID, BM y el nombre de quien voucheó. Los links abren el perfil directo.</p>
                         <div class="filters" id="vouch-filters">
                             <button type="button" class="filter active" data-vouch-filter="pending">Pendientes <span id="vc-pending">0</span></button>
                             <button type="button" class="filter" data-vouch-filter="approved">Aceptados</button>
@@ -3188,6 +3188,25 @@
         if (pendingCount) pendingCount.textContent = String(n);
     }
 
+    function steamProfileUrl(steamId64) {
+        var id = String(steamId64 || '').trim();
+        return id ? 'https://steamcommunity.com/profiles/' + encodeURIComponent(id) : '';
+    }
+
+    function discordUserUrl(raw) {
+        var s = String(raw || '').trim();
+        if (!s) return '';
+        var urlM = s.match(/discord(?:app)?\.com\/users\/(\d{15,22})/i);
+        if (urlM) return 'https://discord.com/users/' + urlM[1];
+        if (/^\d{15,22}$/.test(s)) return 'https://discord.com/users/' + s;
+        return '';
+    }
+
+    function vouchExternalLink(href, label) {
+        if (!href) return '<span class="vital-vouch-chip vital-vouch-chip--muted">' + esc(label || '—') + '</span>';
+        return '<a class="vital-vouch-chip" href="' + escAttr(href) + '" target="_blank" rel="noopener noreferrer">' + esc(label) + '</a>';
+    }
+
     function renderVitalVouchList(requests) {
         var box = document.getElementById('vital-vouch-list');
         if (!box) return;
@@ -3196,23 +3215,48 @@
             return;
         }
         box.innerHTML = requests.map(function (r) {
+            var steamUrl = steamProfileUrl(r.candidateSteamId64);
+            var discordUrl = discordUserUrl(r.candidateDiscord);
+            var voucherSteamUrl = steamProfileUrl(r.voucherSteamId64);
+            var statusBadge = r.status === 'pending'
+                ? '<span class="vital-vouch-status vital-vouch-status--pending">Pendiente</span>'
+                : '<span class="cuenta-status ' + (r.status === 'approved' ? 'cuenta-status--ok' : 'cuenta-status--bad') + '">' +
+                  esc(r.status === 'approved' ? 'Aceptado' : 'Rechazado') + '</span>';
             var actions = r.status === 'pending'
-                ? '<div class="vital-vouch-actions">' +
+                ? '<footer class="vital-vouch-card__foot">' +
+                  '<div class="vital-vouch-actions">' +
                   '<button type="button" class="btn-primary-small btn-sm" data-vouch-action="approve" data-vouch-id="' + escAttr(String(r.id)) + '">Aceptar</button>' +
                   '<button type="button" class="btn-outline btn-sm" data-vouch-action="reject" data-vouch-id="' + escAttr(String(r.id)) + '">Rechazar</button>' +
-                  '</div>'
-                : '<span class="cuenta-status ' + (r.status === 'approved' ? 'cuenta-status--ok' : 'cuenta-status--bad') + '">' + esc(r.status === 'approved' ? 'Aceptado' : 'Rechazado') + '</span>';
+                  '</div></footer>'
+                : '';
             return '<article class="vital-vouch-card">' +
                 '<header class="vital-vouch-card__head">' +
-                '<strong>' + esc(r.candidateDisplayName || r.candidateSteamId64) + '</strong>' +
-                '<span class="vital-vouch-card__meta">' + esc(r.candidateSteamId64) + '</span>' +
+                '<div class="vital-vouch-card__identity">' +
+                '<strong class="vital-vouch-card__name">' +
+                (steamUrl
+                    ? '<a class="vital-vouch-name-link" href="' + escAttr(steamUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(r.candidateDisplayName || r.candidateSteamId64) + '</a>'
+                    : esc(r.candidateDisplayName || r.candidateSteamId64)) +
+                '</strong>' +
+                statusBadge +
+                '</div>' +
+                '<div class="vital-vouch-card__chips">' +
+                vouchExternalLink(steamUrl, 'Steam · ' + r.candidateSteamId64) +
+                vouchExternalLink(discordUrl, 'Discord · ' + (discordUrl ? r.candidateDiscord : r.candidateDiscord)) +
+                vouchExternalLink(r.candidateBmUrl, 'BattleMetrics') +
+                '</div>' +
                 '</header>' +
-                '<dl class="vital-vouch-card__dl">' +
-                '<div><dt>Discord</dt><dd>' + esc(r.candidateDiscord) + '</dd></div>' +
-                '<div><dt>BM</dt><dd><a href="' + escAttr(r.candidateBmUrl) + '" target="_blank" rel="noopener">Abrir</a></dd></div>' +
-                '<div><dt>Vouch por</dt><dd>' + esc(r.voucherDisplayName) + ' · ' + esc(r.voucherSteamId64) + '</dd></div>' +
-                (r.note ? '<div><dt>Nota</dt><dd>' + esc(r.note) + '</dd></div>' : '') +
-                '</dl>' + actions + '</article>';
+                '<div class="vital-vouch-card__body">' +
+                '<div class="vital-vouch-card__row">' +
+                '<span class="vital-vouch-card__label">Vouch por</span>' +
+                '<span class="vital-vouch-card__value">' + esc(r.voucherDisplayName) +
+                (voucherSteamUrl
+                    ? ' · <a class="vital-vouch-link" href="' + escAttr(voucherSteamUrl) + '" target="_blank" rel="noopener noreferrer">' + esc(r.voucherSteamId64) + '</a>'
+                    : (r.voucherSteamId64 ? ' · ' + esc(r.voucherSteamId64) : '')) +
+                '</span></div>' +
+                (r.note
+                    ? '<div class="vital-vouch-card__row"><span class="vital-vouch-card__label">Nota</span><span class="vital-vouch-card__value">' + esc(r.note) + '</span></div>'
+                    : '') +
+                '</div>' + actions + '</article>';
         }).join('');
     }
 

@@ -121,21 +121,21 @@
 
             <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vouch-panel" hidden>
                 <h3 class="cuenta-panel__title"><i data-lucide="user-plus"></i> Vouchear jugador</h3>
-                <p class="cuenta-panel__hint">Miembros activos de MCV pueden proponer jugadores nuevos. Staff revisa y, al aceptar, el nuevo queda con tu nombre en Vouch.</p>
+                <p class="cuenta-panel__hint">Miembros activos de MCV pueden proponer jugadores nuevos. Pegá el link de Steam, Discord ID y BattleMetrics del candidato (los ejemplos en gris desaparecen al escribir).</p>
                 <p id="cuenta-vouch-blocked" class="cuenta-panel__empty cuenta-vouch-blocked" hidden></p>
                 <form id="cuenta-vouch-form" class="cuenta-wipe-form" hidden>
                     <div class="cuenta-wipe-grid">
                         <label class="cuenta-field">
-                            <span>SteamID64 del candidato</span>
-                            <input id="cuenta-vouch-steam" class="admin-input" inputmode="numeric" placeholder="7656119..." required />
+                            <span>Steam del candidato</span>
+                            <input id="cuenta-vouch-steam" class="admin-input cuenta-input--example" placeholder="https://steamcommunity.com/profiles/76561198000000001" required />
                         </label>
                         <label class="cuenta-field">
-                            <span>Discord del candidato</span>
-                            <input id="cuenta-vouch-discord" class="admin-input" placeholder="usuario o usuario#1234" required />
+                            <span>Discord ID del candidato</span>
+                            <input id="cuenta-vouch-discord" class="admin-input cuenta-input--example" placeholder="https://discord.com/users/123456789012345678" required />
                         </label>
                         <label class="cuenta-field cuenta-field--wide">
                             <span>Link BattleMetrics</span>
-                            <input id="cuenta-vouch-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." required />
+                            <input id="cuenta-vouch-bm" class="admin-input cuenta-input--example" placeholder="https://www.battlemetrics.com/players/1234567890" required />
                         </label>
                         <label class="cuenta-field cuenta-field--wide">
                             <span>Nota (opcional)</span>
