@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#FAA61A">
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="style.css?v=2026-06-11-v4">
-    <link rel="stylesheet" href="style-admin.css?v=2026-06-11-v4">
+    <link rel="stylesheet" href="style.css?v=2026-07-01-cuenta-wipe">
+    <link rel="stylesheet" href="style-admin.css?v=2026-07-01-cuenta-wipe">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
@@ -173,6 +173,7 @@
     var errBox = document.getElementById("cuenta-error");
     var qs = new URLSearchParams(window.location.search || "");
     var nextPath = String(qs.get("next") || "cuenta").replace(/^\/+/, "");
+    var cuentaCurrentUser = null;
 
     if (typeof mcvCaptureUserTokenFromUrl === "function") {
         mcvCaptureUserTokenFromUrl();
@@ -221,6 +222,7 @@
     }
 
     function showProfile(user) {
+        cuentaCurrentUser = user || null;
         if (loading) loading.hidden = true;
         if (guest) guest.hidden = true;
         if (profile) profile.hidden = false;
@@ -251,6 +253,10 @@
                 opts: { steamEnabled: true, googleEnabled: false },
                 linkJwt: typeof mcvUserToken === "function" ? mcvUserToken() : ""
             });
+        }
+        if (user.steamId64) {
+            var wipePanelEarly = document.getElementById("cuenta-wipe-panel");
+            if (wipePanelEarly) wipePanelEarly.hidden = false;
         }
         loadDashboard();
         loadVitalStats();
@@ -311,13 +317,28 @@
         var form = document.getElementById("cuenta-wipe-form");
         if (!panel) return;
 
+        var steamLinked = Boolean(
+            (data && data.steamLinked) || (cuentaCurrentUser && cuentaCurrentUser.steamId64)
+        );
         if (loadingEl) loadingEl.hidden = true;
-        if (!data || !data.steamLinked) {
+        if (!steamLinked) {
             panel.hidden = true;
             if (vouchPanel) vouchPanel.hidden = true;
             return;
         }
         panel.hidden = false;
+
+        if (!data || data.error) {
+            if (emptyEl) {
+                emptyEl.textContent =
+                    (data && data.error) ||
+                    "No se pudo cargar tu perfil de wipe. Recargá la página en unos segundos.";
+                emptyEl.hidden = false;
+            }
+            if (form) form.hidden = true;
+            if (vouchPanel) vouchPanel.hidden = true;
+            return;
+        }
 
         if (!data.profile) {
             if (emptyEl) {
@@ -396,10 +417,20 @@
                 });
             })
             .then(function (x) {
-                renderWipeProfile(x.ok ? x.d : { steamLinked: false });
+                if (x.ok) {
+                    renderWipeProfile(x.d);
+                    return;
+                }
+                renderWipeProfile({
+                    steamLinked: true,
+                    error: (x.d && x.d.error) || "No se pudo cargar tu perfil de wipe."
+                });
             })
             .catch(function () {
-                renderWipeProfile({ steamLinked: false });
+                renderWipeProfile({
+                    steamLinked: true,
+                    error: "Error de red al cargar tu perfil de wipe."
+                });
             });
 
         fetch(API + "/api/auth/user/vouch-requests", {

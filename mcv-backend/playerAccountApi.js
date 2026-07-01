@@ -243,6 +243,39 @@ async function loadUserSteamContext(pool, userId) {
     return { userRow, steamId64, profile, rawProfile: r.rows[0] || null };
 }
 
+/** Si el Steam está en wipe_list pero falta ficha, la crea para Mi Cuenta. */
+async function ensurePlayerInfoForSiteUser(pool, steamId64, displayName, steamApiKey) {
+    const sid = normalizeSteamId64(steamId64);
+    if (!sid) return null;
+    const existing = await pool.query(`SELECT * FROM player_info_profiles WHERE steam_id64 = $1`, [sid]);
+    if (existing.rowCount) return existing.rows[0];
+
+    const wipe = await pool.query(
+        `SELECT persona_name, discord_username FROM wipe_list_members WHERE steam_id64 = $1 LIMIT 1`,
+        [sid]
+    );
+    if (!wipe.rowCount) return null;
+
+    let name = String(displayName || wipe.rows[0]?.persona_name || wipe.rows[0]?.discord_username || "").trim().slice(0, 120);
+    if (!name) {
+        const steamName = await fetchSteamPersona(steamApiKey, sid);
+        if (steamName) name = steamName;
+    }
+    if (!name) name = sid;
+
+    const ins = await pool.query(
+        `INSERT INTO player_info_profiles (
+            steam_id64, display_name, status_tag, wipe_phase, paused_outside_wipe, updated_at
+         ) VALUES ($1, $2, 'mcv_active', 'unknown', false, NOW())
+         ON CONFLICT (steam_id64) DO UPDATE SET
+            display_name = COALESCE(NULLIF(EXCLUDED.display_name, ''), player_info_profiles.display_name),
+            updated_at = NOW()
+         RETURNING *`,
+        [sid, name]
+    );
+    return ins.rows[0] || null;
+}
+
 async function approveVouchRequest(pool, requestRow, reviewedBy) {
     const candidateSteam = normalizeSteamId64(requestRow.candidate_steam_id64);
     if (!candidateSteam) {
@@ -303,6 +336,18 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                 });
             }
             if (!ctx.rawProfile) {
+                const created = await ensurePlayerInfoForSiteUser(
+                    pool,
+                    ctx.steamId64,
+                    ctx.userRow.display_name,
+                    steamApiKey
+                );
+                if (created) {
+                    ctx.rawProfile = created;
+                    ctx.profile = normalizePlayerInfoRow(created);
+                }
+            }
+            if (!ctx.rawProfile) {
                 return res.json({
                     steamLinked: true,
                     steamId64: ctx.steamId64,
@@ -341,6 +386,18 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
             if (!ctx.steamId64) {
                 return res.status(400).json({ error: "Vinculá Steam antes de actualizar tu wipe." });
+            }
+            if (!ctx.rawProfile) {
+                const created = await ensurePlayerInfoForSiteUser(
+                    pool,
+                    ctx.steamId64,
+                    ctx.userRow.display_name,
+                    steamApiKey
+                );
+                if (created) {
+                    ctx.rawProfile = created;
+                    ctx.profile = normalizePlayerInfoRow(created);
+                }
             }
             if (!ctx.rawProfile) {
                 return res.status(404).json({ error: "No tenés ficha en Info jugadores." });
