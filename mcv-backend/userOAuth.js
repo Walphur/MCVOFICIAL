@@ -20,6 +20,7 @@ const {
     getSiteUserById,
     serializeSiteUser
 } = require("./siteUsers");
+const { buildPublicRedirectUrl, normalizePublicPath } = require("./cleanUrls");
 
 function googleClientId() {
     return String(process.env.GOOGLE_CLIENT_ID || "").trim();
@@ -42,14 +43,12 @@ function isPublicUserAuthEnabled() {
 }
 
 function redirectUserSuccess(res, base, token, nextPath) {
-    const next = String(nextPath || "cuenta.html").replace(/^\/+/, "");
-    const safeNext = /^[a-z0-9_.-]+\.html(\?[^#]*)?$/i.test(next) || /^equipo\//i.test(next) ? next : "cuenta.html";
-    const url = `${base}/${safeNext}${safeNext.indexOf("?") >= 0 ? "&" : "?"}token=${encodeURIComponent(token)}`;
+    const url = buildPublicRedirectUrl(base, nextPath || "cuenta", token);
     return res.redirect(302, url);
 }
 
 function redirectUserError(res, base, code) {
-    const url = `${base}/cuenta.html?oauth_error=${encodeURIComponent(code)}`;
+    const url = `${base.replace(/\/$/, "")}/cuenta?oauth_error=${encodeURIComponent(code)}`;
     return res.redirect(302, url);
 }
 
@@ -99,7 +98,7 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
         if (!base || !isPublicGoogleEnabled()) {
             return res.status(503).json({ error: "Login con Google no disponible" });
         }
-        const nextPath = String(req.query.next || "cuenta.html").slice(0, 120);
+        const nextPath = normalizePublicPath(String(req.query.next || "cuenta")).slice(0, 120);
         const state = signOAuthState({ provider: "user-google", ip: clientIp(req), next: nextPath });
         if (!state) {
             return res.status(503).json({ error: "JWT_SECRET no configurado" });
@@ -179,7 +178,7 @@ function registerPublicUserAuthRoutes(app, { getPool, steamApiKey }) {
         if (!base || !isPublicSteamEnabled()) {
             return res.status(503).json({ error: "Login con Steam no disponible" });
         }
-        const nextPath = String(req.query.next || "cuenta.html").slice(0, 120);
+        const nextPath = normalizePublicPath(String(req.query.next || "cuenta")).slice(0, 120);
         const linkJwt = String(req.query.linkJwt || "").trim();
         const linkAuth = linkJwt ? verifyUserJwt(linkJwt) : null;
         const linkUserId = linkAuth && linkAuth.userId ? Number(linkAuth.userId) : null;

@@ -23,13 +23,13 @@
             : "2026-06-11-v1";
 
     var NAV_ITEMS = [
-        { id: "index", href: "index.html", i18n: "nav.clan", label: "Clan" },
-        { id: "events", href: "events.html", i18n: "nav.torneos", label: "Torneos" },
-        { id: "team", href: "equipo/", i18n: "nav.team", label: "Equipo", also: ["teamForm"] },
-        { id: "bot", href: "bot.html", i18n: "nav.bot", label: "Bot" },
-        { id: "tickets", href: "tickets.html", i18n: "nav.tickets", label: "Tickets" },
-        { id: "cuenta", href: "cuenta.html", i18n: "nav.account", label: "Mi cuenta" },
-        { id: "live", href: "live.html", i18n: "nav.streams", label: "Streams", live: true }
+        { id: "index", href: "/", i18n: "nav.clan", label: "Clan" },
+        { id: "events", href: "/events", i18n: "nav.torneos", label: "Torneos" },
+        { id: "team", href: "/equipo/", i18n: "nav.team", label: "Equipo", also: ["teamForm"] },
+        { id: "bot", href: "/bot", i18n: "nav.bot", label: "Bot" },
+        { id: "tickets", href: "/tickets", i18n: "nav.tickets", label: "Tickets" },
+        { id: "cuenta", href: "/cuenta", i18n: "nav.account", label: "Mi cuenta" },
+        { id: "live", href: "/live", i18n: "nav.streams", label: "Streams", live: true }
     ];
 
     function isActive(item) {
@@ -76,10 +76,10 @@
                   item.i18n +
                   '">' + (item.label || "Streams") + "</span>"
                 : '<span data-i18n="' + item.i18n + '">' + (item.label || "") + "</span>";
+            var href = item.href.charAt(0) === "/" ? item.href : base + item.href;
             links +=
                 '<li><a href="' +
-                base +
-                item.href +
+                href +
                 '" class="' +
                 cls +
                 '">' +
@@ -87,9 +87,7 @@
                 "</a></li>";
         }
         return (
-            '<a href="' +
-            base +
-            'index.html" class="logo-link">' +
+            '<a href="/" class="logo-link">' +
             '<img src="' +
             base +
             'logo.png" alt="MCV Logo" class="navbar-logo">' +
@@ -225,24 +223,12 @@
             '<div class="footer-links">' +
             "<div>" +
             '<span class="link-title" data-i18n="footer.navTitle">// Navegación</span>' +
-            '<a href="' +
-            base +
-            'index.html"><span data-i18n="nav.clan">Clan</span></a>' +
-            '<a href="' +
-            base +
-            'events.html"><span data-i18n="nav.torneos">Torneos</span></a>' +
-            '<a href="' +
-            base +
-            'equipo/"><span data-i18n="nav.team">Equipo</span></a>' +
-            '<a href="' +
-            base +
-            'bot.html"><span data-i18n="nav.bot">Bot</span></a>' +
-            '<a href="' +
-            base +
-            'tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>' +
-            '<a href="' +
-            base +
-            'live.html"><span data-i18n="nav.streams">Streams</span></a>' +
+            '<a href="/"><span data-i18n="nav.clan">Clan</span></a>' +
+            '<a href="/events"><span data-i18n="nav.torneos">Torneos</span></a>' +
+            '<a href="/equipo/"><span data-i18n="nav.team">Equipo</span></a>' +
+            '<a href="/bot"><span data-i18n="nav.bot">Bot</span></a>' +
+            '<a href="/tickets"><span data-i18n="nav.tickets">Tickets</span></a>' +
+            '<a href="/live"><span data-i18n="nav.streams">Streams</span></a>' +
             "</div>" +
             "<div>" +
             '<span class="link-title" data-i18n="footer.socialTitle">// Redes</span>' +
@@ -258,9 +244,7 @@
             '<div class="footer-bottom">' +
             '<span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>' +
             '<span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>' +
-            '<a href="' +
-            base +
-            'login.html" class="footer-admin-link" data-i18n="footer.admin">Admin</a>' +
+            '<a href="/login" class="footer-admin-link" data-i18n="footer.admin">Admin</a>' +
             "</div>"
         );
     }

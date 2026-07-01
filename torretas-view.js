@@ -59,7 +59,7 @@
         if (typeof global.mcvBindPublicOAuthButtons !== "function") return;
         global.mcvBindPublicOAuthButtons({
             api: apiBase(),
-            next: "torretas.html",
+            next: "torretas",
             steamEl: "torretas-steam",
             steamEnabled: true,
             googleEnabled: false

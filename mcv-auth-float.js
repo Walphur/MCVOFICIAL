@@ -27,13 +27,13 @@
             '<a id="mcv-auth-float-steam" class="oauth-btn oauth-btn--steam" href="#">Continuar con Steam</a>' +
             '<a id="mcv-auth-float-google" class="oauth-btn oauth-btn--google" href="#">Continuar con Google</a>' +
             '</div>' +
-            '<a href="cuenta.html" class="mcv-auth-float__link" style="margin-top:10px;display:inline-block;">Mi cuenta →</a>' +
+            '<a href="/cuenta" class="mcv-auth-float__link" style="margin-top:10px;display:inline-block;">Mi cuenta →</a>' +
             '</div>' +
             '<div id="mcv-auth-float-user" hidden>' +
             '<p class="mcv-auth-float__tag">// Sesión activa</p>' +
             '<p class="mcv-auth-float__name" id="mcv-auth-float-name">—</p>' +
             '<p class="mcv-auth-float__meta" id="mcv-auth-float-meta"></p>' +
-            '<a href="cuenta.html" class="mcv-auth-float__link">Ver mi cuenta</a>' +
+            '<a href="/cuenta" class="mcv-auth-float__link">Ver mi cuenta</a>' +
             '<button type="button" class="mcv-auth-float__logout" id="mcv-auth-float-logout">Cerrar sesión</button>' +
             '</div>';
         document.body.appendChild(el);
@@ -67,7 +67,7 @@
         if (typeof w.mcvBindPublicOAuthButtons === "function") {
             w.mcvBindPublicOAuthButtons({
                 api: API,
-                next: "index.html",
+                next: "",
                 steamEl: "mcv-auth-float-steam",
                 googleEl: "mcv-auth-float-google",
                 opts: opts

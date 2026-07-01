@@ -77,7 +77,7 @@
         if (typeof global.mcvBindPublicOAuthButtons !== "function") return;
         global.mcvBindPublicOAuthButtons({
             api: apiBase(),
-            next: "vital-rust.html",
+            next: "vital-rust",
             steamEl: "vital-rust-steam",
             googleEl: null,
             opts: { steamEnabled: true, googleEnabled: false },

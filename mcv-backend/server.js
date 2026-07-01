@@ -16,6 +16,7 @@ const {
     publicWriteRateLimitMiddleware,
     adminWriteRateLimit
 } = require("./rateLimits");
+const { registerCleanUrlRoutes, isNoIndexPath } = require("./cleanUrls");
 const {
     registerWipeListApi,
     attachWipeListDiscord,
@@ -927,7 +928,7 @@ app.get("/discord-status", (req, res) => {
 app.get("/api/health", (req, res) => {
     res.json({
         ok: true,
-        build: "2026-06-20-torretas-page",
+        build: "2026-06-20-clean-urls",
         db: Boolean(getPool()),
         steam: Boolean(STEAM_API_KEY),
         discordBot: discordClient.isReady(),
@@ -979,6 +980,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/uploads", express.static(UPLOAD_ROOT));
+registerCleanUrlRoutes(app, ROOT_DIR);
 /** HTML/CSS/JS: sin caché agresiva — F5 debe traer assets nuevos tras deploy. */
 app.use((req, res, next) => {
     const p = String(req.path || "");
@@ -986,7 +988,7 @@ app.use((req, res, next) => {
         res.setHeader("Cache-Control", "no-cache, must-revalidate");
         res.setHeader("Pragma", "no-cache");
     }
-    if (p === "/admin.html" || p === "/login.html" || p === "/cuenta.html" || p === "/sw.js") {
+    if (isNoIndexPath(p) || p === "/sw.js") {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         res.setHeader("X-Robots-Tag", "noindex, nofollow");
     }

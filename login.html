@@ -55,8 +55,8 @@
         </p>
 
         <div class="login-footer-links">
-            <a href="index.html" class="back-link" data-i18n="login.backSite">← Sitio público</a>
-            <a href="events.html" class="back-link" data-i18n="login.backEvents">Torneos</a>
+            <a href="/" class="back-link" data-i18n="login.backSite">← Sitio público</a>
+            <a href="/events" class="back-link" data-i18n="login.backEvents">Torneos</a>
         </div>
     </div>
 
@@ -255,7 +255,7 @@
                 var tok = String(x.d.token).trim();
                 sessionStorage.setItem('mcv_admin_jwt', tok);
                 try { localStorage.removeItem('mcv_admin_jwt'); } catch (ignore) {}
-                window.location.href = 'admin.html';
+                window.location.href = '/admin';
             })
             .catch(function (e) {
                 if (e && (e.message === 'parse' || e.message === 'bad-route')) return;

@@ -2,7 +2,7 @@
   "name": "MCV Oficial",
   "short_name": "MCV",
   "description": "Clan competitivo de Rust — torneos, equipo y streams.",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

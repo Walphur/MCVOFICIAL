@@ -599,7 +599,7 @@
                 <section class="vital-subpanel" data-vital-section="extras" style="display:none;">
                     <div class="vital-page-simple">
                         <h4 data-i18n="admin.vitalExtraTitle">Jugadores extra (roster Vital)</h4>
-                        <p class="admin-form-hint admin-readable">Pegá SteamID64 (uno o varios). Se crean en Jugadores como invitados al wipe. <a id="vital-public-link-hint" href="vital-rust.html" target="_blank" rel="noopener">Link público</a></p>
+                        <p class="admin-form-hint admin-readable">Pegá SteamID64 (uno o varios). Se crean en Jugadores como invitados al wipe. <a id="vital-public-link-hint" href="/vital-rust" target="_blank" rel="noopener">Link público</a></p>
                         <p id="vital-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
                             <label class="vital-extra-field vital-extra-field-wide">
@@ -623,7 +623,7 @@
                 <section class="vital-subpanel" data-vital-section="torreteros" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Acceso torreteros</h4>
-                        <p class="admin-form-hint admin-readable">SteamID64 de quienes colocan torretas en el server. Ven nombre + Steam + si juega el wipe en <a id="turret-public-link-hint" href="torretas.html" target="_blank" rel="noopener">torretas.html</a> (login Steam, sin link en el menú).</p>
+                        <p class="admin-form-hint admin-readable">SteamID64 de quienes colocan torretas en el server. Ven nombre + Steam + si juega el wipe en <a id="turret-public-link-hint" href="/torretas" target="_blank" rel="noopener">/torretas</a> (login Steam, sin link en el menú).</p>
                         <p id="turret-public-access-status" class="admin-form-hint vital-public-access-status" hidden></p>
                         <div class="vital-extra-form">
                             <label class="vital-extra-field vital-extra-field-wide">
@@ -753,11 +753,11 @@
     if (oauthTok) {
         sessionStorage.setItem("mcv_admin_jwt", oauthTok);
         try { localStorage.removeItem("mcv_admin_jwt"); } catch (e) {}
-        try { history.replaceState(null, "", "admin.html"); } catch (e2) {}
+        try { history.replaceState(null, "", "/admin"); } catch (e2) {}
     }
     var token = (sessionStorage.getItem("mcv_admin_jwt") || localStorage.getItem("mcv_admin_jwt") || "").trim();
     if (!token) {
-        window.location.href = "login.html";
+        window.location.href = "/login";
         return;
     }
 
@@ -958,7 +958,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) {
@@ -1038,7 +1038,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (data) {
@@ -1178,7 +1178,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json();
@@ -1315,7 +1315,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1345,7 +1345,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1420,7 +1420,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1460,7 +1460,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1497,7 +1497,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d, status: r.status }; });
@@ -1538,7 +1538,7 @@
                 .then(function (r) {
                     if (r.status === 401) {
                         clearAdminSession();
-                        window.location.href = 'login.html?expired=1';
+                        window.location.href = '/login?expired=1';
                         return Promise.reject();
                     }
                     return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1575,7 +1575,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1623,7 +1623,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1709,7 +1709,7 @@
                                 .then(function (r) {
                                     if (r.status === 401) {
                                         clearAdminSession();
-                                        window.location.href = 'login.html?expired=1';
+                                        window.location.href = '/login?expired=1';
                                         return Promise.reject();
                                     }
                                     return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1734,7 +1734,7 @@
                             .then(function (r) {
                                 if (r.status === 401) {
                                     clearAdminSession();
-                                    window.location.href = 'login.html?expired=1';
+                                    window.location.href = '/login?expired=1';
                                     return Promise.reject();
                                 }
                                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1792,7 +1792,7 @@
                 .then(function (r) {
                     if (r.status === 401) {
                         clearAdminSession();
-                        window.location.href = 'login.html?expired=1';
+                        window.location.href = '/login?expired=1';
                         return Promise.reject();
                     }
                     return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -1939,7 +1939,7 @@
                 if (d.configured) {
                     el.className = 'admin-form-hint vital-public-access-status is-ok';
                     el.textContent =
-                        'Acceso roster Steam · vital-rust.html · ' + String(d.rosterSize || 0) + ' jugadores (' +
+                        'Acceso roster Steam · /vital-rust · ' + String(d.rosterSize || 0) + ' jugadores (' +
                         String(d.playerInfoCount || 0) + ' Info jugadores activos en wipe · ' +
                         String(d.manualExtraCount || 0) + ' extra manual). ' +
                         String(d.hint || '');
@@ -2009,7 +2009,7 @@
                 if (!x.ok) {
                     el.hidden = false;
                     el.className = 'admin-form-hint vital-public-access-status is-warn';
-                    el.textContent = (x.d && x.d.error) ? x.d.error : 'No se pudo consultar torretas.html';
+                    el.textContent = (x.d && x.d.error) ? x.d.error : 'No se pudo consultar /torretas';
                     return;
                 }
                 var d = x.d || {};
@@ -2024,7 +2024,7 @@
             .catch(function () {
                 el.hidden = false;
                 el.className = 'admin-form-hint vital-public-access-status is-warn';
-                el.textContent = 'No se pudo consultar el estado de torretas.html.';
+                el.textContent = 'No se pudo consultar el estado de /torretas.';
             });
     }
 
@@ -2091,7 +2091,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 if (r.status === 404) {
@@ -4592,7 +4592,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -5153,7 +5153,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -5213,7 +5213,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -5269,7 +5269,7 @@
             .then(function (r) {
                 if (r.status === 401) {
                     clearAdminSession();
-                    window.location.href = 'login.html?expired=1';
+                    window.location.href = '/login?expired=1';
                     return Promise.reject();
                 }
                 return r.json().then(function (d) { return { ok: r.ok, d: d }; });
@@ -5307,7 +5307,7 @@
 
     document.getElementById('logout-btn').addEventListener('click', function () {
         clearAdminSession();
-        window.location.href = 'login.html';
+        window.location.href = '/login';
     });
 
     document.getElementById('gen-bracket').addEventListener('click', function () {

@@ -2675,12 +2675,12 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
             const proto = String(req.headers["x-forwarded-proto"] || req.protocol || "https").split(",")[0].trim();
             const siteBase = origin ? `${proto}://${origin}`.replace(/\/$/, "") : "";
             return res.json({
-                publicPath: "/torretas.html",
-                publicUrl: siteBase ? `${siteBase}/torretas.html` : "torretas.html",
+                publicPath: "/torretas",
+                publicUrl: siteBase ? `${siteBase}/torretas` : "/torretas",
                 operatorCount: operators.length,
                 rosterSize: roster.length,
                 playingWipeCount: playingCount,
-                hint: "Agregá SteamID64 de quienes colocan torretas en el server. Entran con Steam en torretas.html."
+                hint: "Agregá SteamID64 de quienes colocan torretas en el server. Entran con Steam en /torretas."
             });
         } catch (e) {
             console.error("turret public-access:", e.message);
@@ -3757,13 +3757,13 @@ function registerVitalRustApi(app, { getPool, getDiscordClient, getPlaytimeChann
         const siteBase = origin ? `${proto}://${origin}`.replace(/\/$/, "") : "";
         return res.json({
             configured,
-            publicPath: "/vital-rust.html",
-            publicUrl: siteBase ? `${siteBase}/vital-rust.html` : "vital-rust.html",
+            publicPath: "/vital-rust",
+            publicUrl: siteBase ? `${siteBase}/vital-rust` : "/vital-rust",
             rosterSize: roster.ids.length,
             mcvCount: roster.mcvCount,
             playerInfoCount: roster.playerInfoCount || 0,
             manualExtraCount: roster.manualOnlyCount,
-            hint: "Los miembros del roster entran con Steam en vital-rust.html (sin clave compartida). VITAL_PUBLIC_ACCESS_KEY queda solo como respaldo legacy en la API."
+            hint: "Los miembros del roster entran con Steam en /vital-rust (sin clave compartida). VITAL_PUBLIC_ACCESS_KEY queda solo como respaldo legacy en la API."
         });
     });
 

@@ -53,12 +53,12 @@ function issueAdminToken() {
 }
 
 function redirectLoginSuccess(res, base, token) {
-    const url = `${base}/admin.html?token=${encodeURIComponent(token)}`;
+    const url = `${base.replace(/\/$/, "")}/admin?token=${encodeURIComponent(token)}`;
     return res.redirect(302, url);
 }
 
 function redirectLoginError(res, base, code) {
-    const url = `${base}/login.html?oauth_error=${encodeURIComponent(code)}`;
+    const url = `${base.replace(/\/$/, "")}/login?oauth_error=${encodeURIComponent(code)}`;
     return res.redirect(302, url);
 }
 

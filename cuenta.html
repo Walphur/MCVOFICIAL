@@ -49,7 +49,7 @@
                     </div>
                 </div>
                 <div class="cuenta-dashboard__actions">
-                    <a href="tickets.html" class="btn-secondary cuenta-dash-link">Nuevo ticket</a>
+                    <a href="/tickets" class="btn-secondary cuenta-dash-link">Nuevo ticket</a>
                     <button type="button" class="btn-outline cuenta-dash-logout" id="cuenta-logout">Cerrar sesión</button>
                 </div>
             </div>
@@ -64,13 +64,13 @@
         <div class="cuenta-dashboard__grid">
             <section class="form-container cuenta-card cuenta-panel">
                 <h3 class="cuenta-panel__title"><i data-lucide="ticket"></i> Mis tickets</h3>
-                <p id="cuenta-tickets-empty" class="cuenta-panel__empty" hidden>Sin tickets todavía. <a href="tickets.html">Enviar uno</a></p>
+                <p id="cuenta-tickets-empty" class="cuenta-panel__empty" hidden>Sin tickets todavía. <a href="/tickets">Enviar uno</a></p>
                 <ul id="cuenta-tickets-list" class="cuenta-list"></ul>
             </section>
 
             <section class="form-container cuenta-card cuenta-panel">
                 <h3 class="cuenta-panel__title"><i data-lucide="trophy"></i> Torneos inscriptos</h3>
-                <p id="cuenta-regs-empty" class="cuenta-panel__empty" hidden>No aparecés en ninguna inscripción. <a href="events.html">Ver torneos</a></p>
+                <p id="cuenta-regs-empty" class="cuenta-panel__empty" hidden>No aparecés en ninguna inscripción. <a href="/events">Ver torneos</a></p>
                 <ul id="cuenta-regs-list" class="cuenta-list"></ul>
             </section>
 
@@ -82,7 +82,7 @@
                 <div id="cuenta-vital-stats" class="cuenta-vital-stats" hidden>
                     <p class="cuenta-vital-meta" id="cuenta-vital-meta"></p>
                     <div class="cuenta-vital-grid" id="cuenta-vital-grid"></div>
-                    <a href="vital-rust.html" class="cuenta-vital-link" id="cuenta-vital-link" hidden>Ver stats del clan →</a>
+                    <a href="/vital-rust" class="cuenta-vital-link" id="cuenta-vital-link" hidden>Ver stats del clan →</a>
                 </div>
             </section>
         </div>
@@ -99,7 +99,7 @@
     var loading = document.getElementById("cuenta-loading");
     var errBox = document.getElementById("cuenta-error");
     var qs = new URLSearchParams(window.location.search || "");
-    var nextPath = String(qs.get("next") || "cuenta.html").replace(/^\/+/, "");
+    var nextPath = String(qs.get("next") || "cuenta").replace(/^\/+/, "");
 
     if (typeof mcvCaptureUserTokenFromUrl === "function") {
         mcvCaptureUserTokenFromUrl();
@@ -172,7 +172,7 @@
         if (!user.steamId64 && typeof mcvBindPublicOAuthButtons === "function") {
             mcvBindPublicOAuthButtons({
                 api: API,
-                next: "cuenta.html",
+                next: "cuenta",
                 steamEl: "cuenta-steam-link-btn",
                 googleEl: null,
                 opts: { steamEnabled: true, googleEnabled: false },
@@ -220,7 +220,7 @@
         if (empty) empty.hidden = true;
         for (var i = 0; i < regs.length; i++) {
             var r = regs[i];
-            var slug = r.tournamentSlug ? "events.html#" + encodeURIComponent(r.tournamentSlug) : "events.html";
+            var slug = r.tournamentSlug ? "/events#" + encodeURIComponent(r.tournamentSlug) : "/events";
             var li = document.createElement("li");
             li.className = "cuenta-list__item";
             li.innerHTML =
@@ -436,8 +436,8 @@
         mcvFetchUserMe().then(function (user) {
             if (user) {
                 showProfile(user);
-                if (nextPath && nextPath !== "cuenta.html" && qs.get("token")) {
-                    window.location.href = nextPath;
+                if (nextPath && nextPath !== "cuenta" && qs.get("token")) {
+                    window.location.href = "/" + nextPath.replace(/^\/+/, "");
                 }
             } else {
                 showGuest();

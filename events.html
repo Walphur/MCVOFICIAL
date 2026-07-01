@@ -179,7 +179,7 @@
               : t.status === 'draft'
                 ? '<span class="events-badge events-badge-draft">' + esc(T('events.badgeDraft')) + '</span>'
                 : '<span class="events-badge events-badge-live">' + esc(t.status || '') + '</span>';
-        var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
+        var slugQ = '/tournament?slug=' + encodeURIComponent(t.slug);
         var actions =
             '<div class="events-card-actions' +
             (open ? ' events-card-actions--open' : '') +
@@ -254,7 +254,7 @@
 
     function hofCard(t) {
         var winner = t.winner_display_name || t.winner_team_name || '—';
-        var slugQ = 'tournament.html?slug=' + encodeURIComponent(t.slug);
+        var slugQ = '/tournament?slug=' + encodeURIComponent(t.slug);
         return (
             '<article class="events-hof-card">' +
             '<span class="events-hof-trophy" aria-hidden="true">🏆</span>' +
@@ -303,7 +303,7 @@
         if (d.tournament && d.tournament.slug) {
             heroSlugFromFeatured = true;
             if (heroFeatured) {
-                var heroHref = 'tournament.html?slug=' + encodeURIComponent(d.tournament.slug);
+                var heroHref = '/tournament?slug=' + encodeURIComponent(d.tournament.slug);
                 if (isRegOpen(d.tournament)) heroHref += '#register';
                 heroFeatured.href = heroHref;
             }
@@ -331,7 +331,7 @@
             var upcoming = list.filter(function (t) { return t.status === 'open' || t.status === 'closed' || t.status === 'draft'; });
             var finished = list.filter(function (t) { return t.status === 'finished'; });
             if (heroFeatured && !heroSlugFromFeatured && upcoming.length) {
-                heroFeatured.href = 'tournament.html?slug=' + encodeURIComponent(upcoming[0].slug);
+                heroFeatured.href = '/tournament?slug=' + encodeURIComponent(upcoming[0].slug);
             }
             if (!upcoming.length) {
                 renderEmpty(up, T('events.emptyUpScheduled'), true);

@@ -51,7 +51,7 @@
         <p data-i18n="home.lead">Clan competitivo, eventos, streams y herramientas para administrar jugadores de Rust con más criterio.</p>
 
         <div class="home-quick-paths" role="navigation" aria-label="Acciones rápidas">
-            <a href="events.html" class="home-path-card home-path-card--primary">
+            <a href="/events" class="home-path-card home-path-card--primary">
                 <i data-lucide="swords"></i>
                 <span class="home-path-tag" data-i18n="home.pathCompeteTag">Competir</span>
                 <strong data-i18n="home.pathCompeteTitle">Ver torneos</strong>
@@ -63,7 +63,7 @@
                 <strong data-i18n="home.pathJoinTitle">Entrar al Discord</strong>
                 <p data-i18n="home.pathJoinP">Eventos, roster, tickets y comunidad en vivo.</p>
             </a>
-            <a href="bot.html" class="home-path-card">
+            <a href="/bot" class="home-path-card">
                 <i data-lucide="shield-check"></i>
                 <span class="home-path-tag" data-i18n="home.pathTrackTag">Investigar</span>
                 <strong data-i18n="home.pathTrackTitle">Abrir tracker</strong>
@@ -75,7 +75,7 @@
             <div class="home-event-strip-inner">
                 <span class="home-event-badge" id="home-event-mode">Torneo</span>
                 <span class="home-event-title" id="home-event-title"></span>
-                <a id="home-event-cta" href="events.html" class="home-event-cta" data-i18n="home.eventCta">Ver detalle</a>
+                <a id="home-event-cta" href="/events" class="home-event-cta" data-i18n="home.eventCta">Ver detalle</a>
             </div>
         </div>
     </div>
@@ -119,19 +119,19 @@
     </div>
 
     <div class="home-feature-grid">
-        <a href="bot.html" class="home-feature-card highlight-card">
+        <a href="/bot" class="home-feature-card highlight-card">
             <i data-lucide="radar"></i>
             <span data-i18n="home.featureTracker">MCV Tracker</span>
             <h3 data-i18n="home.featureTrackerH">Investiga jugadores</h3>
             <p data-i18n="home.featureTrackerP">Steam, BattleMetrics, Discord y señales de riesgo resumidas para admins.</p>
         </a>
-        <a href="events.html" class="home-feature-card">
+        <a href="/events" class="home-feature-card">
             <i data-lucide="trophy"></i>
             <span data-i18n="home.featureEvents">Torneos</span>
             <h3 data-i18n="home.featureEventsH">Torneos activos</h3>
             <p data-i18n="home.featureEventsP">Reglas, inscripciones, premios y calendario competitivo del clan.</p>
         </a>
-        <a href="live.html" class="home-feature-card">
+        <a href="/live" class="home-feature-card">
             <i data-lucide="radio"></i>
             <span data-i18n="home.featureLive">Streams</span>
             <h3 data-i18n="home.featureLiveH">Directos oficiales</h3>
@@ -211,12 +211,12 @@
         <div class="footer-links">
             <div>
                 <span class="link-title" data-i18n="footer.navTitle">// Navegación</span>
-                <a href="index.html"><span data-i18n="nav.clan">Clan</span></a>
-                <a href="events.html"><span data-i18n="nav.torneos">Torneos</span></a>
+                <a href="/"><span data-i18n="nav.clan">Clan</span></a>
+                <a href="/events"><span data-i18n="nav.torneos">Torneos</span></a>
                 <a href="equipo/"><span data-i18n="nav.team">Equipo</span></a>
-                <a href="bot.html"><span data-i18n="nav.bot">Bot</span></a>
-                <a href="tickets.html"><span data-i18n="nav.tickets">Tickets</span></a>
-                <a href="live.html"><span data-i18n="nav.streams">Streams</span></a>
+                <a href="/bot"><span data-i18n="nav.bot">Bot</span></a>
+                <a href="/tickets"><span data-i18n="nav.tickets">Tickets</span></a>
+                <a href="/live"><span data-i18n="nav.streams">Streams</span></a>
             </div>
             <div>
                 <span class="link-title" data-i18n="footer.socialTitle">// Redes</span>
@@ -244,7 +244,7 @@
     <div class="footer-bottom">
         <span data-i18n="footer.copy">© 2026 MCV Clan. Todos los derechos reservados.</span>
         <span data-i18n="footer.disclaimer">No afiliado a Facepunch Studios</span>
-        <a href="login.html" class="footer-admin-link" data-i18n="footer.admin">Admin</a>
+        <a href="/login" class="footer-admin-link" data-i18n="footer.admin">Admin</a>
     </div>
 </footer>
 
@@ -268,7 +268,7 @@
                     d.mode === 'live' ? T('home.eventBadgeLive') : d.mode === 'recap' ? T('home.eventBadgeRecap') : T('home.eventBadgeTournament');
                 document.getElementById('home-event-title').textContent = t.title || '';
                 var cta = document.getElementById('home-event-cta');
-                cta.href = 'tournament.html?slug=' + encodeURIComponent(t.slug || '');
+                cta.href = '/tournament?slug=' + encodeURIComponent(t.slug || '');
             })
             .catch(function () {});
     })();

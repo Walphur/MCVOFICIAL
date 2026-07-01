@@ -19,7 +19,7 @@
         cfg = cfg || {};
         var API = apiBase(cfg.api);
         var opts = cfg.opts || DEFAULT_OPTS;
-        var next = String(cfg.next || "cuenta.html").replace(/^\/+/, "");
+        var next = String(cfg.next || "cuenta").replace(/^\/+/, "");
         var q = "?next=" + encodeURIComponent(next);
         var steamEl = typeof cfg.steamEl === "string" ? document.getElementById(cfg.steamEl) : cfg.steamEl;
         var googleEl = typeof cfg.googleEl === "string" ? document.getElementById(cfg.googleEl) : cfg.googleEl;

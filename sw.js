@@ -1,5 +1,5 @@
 /* MCV — service worker: solo imágenes en caché; HTML/CSS/JS siempre red */
-const CACHE = "mcv-static-v55";
+const CACHE = "mcv-static-v56";
 const PRECACHE = ["./logo.png", "./manifest.webmanifest"];
 
 function isMutableAsset(pathname) {
@@ -7,6 +7,7 @@ function isMutableAsset(pathname) {
         /\.(html?|css|js)$/i.test(pathname) ||
         pathname === "/" ||
         pathname === "" ||
+        /^\/(events|tournament|bot|tickets|cuenta|live|login|admin|vital-rust|torretas)\/?$/i.test(pathname) ||
         pathname.indexOf("/equipo") === 0
     );
 }

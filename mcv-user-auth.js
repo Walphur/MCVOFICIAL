@@ -45,9 +45,9 @@
             if (!tok) return false;
             w.sessionStorage.setItem(KEY, tok);
             qs.delete("token");
-            var next = qs.toString();
-            var path = w.location.pathname.split("/").pop() || "cuenta.html";
-            var clean = path + (next ? "?" + next : "");
+            var extra = qs.toString();
+            var path = w.location.pathname || "/";
+            var clean = path + (extra ? "?" + extra : "");
             w.history.replaceState(null, "", clean);
             return true;
         } catch (e) {
@@ -61,9 +61,9 @@
         if (w.mcvUserToken()) {
             return true;
         }
-        var next = opts.next || "cuenta.html";
-        var base = apiBase();
-        var url = (opts.loginPage || "cuenta.html") + "?next=" + encodeURIComponent(next);
+        var next = String(opts.next || "cuenta").replace(/^\/+/, "");
+        var loginPage = opts.loginPage || "/cuenta";
+        var url = loginPage + "?next=" + encodeURIComponent(next);
         if (opts.redirect !== false) {
             w.location.href = url;
         }
