@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#FAA61A">
     <meta name="mcv-api" content="">
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="stylesheet" href="style.css?v=2026-07-01-cuenta-wipe">
-    <link rel="stylesheet" href="style-admin.css?v=2026-07-01-cuenta-wipe">
+    <link rel="stylesheet" href="style.css?v=2026-07-01-cuenta-vouch">
+    <link rel="stylesheet" href="style-admin.css?v=2026-07-01-cuenta-vouch">
     <script src="mcv-purge-legacy-api.js?v=2"></script>
     <script src="mcv-api-base.js?v=2"></script>
     <script src="mcv-user-auth.js?v=2"></script>
@@ -121,8 +121,9 @@
 
             <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vouch-panel" hidden>
                 <h3 class="cuenta-panel__title"><i data-lucide="user-plus"></i> Vouchear jugador</h3>
-                <p class="cuenta-panel__hint">Solo jugadores activos de MCV que juegan el wipe. Staff revisa y, al aceptar, el nuevo queda con tu nombre en Vouch.</p>
-                <form id="cuenta-vouch-form" class="cuenta-wipe-form">
+                <p class="cuenta-panel__hint">Miembros activos de MCV pueden proponer jugadores nuevos. Staff revisa y, al aceptar, el nuevo queda con tu nombre en Vouch.</p>
+                <p id="cuenta-vouch-blocked" class="cuenta-panel__empty cuenta-vouch-blocked" hidden></p>
+                <form id="cuenta-vouch-form" class="cuenta-wipe-form" hidden>
                     <div class="cuenta-wipe-grid">
                         <label class="cuenta-field">
                             <span>SteamID64 del candidato</span>
@@ -256,7 +257,9 @@
         }
         if (user.steamId64) {
             var wipePanelEarly = document.getElementById("cuenta-wipe-panel");
+            var vouchPanelEarly = document.getElementById("cuenta-vouch-panel");
             if (wipePanelEarly) wipePanelEarly.hidden = false;
+            if (vouchPanelEarly) vouchPanelEarly.hidden = false;
         }
         loadDashboard();
         loadVitalStats();
@@ -309,9 +312,39 @@
         }
     }
 
+    function renderVouchPanel(data) {
+        var vouchPanel = document.getElementById("cuenta-vouch-panel");
+        var vouchForm = document.getElementById("cuenta-vouch-form");
+        var blockedEl = document.getElementById("cuenta-vouch-blocked");
+        var steamLinked = Boolean(
+            (data && data.steamLinked) || (cuentaCurrentUser && cuentaCurrentUser.steamId64)
+        );
+        if (!vouchPanel) return;
+        if (!steamLinked) {
+            vouchPanel.hidden = true;
+            return;
+        }
+        vouchPanel.hidden = false;
+        var canVouch = Boolean(data && data.canVouch);
+        var reason = (data && data.vouchBlockedReason) || "";
+        if (vouchForm) vouchForm.hidden = !canVouch;
+        if (blockedEl) {
+            if (!canVouch) {
+                blockedEl.textContent =
+                    reason ||
+                    (data && data.error
+                        ? "Guardá tu perfil de wipe arriba y recargá para vouchear."
+                        : "Completá tu perfil de wipe para vouchear.");
+                blockedEl.hidden = false;
+            } else {
+                blockedEl.hidden = true;
+                blockedEl.textContent = "";
+            }
+        }
+    }
+
     function renderWipeProfile(data) {
         var panel = document.getElementById("cuenta-wipe-panel");
-        var vouchPanel = document.getElementById("cuenta-vouch-panel");
         var loadingEl = document.getElementById("cuenta-wipe-loading");
         var emptyEl = document.getElementById("cuenta-wipe-empty");
         var form = document.getElementById("cuenta-wipe-form");
@@ -323,7 +356,7 @@
         if (loadingEl) loadingEl.hidden = true;
         if (!steamLinked) {
             panel.hidden = true;
-            if (vouchPanel) vouchPanel.hidden = true;
+            renderVouchPanel(null);
             return;
         }
         panel.hidden = false;
@@ -336,7 +369,7 @@
                 emptyEl.hidden = false;
             }
             if (form) form.hidden = true;
-            if (vouchPanel) vouchPanel.hidden = true;
+            renderVouchPanel(data || { steamLinked: true, canVouch: false, error: true });
             return;
         }
 
@@ -365,9 +398,7 @@
             syncWipeFormVisibility();
         }
 
-        if (vouchPanel) {
-            vouchPanel.hidden = !data.canVouch;
-        }
+        renderVouchPanel(data);
     }
 
     function renderVouchRequests(requests) {

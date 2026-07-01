@@ -895,6 +895,7 @@ body.home-page {
 .cuenta-field--wide { grid-column: 1 / -1; }
 .cuenta-field .admin-input { width: 100%; }
 .cuenta-vouch-list { margin-top: 16px; }
+.cuenta-vouch-blocked { margin: 0 0 12px; color: #fbbf24; }
 @media (max-width: 640px) {
     .cuenta-wipe-grid { grid-template-columns: 1fr; }
 }

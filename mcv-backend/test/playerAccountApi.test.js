@@ -4,6 +4,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
     canUserVouch,
+    vouchBlockedReason,
     buildWipeUpdateFields,
     normalizeBmUrl,
     serializeVouchRequest,
@@ -16,11 +17,13 @@ test("canUserVouch permite activos que juegan el wipe", () => {
     assert.equal(canUserVouch({ statusTag: "mcv_strikes", wipePhase: "inicio", pausedOutsideWipe: false }), true);
 });
 
-test("canUserVouch rechaza no_juega, pausa e invitados", () => {
-    assert.equal(canUserVouch({ statusTag: "mcv_active", wipePhase: "no_juega" }), false);
-    assert.equal(canUserVouch({ statusTag: "mcv_active", wipePhase: "inicio", pausedOutsideWipe: true }), false);
-    assert.equal(canUserVouch({ statusTag: "wipe_guest", wipePhase: "inicio" }), false);
-    assert.equal(canUserVouch(null), false);
+test("vouchBlockedReason explica no_juega, pausa e invitados", () => {
+    assert.match(vouchBlockedReason({ statusTag: "mcv_active", wipePhase: "no_juega" }), /Declará arriba/);
+    assert.match(vouchBlockedReason({ statusTag: "mcv_active", wipePhase: "unknown" }), /Declará arriba/);
+    assert.match(vouchBlockedReason({ statusTag: "mcv_active", wipePhase: "inicio", pausedOutsideWipe: true }), /Declará arriba/);
+    assert.match(vouchBlockedReason({ statusTag: "wipe_guest", wipePhase: "inicio" }), /miembros activos/);
+    assert.equal(vouchBlockedReason(null), "Tu Steam no está en Info jugadores todavía.");
+    assert.equal(vouchBlockedReason({ statusTag: "mcv_active", wipePhase: "inicio" }), null);
 });
 
 test("buildWipeUpdateFields valida late con tipo y detalle", () => {

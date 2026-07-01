@@ -84,11 +84,19 @@ function normalizeDiscordHandle(raw) {
     return String(raw || "").trim().slice(0, 120);
 }
 
+function vouchBlockedReason(profile) {
+    if (!profile) return "Tu Steam no está en Info jugadores todavía.";
+    if (!VOUCHER_STATUS_TAGS.has(profile.statusTag)) {
+        return "Solo miembros activos de MCV pueden vouchear.";
+    }
+    if (profile.pausedOutsideWipe || profile.wipePhase === "no_juega" || profile.wipePhase === "unknown") {
+        return "Declará arriba que jugás este wipe (inicio o late) para vouchear.";
+    }
+    return null;
+}
+
 function canUserVouch(profile) {
-    if (!profile) return false;
-    if (profile.pausedOutsideWipe) return false;
-    if (profile.wipePhase === "no_juega") return false;
-    return VOUCHER_STATUS_TAGS.has(profile.statusTag);
+    return !vouchBlockedReason(profile);
 }
 
 function wipeIntentFromProfile(row) {
@@ -324,6 +332,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
         if (!pool) return res.status(503).json({ error: "Base de datos no disponible" });
         const ready = await ensurePlayerInfoExtendedColumns(pool);
         if (!ready) return res.status(503).json({ error: "No se pudo preparar perfiles de jugador" });
+        await ensurePlayerVouchTable(pool);
         try {
             const ctx = await loadUserSteamContext(pool, Number(req.userAuth.userId));
             if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
@@ -366,6 +375,7 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
                 steamId64: ctx.steamId64,
                 profile: wipeIntentFromProfile(ctx.rawProfile),
                 canVouch: canUserVouch(ctx.profile),
+                vouchBlockedReason: vouchBlockedReason(ctx.profile),
                 openVouches: openVouchRes.rows[0]?.n || 0,
                 maxOpenVouches: MAX_OPEN_VOUCHES_PER_USER
             });
@@ -466,10 +476,9 @@ function registerPlayerAccountApi(app, { getPool, steamApiKey }) {
             if (!ctx.steamId64) {
                 return res.status(400).json({ error: "Vinculá Steam para vouchear." });
             }
-            if (!canUserVouch(ctx.profile)) {
-                return res.status(403).json({
-                    error: "Solo jugadores activos de MCV que juegan el wipe pueden vouchear."
-                });
+            const blocked = vouchBlockedReason(ctx.profile);
+            if (blocked) {
+                return res.status(403).json({ error: blocked });
             }
 
             const candidateSteam = normalizeSteamId64(body.candidateSteamId64 || body.steamId64);
@@ -664,6 +673,7 @@ module.exports = {
     registerPlayerAccountApi,
     ensurePlayerVouchTable,
     ensurePlayerInfoExtendedColumns,
+    vouchBlockedReason,
     canUserVouch,
     buildWipeUpdateFields,
     normalizeBmUrl,
