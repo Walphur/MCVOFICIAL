@@ -364,6 +364,7 @@
                             <button type="button" class="vital-nav-item" data-vital-subtab="extras"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="vital-nav-label">Extras</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="torreteros"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.93 19.07l1.41-1.41"/><path d="M17.66 6.34l1.41-1.41"/></svg></span><span class="vital-nav-label">Torreteros</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="roles"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 2H2v10l9.29 9.29a1 1 0 0 0 1.41 0l7.59-7.59a1 1 0 0 0 0-1.41L12 2z"/><circle cx="7" cy="7" r="1.5"/></svg></span><span class="vital-nav-label">Roles</span></button>
+                            <button type="button" class="vital-nav-item" data-vital-subtab="vouch"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="vital-nav-label">Vouch <span id="vital-vouch-pending-badge" class="vital-nav-badge" hidden>0</span></span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="importacion"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M12 3v12m0 0l4-4m-4 4l-4-4"/><path d="M5 21h14"/></svg></span><span class="vital-nav-label">Importar</span></button>
                             <button type="button" class="vital-nav-item" data-vital-subtab="logs"><span class="vital-nav-icon" aria-hidden="true"><svg class="vital-ui-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span><span class="vital-nav-label">Logs</span></button>
                         </nav>
@@ -654,6 +655,19 @@
                         <ul id="vital-roles-list" class="vital-roles-list"></ul>
                     </div>
                 </section>
+                <section class="vital-subpanel" data-vital-section="vouch" style="display:none;">
+                    <div class="vital-page-simple">
+                        <h4>Vouch pendientes</h4>
+                        <p class="admin-form-hint admin-readable">Jugadores activos envían vouch desde Mi Cuenta. Al aceptar se crea la ficha con Steam, Discord, BM y el nombre de quien voucheó.</p>
+                        <div class="filters" id="vouch-filters">
+                            <button type="button" class="filter active" data-vouch-filter="pending">Pendientes <span id="vc-pending">0</span></button>
+                            <button type="button" class="filter" data-vouch-filter="approved">Aceptados</button>
+                            <button type="button" class="filter" data-vouch-filter="rejected">Rechazados</button>
+                            <button type="button" class="filter" data-vouch-filter="all">Todos</button>
+                        </div>
+                        <div id="vital-vouch-list"><p class="empty-hint">Cargando…</p></div>
+                    </div>
+                </section>
                 <section class="vital-subpanel" data-vital-section="importacion" style="display:none;">
                     <div class="vital-page-simple">
                         <h4>Importación masiva</h4>
@@ -666,6 +680,11 @@
                         <button type="button" class="btn-outline btn-sm" id="btn-vital-sync-discord-roles">Sincronizar roles Discord</button>
                         <p id="vital-discord-roles-status" class="admin-form-hint" hidden></p>
                         <ul id="vital-discord-roles-missing" class="vital-extra-list"></ul>
+                        <hr class="admin-sep">
+                        <h4>Reset intención wipe</h4>
+                        <p class="admin-form-hint admin-readable">Al inicio de wipe: pone a todos en «No juega». Cada jugador declara desde Mi Cuenta si juega, late o no.</p>
+                        <button type="button" class="btn-outline btn-sm btn-danger-outline" id="btn-vital-reset-wipe-intent">Resetear todos a No juega</button>
+                        <p id="vital-reset-wipe-status" class="admin-form-hint" hidden></p>
                     </div>
                 </section>
                 <section class="vital-subpanel" data-vital-section="logs" style="display:none;">
@@ -3151,6 +3170,115 @@
         if (vitalInfoSubtab === 'roles') {
             loadVitalRolesManager().catch(function () {});
         }
+        if (vitalInfoSubtab === 'vouch') {
+            loadVitalVouchRequests().catch(function () {});
+        }
+    }
+
+    var vitalVouchFilter = 'pending';
+
+    function updateVitalVouchBadge(count) {
+        var badge = document.getElementById('vital-vouch-pending-badge');
+        var pendingCount = document.getElementById('vc-pending');
+        var n = Number(count) || 0;
+        if (badge) {
+            badge.textContent = String(n);
+            badge.hidden = n < 1;
+        }
+        if (pendingCount) pendingCount.textContent = String(n);
+    }
+
+    function renderVitalVouchList(requests) {
+        var box = document.getElementById('vital-vouch-list');
+        if (!box) return;
+        if (!requests || !requests.length) {
+            box.innerHTML = '<p class="empty-hint">Sin solicitudes.</p>';
+            return;
+        }
+        box.innerHTML = requests.map(function (r) {
+            var actions = r.status === 'pending'
+                ? '<div class="vital-vouch-actions">' +
+                  '<button type="button" class="btn-primary-small btn-sm" data-vouch-action="approve" data-vouch-id="' + escAttr(String(r.id)) + '">Aceptar</button>' +
+                  '<button type="button" class="btn-outline btn-sm" data-vouch-action="reject" data-vouch-id="' + escAttr(String(r.id)) + '">Rechazar</button>' +
+                  '</div>'
+                : '<span class="cuenta-status ' + (r.status === 'approved' ? 'cuenta-status--ok' : 'cuenta-status--bad') + '">' + esc(r.status === 'approved' ? 'Aceptado' : 'Rechazado') + '</span>';
+            return '<article class="vital-vouch-card">' +
+                '<header class="vital-vouch-card__head">' +
+                '<strong>' + esc(r.candidateDisplayName || r.candidateSteamId64) + '</strong>' +
+                '<span class="vital-vouch-card__meta">' + esc(r.candidateSteamId64) + '</span>' +
+                '</header>' +
+                '<dl class="vital-vouch-card__dl">' +
+                '<div><dt>Discord</dt><dd>' + esc(r.candidateDiscord) + '</dd></div>' +
+                '<div><dt>BM</dt><dd><a href="' + escAttr(r.candidateBmUrl) + '" target="_blank" rel="noopener">Abrir</a></dd></div>' +
+                '<div><dt>Vouch por</dt><dd>' + esc(r.voucherDisplayName) + ' · ' + esc(r.voucherSteamId64) + '</dd></div>' +
+                (r.note ? '<div><dt>Nota</dt><dd>' + esc(r.note) + '</dd></div>' : '') +
+                '</dl>' + actions + '</article>';
+        }).join('');
+    }
+
+    async function loadVitalVouchRequests() {
+        var status = vitalVouchFilter || 'pending';
+        var r = await fetch(API + '/api/admin/vital/vouch-requests?status=' + encodeURIComponent(status), {
+            headers: authHeaders(),
+            cache: 'no-store'
+        });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error((d && d.error) || 'No se pudieron cargar vouch');
+        renderVitalVouchList(d.requests || []);
+        updateVitalVouchBadge(d.pendingCount);
+    }
+
+    async function reviewVitalVouch(id, action) {
+        var r = await fetch(API + '/api/admin/vital/vouch-requests/' + encodeURIComponent(String(id)), {
+            method: 'PATCH',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+            body: JSON.stringify({ action: action })
+        });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error((d && d.error) || 'No se pudo revisar el vouch');
+        banner(action === 'approve' ? 'Vouch aceptado. Ficha creada con vouch_by.' : 'Vouch rechazado.', false);
+        await loadVitalVouchRequests();
+        if (action === 'approve') {
+            loadVitalPlayerInfo().catch(function () {});
+        }
+    }
+
+    function resetWipeIntentAll() {
+        return showVitalConfirm({
+            title: 'Reset intención wipe',
+            message: '¿Poner a TODOS los jugadores en «No juega»? Cada uno deberá declarar desde Mi Cuenta.',
+            confirmLabel: 'Resetear',
+            danger: true
+        }).then(function (ok) {
+            if (!ok) return;
+            return fetch(API + '/api/admin/vital/reset-wipe-intent', {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                .then(function (x) {
+                    if (!x.ok) throw new Error((x.d && x.d.error) ? x.d.error : 'reset');
+                    var status = document.getElementById('vital-reset-wipe-status');
+                    if (status) {
+                        status.hidden = false;
+                        status.textContent = 'Actualizados: ' + String(x.d.updated || 0) + ' jugadores.';
+                    }
+                    banner('Reset wipe: ' + String(x.d.updated || 0) + ' jugadores.', false);
+                    return loadVitalPlayerInfo();
+                })
+                .catch(function (e) { banner((e && e.message) ? e.message : 'Error', true); });
+        });
+    }
+
+    async function fetchVitalVouchPendingCount() {
+        try {
+            var r = await fetch(API + '/api/admin/vital/vouch-requests?status=pending', {
+                headers: authHeaders(),
+                cache: 'no-store'
+            });
+            var d = await r.json().catch(function () { return {}; });
+            if (r.ok) updateVitalVouchBadge(d.pendingCount);
+        } catch (e) {}
     }
 
     function syncVitalRoleHidden() {
@@ -5043,6 +5171,36 @@
         if (btnInfoImport) btnInfoImport.addEventListener('click', importVitalPlayerInfo);
         var btnSyncDiscordRoles = document.getElementById('btn-vital-sync-discord-roles');
         if (btnSyncDiscordRoles) btnSyncDiscordRoles.addEventListener('click', syncDiscordRolesFromRoster);
+        var btnResetWipeIntent = document.getElementById('btn-vital-reset-wipe-intent');
+        if (btnResetWipeIntent) btnResetWipeIntent.addEventListener('click', function () { resetWipeIntentAll().catch(function () {}); });
+        var vouchFilters = document.getElementById('vouch-filters');
+        if (vouchFilters && !vouchFilters.dataset.bound) {
+            vouchFilters.dataset.bound = '1';
+            vouchFilters.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vouch-filter]') : null;
+                if (!btn) return;
+                vitalVouchFilter = btn.getAttribute('data-vouch-filter') || 'pending';
+                vouchFilters.querySelectorAll('.filter').forEach(function (f) {
+                    f.classList.toggle('active', f === btn);
+                });
+                loadVitalVouchRequests().catch(function () {});
+            });
+        }
+        var vouchList = document.getElementById('vital-vouch-list');
+        if (vouchList && !vouchList.dataset.bound) {
+            vouchList.dataset.bound = '1';
+            vouchList.addEventListener('click', function (ev) {
+                var btn = ev.target && ev.target.closest ? ev.target.closest('[data-vouch-action]') : null;
+                if (!btn) return;
+                var id = btn.getAttribute('data-vouch-id');
+                var action = btn.getAttribute('data-vouch-action');
+                if (!id || !action) return;
+                reviewVitalVouch(id, action).catch(function (e) {
+                    banner((e && e.message) ? e.message : 'Error', true);
+                });
+            });
+        }
+        fetchVitalVouchPendingCount().catch(function () {});
         var btnScoreApply = document.getElementById('btn-vital-score-apply');
         if (btnScoreApply) {
             btnScoreApply.addEventListener('click', function () {

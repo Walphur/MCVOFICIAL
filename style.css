@@ -885,6 +885,19 @@ body.home-page {
     text-decoration: none;
 }
 .cuenta-vital-link:hover { text-decoration: underline; }
+.cuenta-wipe-form { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.cuenta-wipe-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.cuenta-field { display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--muted); }
+.cuenta-field--wide { grid-column: 1 / -1; }
+.cuenta-field .admin-input { width: 100%; }
+.cuenta-vouch-list { margin-top: 16px; }
+@media (max-width: 640px) {
+    .cuenta-wipe-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 900px) {
     .cuenta-vital-group__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

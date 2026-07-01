@@ -6502,6 +6502,52 @@ select.vital-input-compact {
     overflow: auto;
     padding-right: 6px;
 }
+.vital-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: 4px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #111;
+    background: var(--primary, #faa61a);
+}
+.vital-vouch-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+.vital-vouch-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.vital-vouch-card__meta { font-size: 0.82rem; color: var(--muted); }
+.vital-vouch-card__dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 0 0 12px;
+}
+.vital-vouch-card__dl div { min-width: 0; }
+.vital-vouch-card__dl dt {
+    margin: 0;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+.vital-vouch-card__dl dd { margin: 2px 0 0; font-size: 0.88rem; word-break: break-word; }
+.vital-vouch-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .vital-extra-item {
     display: grid;
     grid-template-columns: 40px minmax(0, 1fr) auto;

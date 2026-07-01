@@ -179,6 +179,12 @@ registerPublicUserAuthRoutes(app, {
 
 registerUserDashboardRoutes(app, { getPool });
 
+const { registerPlayerAccountApi } = require("./playerAccountApi");
+registerPlayerAccountApi(app, {
+    getPool,
+    steamApiKey: STEAM_API_KEY
+});
+
 registerWipeListApi(app, {
     getPool,
     steamApiKey: STEAM_API_KEY

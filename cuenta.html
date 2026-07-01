@@ -74,6 +74,70 @@
                 <ul id="cuenta-regs-list" class="cuenta-list"></ul>
             </section>
 
+            <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-wipe-panel" hidden>
+                <h3 class="cuenta-panel__title"><i data-lucide="calendar-clock"></i> Este wipe</h3>
+                <p class="cuenta-panel__hint" id="cuenta-wipe-hint">Al arrancar cada wipe, todos empiezan en «No juego». Actualizá acá si jugás, cuándo entrás y tus horas.</p>
+                <p id="cuenta-wipe-loading" class="cuenta-panel__empty">Cargando perfil…</p>
+                <p id="cuenta-wipe-empty" class="cuenta-panel__empty" hidden></p>
+                <form id="cuenta-wipe-form" class="cuenta-wipe-form" hidden>
+                    <div class="cuenta-wipe-grid">
+                        <label class="cuenta-field">
+                            <span>¿Jugás este wipe?</span>
+                            <select id="cuenta-wipe-participation" class="admin-input">
+                                <option value="inicio">Sí, desde el inicio</option>
+                                <option value="late">Sí, entro late</option>
+                                <option value="no_juega">No juego este wipe</option>
+                            </select>
+                        </label>
+                        <label class="cuenta-field" id="cuenta-wipe-hours-wrap">
+                            <span>Horas que vas a jugar</span>
+                            <select id="cuenta-wipe-hours" class="admin-input">
+                                <option value="light">Pocas horas</option>
+                                <option value="heavy">Juego mucho</option>
+                            </select>
+                        </label>
+                        <label class="cuenta-field cuenta-field--wide" id="cuenta-wipe-late-wrap" hidden>
+                            <span>¿Por qué entrás late?</span>
+                            <input id="cuenta-wipe-late-reason" class="admin-input" maxlength="240" placeholder="Ej. laburo hasta el jueves" />
+                        </label>
+                        <label class="cuenta-field cuenta-field--wide">
+                            <span>BattleMetrics (tu link)</span>
+                            <input id="cuenta-wipe-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." />
+                        </label>
+                    </div>
+                    <p id="cuenta-wipe-msg" class="tickets-form-msg" hidden></p>
+                    <button type="submit" class="btn-primary-small" id="cuenta-wipe-save">Guardar</button>
+                </form>
+            </section>
+
+            <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vouch-panel" hidden>
+                <h3 class="cuenta-panel__title"><i data-lucide="user-plus"></i> Vouchear jugador</h3>
+                <p class="cuenta-panel__hint">Solo jugadores activos de MCV que juegan el wipe. Staff revisa y, al aceptar, el nuevo queda con tu nombre en Vouch.</p>
+                <form id="cuenta-vouch-form" class="cuenta-wipe-form">
+                    <div class="cuenta-wipe-grid">
+                        <label class="cuenta-field">
+                            <span>SteamID64 del candidato</span>
+                            <input id="cuenta-vouch-steam" class="admin-input" inputmode="numeric" placeholder="7656119..." required />
+                        </label>
+                        <label class="cuenta-field">
+                            <span>Discord del candidato</span>
+                            <input id="cuenta-vouch-discord" class="admin-input" placeholder="usuario o usuario#1234" required />
+                        </label>
+                        <label class="cuenta-field cuenta-field--wide">
+                            <span>Link BattleMetrics</span>
+                            <input id="cuenta-vouch-bm" class="admin-input" placeholder="https://www.battlemetrics.com/players/..." required />
+                        </label>
+                        <label class="cuenta-field cuenta-field--wide">
+                            <span>Nota (opcional)</span>
+                            <input id="cuenta-vouch-note" class="admin-input" maxlength="500" placeholder="Ej. jugó con nosotros en el wipe pasado" />
+                        </label>
+                    </div>
+                    <p id="cuenta-vouch-msg" class="tickets-form-msg" hidden></p>
+                    <button type="submit" class="btn-primary-small">Enviar vouch</button>
+                </form>
+                <ul id="cuenta-vouch-list" class="cuenta-list cuenta-vouch-list"></ul>
+            </section>
+
             <section class="form-container cuenta-card cuenta-panel cuenta-panel--wide" id="cuenta-vital-panel">
                 <h3 class="cuenta-panel__title"><i data-lucide="bar-chart-3"></i> Stats Vital Rust</h3>
                 <p class="cuenta-panel__hint" id="cuenta-vital-hint">Consultamos tu Steam ID en la API de Vital (servidores MCV). Si jugaste en wipe activo, aparecen tus stats.</p>
@@ -181,7 +245,137 @@
         }
         loadDashboard();
         loadVitalStats();
+        loadWipeProfile();
         if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+    }
+
+    function wipeParticipationLabel(p) {
+        if (!p) return "—";
+        if (p.wipePhase === "no_juega") return "No juego";
+        var base = p.wipePhase === "late" ? "Late" : "Inicio";
+        var hours = p.hoursBand === "heavy" ? " · muchas horas" : p.hoursBand === "light" ? " · pocas horas" : "";
+        return base + hours;
+    }
+
+    function syncWipeFormVisibility() {
+        var part = document.getElementById("cuenta-wipe-participation");
+        var hoursWrap = document.getElementById("cuenta-wipe-hours-wrap");
+        var lateWrap = document.getElementById("cuenta-wipe-late-wrap");
+        if (!part) return;
+        var val = part.value;
+        var playing = val === "inicio" || val === "late";
+        if (hoursWrap) hoursWrap.hidden = !playing;
+        if (lateWrap) lateWrap.hidden = val !== "late";
+    }
+
+    function renderWipeProfile(data) {
+        var panel = document.getElementById("cuenta-wipe-panel");
+        var vouchPanel = document.getElementById("cuenta-vouch-panel");
+        var loadingEl = document.getElementById("cuenta-wipe-loading");
+        var emptyEl = document.getElementById("cuenta-wipe-empty");
+        var form = document.getElementById("cuenta-wipe-form");
+        if (!panel) return;
+
+        if (loadingEl) loadingEl.hidden = true;
+        if (!data || !data.steamLinked) {
+            panel.hidden = true;
+            if (vouchPanel) vouchPanel.hidden = true;
+            return;
+        }
+        panel.hidden = false;
+
+        if (!data.profile) {
+            if (emptyEl) {
+                emptyEl.textContent = data.message || "Tu Steam no está en Info jugadores.";
+                emptyEl.hidden = false;
+            }
+            if (form) form.hidden = true;
+        } else {
+            if (emptyEl) emptyEl.hidden = true;
+            if (form) form.hidden = false;
+            var p = data.profile;
+            var partEl = document.getElementById("cuenta-wipe-participation");
+            var hoursEl = document.getElementById("cuenta-wipe-hours");
+            var lateEl = document.getElementById("cuenta-wipe-late-reason");
+            var bmEl = document.getElementById("cuenta-wipe-bm");
+            if (partEl) {
+                partEl.value = p.wipePhase === "no_juega" || p.wipePhase === "unknown" ? "no_juega" : p.wipePhase;
+            }
+            if (hoursEl) hoursEl.value = p.hoursBand === "heavy" ? "heavy" : "light";
+            if (lateEl) lateEl.value = p.lateReason || "";
+            if (bmEl) bmEl.value = p.bmUrl || "";
+            syncWipeFormVisibility();
+        }
+
+        if (vouchPanel) {
+            vouchPanel.hidden = !data.canVouch;
+        }
+    }
+
+    function renderVouchRequests(requests) {
+        var list = document.getElementById("cuenta-vouch-list");
+        if (!list) return;
+        list.innerHTML = "";
+        if (!requests || !requests.length) return;
+        for (var i = 0; i < requests.length; i++) {
+            var r = requests[i];
+            var li = document.createElement("li");
+            li.className = "cuenta-list__item";
+            li.innerHTML =
+                '<div class="cuenta-list__main">' +
+                "<strong>" + esc(r.candidateDisplayName || r.candidateSteamId64) + "</strong>" +
+                '<span class="cuenta-list__sub">' + esc(r.candidateSteamId64) + " · " + fmtDate(r.createdAt) + "</span>" +
+                "</div>" +
+                '<span class="cuenta-status ' + statusClass(r.status === "approved" ? "accepted" : r.status === "rejected" ? "declined" : "pending") + '">' +
+                esc(r.status === "approved" ? "Aceptado" : r.status === "rejected" ? "Rechazado" : "Pendiente") +
+                "</span>";
+            list.appendChild(li);
+        }
+    }
+
+    function showFormMsg(el, text, isErr) {
+        if (!el) return;
+        if (!text) {
+            el.hidden = true;
+            el.textContent = "";
+            return;
+        }
+        el.hidden = false;
+        el.textContent = text;
+        el.className = "tickets-form-msg" + (isErr ? " err" : " ok");
+    }
+
+    function loadWipeProfile() {
+        if (!API || typeof mcvUserAuthHeaders !== "function") return;
+        var loadingEl = document.getElementById("cuenta-wipe-loading");
+        if (loadingEl) loadingEl.hidden = false;
+        fetch(API + "/api/auth/user/wipe-profile", {
+            headers: mcvUserAuthHeaders(),
+            cache: "no-store"
+        })
+            .then(function (r) {
+                return r.json().then(function (d) {
+                    return { ok: r.ok, d: d };
+                });
+            })
+            .then(function (x) {
+                renderWipeProfile(x.ok ? x.d : { steamLinked: false });
+            })
+            .catch(function () {
+                renderWipeProfile({ steamLinked: false });
+            });
+
+        fetch(API + "/api/auth/user/vouch-requests", {
+            headers: mcvUserAuthHeaders(),
+            cache: "no-store"
+        })
+            .then(function (r) {
+                return r.ok ? r.json() : { requests: [] };
+            })
+            .then(function (d) {
+                renderVouchRequests(d.requests);
+            })
+            .catch(function () {});
     }
 
     function renderTickets(tickets) {
@@ -452,6 +646,84 @@
         logoutBtn.addEventListener("click", function () {
             if (typeof mcvUserLogout === "function") mcvUserLogout();
             showGuest();
+        });
+    }
+
+    var wipePart = document.getElementById("cuenta-wipe-participation");
+    if (wipePart) wipePart.addEventListener("change", syncWipeFormVisibility);
+
+    var wipeForm = document.getElementById("cuenta-wipe-form");
+    if (wipeForm) {
+        wipeForm.addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            if (!API || typeof mcvUserAuthHeaders !== "function") return;
+            var msg = document.getElementById("cuenta-wipe-msg");
+            showFormMsg(msg, "", false);
+            var body = {
+                participation: (document.getElementById("cuenta-wipe-participation") || {}).value,
+                hoursBand: (document.getElementById("cuenta-wipe-hours") || {}).value,
+                lateReason: (document.getElementById("cuenta-wipe-late-reason") || {}).value,
+                bmUrl: (document.getElementById("cuenta-wipe-bm") || {}).value
+            };
+            fetch(API + "/api/auth/user/wipe-profile", {
+                method: "PATCH",
+                headers: Object.assign({ "Content-Type": "application/json" }, mcvUserAuthHeaders()),
+                body: JSON.stringify(body)
+            })
+                .then(function (r) {
+                    return r.json().then(function (d) {
+                        return { ok: r.ok, d: d };
+                    });
+                })
+                .then(function (x) {
+                    if (!x.ok) {
+                        showFormMsg(msg, (x.d && x.d.error) || "No se pudo guardar.", true);
+                        return;
+                    }
+                    showFormMsg(msg, "Guardado: " + wipeParticipationLabel(x.d.profile), false);
+                    loadWipeProfile();
+                })
+                .catch(function () {
+                    showFormMsg(msg, "Error de red.", true);
+                });
+        });
+    }
+
+    var vouchForm = document.getElementById("cuenta-vouch-form");
+    if (vouchForm) {
+        vouchForm.addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            if (!API || typeof mcvUserAuthHeaders !== "function") return;
+            var msg = document.getElementById("cuenta-vouch-msg");
+            showFormMsg(msg, "", false);
+            var body = {
+                candidateSteamId64: (document.getElementById("cuenta-vouch-steam") || {}).value,
+                candidateDiscord: (document.getElementById("cuenta-vouch-discord") || {}).value,
+                candidateBmUrl: (document.getElementById("cuenta-vouch-bm") || {}).value,
+                note: (document.getElementById("cuenta-vouch-note") || {}).value
+            };
+            fetch(API + "/api/auth/user/vouch", {
+                method: "POST",
+                headers: Object.assign({ "Content-Type": "application/json" }, mcvUserAuthHeaders()),
+                body: JSON.stringify(body)
+            })
+                .then(function (r) {
+                    return r.json().then(function (d) {
+                        return { ok: r.ok, d: d };
+                    });
+                })
+                .then(function (x) {
+                    if (!x.ok) {
+                        showFormMsg(msg, (x.d && x.d.error) || "No se pudo enviar.", true);
+                        return;
+                    }
+                    showFormMsg(msg, x.d.message || "Vouch enviado.", false);
+                    vouchForm.reset();
+                    loadWipeProfile();
+                })
+                .catch(function () {
+                    showFormMsg(msg, "Error de red.", true);
+                });
         });
     }
 })();
